@@ -1,0 +1,76 @@
+{
+  "hero": {
+    "previews": [
+      {
+        "id": "hero-1",
+        "src": "/media/hero/fa94b151-cf0f-4926-8e6f-09d6c3ac9b48.jpg",
+        "alt": "WhatsApp Image 2025-09-09 at 00.02.12_3bceeccb.jpg",
+        "prompt": "A white maruti 800"
+      },
+      {
+        "id": "hero-2",
+        "src": "/media/hero/16ec4a9a-fa11-4344-8cf8-1da240ec6458.jpg",
+        "alt": "wallpaperflare.com_wallpaper.jpg",
+        "prompt": "A warrior in dark shade"
+      },
+      {
+        "id": "hero-3",
+        "src": "/media/hero/08b9c102-edba-46cc-9736-8298f3a56357.png",
+        "alt": "tanjiro-kamado-3840x2160-9323.png",
+        "prompt": "A faceless amine"
+      },
+      {
+        "id": "hero-4",
+        "src": "/media/hero/c21daecc-4afa-4b3d-af95-5e2d689d7c69.png",
+        "alt": "copy2.png",
+        "prompt": "Samurai in dark"
+      }
+    ]
+  },
+  "gallery": {
+    "items": [
+      {
+        "id": "g-1",
+        "src": "/media/gallery/f4576312-9ac7-4bbd-801e-2144694743e3.jpg",
+        "alt": "hennessey-dodge-challenger-srt-demon-7680x4320-20754.jpg",
+        "prompt": "A dorge",
+        "category": "cinematic"
+      },
+      {
+        "id": "g-2",
+        "src": "/media/gallery/7632da42-bb89-44c9-a0b5-1f79c182e702.jpg",
+        "alt": "lamborghini-urus-7680x4320-26554.jpg",
+        "prompt": "A lamborgini",
+        "category": "sci-fi"
+      },
+      {
+        "id": "g-3",
+        "src": "/media/gallery/56f3d08d-4e9c-427b-8a26-37b36cb778fc.jpg",
+        "alt": "wallpaperflare.com_wallpaper (2).jpg",
+        "prompt": "A warrior on mountains",
+        "category": "cinematic"
+      },
+      {
+        "id": "g-4",
+        "src": "/media/gallery/fe583c8c-185e-42c6-aa21-615f89dfb1a9.jpg",
+        "alt": "spider-man-dark-5120x2880-18796.jpg",
+        "prompt": "A dark spider man",
+        "category": "realistic"
+      },
+      {
+        "id": "g-5",
+        "src": "/media/gallery/f786c428-1dd1-4273-9559-b874910ac693.jpg",
+        "alt": "tengen-uzui-dark-7680x4320-18405.jpg",
+        "prompt": "Samurai",
+        "category": "cinematic"
+      },
+      {
+        "id": "g-6",
+        "src": "/media/gallery/80a15047-f21b-4dba-9c72-d1866c7d649b.jpg",
+        "alt": "wallpaperflare.com_wallpaper (1).jpg",
+        "prompt": "A samurai on fire",
+        "category": "realistic"
+      }
+    ]
+  }
+}

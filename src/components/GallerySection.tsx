@@ -12,75 +12,7 @@ type Item = {
   alt: string;
   prompt: string;
   category: Exclude<Category, "all">;
-  aspect: "tall" | "wide" | "square";
 };
-
-const items: Item[] = [
-  {
-    id: "1",
-    src: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&q=80",
-    alt: "Foggy peaks",
-    prompt: "Misty mountain range at blue hour",
-    category: "cinematic",
-    aspect: "tall",
-  },
-  {
-    id: "2",
-    src: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80",
-    alt: "Earth from space",
-    prompt: "Orbital view, neon data streams",
-    category: "sci-fi",
-    aspect: "wide",
-  },
-  {
-    id: "3",
-    src: "https://images.unsplash.com/photo-1549887534-1541e9326642?w=800&q=80",
-    alt: "Abstract paint",
-    prompt: "Oil swirl macro, jewel tones",
-    category: "art",
-    aspect: "square",
-  },
-  {
-    id: "4",
-    src: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=800&q=80",
-    alt: "Forest path",
-    prompt: "Hyper-real forest trail, golden light",
-    category: "realistic",
-    aspect: "tall",
-  },
-  {
-    id: "5",
-    src: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80",
-    alt: "Neon tunnel",
-    prompt: "Infinite neon corridor, anamorphic",
-    category: "sci-fi",
-    aspect: "wide",
-  },
-  {
-    id: "6",
-    src: "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=800&q=80",
-    alt: "Gallery wall",
-    prompt: "Gallery interior, soft spotlight",
-    category: "art",
-    aspect: "square",
-  },
-  {
-    id: "7",
-    src: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&q=80",
-    alt: "Valley fog",
-    prompt: "Cinematic valley inversion layer",
-    category: "cinematic",
-    aspect: "wide",
-  },
-  {
-    id: "8",
-    src: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80",
-    alt: "Alpine lake",
-    prompt: "8K alpine reflection, crystal water",
-    category: "realistic",
-    aspect: "tall",
-  },
-];
 
 const filters: { key: Category; label: string }[] = [
   { key: "all", label: "All" },
@@ -90,13 +22,7 @@ const filters: { key: Category; label: string }[] = [
   { key: "realistic", label: "Realistic" },
 ];
 
-function aspectClass(a: Item["aspect"]) {
-  if (a === "tall") return "aspect-[3/4]";
-  if (a === "wide") return "aspect-[16/10]";
-  return "aspect-square";
-}
-
-export function GallerySection() {
+export function GallerySection({ items }: { items: Item[] }) {
   const [filter, setFilter] = useState<Category>("all");
   const [selected, setSelected] = useState<Item | null>(null);
   const reduce = useReducedMotion();
@@ -177,7 +103,7 @@ export function GallerySection() {
 
         <motion.div
           layout
-          className="columns-1 gap-4 sm:columns-2 sm:gap-6 lg:columns-3"
+          className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3"
         >
           <AnimatePresence mode="popLayout">
             {visible.map((item) => (
@@ -188,12 +114,11 @@ export function GallerySection() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="mb-4 break-inside-avoid sm:mb-6"
               >
                 <button
                   type="button"
                   onClick={() => setSelected(item)}
-                  className={`group relative block w-full overflow-hidden rounded-xl border text-left sm:rounded-2xl ${aspectClass(item.aspect)}`}
+                  className="group relative block w-full touch-manipulation overflow-hidden rounded-xl border text-left sm:rounded-2xl aspect-video"
                   style={{ borderColor: "var(--border-subtle)" }}
                 >
                   <Image
@@ -203,12 +128,12 @@ export function GallerySection() {
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                  <div className="absolute bottom-0 left-0 right-0 translate-y-2 p-5 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent opacity-75 transition-opacity duration-300 max-sm:opacity-80 sm:opacity-0 sm:group-hover:opacity-100" />
+                  <div className="absolute bottom-0 left-0 right-0 translate-y-0 p-4 opacity-100 transition-all duration-300 max-sm:translate-y-0 sm:translate-y-2 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100 sm:p-5">
                     <span className="inline-block rounded-full bg-white/20 px-3 py-1 text-xs font-medium capitalize backdrop-blur-md">
                       {item.category}
                     </span>
-                    <p className="mt-2 text-sm font-medium text-white">
+                    <p className="mt-2 line-clamp-2 text-sm font-medium text-white sm:line-clamp-none">
                       {item.prompt}
                     </p>
                   </div>

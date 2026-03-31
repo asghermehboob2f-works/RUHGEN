@@ -83,7 +83,7 @@ export function Navbar() {
         }}
       >
         <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between gap-2 px-3 sm:h-20 sm:gap-3 sm:px-6 lg:px-10">
-          <BrandLogo size="sm" priority href="/" className="sm:[&_.font-display]:text-lg" />
+          <BrandLogo size="md" priority href="/" className="min-w-0 shrink sm:[&_.font-display]:text-lg" />
 
           <nav
             className="hidden max-w-[min(100%,min(calc(100vw-11rem),540px))] items-center gap-0.5 overflow-x-auto rounded-full border px-1 py-1 [scrollbar-width:none] md:flex md:shrink [&::-webkit-scrollbar]:hidden lg:max-w-[min(100%,720px)]"
@@ -237,7 +237,7 @@ export function Navbar() {
                 className="flex items-center justify-between border-b p-4 sm:p-5"
                 style={{ borderColor: "var(--border-subtle)" }}
               >
-                <BrandLogo size="sm" href="/" onNavigate={() => setOpen(false)} />
+                <BrandLogo size="md" href="/" onNavigate={() => setOpen(false)} className="min-w-0 shrink" />
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
@@ -262,7 +262,7 @@ export function Navbar() {
                     <Link
                       href={sectionHref(pathname, l.href)}
                       onClick={() => setOpen(false)}
-                      className="block min-h-[48px] rounded-2xl border px-4 py-3.5 text-[15px] font-medium leading-snug"
+                      className="flex min-h-[48px] items-center justify-center rounded-2xl border px-4 py-3.5 text-center text-[15px] font-medium leading-snug"
                       style={{
                         color: "var(--text-primary)",
                         borderColor: "var(--border-subtle)",
@@ -277,7 +277,7 @@ export function Navbar() {
                   className="mt-2 border-t pt-4"
                   style={{ borderColor: "var(--border-subtle)" }}
                 >
-                  <p className="px-2 text-[10px] font-bold uppercase tracking-wider sm:px-1" style={{ color: "var(--text-subtle)" }}>
+                  <p className="px-2 text-center text-[10px] font-bold uppercase tracking-wider sm:px-1" style={{ color: "var(--text-subtle)" }}>
                     Pages
                   </p>
                   <div className="mt-2 flex flex-col gap-1">
@@ -290,12 +290,51 @@ export function Navbar() {
                         key={x.href}
                         href={x.href}
                         onClick={() => setOpen(false)}
-                        className="block min-h-[44px] rounded-xl px-4 py-3 text-sm font-medium"
+                        className="flex min-h-[44px] items-center justify-center rounded-xl px-4 py-3 text-center text-sm font-medium"
                         style={{ color: "var(--text-muted)" }}
                       >
                         {x.label}
                       </Link>
                     ))}
+                  </div>
+                </div>
+                <div
+                  className="mt-2 border-t pt-4"
+                  style={{ borderColor: "var(--border-subtle)" }}
+                >
+                  <p className="px-2 text-center text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--text-subtle)" }}>
+                    More
+                  </p>
+                  <div className="mt-2 flex flex-col gap-1">
+                    {[
+                      { href: "/privacy", label: "Privacy" },
+                      { href: "/terms", label: "Terms" },
+                      { href: "/#faq", label: "FAQ" },
+                    ].map((x) => (
+                      <Link
+                        key={x.href + x.label}
+                        href={x.href}
+                        onClick={() => setOpen(false)}
+                        className="flex min-h-[44px] items-center justify-center rounded-xl px-4 py-3 text-center text-sm font-medium"
+                        style={{ color: "var(--text-muted)" }}
+                      >
+                        {x.label}
+                      </Link>
+                    ))}
+                    {ready && user ? (
+                      <Link
+                        href="/dashboard/content"
+                        onClick={() => setOpen(false)}
+                        className="flex min-h-[44px] items-center justify-center rounded-xl border px-4 py-3 text-center text-sm font-semibold"
+                        style={{
+                          borderColor: "var(--border-subtle)",
+                          background: "var(--glass)",
+                          color: "var(--text-primary)",
+                        }}
+                      >
+                        Site content
+                      </Link>
+                    ) : null}
                   </div>
                 </div>
                 <div className="mt-3 flex flex-col gap-2 border-t pt-4" style={{ borderColor: "var(--border-subtle)" }}>

@@ -71,14 +71,14 @@ export function Features() {
           {features.map((f) => (
             <article
               key={f.title}
-              className="group premium-ring rounded-[1.15rem] border p-5 transition-all duration-500 hover:-translate-y-2 hover:border-[#7B61FF]/45 hover:shadow-[0_24px_64px_-12px_rgba(123,97,255,0.28)] sm:rounded-2xl sm:p-7 md:p-9"
+              className="group premium-ring rounded-[1.15rem] border p-5 text-center transition-all duration-500 hover:-translate-y-2 hover:border-[#7B61FF]/45 hover:shadow-[0_24px_64px_-12px_rgba(123,97,255,0.28)] sm:rounded-2xl sm:p-7 md:p-9 md:text-left"
               style={{
                 borderColor: "var(--border-subtle)",
                 background: "var(--glass)",
                 backdropFilter: "blur(20px)",
               }}
             >
-              <div className="mb-5 flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-2xl bg-gradient-to-br from-[#7B61FF] to-[#00D4FF] shadow-[0_0_36px_rgba(123,97,255,0.42)] transition-transform duration-500 group-hover:scale-110 md:h-20 md:w-20">
+              <div className="mb-5 mx-auto flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-2xl bg-gradient-to-br from-[#7B61FF] to-[#00D4FF] shadow-[0_0_36px_rgba(123,97,255,0.42)] transition-transform duration-500 group-hover:scale-110 md:mx-0 md:h-20 md:w-20">
                 <f.icon className="h-8 w-8 text-white md:h-9 md:w-9" strokeWidth={1.75} />
               </div>
               <h3

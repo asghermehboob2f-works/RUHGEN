@@ -1,14 +1,15 @@
 import Image from "next/image";
 import Link from "next/link";
-import { BRAND_LOGO_SRC } from "@/lib/constants";
+import { BRAND_LOGO_INTRINSIC, BRAND_LOGO_SRC } from "@/lib/constants";
 
 type Size = "sm" | "md" | "lg" | "xl";
 
-const px: Record<Size, number> = {
-  sm: 28,
-  md: 36,
-  lg: 44,
-  xl: 52,
+/** Logo height in px; width follows asset aspect via object-contain */
+const heightPx: Record<Size, number> = {
+  sm: 34,
+  md: 42,
+  lg: 52,
+  xl: 64,
 };
 
 type Props = {
@@ -22,13 +23,13 @@ type Props = {
 
 export function BrandLogo({
   size = "md",
-  showWordmark = true,
+  showWordmark = false,
   className = "",
   href = "/",
   priority = false,
   onNavigate,
 }: Props) {
-  const dim = px[size];
+  const h = heightPx[size];
 
   return (
     <Link
@@ -37,16 +38,17 @@ export function BrandLogo({
       className={`group inline-flex items-center gap-2.5 sm:gap-3 ${className}`}
     >
       <span
-        className="relative flex shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[var(--glass)] transition-[box-shadow,transform] duration-300 group-hover:border-[#7B61FF]/35 group-hover:shadow-[0_0_32px_-4px_rgba(123,97,255,0.5)] group-active:scale-[0.98]"
-        style={{ width: dim + 8, height: dim + 8 }}
+        className="relative inline-flex shrink-0 items-center justify-center"
+        style={{ height: h }}
       >
         <Image
           src={BRAND_LOGO_SRC}
           alt="RUHGEN"
-          width={dim}
-          height={dim}
-          className="object-contain p-1.5"
+          width={BRAND_LOGO_INTRINSIC.width}
+          height={BRAND_LOGO_INTRINSIC.height}
+          className="h-full w-auto max-h-full max-w-[min(72vw,280px)] object-contain object-left transition-[filter,transform] duration-300 group-hover:brightness-110 sm:max-w-[min(42vw,320px)]"
           priority={priority}
+          sizes="(max-width: 640px) 72vw, 280px"
         />
       </span>
       {showWordmark && (

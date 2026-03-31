@@ -5,36 +5,20 @@ import Image from "next/image";
 import Link from "next/link";
 import { NeuralBackground } from "./NeuralBackground";
 
-const previews = [
-  {
-    src: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&q=80",
-    alt: "Abstract fluid art",
-    prompt: "Neon liquid glass, 8k",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?w=600&q=80",
-    alt: "Sci-fi corridor",
-    prompt: "Brutalist sci-fi atrium",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=600&q=80",
-    alt: "Portrait concept",
-    prompt: "Cinematic portrait, fog",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80",
-    alt: "Neon city",
-    prompt: "Cyberpunk skyline dusk",
-  },
-];
+type Preview = {
+  id: string;
+  src: string;
+  alt: string;
+  prompt: string;
+};
 
-export function Hero() {
+export function Hero({ previews }: { previews: Preview[] }) {
   const reduce = useReducedMotion();
 
   return (
     <section
       id="hero"
-      className="mesh-section relative flex min-h-[100dvh] flex-col justify-end overflow-hidden pb-12 pt-[max(6rem,env(safe-area-inset-top,0px)+5rem)] sm:justify-center sm:pb-20 sm:pt-28 md:pt-32"
+      className="mesh-section relative flex min-h-[100dvh] flex-col justify-center overflow-hidden pb-14 pt-[max(5.5rem,env(safe-area-inset-top,0px)+4.75rem)] sm:pb-20 sm:pt-28 md:pt-32"
     >
       {!reduce ? (
         <>
@@ -74,12 +58,12 @@ export function Hero() {
       </div>
 
       <div className="relative z-10 mx-auto w-full max-w-[1400px] px-3 sm:px-6 lg:px-10">
-        <div className="mx-auto max-w-4xl text-center">
+        <div className="mx-auto max-w-4xl px-1 text-center sm:px-0">
           <motion.p
             initial={reduce ? false : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55 }}
-            className="mb-5 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.22em] sm:text-sm"
+            className="mb-5 inline-flex items-center justify-center gap-2 rounded-full border px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.22em] sm:text-sm"
             style={{
               color: "var(--text-muted)",
               borderColor: "var(--border-subtle)",
@@ -116,20 +100,20 @@ export function Hero() {
             real-time feedback, built for studios and solo creators alike.
           </motion.p>
           <motion.div
-            className="mt-10 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center sm:gap-4"
+            className="mx-auto mt-10 flex w-full max-w-md flex-col items-center justify-center gap-3 sm:max-w-none sm:flex-row sm:gap-4"
             initial={reduce ? false : { opacity: 0, y: 22 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
             <Link
               href="/sign-up"
-              className="inline-flex min-h-[52px] min-w-[min(100%,220px)] items-center justify-center rounded-2xl px-8 py-3.5 text-base font-semibold text-white btn-gradient sm:min-w-[200px]"
+              className="inline-flex w-full min-h-[52px] max-w-sm items-center justify-center rounded-2xl px-8 py-3.5 text-base font-semibold text-white btn-gradient sm:w-auto sm:min-w-[200px] sm:max-w-none"
             >
               Start creating free
             </Link>
             <Link
               href="/#preview"
-              className="inline-flex min-h-[52px] min-w-[min(100%,220px)] items-center justify-center rounded-2xl border px-8 py-3.5 text-base font-semibold transition-colors hover:border-[#7B61FF]/50"
+              className="inline-flex w-full min-h-[52px] max-w-sm items-center justify-center rounded-2xl border px-8 py-3.5 text-base font-semibold transition-colors hover:border-[#7B61FF]/50 sm:w-auto sm:min-w-[200px] sm:max-w-none"
               style={{
                 borderColor: "var(--border-subtle)",
                 color: "var(--text-primary)",
@@ -141,11 +125,11 @@ export function Hero() {
           </motion.div>
         </div>
 
-        <div className="mt-10 grid grid-cols-2 gap-2.5 sm:mt-20 sm:gap-4 lg:grid-cols-4">
+        <div className="mt-12 grid grid-cols-1 gap-3 sm:mt-20 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
           {previews.map((p, i) => (
             <div
-              key={p.src}
-              className="group premium-ring relative aspect-[4/5] overflow-hidden rounded-xl border sm:aspect-video sm:rounded-2xl lg:aspect-[4/3]"
+              key={p.id}
+              className="group premium-ring relative aspect-video overflow-hidden rounded-xl border sm:rounded-2xl"
               style={{ borderColor: "var(--border-subtle)" }}
             >
               <Image
@@ -153,15 +137,15 @@ export function Hero() {
                 alt={p.alt}
                 fill
                 className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
-                sizes="(max-width: 1024px) 50vw, 25vw"
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                 priority={i < 2}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-              <div className="absolute bottom-0 left-0 right-0 translate-y-3 p-4 opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100 sm:p-5">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent opacity-80 transition-opacity duration-500 max-sm:opacity-90 sm:opacity-0 sm:group-hover:opacity-100" />
+              <div className="absolute bottom-0 left-0 right-0 translate-y-0 p-4 opacity-100 transition-all duration-500 max-sm:translate-y-0 sm:translate-y-3 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100 sm:p-5">
                 <span className="inline-flex rounded-full bg-white/12 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-white/95 backdrop-blur-md sm:text-xs">
                   Prompt
                 </span>
-                <span className="mt-2 block text-sm font-medium leading-snug text-white">
+                <span className="mt-2 block line-clamp-3 text-left text-sm font-medium leading-snug text-white sm:line-clamp-none">
                   {p.prompt}
                 </span>
               </div>

@@ -11,18 +11,20 @@ import { StackStrip } from "@/components/StackStrip";
 import { StatsStrip } from "@/components/StatsStrip";
 import { Testimonials } from "@/components/Testimonials";
 import { Pricing } from "@/components/Pricing";
+import { readSiteContent } from "@/lib/site-content";
 
-export default function Home() {
+export default async function Home() {
+  const content = await readSiteContent();
   return (
     <MarketingShell>
       <main>
-        <Hero />
+        <Hero previews={content.hero.previews} />
         <StatsStrip />
         <LivePreview />
         <StackStrip />
         <Features />
         <BentoHighlights />
-        <GallerySection />
+        <GallerySection items={content.gallery.items} />
         <HowItWorks />
         <Testimonials />
         <Pricing />

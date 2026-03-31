@@ -57,8 +57,8 @@ export function Footer() {
     >
       <div className="mx-auto max-w-[1400px] px-4 py-14 sm:px-6 sm:py-16 lg:px-10">
         <div className="grid gap-12 sm:gap-14 md:grid-cols-2 lg:grid-cols-5">
-          <div className="lg:col-span-2">
-            <BrandLogo size="lg" showWordmark href="/" />
+          <div className="flex flex-col items-center text-center lg:col-span-2 lg:items-start lg:text-left">
+            <BrandLogo size="lg" showWordmark href="/" className="justify-center lg:justify-start" />
             <p
               className="mt-4 max-w-md text-sm leading-relaxed sm:text-[15px]"
               style={{ color: "var(--text-muted)" }}
@@ -66,7 +66,7 @@ export function Footer() {
               Where imagination becomes reality — instantly. Your creative engine
               for next-generation visuals.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-8 flex flex-wrap justify-center gap-3 lg:justify-start">
               <a
                 href="https://twitter.com"
                 target="_blank"
@@ -118,7 +118,7 @@ export function Footer() {
             </div>
           </div>
 
-          <div>
+          <div className="text-center sm:text-left">
             <p
               className="text-xs font-bold uppercase tracking-[0.15em]"
               style={{ color: "var(--text-primary)" }}
@@ -130,7 +130,7 @@ export function Footer() {
                 <li key={l.label}>
                   <Link
                     href={l.href}
-                    className="transition-colors hover:text-[#7B61FF]"
+                    className="inline-block transition-colors hover:text-[#7B61FF]"
                     style={{ color: "var(--text-muted)" }}
                   >
                     {l.label}
@@ -140,7 +140,7 @@ export function Footer() {
             </ul>
           </div>
 
-          <div>
+          <div className="text-center sm:text-left">
             <p
               className="text-xs font-bold uppercase tracking-[0.15em]"
               style={{ color: "var(--text-primary)" }}
@@ -152,7 +152,7 @@ export function Footer() {
                 <li key={l.label}>
                   <Link
                     href={l.href}
-                    className="transition-colors hover:text-[#7B61FF]"
+                    className="inline-block transition-colors hover:text-[#7B61FF]"
                     style={{ color: "var(--text-muted)" }}
                   >
                     {l.label}
@@ -162,7 +162,7 @@ export function Footer() {
             </ul>
           </div>
 
-          <div>
+          <div className="text-center sm:text-left">
             <p
               className="text-xs font-bold uppercase tracking-[0.15em]"
               style={{ color: "var(--text-primary)" }}
@@ -174,7 +174,7 @@ export function Footer() {
                 <li key={l.label}>
                   <Link
                     href={l.href}
-                    className="transition-colors hover:text-[#7B61FF]"
+                    className="inline-block transition-colors hover:text-[#7B61FF]"
                     style={{ color: "var(--text-muted)" }}
                   >
                     {l.label}
@@ -189,7 +189,7 @@ export function Footer() {
               >
                 Stay updated
               </p>
-              <form className="mt-3 flex flex-col gap-2 sm:flex-row" onSubmit={onSubscribe}>
+              <form className="mt-3 flex flex-col items-stretch gap-2 sm:flex-row" onSubmit={onSubscribe}>
                 <input
                   type="email"
                   name="email"

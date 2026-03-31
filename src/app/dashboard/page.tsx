@@ -37,6 +37,13 @@ const tiles = [
     icon: Zap,
     accent: "from-[#7B61FF] to-[#FF2E9A]/70",
   },
+  {
+    title: "Site content",
+    desc: "Update hero + gallery images and prompts in real-time.",
+    href: "/dashboard/content",
+    icon: Sparkles,
+    accent: "from-[#00D4FF] to-[#FF2E9A]/80",
+  },
 ];
 
 export default function DashboardPage() {
