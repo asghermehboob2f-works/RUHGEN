@@ -12,6 +12,7 @@ import { useTheme } from "./ThemeProvider";
 
 const SECTION_IDS = [
   "preview",
+  "showcase",
   "features",
   "platform",
   "gallery",
@@ -22,6 +23,7 @@ const SECTION_IDS = [
 
 const links = [
   { href: "#preview", label: "Demo", id: "preview" },
+  { href: "#showcase", label: "Spotlight", id: "showcase" },
   { href: "#features", label: "Features", id: "features" },
   { href: "#platform", label: "Platform", id: "platform" },
   { href: "#gallery", label: "Gallery", id: "gallery" },

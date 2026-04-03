@@ -1,22 +1,7 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
+import { requireAdmin } from "@/lib/admin-request";
 import { readSiteContent, writeSiteContent, type SiteContent } from "@/lib/site-content";
-
-function getProvidedSecret(req: Request): string {
-  const header = req.headers.get("x-admin-secret")?.trim() ?? "";
-  const auth = req.headers.get("authorization")?.trim() ?? "";
-  const bearer =
-    auth.toLowerCase().startsWith("bearer ") ? auth.slice(7).trim() : "";
-  return header || bearer;
-}
-
-function assertAdmin(req: Request) {
-  // Trim: Windows .env often leaves \r on values, which breaks ===
-  const secret = process.env.ADMIN_SECRET?.trim();
-  if (!secret) throw new Error("ADMIN_SECRET is not configured.");
-  const got = getProvidedSecret(req);
-  if (!got || got !== secret) throw new Error("Unauthorized.");
-}
 
 export async function GET() {
   const content = await readSiteContent();
@@ -25,7 +10,7 @@ export async function GET() {
 
 export async function PUT(req: Request) {
   try {
-    assertAdmin(req);
+    requireAdmin(req);
     const next = (await req.json()) as SiteContent;
     await writeSiteContent(next);
 

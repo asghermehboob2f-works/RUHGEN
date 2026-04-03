@@ -1,5 +1,6 @@
 import { BentoHighlights } from "@/components/BentoHighlights";
 import { FAQ } from "@/components/FAQ";
+import { FeatureShowcase } from "@/components/FeatureShowcase";
 import { Features } from "@/components/Features";
 import { FinalCta } from "@/components/FinalCta";
 import { GallerySection } from "@/components/GallerySection";
@@ -20,6 +21,7 @@ export default async function Home() {
       <main>
         <Hero previews={content.hero.previews} />
         <StatsStrip />
+        <FeatureShowcase slides={content.showcase.slides} />
         <LivePreview />
         <StackStrip />
         <Features />

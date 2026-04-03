@@ -2,30 +2,44 @@ import "server-only";
 
 import fs from "node:fs/promises";
 import path from "node:path";
+import type {
+  GalleryCategory,
+  GalleryItem,
+  HeroPreview,
+  ShowcaseSlide,
+  SiteContent,
+} from "@/lib/site-content-types";
 
-export type GalleryCategory = "cinematic" | "sci-fi" | "art" | "realistic";
-
-export type HeroPreview = {
-  id: string;
-  src: string;
-  alt: string;
-  prompt: string;
-};
-
-export type GalleryItem = {
-  id: string;
-  src: string;
-  alt: string;
-  prompt: string;
-  category: GalleryCategory;
-};
-
-export type SiteContent = {
-  hero: { previews: HeroPreview[] };
-  gallery: { items: GalleryItem[] };
-};
+export type {
+  GalleryCategory,
+  GalleryItem,
+  HeroPreview,
+  ShowcaseSlide,
+  SiteContent,
+} from "@/lib/site-content-types";
 
 const CONTENT_PATH = path.join(process.cwd(), "data", "site-content.json");
+
+const DEFAULT_SHOWCASE_SLIDES: ShowcaseSlide[] = [
+  {
+    id: "show-1",
+    title: "Face swap",
+    caption: "Identity-aware blends that respect lighting, skin tone, and camera angle—built for believable hero shots.",
+    videoSrc: "",
+  },
+  {
+    id: "show-2",
+    title: "Background genius",
+    caption: "Replace environments in one pass—studio cyclorama, matte painting, or full CG—with depth-aware separation.",
+    videoSrc: "",
+  },
+  {
+    id: "show-3",
+    title: "Motion trials",
+    caption: "Export ultra-short motion snippets for socials and client review without burning full-length credits.",
+    videoSrc: "",
+  },
+];
 
 function isRecord(x: unknown): x is Record<string, unknown> {
   return !!x && typeof x === "object" && !Array.isArray(x);
@@ -53,6 +67,13 @@ function parseGalleryItem(x: unknown): GalleryItem | null {
   return { id: x.id, src: x.src, alt: x.alt, prompt: x.prompt, category: x.category };
 }
 
+function parseShowcaseSlide(x: unknown): ShowcaseSlide | null {
+  if (!isRecord(x)) return null;
+  if (!isString(x.id) || !isString(x.title) || !isString(x.caption)) return null;
+  const videoSrc = isString(x.videoSrc) ? x.videoSrc : "";
+  return { id: x.id, title: x.title, caption: x.caption, videoSrc };
+}
+
 export async function readSiteContent(): Promise<SiteContent> {
   const raw = await fs.readFile(CONTENT_PATH, "utf8");
   const data = JSON.parse(raw) as unknown;
@@ -68,11 +89,15 @@ export async function readSiteContent(): Promise<SiteContent> {
   const previews = previewsRaw.map(parseHeroPreview).filter(Boolean) as HeroPreview[];
   const items = itemsRaw.map(parseGalleryItem).filter(Boolean) as GalleryItem[];
 
-  return { hero: { previews }, gallery: { items } };
+  const showcaseRaw =
+    isRecord(data.showcase) && Array.isArray(data.showcase.slides) ? data.showcase.slides : null;
+  let slides = showcaseRaw ? showcaseRaw.map(parseShowcaseSlide).filter(Boolean) as ShowcaseSlide[] : [];
+  if (!slides.length) slides = structuredClone(DEFAULT_SHOWCASE_SLIDES);
+
+  return { hero: { previews }, gallery: { items }, showcase: { slides } };
 }
 
 export async function writeSiteContent(next: SiteContent) {
   await fs.mkdir(path.dirname(CONTENT_PATH), { recursive: true });
   await fs.writeFile(CONTENT_PATH, JSON.stringify(next, null, 2) + "\n", "utf8");
 }
-

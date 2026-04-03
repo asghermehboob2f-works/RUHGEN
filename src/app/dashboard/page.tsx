@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, KeyRound, Layers, LogOut, Sparkles, Zap } from "lucide-react";
+import { ArrowRight, KeyRound, Layers, LogOut, Mail, Sparkles, Zap } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -39,10 +39,17 @@ const tiles = [
   },
   {
     title: "Site content",
-    desc: "Update hero + gallery images and prompts in real-time.",
+    desc: "Hero, gallery, Spotlight videos & copy — live on the homepage.",
     href: "/dashboard/content",
     icon: Sparkles,
     accent: "from-[#00D4FF] to-[#FF2E9A]/80",
+  },
+  {
+    title: "Newsletter list",
+    desc: "Export emails captured from the footer Stay updated form.",
+    href: "/dashboard/subscribers",
+    icon: Mail,
+    accent: "from-[#7B61FF] to-[#00D4FF]",
   },
 ];
 

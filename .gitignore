@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# newsletter signups (local / server file — do not commit subscriber emails)
+/data/newsletter-subscribers.json

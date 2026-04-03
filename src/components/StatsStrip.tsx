@@ -18,7 +18,7 @@ export function StatsStrip() {
       }}
     >
       <div className="mx-auto max-w-[1400px] px-3 py-8 sm:px-6 sm:py-12 lg:px-10">
-        <div className="grid gap-6 sm:grid-cols-2 sm:gap-8 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-6 sm:gap-8 lg:grid-cols-4">
           {stats.map((s) => (
             <div
               key={s.label}
@@ -30,10 +30,10 @@ export function StatsStrip() {
               >
                 {s.label}
               </p>
-              <p className="font-display mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">
+              <p className="font-display mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl lg:text-4xl">
                 <span className="text-gradient-primary">{s.value}</span>
               </p>
-              <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
+              <p className="mt-1 text-xs leading-snug sm:text-sm" style={{ color: "var(--text-muted)" }}>
                 {s.sub}
               </p>
             </div>

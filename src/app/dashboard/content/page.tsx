@@ -5,12 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import { useAuth } from "@/components/AuthProvider";
-
-type Category = "cinematic" | "sci-fi" | "art" | "realistic";
-
-type HeroPreview = { id: string; src: string; alt: string; prompt: string };
-type GalleryItem = { id: string; src: string; alt: string; prompt: string; category: Category };
-type SiteContent = { hero: { previews: HeroPreview[] }; gallery: { items: GalleryItem[] } };
+import type { GalleryCategory, SiteContent } from "@/lib/site-content-types";
 
 function adminEmailAllowed(userEmail: string | null) {
   const allow = process.env.NEXT_PUBLIC_ADMIN_EMAIL?.trim().toLowerCase();
@@ -99,7 +94,7 @@ export default function DashboardContentPage() {
     setStatus(data.ok ? "Saved. Homepage updated." : `Save failed: ${data.error || "Unknown error"}`);
   };
 
-  const upload = async (folder: "hero" | "gallery" | "img", file: File) => {
+  const upload = async (folder: "hero" | "gallery" | "img" | "showcase", file: File) => {
     if (!secret.trim()) {
       setStatus("Upload failed: Enter Admin secret first (must match ADMIN_SECRET in .env.local).");
       return null;
@@ -132,7 +127,8 @@ export default function DashboardContentPage() {
               Content editor
             </h1>
             <p className="mt-2 text-sm sm:text-base" style={{ color: "var(--text-muted)" }}>
-              Edit Hero + Showcase gallery. Use landscape images for perfect alignment.
+              Hero, gallery, and Spotlight carousel (short trial videos + copy). Landscape images and ~3s
+              clips work best.
             </p>
           </div>
 
@@ -235,7 +231,7 @@ export default function DashboardContentPage() {
                         value={it.category}
                         onChange={(e) => {
                           const next = structuredClone(content);
-                          next.gallery.items[idx].category = e.target.value as Category;
+                          next.gallery.items[idx].category = e.target.value as GalleryCategory;
                           setContent(next);
                         }}
                         className="min-h-[40px] w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#7B61FF]/40"
@@ -268,6 +264,120 @@ export default function DashboardContentPage() {
                           const next = structuredClone(content);
                           next.gallery.items[idx].src = src;
                           next.gallery.items[idx].alt = f.name;
+                          setContent(next);
+                          e.target.value = "";
+                        }}
+                        className="block w-full text-xs"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section className="rounded-2xl border p-5 sm:p-7" style={{ borderColor: "var(--border-subtle)", background: "var(--glass)" }}>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>
+                    Spotlight slides
+                  </h2>
+                  <p className="mt-1 max-w-2xl text-sm" style={{ color: "var(--text-muted)" }}>
+                    Homepage carousel (#showcase). Upload a short .mp4 or .webm (~3 seconds) plus a title and one-line description per card.
+                  </p>
+                </div>
+                <motion.button
+                  type="button"
+                  whileTap={reduce ? undefined : { scale: 0.98 }}
+                  onClick={() => {
+                    if (!content) return;
+                    const next = structuredClone(content);
+                    next.showcase.slides.push({
+                      id: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `show-${Date.now()}`,
+                      title: "New capability",
+                      caption: "Describe what users will see in this trial clip.",
+                      videoSrc: "",
+                    });
+                    setContent(next);
+                  }}
+                  className="shrink-0 rounded-xl border px-4 py-2.5 text-sm font-semibold"
+                  style={{
+                    borderColor: "var(--border-subtle)",
+                    background: "var(--soft-black)",
+                    color: "var(--text-primary)",
+                  }}
+                >
+                  Add slide
+                </motion.button>
+              </div>
+
+              <div className="mt-6 grid gap-4 lg:grid-cols-2">
+                {content.showcase.slides.map((slide, idx) => (
+                  <div key={slide.id} className="rounded-xl border p-4" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
+                    <div className="mb-3 flex items-start justify-between gap-2">
+                      <p className="text-xs font-mono" style={{ color: "var(--text-subtle)" }}>{slide.id}</p>
+                      <button
+                        type="button"
+                        className="shrink-0 text-xs font-semibold text-[#FF2E9A] hover:underline"
+                        onClick={() => {
+                          const next = structuredClone(content);
+                          if (next.showcase.slides.length <= 1) {
+                            setStatus("Keep at least one spotlight slide.");
+                            return;
+                          }
+                          next.showcase.slides.splice(idx, 1);
+                          setContent(next);
+                          setStatus("");
+                        }}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    <div className="relative mb-3 aspect-video overflow-hidden rounded-lg border" style={{ borderColor: "var(--border-subtle)" }}>
+                      {slide.videoSrc ? (
+                        <video className="h-full w-full object-cover" src={slide.videoSrc} controls muted playsInline preload="metadata" />
+                      ) : (
+                        <div className="flex h-full min-h-[120px] items-center justify-center text-xs" style={{ color: "var(--text-muted)" }}>
+                          No video yet
+                        </div>
+                      )}
+                    </div>
+                    <div className="grid gap-2">
+                      <input
+                        value={slide.title}
+                        onChange={(e) => {
+                          const next = structuredClone(content);
+                          next.showcase.slides[idx].title = e.target.value;
+                          setContent(next);
+                        }}
+                        className="min-h-[40px] w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#7B61FF]/40"
+                        style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
+                        placeholder="Title (e.g. Face swap)"
+                      />
+                      <textarea
+                        value={slide.caption}
+                        onChange={(e) => {
+                          const next = structuredClone(content);
+                          next.showcase.slides[idx].caption = e.target.value;
+                          setContent(next);
+                        }}
+                        rows={3}
+                        className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#7B61FF]/40"
+                        style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
+                        placeholder="One line under the card…"
+                      />
+                      <label className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--text-subtle)" }}>
+                        Trial video (.mp4 / .webm, ~3s)
+                      </label>
+                      <input
+                        type="file"
+                        accept="video/mp4,video/webm"
+                        onChange={async (e) => {
+                          const f = e.target.files?.[0];
+                          if (!f) return;
+                          const src = await upload("showcase", f);
+                          if (!src) return;
+                          const next = structuredClone(content);
+                          next.showcase.slides[idx].videoSrc = src;
                           setContent(next);
                           e.target.value = "";
                         }}

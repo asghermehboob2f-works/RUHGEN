@@ -45,10 +45,10 @@ export function LivePreview() {
   return (
     <section
       id="preview"
-      className="mesh-section-muted relative scroll-mt-24 py-12 sm:py-20 md:py-28"
+      className="mesh-section-muted relative scroll-mt-24 py-10 sm:py-16 md:py-20"
     >
-      <div className="mx-auto max-w-6xl px-3 sm:px-6 lg:px-10">
-        <div className="mb-8 text-center sm:mb-14">
+      <div className="mx-auto max-w-[960px] px-3 sm:px-6 lg:px-8">
+        <div className="mb-6 text-center sm:mb-10">
           <p
             className="mb-2 text-xs font-bold uppercase tracking-[0.2em] sm:text-sm"
             style={{ color: "var(--text-subtle)" }}
@@ -70,17 +70,17 @@ export function LivePreview() {
         </div>
 
         <div
-          className="premium-ring relative overflow-hidden rounded-[1.5rem] border p-4 sm:rounded-3xl sm:p-8 md:p-12"
+          className="premium-ring relative mx-auto overflow-hidden rounded-2xl border p-4 sm:rounded-[1.35rem] sm:p-6 md:p-8"
           style={{
             borderColor: "var(--border-subtle)",
             background: "var(--glass-elevated)",
-            backdropFilter: "blur(48px) saturate(185%)",
+            backdropFilter: "blur(40px) saturate(170%)",
             boxShadow:
-              "0 0 100px -30px rgba(123,97,255,0.35), inset 0 1px 0 rgba(255,255,255,0.08)",
+              "0 32px 80px -28px rgba(123,97,255,0.28), inset 0 1px 0 rgba(255,255,255,0.08)",
           }}
         >
           <div
-            className="mb-6 inline-flex w-full flex-col gap-3 sm:mb-8 sm:w-auto sm:flex-row sm:items-center sm:justify-between"
+            className="mb-5 inline-flex w-full flex-col gap-3 sm:mb-6 sm:w-auto sm:flex-row sm:items-center sm:justify-between"
           >
             <div
               className="inline-flex w-full rounded-2xl border p-1 sm:w-auto"
@@ -210,7 +210,7 @@ export function LivePreview() {
           </div>
 
           <div
-            className="relative mt-6 aspect-video overflow-hidden rounded-2xl border sm:mt-8"
+            className="relative mt-5 aspect-video overflow-hidden rounded-xl border sm:mt-6"
             style={{
               borderColor: "var(--border-subtle)",
               background:
@@ -282,7 +282,7 @@ export function LivePreview() {
                       alt="Demo generation"
                       fill
                       className="object-cover"
-                      sizes="(max-width: 1152px) 100vw, 1152px"
+                      sizes="(max-width: 960px) 100vw, 960px"
                     />
                   ) : (
                     <div className="flex h-full min-h-[220px] items-center justify-center bg-gradient-to-br from-[#7B61FF]/35 via-[#0a0a12] to-[#00D4FF]/25">

@@ -72,5 +72,27 @@
         "category": "realistic"
       }
     ]
+  },
+  "showcase": {
+    "slides": [
+      {
+        "id": "show-2",
+        "title": "Background genius",
+        "caption": "Replace environments in one pass—studio cyclorama, matte painting, or full CG—with depth-aware separation.",
+        "videoSrc": "/media/showcase/c7560b51-d360-429f-bd68-1999bae6dcf5.mp4"
+      },
+      {
+        "id": "385e2964-8995-4509-833c-881f5e338fda",
+        "title": "Face swap",
+        "caption": "Identity-aware blends that respect lighting, skin tone, and camera angle—built for believable hero shots.",
+        "videoSrc": "/media/showcase/53dbba86-54ba-43f8-b759-4fdc083975f4.mp4"
+      },
+      {
+        "id": "62f56e06-cfd9-493f-a27c-ca8416b94720",
+        "title": "Background genius v2",
+        "caption": "Replace environments in one pass—studio cyclorama, matte painting, or full CG—with depth-aware separation. and many more",
+        "videoSrc": "/media/showcase/dcd4f376-4861-4205-bed7-a5763ba2f2c8.mp4"
+      }
+    ]
   }
 }
