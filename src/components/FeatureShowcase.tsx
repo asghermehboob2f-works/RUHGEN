@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Clapperboard, Sparkles } from "lucide-react";
+import { Clapperboard, Sparkles } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ShowcaseSlide } from "@/lib/site-content-types";
 
@@ -23,13 +23,6 @@ export function FeatureShowcase({ slides }: Props) {
     idxRef.current = clamped;
     setIdx(clamped);
   }, [slides.length]);
-
-  const scrollTo = useCallback(
-    (dir: -1 | 1) => {
-      goToIndex(idxRef.current + dir);
-    },
-    [goToIndex]
-  );
 
   const onScrollSnap = useCallback(() => {
     const el = scrollerRef.current;
@@ -92,7 +85,7 @@ export function FeatureShowcase({ slides }: Props) {
       />
 
       <div className="relative mx-auto max-w-[1400px] px-3 sm:px-6 lg:px-10">
-        <div className="mb-6 flex flex-col gap-4 sm:mb-8 md:flex-row md:items-end md:justify-between">
+        <div className="mb-6 sm:mb-8">
           <div>
             <p
               className="mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] sm:text-xs"
@@ -117,35 +110,6 @@ export function FeatureShowcase({ slides }: Props) {
             >
               Short trial clips (16∶9) and copy you control from the content editor—pauses on hover for easy reading.
             </p>
-          </div>
-
-          <div className="flex items-center gap-2 md:pb-1">
-            <button
-              type="button"
-              aria-label="Previous"
-              onClick={() => scrollTo(-1)}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-xl border transition"
-              style={{
-                borderColor: "var(--border-subtle)",
-                background: "var(--glass)",
-                color: "var(--text-primary)",
-              }}
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-            <button
-              type="button"
-              aria-label="Next"
-              onClick={() => scrollTo(1)}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-xl border transition"
-              style={{
-                borderColor: "var(--border-subtle)",
-                background: "var(--glass)",
-                color: "var(--text-primary)",
-              }}
-            >
-              <ChevronRight className="h-5 w-5" />
-            </button>
           </div>
         </div>
 

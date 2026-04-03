@@ -84,7 +84,7 @@ export function Navbar() {
             : undefined,
         }}
       >
-        <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between gap-2 px-3 sm:h-20 sm:gap-3 sm:px-6 lg:px-10">
+        <div className="mx-auto flex h-16 max-w-[min(100%,1240px)] items-center justify-between gap-2 px-3 sm:h-20 sm:gap-3 sm:px-5 md:max-w-[min(100%,1320px)] md:px-6 lg:max-w-[1400px] lg:px-10">
           <BrandLogo
             size="md"
             showWordmark
@@ -94,7 +94,7 @@ export function Navbar() {
           />
 
           <nav
-            className="hidden max-w-[min(100%,min(calc(100vw-11rem),540px))] items-center gap-0.5 overflow-x-auto rounded-full border px-1 py-1 [scrollbar-width:none] md:flex md:shrink [&::-webkit-scrollbar]:hidden lg:max-w-[min(100%,720px)]"
+            className="hidden max-w-[min(100%,min(calc(100vw-9.5rem),440px))] items-center gap-0.5 overflow-x-auto rounded-full border px-0.5 py-0.5 [scrollbar-width:none] md:flex md:shrink md:max-w-[min(100%,min(calc(100vw-11rem),500px))] md:px-1 md:py-1 [&::-webkit-scrollbar]:hidden lg:max-w-[min(100%,680px)] xl:max-w-[min(100%,720px)]"
             style={{
               borderColor: "var(--border-subtle)",
               background: "var(--glass)",
@@ -107,7 +107,7 @@ export function Navbar() {
                 <Link
                   key={l.href}
                   href={sectionHref(pathname, l.href)}
-                  className="shrink-0 rounded-full px-2.5 py-2 text-[11px] font-medium transition-colors duration-300 sm:px-3 lg:px-3.5 lg:text-sm"
+                  className="shrink-0 rounded-full px-2 py-1.5 text-[10px] font-medium transition-colors duration-300 md:px-2.5 md:py-2 md:text-[11px] lg:px-3.5 lg:text-sm"
                   style={{
                     color: active ? "#fff" : "var(--text-muted)",
                     background: active

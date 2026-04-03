@@ -1,9 +1,10 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ImageIcon, Loader2, RefreshCw, Sparkles, Video, Wand2 } from "lucide-react";
 import Image from "next/image";
 import { useCallback, useMemo, useState } from "react";
+import { LiveStudioBackdrop } from "./LiveStudioBackdrop";
 
 type Tab = "image" | "video";
 
@@ -22,6 +23,7 @@ const SUGGESTIONS = {
 } as const;
 
 export function LivePreview() {
+  const reduce = useReducedMotion() === true;
   const [tab, setTab] = useState<Tab>("image");
   const [prompt, setPrompt] = useState("");
   const [lastPrompt, setLastPrompt] = useState("");
@@ -45,9 +47,10 @@ export function LivePreview() {
   return (
     <section
       id="preview"
-      className="mesh-section-muted relative scroll-mt-24 py-10 sm:py-16 md:py-20"
+      className="mesh-section-muted relative scroll-mt-24 overflow-hidden py-10 sm:py-16 md:py-20"
     >
-      <div className="mx-auto max-w-[960px] px-3 sm:px-6 lg:px-8">
+      <LiveStudioBackdrop reduceMotion={reduce} />
+      <div className="relative z-[1] mx-auto max-w-[960px] px-3 sm:px-6 lg:px-8">
         <div className="mb-6 text-center sm:mb-10">
           <p
             className="mb-2 text-xs font-bold uppercase tracking-[0.2em] sm:text-sm"
