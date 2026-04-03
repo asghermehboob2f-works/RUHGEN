@@ -83,7 +83,13 @@ export function Navbar() {
         }}
       >
         <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between gap-2 px-3 sm:h-20 sm:gap-3 sm:px-6 lg:px-10">
-          <BrandLogo size="md" priority href="/" className="min-w-0 shrink sm:[&_.font-display]:text-lg" />
+          <BrandLogo
+            size="md"
+            showWordmark
+            priority
+            href="/"
+            className="min-w-0 shrink sm:[&_.font-display]:text-xl"
+          />
 
           <nav
             className="hidden max-w-[min(100%,min(calc(100vw-11rem),540px))] items-center gap-0.5 overflow-x-auto rounded-full border px-1 py-1 [scrollbar-width:none] md:flex md:shrink [&::-webkit-scrollbar]:hidden lg:max-w-[min(100%,720px)]"
@@ -237,7 +243,13 @@ export function Navbar() {
                 className="flex items-center justify-between border-b p-4 sm:p-5"
                 style={{ borderColor: "var(--border-subtle)" }}
               >
-                <BrandLogo size="md" href="/" onNavigate={() => setOpen(false)} className="min-w-0 shrink" />
+                <BrandLogo
+                  size="md"
+                  showWordmark
+                  href="/"
+                  onNavigate={() => setOpen(false)}
+                  className="min-w-0 shrink sm:[&_.font-display]:text-xl"
+                />
                 <button
                   type="button"
                   onClick={() => setOpen(false)}

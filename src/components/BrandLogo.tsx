@@ -53,7 +53,7 @@ export function BrandLogo({
       </span>
       {showWordmark && (
         <span
-          className="font-display text-base font-bold tracking-tight sm:text-lg"
+          className="font-display text-lg font-bold tracking-tight sm:text-xl"
           style={{ color: "var(--text-primary)" }}
         >
           RUHGEN
