@@ -1,6 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
-import { BRAND_LOGO_INTRINSIC, BRAND_LOGO_SRC } from "@/lib/constants";
+import { BRAND_LOGO_INTRINSIC, BRAND_LOGO_SRC, BRAND_LOGO_SRC_LIGHT } from "@/lib/constants";
+import { useTheme } from "./ThemeProvider";
 
 type Size = "sm" | "md" | "lg" | "xl";
 
@@ -30,6 +33,8 @@ export function BrandLogo({
   onNavigate,
 }: Props) {
   const h = heightPx[size];
+  const { theme } = useTheme();
+  const src = theme === "light" ? BRAND_LOGO_SRC_LIGHT : BRAND_LOGO_SRC;
 
   return (
     <Link
@@ -42,7 +47,8 @@ export function BrandLogo({
         style={{ height: h }}
       >
         <Image
-          src={BRAND_LOGO_SRC}
+          key={src}
+          src={src}
           alt="RUHGEN"
           width={BRAND_LOGO_INTRINSIC.width}
           height={BRAND_LOGO_INTRINSIC.height}
