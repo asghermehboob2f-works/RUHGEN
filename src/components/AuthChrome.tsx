@@ -16,8 +16,9 @@ export function AuthChrome({ title, subtitle, children, footer }: Props) {
 
   return (
     <div className="relative min-h-[100dvh] overflow-x-clip">
+      <div className="app-grain pointer-events-none absolute inset-0 z-[1]" aria-hidden />
       <div
-        className="pointer-events-none absolute inset-0 opacity-40"
+        className="pointer-events-none absolute inset-0 z-0 opacity-40"
         style={{
           background:
             "radial-gradient(ellipse 80% 50% at 50% -20%, rgba(123,97,255,0.35), transparent), radial-gradient(ellipse 60% 40% at 100% 100%, rgba(0,212,255,0.2), transparent)",
@@ -96,14 +97,7 @@ export function AuthChrome({ title, subtitle, children, footer }: Props) {
             </p>
           </div>
 
-          <div
-            className="premium-ring mt-8 rounded-[1.5rem] border p-6 sm:mt-10 sm:p-8"
-            style={{
-              borderColor: "var(--border-subtle)",
-              background: "var(--glass)",
-              backdropFilter: "blur(24px)",
-            }}
-          >
+          <div className="border-gradient-premium mt-8 p-6 sm:mt-10 sm:p-8">
             {children}
           </div>
           <div className="mt-8 text-center text-sm" style={{ color: "var(--text-muted)" }}>

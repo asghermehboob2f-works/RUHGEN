@@ -1,4 +1,6 @@
-/** Admin auth for API routes (ADMIN_SECRET + x-admin-secret or Bearer). */
+import "server-only";
+
+/** Admin auth for API routes (ADMIN_SECRET via x-admin-secret or Bearer). */
 
 export function getProvidedAdminSecret(req: Request): string {
   const header = req.headers.get("x-admin-secret")?.trim() ?? "";

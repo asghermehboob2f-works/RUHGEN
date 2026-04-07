@@ -2,7 +2,7 @@ import "server-only";
 
 import fs from "node:fs/promises";
 import path from "node:path";
-import type { NewsletterSubscriber } from "@/lib/newsletter-types";
+import type { NewsletterSubscriber } from "@/backend/newsletter/types";
 
 const FILE = path.join(process.cwd(), "data", "newsletter-subscribers.json");
 

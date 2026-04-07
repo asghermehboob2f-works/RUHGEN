@@ -70,12 +70,16 @@ export function Footer() {
 
   return (
     <footer
-      className="border-t"
+      className="relative border-t"
       style={{
         borderColor: "var(--border-subtle)",
         background: "var(--rich-black)",
       }}
     >
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#7B61FF]/50 to-transparent"
+        aria-hidden
+      />
       <div className="mx-auto max-w-[1400px] px-3 py-10 sm:px-5 sm:py-12 lg:px-10">
         <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-6 sm:gap-y-10 md:grid-cols-2 lg:grid-cols-5 lg:gap-x-8">
           <div className="col-span-2 flex flex-col items-center text-center lg:col-span-2 lg:items-start lg:text-left">

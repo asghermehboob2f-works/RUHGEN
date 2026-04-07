@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import { requireAdmin } from "@/lib/admin-request";
-import { readSiteContent, writeSiteContent, type SiteContent } from "@/lib/site-content";
+import { requireAdmin } from "@/backend/auth/admin";
+import { readSiteContent, writeSiteContent, type SiteContent } from "@/backend/site-content";
 
 export async function GET() {
   const content = await readSiteContent();

@@ -10,6 +10,7 @@ const tiles = [
     icon: Globe2,
     span: "md:col-span-2",
     glow: "#7B61FF",
+    tag: "Latency-optimized",
   },
   {
     title: "Multi-pass exports",
@@ -17,6 +18,7 @@ const tiles = [
     icon: Layers,
     span: "md:col-span-1",
     glow: "#00D4FF",
+    tag: "Pipeline-ready",
   },
   {
     title: "Guardrails by default",
@@ -24,6 +26,7 @@ const tiles = [
     icon: ShieldCheck,
     span: "md:col-span-1",
     glow: "#FF2E9A",
+    tag: "Studio-safe",
   },
   {
     title: "Burst when it matters",
@@ -31,6 +34,7 @@ const tiles = [
     icon: Zap,
     span: "md:col-span-2",
     glow: "#7B61FF",
+    tag: "Scale on demand",
   },
 ];
 
@@ -91,7 +95,7 @@ export function BentoHighlights() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-40px" }}
               transition={{ delay: reduce ? 0 : i * 0.05, duration: 0.4 }}
-              className={`premium-ring group relative overflow-hidden rounded-[1.1rem] border p-4 sm:rounded-2xl sm:p-6 md:p-7 ${t.span}`}
+              className={`premium-ring group relative flex h-full flex-col overflow-hidden rounded-[1.1rem] border p-4 sm:rounded-2xl sm:p-6 md:p-7 ${t.span}`}
               style={{
                 borderColor: "var(--border-subtle)",
                 background: "var(--glass)",
@@ -103,14 +107,21 @@ export function BentoHighlights() {
                 style={{ background: t.glow }}
               />
               <div
+                className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                aria-hidden
+                style={{
+                  background: `radial-gradient(ellipse 70% 55% at 0% 0%, color-mix(in srgb, ${t.glow} 28%, transparent), transparent 60%)`,
+                }}
+              />
+              <div
                 className="relative mb-4 flex h-11 w-11 items-center justify-center rounded-xl border sm:mb-5 sm:h-12 sm:w-12"
                 style={{
                   borderColor: "var(--border-subtle)",
-                  background:
-                    "linear-gradient(135deg, rgba(123,97,255,0.22) 0%, rgba(0,212,255,0.14) 100%)",
+                  background: `linear-gradient(135deg, color-mix(in srgb, ${t.glow} 24%, transparent) 0%, rgba(255,255,255,0.06) 60%, rgba(0,0,0,0.0) 100%)`,
+                  boxShadow: `0 0 0 1px rgba(255,255,255,0.06) inset, 0 18px 45px -28px color-mix(in srgb, ${t.glow} 55%, transparent)`,
                 }}
               >
-                <t.icon className="h-5 w-5 text-[#00D4FF] sm:h-6 sm:w-6" strokeWidth={1.75} />
+                <t.icon className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.75} style={{ color: t.glow }} />
               </div>
               <h3
                 className="font-display relative text-base font-bold sm:text-lg md:text-xl"
@@ -124,6 +135,27 @@ export function BentoHighlights() {
               >
                 {t.desc}
               </p>
+              <div className="mt-auto pt-5">
+                <div className="h-px w-full" style={{ background: "rgba(255,255,255,0.06)" }} />
+                <div className="mt-3 flex items-center justify-between gap-3">
+                  <p
+                    className="text-xs font-semibold uppercase tracking-wider"
+                    style={{ color: "var(--text-subtle)" }}
+                  >
+                    {t.tag}
+                  </p>
+                  <span
+                    className="inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold"
+                    style={{
+                      borderColor: "var(--border-subtle)",
+                      color: "var(--text-muted)",
+                      background: "color-mix(in srgb, var(--glass) 75%, transparent)",
+                    }}
+                  >
+                    Learn more
+                  </span>
+                </div>
+              </div>
             </motion.div>
           ))}
         </div>

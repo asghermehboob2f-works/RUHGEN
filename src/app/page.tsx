@@ -12,7 +12,7 @@ import { StackStrip } from "@/components/StackStrip";
 import { StatsStrip } from "@/components/StatsStrip";
 import { Testimonials } from "@/components/Testimonials";
 import { Pricing } from "@/components/Pricing";
-import { readSiteContent } from "@/lib/site-content";
+import { readSiteContent } from "@/backend/site-content";
 
 export default async function Home() {
   const content = await readSiteContent();

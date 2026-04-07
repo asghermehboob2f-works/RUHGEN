@@ -13,22 +13,43 @@ export function ContactForm() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "ok" | "err">("idle");
+  const [errDetail, setErrDetail] = useState("");
   const reduce = useReducedMotion();
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !isValidEmail(email) || message.trim().length < 8) {
+      setErrDetail("Please fill all fields with a valid email and a message (8+ characters).");
       setStatus("err");
       return;
     }
+    setErrDetail("");
     setStatus("sending");
-    window.setTimeout(() => {
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name.trim(),
+          email: email.trim(),
+          message: message.trim(),
+        }),
+      });
+      const data = (await res.json()) as { ok?: boolean; error?: string };
+      if (!res.ok || !data.ok) {
+        setErrDetail(data.error ?? "Could not send your message. Please try again.");
+        setStatus("err");
+        return;
+      }
       setStatus("ok");
       setName("");
       setEmail("");
       setMessage("");
       window.setTimeout(() => setStatus("idle"), 5000);
-    }, 900);
+    } catch {
+      setErrDetail("Network error. Check your connection and try again.");
+      setStatus("err");
+    }
   };
 
   const field =
@@ -104,10 +125,8 @@ export function ContactForm() {
             placeholder="Tell us about your team, timeline, and what you want to build…"
           />
         </div>
-        {status === "err" && (
-          <p className="text-sm font-medium text-[#FF2E9A]">
-            Please fill all fields with a valid email and a message (8+ characters).
-          </p>
+        {status === "err" && errDetail && (
+          <p className="text-sm font-medium text-[#FF2E9A]">{errDetail}</p>
         )}
         {status === "ok" && (
           <p className="text-sm font-medium text-[#00D4FF]">

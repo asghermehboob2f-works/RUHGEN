@@ -47,9 +47,18 @@ export function LivePreview() {
   return (
     <section
       id="preview"
-      className="mesh-section-muted relative scroll-mt-24 overflow-hidden py-10 sm:py-16 md:py-20"
+      className="mesh-section relative scroll-mt-24 overflow-hidden py-12 sm:py-16 md:py-20"
     >
       <LiveStudioBackdrop reduceMotion={reduce} />
+      {/* Light wash — backdrop carries most of the scene; keep this subtle for depth */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.22]"
+        aria-hidden
+        style={{
+          background:
+            "radial-gradient(ellipse 85% 60% at 18% 15%, rgba(123,97,255,0.18), transparent 55%), radial-gradient(ellipse 70% 55% at 88% 78%, rgba(0,212,255,0.14), transparent 60%), radial-gradient(ellipse 60% 45% at 55% 110%, rgba(255,46,154,0.06), transparent 60%)",
+        }}
+      />
       <div className="relative z-[1] mx-auto max-w-[960px] px-3 sm:px-6 lg:px-8">
         <div className="mb-6 text-center sm:mb-10">
           <p
@@ -76,12 +85,23 @@ export function LivePreview() {
           className="premium-ring relative mx-auto overflow-hidden rounded-2xl border p-4 sm:rounded-[1.35rem] sm:p-6 md:p-8"
           style={{
             borderColor: "var(--border-subtle)",
-            background: "var(--glass-elevated)",
+            background:
+              "linear-gradient(180deg, rgba(255,255,255,0.09) 0%, rgba(255,255,255,0.06) 60%, rgba(255,255,255,0.05) 100%)",
             backdropFilter: "blur(40px) saturate(170%)",
             boxShadow:
               "0 32px 80px -28px rgba(123,97,255,0.28), inset 0 1px 0 rgba(255,255,255,0.08)",
           }}
         >
+          <div
+            className="pointer-events-none absolute -left-24 -top-24 h-56 w-56 rounded-full blur-3xl opacity-30"
+            aria-hidden
+            style={{ background: "rgba(123,97,255,0.75)" }}
+          />
+          <div
+            className="pointer-events-none absolute -bottom-28 -right-28 h-72 w-72 rounded-full blur-3xl opacity-20"
+            aria-hidden
+            style={{ background: "rgba(0,212,255,0.7)" }}
+          />
           <div
             className="mb-5 inline-flex w-full flex-col gap-3 sm:mb-6 sm:w-auto sm:flex-row sm:items-center sm:justify-between"
           >

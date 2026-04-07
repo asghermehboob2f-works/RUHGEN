@@ -8,15 +8,7 @@ import type {
   HeroPreview,
   ShowcaseSlide,
   SiteContent,
-} from "@/lib/site-content-types";
-
-export type {
-  GalleryCategory,
-  GalleryItem,
-  HeroPreview,
-  ShowcaseSlide,
-  SiteContent,
-} from "@/lib/site-content-types";
+} from "@/backend/site-content/types";
 
 const CONTENT_PATH = path.join(process.cwd(), "data", "site-content.json");
 
@@ -24,19 +16,22 @@ const DEFAULT_SHOWCASE_SLIDES: ShowcaseSlide[] = [
   {
     id: "show-1",
     title: "Face swap",
-    caption: "Identity-aware blends that respect lighting, skin tone, and camera angle—built for believable hero shots.",
+    caption:
+      "Identity-aware blends that respect lighting, skin tone, and camera angle—built for believable hero shots.",
     videoSrc: "",
   },
   {
     id: "show-2",
     title: "Background genius",
-    caption: "Replace environments in one pass—studio cyclorama, matte painting, or full CG—with depth-aware separation.",
+    caption:
+      "Replace environments in one pass—studio cyclorama, matte painting, or full CG—with depth-aware separation.",
     videoSrc: "",
   },
   {
     id: "show-3",
     title: "Motion trials",
-    caption: "Export ultra-short motion snippets for socials and client review without burning full-length credits.",
+    caption:
+      "Export ultra-short motion snippets for socials and client review without burning full-length credits.",
     videoSrc: "",
   },
 ];
@@ -84,7 +79,9 @@ export async function readSiteContent(): Promise<SiteContent> {
   const previewsRaw = hero && Array.isArray(hero.previews) ? hero.previews : null;
   const itemsRaw = gallery && Array.isArray(gallery.items) ? gallery.items : null;
 
-  if (!previewsRaw || !itemsRaw) throw new Error("Invalid content file: missing hero.previews or gallery.items.");
+  if (!previewsRaw || !itemsRaw) {
+    throw new Error("Invalid content file: missing hero.previews or gallery.items.");
+  }
 
   const previews = previewsRaw.map(parseHeroPreview).filter(Boolean) as HeroPreview[];
   const items = itemsRaw.map(parseGalleryItem).filter(Boolean) as GalleryItem[];

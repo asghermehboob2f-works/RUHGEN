@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/AuthProvider";
-import type { NewsletterSubscriber } from "@/lib/newsletter-types";
+import type { NewsletterSubscriber } from "@/backend/newsletter/types";
 
 function adminEmailAllowed(userEmail: string | null) {
   const allow = process.env.NEXT_PUBLIC_ADMIN_EMAIL?.trim().toLowerCase();
@@ -49,52 +49,66 @@ export default function SubscribersAdminPage() {
 
   if (!ready) {
     return (
-      <div className="flex min-h-[100dvh] items-center justify-center px-4" style={{ color: "var(--text-muted)" }}>
-        Loading…
+      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 px-4" style={{ color: "var(--text-muted)" }}>
+        <span
+          className="loading-orbit h-10 w-10 rounded-full border-2 border-t-transparent"
+          style={{ borderColor: "#7B61FF", borderTopColor: "transparent" }}
+          aria-hidden
+        />
+        <p className="text-sm font-semibold tracking-wide">Loading…</p>
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-20" style={{ color: "var(--text-muted)" }}>
-        <p className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>Sign in required</p>
-        <p className="mt-2">
-          Go to{" "}
-          <Link className="text-[#00D4FF] hover:underline" href="/sign-in?next=/dashboard/subscribers">
-            sign in
-          </Link>
-          .
-        </p>
+      <div className="mx-auto max-w-lg px-4 py-16 sm:py-24">
+        <div className="rounded-2xl border p-8 text-center" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)", color: "var(--text-muted)" }}>
+          <p className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>Sign in required</p>
+          <p className="mt-2 text-sm">
+            Go to{" "}
+            <Link className="font-semibold text-[#00D4FF] hover:underline" href="/sign-in?next=/admindashboard/subscribers">
+              sign in
+            </Link>
+            .
+          </p>
+        </div>
       </div>
     );
   }
 
   if (!canUse) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-20" style={{ color: "var(--text-muted)" }}>
-        <p className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>Access denied</p>
-        <p className="mt-2">
-          Restricted to <span className="font-mono text-[#00D4FF]">{process.env.NEXT_PUBLIC_ADMIN_EMAIL}</span>.
-        </p>
+      <div className="mx-auto max-w-lg px-4 py-16 sm:py-24">
+        <div className="rounded-2xl border p-8 text-center" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)", color: "var(--text-muted)" }}>
+          <p className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>Access denied</p>
+          <p className="mt-2 text-sm">
+            Restricted to{" "}
+            <span className="font-mono text-[#00D4FF]">{process.env.NEXT_PUBLIC_ADMIN_EMAIL}</span>.
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="mesh-section relative flex-1 overflow-x-clip px-4 pb-24 pt-[max(5.5rem,env(safe-area-inset-top)+4.5rem)] sm:px-6 sm:pt-28 lg:px-10">
+    <div className="relative flex-1 overflow-x-clip px-4 pb-20 pt-8 sm:px-6 sm:pt-10 lg:px-10">
       <div className="relative mx-auto max-w-[960px]">
-        <div className="flex flex-col gap-4 border-b pb-8 sm:flex-row sm:items-end sm:justify-between" style={{ borderColor: "var(--border-subtle)" }}>
+        <div className="flex flex-col gap-6 rounded-2xl border p-6 sm:p-8 lg:flex-row lg:items-end lg:justify-between" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.2em]" style={{ color: "var(--text-subtle)" }}>Admin</p>
+            <p className="text-xs font-bold uppercase tracking-[0.2em]" style={{ color: "var(--text-subtle)" }}>
+              Admin · Audience
+            </p>
             <h1 className="font-display mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl" style={{ color: "var(--text-primary)" }}>
               Newsletter subscribers
             </h1>
-            <p className="mt-2 text-sm sm:text-base" style={{ color: "var(--text-muted)" }}>
-              Stored in <span className="font-mono text-[13px] text-[#00D4FF]">data/newsletter-subscribers.json</span> (gitignored).
+            <p className="mt-2 max-w-xl text-sm sm:text-base" style={{ color: "var(--text-muted)" }}>
+              Persisted at{" "}
+              <span className="font-mono text-[13px] text-[#00D4FF]">data/newsletter-subscribers.json</span> (gitignored).
+              Load with your admin secret to export.
             </p>
           </div>
-          <div className="flex flex-col gap-2 sm:items-end">
+          <div className="flex flex-col gap-3 lg:items-end">
             <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-subtle)" }}>
               Admin secret
             </label>
@@ -102,21 +116,24 @@ export default function SubscribersAdminPage() {
               value={secret}
               onChange={(e) => setSecret(e.target.value)}
               placeholder="ADMIN_SECRET"
-              className="min-h-[44px] w-full rounded-xl border px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-[#7B61FF]/40 sm:w-[320px]"
+              type="password"
+              autoComplete="off"
+              className="min-h-[44px] w-full rounded-xl border px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-[#7B61FF]/40 lg:w-[320px]"
               style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
             />
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 lg:justify-end">
               <Link
-                href="/dashboard"
+                href="/admindashboard"
                 className="inline-flex min-h-[44px] items-center justify-center rounded-xl border px-4 text-sm font-semibold"
-                style={{ borderColor: "var(--border-subtle)", background: "var(--glass)", color: "var(--text-primary)" }}
+                style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
               >
-                Back
+                Dashboard
               </Link>
               <button
                 type="button"
                 onClick={load}
-                className="inline-flex min-h-[44px] items-center justify-center rounded-xl px-5 text-sm font-semibold text-white btn-gradient"
+                className="inline-flex min-h-[44px] items-center justify-center rounded-xl border px-5 text-sm font-semibold"
+                style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
               >
                 Load list
               </button>
@@ -129,19 +146,19 @@ export default function SubscribersAdminPage() {
                   setStatus("CSV copied to clipboard.");
                 }}
                 className="inline-flex min-h-[44px] items-center justify-center rounded-xl border px-4 text-sm font-semibold disabled:opacity-50"
-                style={{ borderColor: "var(--border-subtle)", background: "var(--glass)", color: "var(--text-primary)" }}
+                style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
               >
                 Copy CSV
               </button>
             </div>
-            {status && <p className="text-xs" style={{ color: "var(--text-muted)" }}>{status}</p>}
+            {status && <p className="max-w-md text-xs lg:text-right" style={{ color: "var(--text-muted)" }}>{status}</p>}
           </div>
         </div>
 
         {rows && (
-          <div className="mt-8 overflow-x-auto rounded-xl border" style={{ borderColor: "var(--border-subtle)", background: "var(--glass)" }}>
+          <div className="mt-8 overflow-x-auto rounded-2xl border" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
             <table className="w-full min-w-[480px] text-left text-sm">
-              <thead>
+              <thead style={{ background: "var(--deep-black)" }}>
                 <tr className="border-b" style={{ borderColor: "var(--border-subtle)" }}>
                   <th className="px-4 py-3 font-semibold" style={{ color: "var(--text-primary)" }}>Email</th>
                   <th className="px-4 py-3 font-semibold" style={{ color: "var(--text-primary)" }}>Subscribed</th>

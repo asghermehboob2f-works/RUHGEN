@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import { useAuth } from "@/components/AuthProvider";
-import type { GalleryCategory, SiteContent } from "@/lib/site-content-types";
+import type { GalleryCategory, SiteContent } from "@/backend/site-content/types";
 
 function adminEmailAllowed(userEmail: string | null) {
   const allow = process.env.NEXT_PUBLIC_ADMIN_EMAIL?.trim().toLowerCase();
@@ -41,26 +41,48 @@ export default function DashboardContentPage() {
 
   if (!ready) {
     return (
-      <div className="flex min-h-[100dvh] items-center justify-center px-4" style={{ color: "var(--text-muted)" }}>
-        Loading…
+      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 px-4" style={{ color: "var(--text-muted)" }}>
+        <span
+          className="loading-orbit h-10 w-10 rounded-full border-2 border-t-transparent"
+          style={{ borderColor: "#7B61FF", borderTopColor: "transparent" }}
+          aria-hidden
+        />
+        <p className="text-sm font-semibold tracking-wide">Loading editor…</p>
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-20" style={{ color: "var(--text-muted)" }}>
-        <p className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>Sign in required</p>
-        <p className="mt-2">Go to <Link className="text-[#00D4FF] hover:underline" href="/sign-in?next=/dashboard/content">sign in</Link>.</p>
+      <div className="mx-auto max-w-lg px-4 py-16 sm:py-24">
+        <div className="rounded-2xl border p-8 text-center" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)", color: "var(--text-muted)" }}>
+          <p className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>
+            Sign in required
+          </p>
+          <p className="mt-2 text-sm">
+            Go to{" "}
+            <Link className="font-semibold text-[#00D4FF] hover:underline" href="/sign-in?next=/admindashboard/content">
+              sign in
+            </Link>
+            .
+          </p>
+        </div>
       </div>
     );
   }
 
   if (!canUse) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-20" style={{ color: "var(--text-muted)" }}>
-        <p className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>Access denied</p>
-        <p className="mt-2">This editor is restricted to <span className="font-mono text-[#00D4FF]">{process.env.NEXT_PUBLIC_ADMIN_EMAIL}</span>.</p>
+      <div className="mx-auto max-w-lg px-4 py-16 sm:py-24">
+        <div className="rounded-2xl border p-8 text-center" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)", color: "var(--text-muted)" }}>
+          <p className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>
+            Access denied
+          </p>
+          <p className="mt-2 text-sm">
+            This editor is restricted to{" "}
+            <span className="font-mono text-[#00D4FF]">{process.env.NEXT_PUBLIC_ADMIN_EMAIL}</span>.
+          </p>
+        </div>
       </div>
     );
   }
@@ -118,65 +140,82 @@ export default function DashboardContentPage() {
   };
 
   return (
-    <div className="mesh-section relative flex-1 overflow-x-clip px-4 pb-24 pt-[max(5.5rem,env(safe-area-inset-top)+4.5rem)] sm:px-6 sm:pt-28 lg:px-10">
+    <div className="relative flex-1 overflow-x-clip px-4 pb-20 pt-8 sm:px-6 sm:pt-10 lg:px-10">
       <div className="relative mx-auto max-w-[1100px]">
-        <div className="flex flex-col gap-4 border-b pb-8 sm:flex-row sm:items-end sm:justify-between" style={{ borderColor: "var(--border-subtle)" }}>
+        <div className="flex flex-col gap-6 rounded-2xl border p-6 sm:p-8 lg:flex-row lg:items-end lg:justify-between" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.2em]" style={{ color: "var(--text-subtle)" }}>Admin</p>
+            <p className="text-xs font-bold uppercase tracking-[0.2em]" style={{ color: "var(--text-subtle)" }}>
+              Admin · Site content
+            </p>
             <h1 className="font-display mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl" style={{ color: "var(--text-primary)" }}>
-              Content editor
+              Content studio
             </h1>
-            <p className="mt-2 text-sm sm:text-base" style={{ color: "var(--text-muted)" }}>
-              Hero, gallery, and Spotlight carousel (short trial videos + copy). Landscape images and ~3s
-              clips work best.
+            <p className="mt-2 max-w-2xl text-sm sm:text-base" style={{ color: "var(--text-muted)" }}>
+              Hero previews, gallery tiles, and Spotlight clips. Favor landscape imagery and ~3s videos for a
+              cinematic grid.
             </p>
           </div>
 
-          <div className="flex flex-col gap-2 sm:items-end">
-            <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-subtle)" }}>
+          <div className="flex flex-col gap-3 lg:items-end lg:text-right">
+            <label className="text-xs font-semibold uppercase tracking-wider lg:text-right" style={{ color: "var(--text-subtle)" }}>
               Admin secret
             </label>
             <input
               value={secret}
               onChange={(e) => setSecret(e.target.value)}
-              placeholder="Set ADMIN_SECRET in .env.local"
-              className="min-h-[44px] w-full rounded-xl border px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-[#7B61FF]/40 sm:w-[360px]"
+              placeholder="ADMIN_SECRET from .env.local"
+              type="password"
+              autoComplete="off"
+              className="min-h-[44px] w-full rounded-xl border px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-[#7B61FF]/40 lg:w-[min(100%,360px)]"
               style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
             />
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2 lg:justify-end">
               <Link
-                href="/dashboard"
+                href="/admindashboard"
                 className="inline-flex min-h-[44px] items-center justify-center rounded-xl border px-4 text-sm font-semibold"
-                style={{ borderColor: "var(--border-subtle)", background: "var(--glass)", color: "var(--text-primary)" }}
+                style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
               >
-                Back
+                Dashboard
               </Link>
               <motion.button
                 type="button"
                 whileTap={reduce ? undefined : { scale: 0.98 }}
                 onClick={save}
                 disabled={!content}
-                className="inline-flex min-h-[44px] items-center justify-center rounded-xl px-5 text-sm font-semibold text-white btn-gradient disabled:opacity-60"
+                className="inline-flex min-h-[44px] items-center justify-center rounded-xl border px-5 text-sm font-semibold disabled:opacity-60"
+                style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
               >
                 Save changes
               </motion.button>
             </div>
-            {status && <p className="text-xs" style={{ color: status.startsWith("Save failed") || status.startsWith("Upload failed") ? "#FF2E9A" : "var(--text-muted)" }}>{status}</p>}
+            {status && (
+              <p
+                className="max-w-md text-xs lg:text-right"
+                style={{
+                  color:
+                    status.startsWith("Save failed") || status.startsWith("Upload failed") ? "#FF2E9A" : "var(--text-muted)",
+                }}
+              >
+                {status}
+              </p>
+            )}
           </div>
         </div>
 
         {!content ? (
-          <div className="py-16 text-center" style={{ color: "var(--text-muted)" }}>Loading content…</div>
+          <div className="py-16 text-center text-sm" style={{ color: "var(--text-muted)" }}>
+            Loading content…
+          </div>
         ) : (
           <div className="mt-10 grid gap-10">
-            <section className="rounded-2xl border p-5 sm:p-7" style={{ borderColor: "var(--border-subtle)", background: "var(--glass)" }}>
+            <section className="rounded-2xl border p-5 sm:p-7" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
               <h2 className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>Hero previews</h2>
               <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
                 These are the 4 landscape tiles in the Hero section.
               </p>
               <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {content.hero.previews.map((p, idx) => (
-                  <div key={p.id} className="rounded-xl border p-3" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
+                  <div key={p.id} className="editor-card p-3">
                     <div className="relative aspect-video overflow-hidden rounded-lg border" style={{ borderColor: "var(--border-subtle)" }}>
                       <Image src={p.src} alt={p.alt} fill className="object-cover" sizes="(max-width: 1024px) 50vw, 25vw" />
                     </div>
@@ -214,17 +253,75 @@ export default function DashboardContentPage() {
               </div>
             </section>
 
-            <section className="rounded-2xl border p-5 sm:p-7" style={{ borderColor: "var(--border-subtle)", background: "var(--glass)" }}>
+            <section className="rounded-2xl border p-5 sm:p-7" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
               <h2 className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>Showcase gallery</h2>
               <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
                 All tiles are forced to landscape for a consistent look.
               </p>
 
+              <div className="mt-5 flex flex-wrap items-center justify-between gap-2">
+                <p className="text-xs font-medium" style={{ color: "var(--text-subtle)" }}>
+                  Add new images here — they show up on the landing page gallery.
+                </p>
+                <motion.button
+                  type="button"
+                  whileTap={reduce ? undefined : { scale: 0.98 }}
+                  onClick={() => {
+                    if (!content) return;
+                    const next = structuredClone(content);
+                    next.gallery.items.unshift({
+                      id: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `gal-${Date.now()}`,
+                      src: "",
+                      alt: "New gallery image",
+                      prompt: "New prompt",
+                      category: "cinematic",
+                    });
+                    setContent(next);
+                    setStatus("");
+                  }}
+                  className="shrink-0 rounded-xl border px-4 py-2.5 text-sm font-semibold"
+                  style={{
+                    borderColor: "var(--border-subtle)",
+                    background: "var(--soft-black)",
+                    color: "var(--text-primary)",
+                  }}
+                >
+                  Add image
+                </motion.button>
+              </div>
+
               <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {content.gallery.items.map((it, idx) => (
-                  <div key={it.id} className="rounded-xl border p-3" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
+                  <div key={it.id} className="editor-card p-3">
+                    <div className="mb-2 flex items-start justify-between gap-2">
+                      <p className="text-xs font-mono" style={{ color: "var(--text-subtle)" }}>
+                        {it.id}
+                      </p>
+                      <button
+                        type="button"
+                        className="shrink-0 text-xs font-semibold text-[#FF2E9A] hover:underline"
+                        onClick={() => {
+                          const next = structuredClone(content);
+                          if (next.gallery.items.length <= 1) {
+                            setStatus("Keep at least one gallery image.");
+                            return;
+                          }
+                          next.gallery.items.splice(idx, 1);
+                          setContent(next);
+                          setStatus("");
+                        }}
+                      >
+                        Remove
+                      </button>
+                    </div>
                     <div className="relative aspect-video overflow-hidden rounded-lg border" style={{ borderColor: "var(--border-subtle)" }}>
-                      <Image src={it.src} alt={it.alt} fill className="object-cover" sizes="(max-width: 1024px) 50vw, 33vw" />
+                      {it.src ? (
+                        <Image src={it.src} alt={it.alt} fill className="object-cover" sizes="(max-width: 1024px) 50vw, 33vw" />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-xs" style={{ color: "var(--text-muted)" }}>
+                          Upload an image
+                        </div>
+                      )}
                     </div>
                     <div className="mt-3 grid gap-2">
                       <select
@@ -275,7 +372,7 @@ export default function DashboardContentPage() {
               </div>
             </section>
 
-            <section className="rounded-2xl border p-5 sm:p-7" style={{ borderColor: "var(--border-subtle)", background: "var(--glass)" }}>
+            <section className="rounded-2xl border p-5 sm:p-7" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h2 className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>
@@ -312,7 +409,7 @@ export default function DashboardContentPage() {
 
               <div className="mt-6 grid gap-4 lg:grid-cols-2">
                 {content.showcase.slides.map((slide, idx) => (
-                  <div key={slide.id} className="rounded-xl border p-4" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
+                  <div key={slide.id} className="editor-card p-4">
                     <div className="mb-3 flex items-start justify-between gap-2">
                       <p className="text-xs font-mono" style={{ color: "var(--text-subtle)" }}>{slide.id}</p>
                       <button

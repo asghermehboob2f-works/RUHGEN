@@ -42,3 +42,5 @@ next-env.d.ts
 
 # newsletter signups (local / server file — do not commit subscriber emails)
 /data/newsletter-subscribers.json
+# contact form inbox (local / server file — do not commit PII)
+/data/contact-messages.json

@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
-import { appendNewsletterSubscriber } from "@/lib/newsletter-subscribers";
-
-function isValidEmail(v: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
-}
+import { appendNewsletterSubscriber } from "@/backend/newsletter";
+import { isValidEmail } from "@/backend/lib/validation";
 
 export async function POST(req: Request) {
   try {

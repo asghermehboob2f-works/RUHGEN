@@ -10,6 +10,7 @@ export function MarketingShell({ children }: { children: React.ReactNode }) {
     <>
       <AmbientBackdrop />
       <CursorGlow />
+      <div className="app-grain fixed inset-0 z-[1]" aria-hidden />
       <div className="relative z-10 flex min-h-screen flex-col">
         <Navbar />
         {children}

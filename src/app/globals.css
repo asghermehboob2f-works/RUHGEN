@@ -194,6 +194,70 @@ html.light .premium-ring {
 }
 
 /* Reduce motion */
+/* Film grain — subtle depth on large color fields */
+.app-grain {
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+  opacity: 0.065;
+}
+
+html.light .app-grain {
+  opacity: 0.045;
+  mix-blend-mode: multiply;
+}
+
+.surface-card {
+  border-radius: 1.25rem;
+  border: 1px solid var(--border-subtle);
+  background: var(--glass);
+  box-shadow:
+    0 4px 32px -8px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+html.light .surface-card {
+  box-shadow:
+    0 4px 32px -8px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+/* Gradient frame + glass fill — works across engines without mask hacks */
+.border-gradient-premium {
+  border-radius: 1.25rem;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--glass), var(--glass)) padding-box,
+    linear-gradient(
+        135deg,
+        rgba(123, 97, 255, 0.5),
+        rgba(0, 212, 255, 0.3),
+        rgba(255, 46, 154, 0.22)
+      )
+      border-box;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  box-shadow:
+    0 4px 36px -10px rgba(0, 0, 0, 0.55),
+    0 0 48px -28px rgba(123, 97, 255, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+html.light .border-gradient-premium {
+  background:
+    linear-gradient(var(--glass), var(--glass)) padding-box,
+    linear-gradient(
+        135deg,
+        rgba(123, 97, 255, 0.35),
+        rgba(0, 212, 255, 0.24),
+        rgba(255, 46, 154, 0.14)
+      )
+    border-box;
+  box-shadow:
+    0 4px 36px -10px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -205,5 +269,9 @@ html.light .premium-ring {
 
   .animate-shimmer {
     animation: none;
+  }
+
+  .app-grain {
+    opacity: 0.04;
   }
 }

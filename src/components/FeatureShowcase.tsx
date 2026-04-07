@@ -2,7 +2,7 @@
 
 import { Clapperboard, Sparkles } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { ShowcaseSlide } from "@/lib/site-content-types";
+import type { ShowcaseSlide } from "@/backend/site-content/types";
 
 type Props = { slides: ShowcaseSlide[] };
 

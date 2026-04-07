@@ -121,11 +121,13 @@ export function Hero({ previews }: { previews: Preview[] }) {
             initial={reduce ? false : { opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="mb-4 inline-flex items-center justify-center gap-2 rounded-full border px-3.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] sm:mb-5 sm:px-4 sm:text-xs sm:tracking-[0.22em] md:text-sm"
+            className="mb-4 inline-flex items-center justify-center gap-2 rounded-full border border-transparent px-3.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] shadow-[0_0_40px_-12px_rgba(123,97,255,0.45)] sm:mb-5 sm:px-4 sm:text-xs sm:tracking-[0.22em] md:text-sm"
             style={{
               color: "var(--text-muted)",
-              borderColor: "var(--border-subtle)",
-              background: "var(--glass)",
+              background:
+                "linear-gradient(var(--glass), var(--glass)) padding-box, linear-gradient(135deg, rgba(123,97,255,0.35), rgba(0,212,255,0.18)) border-box",
+              border: "1px solid transparent",
+              backdropFilter: "blur(16px)",
             }}
           >
             <span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-[#00D4FF]" />
@@ -158,7 +160,7 @@ export function Hero({ previews }: { previews: Preview[] }) {
             real-time feedback, built for studios and solo creators alike.
           </motion.p>
           <motion.div
-            className="mx-auto mt-8 flex w-full max-w-[20rem] flex-col items-stretch gap-2.5 sm:mt-10 sm:max-w-none sm:flex-row sm:items-center sm:justify-center sm:gap-4"
+            className="mx-auto mt-10 flex w-full max-w-[20rem] flex-col items-stretch gap-2.5 sm:mt-12 sm:max-w-none sm:flex-row sm:items-center sm:justify-center sm:gap-4"
             initial={reduce ? false : { opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.24 }}
@@ -185,7 +187,7 @@ export function Hero({ previews }: { previews: Preview[] }) {
 
         {/* Phone: carousel in document flow (mt-auto was pushing it below the fold). */}
         {current && (
-          <div className="relative z-[11] mx-auto mt-8 flex w-full max-w-lg shrink-0 flex-col items-center pb-2 sm:hidden">
+          <div className="relative z-[11] mx-auto mt-14 flex w-full max-w-lg shrink-0 flex-col items-center pb-2 sm:hidden">
             <div
               className="relative w-full overflow-hidden rounded-2xl border shadow-[0_24px_80px_-24px_rgba(123,97,255,0.4)] ring-1 ring-white/[0.07]"
               style={{ borderColor: "var(--border-subtle)" }}
@@ -195,25 +197,26 @@ export function Hero({ previews }: { previews: Preview[] }) {
                   <motion.div
                     key={current.id}
                     className="absolute inset-0 h-full w-full overflow-hidden"
-                    style={{ top: 0, left: 0, right: 0, bottom: 0 }}
+                    style={{ top: 0, left: 0, right: 0, bottom: 0, willChange: "transform, opacity" }}
                     initial={
                       reduce
                         ? { opacity: 0 }
-                        : { opacity: 0, x: 36, scale: 1.02 }
+                        : { opacity: 0, y: 14, scale: 1.01 }
                     }
                     animate={
                       reduce
-                        ? { opacity: 1, x: 0, scale: 1 }
-                        : { opacity: 1, x: 0, scale: 1 }
+                        ? { opacity: 1 }
+                        : { opacity: 1, y: 0, scale: 1 }
                     }
                     exit={
                       reduce
                         ? { opacity: 0 }
-                        : { opacity: 0, x: -36, scale: 0.985 }
+                        : { opacity: 0, y: -14, scale: 0.995 }
                     }
                     transition={{
-                      duration: 0.65,
-                      ease: [0.25, 0.1, 0.25, 1],
+                      type: "tween",
+                      duration: 0.62,
+                      ease: [0.22, 1, 0.36, 1],
                     }}
                   >
                     <Image
@@ -237,6 +240,30 @@ export function Hero({ previews }: { previews: Preview[] }) {
                 </AnimatePresence>
               </div>
             </div>
+
+            {n > 1 && (
+              <div className="mt-4 flex items-center justify-center gap-2">
+                {previews.map((p, i) => {
+                  const on = i === mobileIdx;
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      aria-label={`Go to preview ${i + 1}`}
+                      aria-current={on}
+                      onClick={() => setMobileIdx(i)}
+                      className="h-2 rounded-full transition-all"
+                      style={{
+                        width: on ? 28 : 8,
+                        background: on
+                          ? "linear-gradient(90deg, #7B61FF, #00D4FF)"
+                          : "rgba(255,255,255,0.14)",
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
