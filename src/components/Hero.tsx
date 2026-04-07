@@ -193,30 +193,18 @@ export function Hero({ previews }: { previews: Preview[] }) {
               style={{ borderColor: "var(--border-subtle)" }}
             >
               <div className="relative aspect-video w-full bg-black/20">
-                <AnimatePresence initial={false} mode="wait">
+                <AnimatePresence initial={false} mode="sync">
                   <motion.div
                     key={current.id}
                     className="absolute inset-0 h-full w-full overflow-hidden"
-                    style={{ top: 0, left: 0, right: 0, bottom: 0, willChange: "transform, opacity" }}
-                    initial={
-                      reduce
-                        ? { opacity: 0 }
-                        : { opacity: 0, y: 14, scale: 1.01 }
-                    }
-                    animate={
-                      reduce
-                        ? { opacity: 1 }
-                        : { opacity: 1, y: 0, scale: 1 }
-                    }
-                    exit={
-                      reduce
-                        ? { opacity: 0 }
-                        : { opacity: 0, y: -14, scale: 0.995 }
-                    }
+                    style={{ top: 0, left: 0, right: 0, bottom: 0, willChange: "opacity" }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
                     transition={{
                       type: "tween",
-                      duration: 0.62,
-                      ease: [0.22, 1, 0.36, 1],
+                      duration: reduce ? 0.12 : 0.26,
+                      ease: [0.4, 0, 0.2, 1],
                     }}
                   >
                     <Image
