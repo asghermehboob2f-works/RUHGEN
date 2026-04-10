@@ -4,7 +4,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import type { NewsletterSubscriber } from "@/backend/newsletter/types";
 
-const FILE = path.join(process.cwd(), "data", "newsletter-subscribers.json");
+const FILE = path.join(process.cwd(), "backend", "data", "newsletter-subscribers.json");
 
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();

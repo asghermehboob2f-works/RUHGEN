@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+/backend/node_modules
 /.pnp
 .pnp.*
 .yarn/*
@@ -32,6 +33,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -42,5 +44,13 @@ next-env.d.ts
 
 # newsletter signups (local / server file — do not commit subscriber emails)
 /data/newsletter-subscribers.json
+/backend/data/newsletter-subscribers.json
 # contact form inbox (local / server file — do not commit PII)
 /data/contact-messages.json
+/backend/data/contact-messages.json
+
+# SQLite (Express backend)
+/data/*.sqlite
+/data/*.sqlite-*
+/backend/data/*.sqlite
+/backend/data/*.sqlite-*

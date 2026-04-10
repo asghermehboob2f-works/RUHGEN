@@ -1,35 +1,23 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useAuth } from "@/components/AuthProvider";
+import { useAdminAuth } from "@/components/AdminAuthProvider";
 import type { NewsletterSubscriber } from "@/backend/newsletter/types";
 
-function adminEmailAllowed(userEmail: string | null) {
-  const allow = process.env.NEXT_PUBLIC_ADMIN_EMAIL?.trim().toLowerCase();
-  if (!allow) return true;
-  return !!userEmail && userEmail.trim().toLowerCase() === allow;
-}
-
 export default function SubscribersAdminPage() {
-  const { user, ready } = useAuth();
-  const [secret, setSecret] = useState("");
+  const { admin, ready, authHeaders } = useAdminAuth();
   const [rows, setRows] = useState<NewsletterSubscriber[] | null>(null);
   const [status, setStatus] = useState("");
-  const canUse = useMemo(() => adminEmailAllowed(user?.email ?? null), [user?.email]);
 
-  const load = async () => {
-    if (!secret.trim()) {
-      setStatus("Enter Admin secret (same as ADMIN_SECRET in .env.local).");
+  const load = useCallback(async () => {
+    const h = authHeaders();
+    if (!h.Authorization) {
+      setStatus("Sign in again at /admin/login.");
       return;
     }
     setStatus("");
-    const res = await fetch("/api/admin/newsletter", {
-      headers: {
-        "x-admin-secret": secret.trim(),
-        Authorization: `Bearer ${secret.trim()}`,
-      },
-    });
+    const res = await fetch("/api/admin/newsletter", { headers: h });
     const data = (await res.json()) as { ok?: boolean; subscribers?: NewsletterSubscriber[]; error?: string };
     if (!data.ok) {
       setRows(null);
@@ -38,7 +26,12 @@ export default function SubscribersAdminPage() {
     }
     setRows(data.subscribers ?? []);
     setStatus(`Loaded ${data.subscribers?.length ?? 0} subscriber(s).`);
-  };
+  }, [authHeaders]);
+
+  useEffect(() => {
+    if (!ready || !admin) return;
+    void load();
+  }, [ready, admin, load]);
 
   const csv = useMemo(() => {
     if (!rows?.length) return "";
@@ -60,31 +53,17 @@ export default function SubscribersAdminPage() {
     );
   }
 
-  if (!user) {
+  if (!admin) {
     return (
       <div className="mx-auto max-w-lg px-4 py-16 sm:py-24">
         <div className="rounded-2xl border p-8 text-center" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)", color: "var(--text-muted)" }}>
-          <p className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>Sign in required</p>
+          <p className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>Admin sign-in required</p>
           <p className="mt-2 text-sm">
             Go to{" "}
-            <Link className="font-semibold text-[#00D4FF] hover:underline" href="/sign-in?next=/admindashboard/subscribers">
-              sign in
+            <Link className="font-semibold text-[#00D4FF] hover:underline" href="/admin/login?next=/admindashboard/subscribers">
+              admin login
             </Link>
             .
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!canUse) {
-    return (
-      <div className="mx-auto max-w-lg px-4 py-16 sm:py-24">
-        <div className="rounded-2xl border p-8 text-center" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)", color: "var(--text-muted)" }}>
-          <p className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>Access denied</p>
-          <p className="mt-2 text-sm">
-            Restricted to{" "}
-            <span className="font-mono text-[#00D4FF]">{process.env.NEXT_PUBLIC_ADMIN_EMAIL}</span>.
           </p>
         </div>
       </div>
@@ -103,24 +82,10 @@ export default function SubscribersAdminPage() {
               Newsletter subscribers
             </h1>
             <p className="mt-2 max-w-xl text-sm sm:text-base" style={{ color: "var(--text-muted)" }}>
-              Persisted at{" "}
-              <span className="font-mono text-[13px] text-[#00D4FF]">data/newsletter-subscribers.json</span> (gitignored).
-              Load with your admin secret to export.
+              Stored in the SQLite database (<span className="font-mono text-[13px] text-[#00D4FF]">backend/data/ruhgen.sqlite</span>).
             </p>
           </div>
           <div className="flex flex-col gap-3 lg:items-end">
-            <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-subtle)" }}>
-              Admin secret
-            </label>
-            <input
-              value={secret}
-              onChange={(e) => setSecret(e.target.value)}
-              placeholder="ADMIN_SECRET"
-              type="password"
-              autoComplete="off"
-              className="min-h-[44px] w-full rounded-xl border px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-[#7B61FF]/40 lg:w-[320px]"
-              style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
-            />
             <div className="flex flex-wrap gap-2 lg:justify-end">
               <Link
                 href="/admindashboard"
@@ -131,11 +96,11 @@ export default function SubscribersAdminPage() {
               </Link>
               <button
                 type="button"
-                onClick={load}
+                onClick={() => void load()}
                 className="inline-flex min-h-[44px] items-center justify-center rounded-xl border px-5 text-sm font-semibold"
                 style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
               >
-                Load list
+                Refresh
               </button>
               <button
                 type="button"

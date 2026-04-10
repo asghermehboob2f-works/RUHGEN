@@ -5,7 +5,7 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import type { ContactMessage } from "@/backend/contact/types";
 
-const FILE = path.join(process.cwd(), "data", "contact-messages.json");
+const FILE = path.join(process.cwd(), "backend", "data", "contact-messages.json");
 
 const MAX_MESSAGE_LEN = 8000;
 const MAX_NAME_LEN = 200;

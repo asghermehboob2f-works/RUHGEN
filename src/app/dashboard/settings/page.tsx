@@ -1,11 +1,12 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { Bell, LogOut, Mail, Monitor, Moon, Palette, Sun, User } from "lucide-react";
+import { Bell, ChevronRight, LogOut, Monitor, Moon, Palette, Sun, User } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
+import { ProSettingsCard, ProSettingsHero } from "@/components/settings/ProSettingsShell";
 import { useTheme } from "@/components/ThemeProvider";
 
 const NOTIFY_KEY = "ruhgen-notify-email";
@@ -117,65 +118,61 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-8">
-      <motion.div
-        initial={reduce ? false : { opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <p className="text-xs font-bold uppercase tracking-[0.2em]" style={{ color: "var(--text-subtle)" }}>
-          Settings
-        </p>
-        <h1 className="font-display mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl" style={{ color: "var(--text-primary)" }}>
-          Workspace preferences
-        </h1>
-        <p className="mt-2 max-w-2xl text-sm sm:text-base" style={{ color: "var(--text-muted)" }}>
-          Account details are read-only in this demo. Theme and notification toggles persist in your browser.
-        </p>
+      <motion.div initial={reduce ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+        <ProSettingsHero
+          eyebrow="Workspace"
+          title="Preferences & account"
+          description="Control appearance and local notification preferences. Email, password, and profile details live on the credentials page."
+          actions={
+            <Link
+              href="/dashboard"
+              className="inline-flex min-h-[44px] items-center justify-center rounded-xl border px-4 py-2.5 text-sm font-semibold transition-colors hover:border-[#7B61FF]/35"
+              style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)", color: "var(--text-primary)" }}
+            >
+              Overview
+            </Link>
+          }
+        />
       </motion.div>
 
       <motion.section
         initial={reduce ? false : { opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: reduce ? 0 : 0.05 }}
-        className="rounded-3xl border p-6 sm:p-8"
-        style={{
-          borderColor: "var(--border-subtle)",
-          background:
-            "linear-gradient(180deg, color-mix(in srgb, var(--soft-black) 100%, transparent), color-mix(in srgb, var(--deep-black) 85%, transparent))",
-        }}
       >
-        <div className="mb-2 flex items-center gap-2">
+        <ProSettingsCard>
+        <div className="mb-4 flex items-center gap-2">
           <User className="h-5 w-5" style={{ color: "var(--primary-purple)" }} strokeWidth={1.75} />
           <h2 className="font-display text-lg font-bold" style={{ color: "var(--text-primary)" }}>
             Account
           </h2>
         </div>
-        <SettingRow title="Display name" desc="Shown in the dashboard header and receipts.">
-          <p className="rounded-xl border px-4 py-2.5 text-sm font-medium" style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}>
-            {user.name}
-          </p>
-        </SettingRow>
-        <SettingRow title="Email" desc="Signed in with this address.">
-          <p className="flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm" style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-muted)" }}>
-            <Mail className="h-4 w-4 shrink-0 opacity-70" />
-            <span className="font-mono text-[13px]">{user.email}</span>
-          </p>
-        </SettingRow>
-        <p className="pt-2 text-xs" style={{ color: "var(--text-subtle)" }}>
-          Password changes can be wired to your auth backend later.
+        <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+          Signed in as{" "}
+          <span className="font-mono text-[13px] text-[#00D4FF]">{user.email}</span>
         </p>
+        <Link
+          href="/dashboard/settings/account"
+          className="mt-5 flex min-h-[52px] w-full max-w-lg items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left transition-colors hover:border-[#7B61FF]/40 sm:px-5"
+          style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
+        >
+          <span>
+            <span className="block text-sm font-semibold">Account & credentials</span>
+            <span className="mt-0.5 block text-xs" style={{ color: "var(--text-muted)" }}>
+              Name, email, and password
+            </span>
+          </span>
+          <ChevronRight className="h-5 w-5 shrink-0 opacity-60" aria-hidden />
+        </Link>
+        </ProSettingsCard>
       </motion.section>
 
       <motion.section
         initial={reduce ? false : { opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: reduce ? 0 : 0.08 }}
-        className="rounded-3xl border p-6 sm:p-8"
-        style={{
-          borderColor: "var(--border-subtle)",
-          background:
-            "linear-gradient(180deg, color-mix(in srgb, var(--soft-black) 100%, transparent), color-mix(in srgb, var(--deep-black) 85%, transparent))",
-        }}
       >
+        <ProSettingsCard>
         <div className="mb-2 flex items-center gap-2">
           <Palette className="h-5 w-5" style={{ color: "var(--primary-cyan)" }} strokeWidth={1.75} />
           <h2 className="font-display text-lg font-bold" style={{ color: "var(--text-primary)" }}>
@@ -223,19 +220,15 @@ export default function SettingsPage() {
             Default
           </span>
         </SettingRow>
+        </ProSettingsCard>
       </motion.section>
 
       <motion.section
         initial={reduce ? false : { opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: reduce ? 0 : 0.11 }}
-        className="rounded-3xl border p-6 sm:p-8"
-        style={{
-          borderColor: "var(--border-subtle)",
-          background:
-            "linear-gradient(180deg, color-mix(in srgb, var(--soft-black) 100%, transparent), color-mix(in srgb, var(--deep-black) 85%, transparent))",
-        }}
       >
+        <ProSettingsCard>
         <div className="mb-2 flex items-center gap-2">
           <Bell className="h-5 w-5" style={{ color: "var(--accent-pink)" }} strokeWidth={1.75} />
           <h2 className="font-display text-lg font-bold" style={{ color: "var(--text-primary)" }}>
@@ -279,15 +272,15 @@ export default function SettingsPage() {
             </SettingRow>
           </>
         )}
+        </ProSettingsCard>
       </motion.section>
 
       <motion.section
         initial={reduce ? false : { opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: reduce ? 0 : 0.14 }}
-        className="rounded-3xl border p-6 sm:p-8"
-        style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}
       >
+        <ProSettingsCard>
         <h2 className="font-display text-lg font-bold" style={{ color: "var(--text-primary)" }}>
           Session
         </h2>
@@ -319,6 +312,7 @@ export default function SettingsPage() {
             Back to overview
           </Link>
         </div>
+        </ProSettingsCard>
       </motion.section>
     </div>
   );

@@ -5,4 +5,4 @@ export type {
   ShowcaseSlide,
   SiteContent,
 } from "@/backend/site-content/types";
-export { readSiteContent, writeSiteContent } from "@/backend/site-content/repository";
+export { parseSiteContentPayload, readSiteContent } from "@/backend/site-content/repository";

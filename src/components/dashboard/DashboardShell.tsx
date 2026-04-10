@@ -4,6 +4,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   ExternalLink,
   FileStack,
+  Inbox,
   LayoutDashboard,
   LogOut,
   Mail,
@@ -11,6 +12,7 @@ import {
   Moon,
   PanelLeft,
   Sun,
+  UserCircle,
   X,
 } from "lucide-react";
 import Link from "next/link";
@@ -18,7 +20,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AmbientBackdrop } from "@/components/AmbientBackdrop";
 import { BrandLogo } from "@/components/BrandLogo";
-import { useAuth } from "@/components/AuthProvider";
+import { useAdminAuth } from "@/components/AdminAuthProvider";
 import { useTheme } from "@/components/ThemeProvider";
 import { CursorGlow } from "@/components/CursorGlow";
 
@@ -26,6 +28,8 @@ const nav = [
   { href: "/admindashboard", label: "Overview", icon: LayoutDashboard, end: true },
   { href: "/admindashboard/content", label: "Content studio", icon: FileStack },
   { href: "/admindashboard/subscribers", label: "Newsletter", icon: Mail },
+  { href: "/admindashboard/messages", label: "Contact inbox", icon: Inbox },
+  { href: "/admindashboard/settings", label: "Account", icon: UserCircle },
 ] as const;
 
 function initials(name: string) {
@@ -38,7 +42,7 @@ function initials(name: string) {
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, ready, signOut } = useAuth();
+  const { admin, ready, logout } = useAdminAuth();
   const { theme, toggle } = useTheme();
   const reduce = useReducedMotion();
   const [mobileNav, setMobileNav] = useState(false);
@@ -88,6 +92,29 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           </Link>
         );
       })}
+
+      <Link
+        href="/dashboard"
+        onClick={onNavigate}
+        className="group flex min-h-[48px] items-center gap-3 rounded-xl border px-3.5 py-2.5 text-sm font-semibold transition-colors"
+        style={{
+          borderColor: "var(--border-subtle)",
+          background: pathname.startsWith("/dashboard") ? "var(--deep-black)" : "var(--soft-black)",
+          color: pathname.startsWith("/dashboard") ? "var(--text-primary)" : "var(--text-muted)",
+        }}
+        title="Open member workspace"
+      >
+        <span
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
+            pathname.startsWith("/dashboard")
+              ? "border border-[var(--border-subtle)] bg-[var(--soft-black)]"
+              : "border border-[var(--border-subtle)] bg-[var(--deep-black)]"
+          }`}
+        >
+          <LayoutDashboard className="h-[18px] w-[18px]" strokeWidth={1.75} />
+        </span>
+        Member workspace
+      </Link>
 
       <div className="my-4 h-px bg-[var(--border-subtle)]" />
 
@@ -179,6 +206,19 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             </div>
 
             <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+              <Link
+                href="/dashboard"
+                className="hidden min-h-10 items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition-colors hover:border-[#7B61FF]/35 lg:inline-flex"
+                style={{
+                  borderColor: "var(--border-subtle)",
+                  background: "var(--soft-black)",
+                  color: "var(--text-muted)",
+                }}
+                title="Open member workspace"
+              >
+                <LayoutDashboard className="h-4 w-4 shrink-0 opacity-90" strokeWidth={1.75} />
+                <span className="hidden xl:inline">Workspace</span>
+              </Link>
               <button
                 type="button"
                 onClick={toggle}
@@ -193,7 +233,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                 {theme === "dark" ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
               </button>
 
-              {ready && user && (
+              {ready && admin && (
                 <div
                   className="hidden max-w-[220px] items-center gap-2 rounded-xl border py-1.5 pl-1.5 pr-3 sm:flex"
                   style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}
@@ -205,14 +245,14 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                       border: "1px solid var(--border-subtle)",
                     }}
                   >
-                    {initials(user.name)}
+                    {initials(admin.name || admin.email)}
                   </span>
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
-                      {user.name}
+                      {admin.name || "Admin"}
                     </p>
                     <p className="truncate font-mono text-[11px]" style={{ color: "var(--text-muted)" }}>
-                      {user.email}
+                      {admin.email}
                     </p>
                   </div>
                 </div>
@@ -221,8 +261,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               <button
                 type="button"
                 onClick={() => {
-                  signOut();
-                  router.push("/");
+                  logout();
+                  router.push("/admin/login");
                 }}
                 className="flex min-h-[44px] items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition-colors hover:text-[var(--text-primary)] sm:text-sm"
                 style={{

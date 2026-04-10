@@ -10,7 +10,7 @@ import type {
   SiteContent,
 } from "@/backend/site-content/types";
 
-const CONTENT_PATH = path.join(process.cwd(), "data", "site-content.json");
+const CONTENT_PATH = path.join(process.cwd(), "backend", "data", "site-content.json");
 
 const DEFAULT_SHOWCASE_SLIDES: ShowcaseSlide[] = [
   {
@@ -69,10 +69,9 @@ function parseShowcaseSlide(x: unknown): ShowcaseSlide | null {
   return { id: x.id, title: x.title, caption: x.caption, videoSrc };
 }
 
-export async function readSiteContent(): Promise<SiteContent> {
-  const raw = await fs.readFile(CONTENT_PATH, "utf8");
-  const data = JSON.parse(raw) as unknown;
-  if (!isRecord(data)) throw new Error("Invalid content file: root is not an object.");
+/** Parse JSON payload into `SiteContent` (shared by file read and API response). */
+export function parseSiteContentPayload(data: unknown): SiteContent {
+  if (!isRecord(data)) throw new Error("Invalid content: root is not an object.");
 
   const hero = isRecord(data.hero) ? data.hero : null;
   const gallery = isRecord(data.gallery) ? data.gallery : null;
@@ -80,7 +79,7 @@ export async function readSiteContent(): Promise<SiteContent> {
   const itemsRaw = gallery && Array.isArray(gallery.items) ? gallery.items : null;
 
   if (!previewsRaw || !itemsRaw) {
-    throw new Error("Invalid content file: missing hero.previews or gallery.items.");
+    throw new Error("Invalid content: missing hero.previews or gallery.items.");
   }
 
   const previews = previewsRaw.map(parseHeroPreview).filter(Boolean) as HeroPreview[];
@@ -88,13 +87,29 @@ export async function readSiteContent(): Promise<SiteContent> {
 
   const showcaseRaw =
     isRecord(data.showcase) && Array.isArray(data.showcase.slides) ? data.showcase.slides : null;
-  let slides = showcaseRaw ? showcaseRaw.map(parseShowcaseSlide).filter(Boolean) as ShowcaseSlide[] : [];
+  let slides = showcaseRaw ? (showcaseRaw.map(parseShowcaseSlide).filter(Boolean) as ShowcaseSlide[]) : [];
   if (!slides.length) slides = structuredClone(DEFAULT_SHOWCASE_SLIDES);
 
   return { hero: { previews }, gallery: { items }, showcase: { slides } };
 }
 
-export async function writeSiteContent(next: SiteContent) {
-  await fs.mkdir(path.dirname(CONTENT_PATH), { recursive: true });
-  await fs.writeFile(CONTENT_PATH, JSON.stringify(next, null, 2) + "\n", "utf8");
+export async function readSiteContent(): Promise<SiteContent> {
+  const base = process.env.BACKEND_URL?.trim();
+  if (base) {
+    try {
+      const res = await fetch(`${base.replace(/\/$/, "")}/api/admin/content`, {
+        cache: "no-store",
+      });
+      if (res.ok) {
+        const raw = (await res.json()) as unknown;
+        return parseSiteContentPayload(raw);
+      }
+    } catch {
+      /* fall through to file */
+    }
+  }
+
+  const raw = await fs.readFile(CONTENT_PATH, "utf8");
+  const data = JSON.parse(raw) as unknown;
+  return parseSiteContentPayload(data);
 }

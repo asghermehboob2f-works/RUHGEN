@@ -1,11 +1,11 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { Inbox, Sparkles } from "lucide-react";
+import { Inbox, Settings, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { useAuth } from "@/components/AuthProvider";
+import { useAdminAuth } from "@/components/AdminAuthProvider";
 
 const tiles = [
   {
@@ -26,16 +26,22 @@ const tiles = [
     href: "/admindashboard/messages",
     icon: "inbox" as const,
   },
+  {
+    title: "Settings",
+    desc: "Change admin display name, email, and password.",
+    href: "/admindashboard/settings",
+    icon: "settings" as const,
+  },
 ] as const;
 
 export default function DashboardPage() {
-  const { user, ready } = useAuth();
+  const { admin, ready } = useAdminAuth();
   const router = useRouter();
   const reduce = useReducedMotion();
 
   useEffect(() => {
-    if (ready && !user) router.replace("/sign-in?next=/admindashboard");
-  }, [ready, user, router]);
+    if (ready && !admin) router.replace("/admin/login?next=/admindashboard");
+  }, [ready, admin, router]);
 
   if (!ready) {
     return (
@@ -56,7 +62,7 @@ export default function DashboardPage() {
     );
   }
 
-  if (!user) return null;
+  if (!admin) return null;
 
   return (
     <div className="px-4 pb-16 pt-8 sm:px-6 sm:pt-10 lg:px-10">
@@ -77,8 +83,11 @@ export default function DashboardPage() {
                 Admin dashboard
               </h1>
               <p className="mt-3 max-w-xl text-sm leading-relaxed sm:text-base" style={{ color: "var(--text-muted)" }}>
-                Manage site content, newsletter exports, and contact form messages. Admin access is controlled by email
-                allowlist and admin secret.
+                Manage site content, newsletter exports, and contact form messages. Sign in at{" "}
+                <Link href="/admin/login" className="font-semibold text-[#00D4FF] hover:underline">
+                  /admin/login
+                </Link>{" "}
+                (separate from member accounts).
               </p>
             </div>
             <div className="flex flex-wrap gap-2 lg:justify-end">
@@ -124,6 +133,8 @@ export default function DashboardPage() {
                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border" style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)" }}>
                   {t.icon === "inbox" ? (
                     <Inbox className="h-5 w-5" strokeWidth={1.75} style={{ color: "#00D4FF" }} />
+                  ) : t.icon === "settings" ? (
+                    <Settings className="h-5 w-5" strokeWidth={1.75} style={{ color: "#7B61FF" }} />
                   ) : (
                     <Sparkles className="h-5 w-5" strokeWidth={1.75} style={{ color: "var(--text-muted)" }} />
                   )}

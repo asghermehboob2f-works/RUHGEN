@@ -1,11 +1,12 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { LayoutDashboard, LogOut, Menu, Moon, Sun, X } from "lucide-react";
+import { LayoutDashboard, LogOut, Menu, Moon, Settings, Shield, Sun, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useActiveSection } from "@/hooks/useActiveSection";
+import { useAdminAuth } from "@/components/AdminAuthProvider";
 import { useAuth } from "./AuthProvider";
 import { BrandLogo } from "./BrandLogo";
 import { useTheme } from "./ThemeProvider";
@@ -40,6 +41,7 @@ export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, ready, signOut } = useAuth();
+  const { admin: adminSession } = useAdminAuth();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { theme, toggle } = useTheme();
@@ -130,16 +132,47 @@ export function Navbar() {
                 <Link
                   href="/dashboard"
                   className={`hidden min-h-10 items-center gap-1.5 rounded-xl border px-2.5 py-2 text-xs font-semibold sm:inline-flex lg:px-3 lg:text-sm ${
-                    pathname === "/dashboard" ? "border-[#7B61FF]/45 text-[#7B61FF]" : ""
+                    pathname === "/dashboard" || pathname.startsWith("/dashboard/") ? "border-[#7B61FF]/45 text-[#7B61FF]" : ""
                   }`}
                   style={{
                     borderColor: "var(--border-subtle)",
-                    color: pathname === "/dashboard" ? undefined : "var(--text-primary)",
+                    color:
+                      pathname === "/dashboard" || pathname.startsWith("/dashboard/")
+                        ? undefined
+                        : "var(--text-primary)",
                     background: "var(--glass)",
                   }}
                 >
                   <LayoutDashboard className="h-[15px] w-[15px] shrink-0 lg:h-4 lg:w-4" />
                   <span className="max-w-[88px] truncate lg:max-w-[120px]">{user.name}</span>
+                </Link>
+                <Link
+                  href="/dashboard/settings"
+                  className={`hidden min-h-10 items-center gap-1.5 rounded-xl border px-2.5 py-2 text-xs font-semibold md:inline-flex lg:px-3 lg:text-sm ${
+                    pathname.startsWith("/dashboard/settings") ? "border-[#7B61FF]/40" : ""
+                  }`}
+                  style={{
+                    borderColor: "var(--border-subtle)",
+                    color: "var(--text-primary)",
+                    background: "var(--glass)",
+                  }}
+                  title="Workspace settings & account"
+                >
+                  <Settings className="h-[15px] w-[15px] shrink-0 opacity-90 lg:h-4 lg:w-4" strokeWidth={2} />
+                  <span className="hidden lg:inline">Account</span>
+                </Link>
+                <Link
+                  href={adminSession ? "/admindashboard" : "/admin/login"}
+                  className="hidden min-h-10 items-center gap-1.5 rounded-xl border px-2.5 py-2 text-xs font-semibold sm:inline-flex lg:px-3 lg:text-sm"
+                  style={{
+                    borderColor: "var(--border-subtle)",
+                    color: "var(--text-muted)",
+                    background: "var(--glass)",
+                  }}
+                  title={adminSession ? "Admin console" : "Admin sign-in"}
+                >
+                  <Shield className="h-[15px] w-[15px] shrink-0 opacity-90 lg:h-4 lg:w-4" strokeWidth={2} />
+                  <span className="hidden md:inline">Admin</span>
                 </Link>
                 <button
                   type="button"
@@ -160,6 +193,17 @@ export function Navbar() {
               </>
             ) : (
               <>
+                <Link
+                  href="/admin/login"
+                  className="hidden min-h-10 items-center gap-1.5 rounded-xl border px-2.5 py-2 text-[11px] font-semibold text-[var(--text-muted)] sm:inline-flex lg:text-xs"
+                  style={{
+                    borderColor: "var(--border-subtle)",
+                    background: "transparent",
+                  }}
+                >
+                  <Shield className="h-3.5 w-3.5 shrink-0 opacity-80" strokeWidth={2} />
+                  <span className="hidden md:inline">Admin</span>
+                </Link>
                 <Link
                   href="/sign-in"
                   className="hidden min-h-10 items-center rounded-xl border px-3 py-2 text-xs font-semibold sm:inline-flex lg:px-4 lg:text-sm"
@@ -299,6 +343,16 @@ export function Navbar() {
                       { href: "/about", label: "About" },
                       { href: "/contact", label: "Contact" },
                       { href: "/dashboard", label: "Dashboard" },
+                      ...(ready && user
+                        ? [
+                            { href: "/dashboard/settings", label: "Account & settings" },
+                            {
+                              href: adminSession ? "/admindashboard" : "/admin/login",
+                              label: "Admin",
+                            },
+                          ]
+                        : []),
+                      ...(!user ? [{ href: "/admin/login", label: "Admin sign-in" }] : []),
                     ].map((x) => (
                       <Link
                         key={x.href}

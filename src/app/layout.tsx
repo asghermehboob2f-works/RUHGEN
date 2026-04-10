@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono, Syne } from "next/font/google";
 import { BRAND_LOGO_SRC } from "@/lib/constants";
+import { AdminAuthProvider } from "@/components/AdminAuthProvider";
 import { AuthProvider } from "@/components/AuthProvider";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import "./globals.css";
@@ -70,7 +71,7 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <AuthProvider>
-            {children}
+            <AdminAuthProvider>{children}</AdminAuthProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

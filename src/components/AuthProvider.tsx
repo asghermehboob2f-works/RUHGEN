@@ -10,6 +10,7 @@ import {
 } from "react";
 import {
   AUTH_SESSION_KEY,
+  AUTH_USERS_KEY,
   hashPassword,
   readSession,
   readUsers,
@@ -31,6 +32,12 @@ type AuthContextValue = {
     password: string
   ) => Promise<AuthResult>;
   signOut: () => void;
+  updateProfile: (input: {
+    currentPassword: string;
+    name: string;
+    email: string;
+    newPassword?: string;
+  }) => Promise<AuthResult>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -50,7 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     const onStorage = (e: StorageEvent) => {
-      if (e.key === AUTH_SESSION_KEY) {
+      if (e.key === AUTH_SESSION_KEY || e.key === AUTH_USERS_KEY) {
         setUser(readSession());
       }
     };
@@ -125,6 +132,72 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
+  const updateProfile = useCallback(
+    async (input: {
+      currentPassword: string;
+      name: string;
+      email: string;
+      newPassword?: string;
+    }): Promise<AuthResult> => {
+      const session = readSession();
+      if (!session) {
+        return { ok: false, error: "Not signed in." };
+      }
+      const currentPassword = input.currentPassword;
+      if (!currentPassword) {
+        return { ok: false, error: "Current password is required." };
+      }
+
+      const users = readUsers();
+      const idx = users.findIndex((x) => x.id === session.id);
+      if (idx === -1) {
+        return { ok: false, error: "Account not found." };
+      }
+      const u = users[idx];
+      const h = await hashPassword(currentPassword);
+      if (h !== u.passwordHash) {
+        return { ok: false, error: "Current password is incorrect." };
+      }
+
+      const name = input.name.trim().slice(0, 120) || u.name;
+      const email = normalizeEmail(input.email);
+      if (!email) {
+        return { ok: false, error: "Email is required." };
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return { ok: false, error: "Invalid email address." };
+      }
+      if (email !== u.email && users.some((x) => x.email === email && x.id !== u.id)) {
+        return { ok: false, error: "That email is already in use." };
+      }
+
+      const newPw = input.newPassword?.trim() ?? "";
+      let passwordHash = u.passwordHash;
+      if (newPw.length > 0) {
+        if (newPw.length < 8) {
+          return { ok: false, error: "New password must be at least 8 characters." };
+        }
+        passwordHash = await hashPassword(newPw);
+      }
+
+      const nextRow: StoredUser = {
+        ...u,
+        name,
+        email,
+        passwordHash,
+      };
+      const nextUsers = users.slice();
+      nextUsers[idx] = nextRow;
+      writeUsers(nextUsers);
+
+      const nextSession: SessionUser = { id: u.id, email, name };
+      writeSession(nextSession);
+      setUser(nextSession);
+      return { ok: true };
+    },
+    []
+  );
+
   const value = useMemo(
     () => ({
       user,
@@ -132,8 +205,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signIn,
       signUp,
       signOut,
+      updateProfile,
     }),
-    [user, ready, signIn, signUp, signOut]
+    [user, ready, signIn, signUp, signOut, updateProfile]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

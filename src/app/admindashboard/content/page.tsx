@@ -1,25 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
-import { useAuth } from "@/components/AuthProvider";
+import { useAdminAuth } from "@/components/AdminAuthProvider";
 import type { GalleryCategory, SiteContent } from "@/backend/site-content/types";
 
-function adminEmailAllowed(userEmail: string | null) {
-  const allow = process.env.NEXT_PUBLIC_ADMIN_EMAIL?.trim().toLowerCase();
-  if (!allow) return true;
-  return !!userEmail && userEmail.trim().toLowerCase() === allow;
-}
-
 export default function DashboardContentPage() {
-  const { user, ready } = useAuth();
+  const { admin, ready, authHeaders } = useAdminAuth();
   const reduce = useReducedMotion();
-  const [secret, setSecret] = useState("");
   const [content, setContent] = useState<SiteContent | null>(null);
   const [status, setStatus] = useState<string>("");
-  const canUse = useMemo(() => adminEmailAllowed(user?.email ?? null), [user?.email]);
 
   useEffect(() => {
     let ok = true;
@@ -52,17 +44,17 @@ export default function DashboardContentPage() {
     );
   }
 
-  if (!user) {
+  if (!admin) {
     return (
       <div className="mx-auto max-w-lg px-4 py-16 sm:py-24">
         <div className="rounded-2xl border p-8 text-center" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)", color: "var(--text-muted)" }}>
           <p className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>
-            Sign in required
+            Admin sign-in required
           </p>
           <p className="mt-2 text-sm">
             Go to{" "}
-            <Link className="font-semibold text-[#00D4FF] hover:underline" href="/sign-in?next=/admindashboard/content">
-              sign in
+            <Link className="font-semibold text-[#00D4FF] hover:underline" href="/admin/login?next=/admindashboard/content">
+              admin login
             </Link>
             .
           </p>
@@ -71,54 +63,27 @@ export default function DashboardContentPage() {
     );
   }
 
-  if (!canUse) {
-    return (
-      <div className="mx-auto max-w-lg px-4 py-16 sm:py-24">
-        <div className="rounded-2xl border p-8 text-center" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)", color: "var(--text-muted)" }}>
-          <p className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>
-            Access denied
-          </p>
-          <p className="mt-2 text-sm">
-            This editor is restricted to{" "}
-            <span className="font-mono text-[#00D4FF]">{process.env.NEXT_PUBLIC_ADMIN_EMAIL}</span>.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  const adminHeaders = (extra: Record<string, string> = {}) => {
-    const s = secret.trim();
-    return {
-      ...extra,
-      "x-admin-secret": s,
-      ...(s ? { Authorization: `Bearer ${s}` } : {}),
-    };
-  };
-
   const save = async () => {
     if (!content) return;
-    if (!secret.trim()) {
-      setStatus("Save failed: Enter the same Admin secret as ADMIN_SECRET in .env.local (then restart dev server).");
+    const h = authHeaders();
+    if (!h.Authorization) {
+      setStatus("Save failed: sign in again at /admin/login.");
       return;
     }
     setStatus("");
     const res = await fetch("/api/admin/content", {
       method: "PUT",
-      headers: adminHeaders({ "content-type": "application/json" }),
+      headers: { ...h, "content-type": "application/json" },
       body: JSON.stringify(content),
     });
     const data = await res.json();
-    if (!data.ok && data.error === "ADMIN_SECRET is not configured.") {
-      setStatus("Save failed: Create .env.local in the project root with ADMIN_SECRET=your_secret and restart npm run dev. Do not rely on .env.example alone.");
-      return;
-    }
     setStatus(data.ok ? "Saved. Homepage updated." : `Save failed: ${data.error || "Unknown error"}`);
   };
 
   const upload = async (folder: "hero" | "gallery" | "img" | "showcase", file: File) => {
-    if (!secret.trim()) {
-      setStatus("Upload failed: Enter Admin secret first (must match ADMIN_SECRET in .env.local).");
+    const h = authHeaders();
+    if (!h.Authorization) {
+      setStatus("Upload failed: sign in again at /admin/login.");
       return null;
     }
     setStatus("");
@@ -127,7 +92,7 @@ export default function DashboardContentPage() {
     form.set("file", file);
     const res = await fetch("/api/admin/upload", {
       method: "POST",
-      headers: adminHeaders(),
+      headers: h,
       body: form,
     });
     const data = await res.json();
@@ -157,18 +122,9 @@ export default function DashboardContentPage() {
           </div>
 
           <div className="flex flex-col gap-3 lg:items-end lg:text-right">
-            <label className="text-xs font-semibold uppercase tracking-wider lg:text-right" style={{ color: "var(--text-subtle)" }}>
-              Admin secret
-            </label>
-            <input
-              value={secret}
-              onChange={(e) => setSecret(e.target.value)}
-              placeholder="ADMIN_SECRET from .env.local"
-              type="password"
-              autoComplete="off"
-              className="min-h-[44px] w-full rounded-xl border px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-[#7B61FF]/40 lg:w-[min(100%,360px)]"
-              style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
-            />
+            <p className="max-w-sm text-xs lg:text-right" style={{ color: "var(--text-muted)" }}>
+              Signed in as <span className="font-mono text-[#00D4FF]">{admin.email}</span>
+            </p>
             <div className="flex flex-wrap gap-2 lg:justify-end">
               <Link
                 href="/admindashboard"
