@@ -57,7 +57,10 @@ export default function ContactMessagesAdminPage() {
 
   useEffect(() => {
     if (!ready || !admin) return;
-    void load();
+    const t = window.setTimeout(() => {
+      void load();
+    }, 0);
+    return () => window.clearTimeout(t);
   }, [ready, admin, load]);
 
   const exportJson = useMemo(() => {

@@ -11,7 +11,9 @@
     "dev:full": "concurrently -k -n next,api -c cyan,magenta \"npm run dev\" \"npm run dev:backend\"",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "clear:local": "node scripts/clear-local-data.cjs --yes --next",
+    "clear:data": "node scripts/clear-local-data.cjs --yes"
   },
   "dependencies": {
     "@vercel/blob": "^2.3.3",

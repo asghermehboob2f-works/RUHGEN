@@ -3,8 +3,9 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { Eye, EyeOff, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAdminAuth } from "@/components/AdminAuthProvider";
+import type { AdminUser } from "@/lib/admin-auth-storage";
 import {
   ProFieldGroup,
   ProLabel,
@@ -14,12 +15,12 @@ import {
   proInputStyle,
 } from "@/components/settings/ProSettingsShell";
 
-export default function AdminSettingsPage() {
-  const { admin, ready, authHeaders, applySession } = useAdminAuth();
+function AdminSettingsForm({ admin }: { admin: AdminUser }) {
+  const { authHeaders, applySession } = useAdminAuth();
   const reduce = useReducedMotion();
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [name, setName] = useState(admin.name || "");
+  const [email, setEmail] = useState(admin.email || "");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -27,12 +28,6 @@ export default function AdminSettingsPage() {
   const [showNew, setShowNew] = useState(false);
   const [status, setStatus] = useState("");
   const [pending, setPending] = useState(false);
-
-  useEffect(() => {
-    if (!admin) return;
-    setName(admin.name || "");
-    setEmail(admin.email || "");
-  }, [admin]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,6 +74,8 @@ export default function AdminSettingsPage() {
         return;
       }
       applySession({ token: data.token, admin: data.admin });
+      setName(data.admin.name);
+      setEmail(data.admin.email);
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -88,34 +85,6 @@ export default function AdminSettingsPage() {
     }
     setPending(false);
   };
-
-  if (!ready) {
-    return (
-      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 px-4" style={{ color: "var(--text-muted)" }}>
-        <span
-          className="loading-orbit h-10 w-10 rounded-full border-2 border-t-transparent"
-          style={{ borderColor: "#7B61FF", borderTopColor: "transparent" }}
-          aria-hidden
-        />
-        <p className="text-sm font-semibold tracking-wide">Loading…</p>
-      </div>
-    );
-  }
-
-  if (!admin) {
-    return (
-      <div className="mx-auto max-w-lg px-4 py-16 sm:py-24">
-        <div className="rounded-2xl border p-8 text-center" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)", color: "var(--text-muted)" }}>
-          <p className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>Admin sign-in required</p>
-          <p className="mt-2 text-sm">
-            <Link className="font-semibold text-[#00D4FF] hover:underline" href="/admin/login?next=/admindashboard/settings">
-              Admin login
-            </Link>
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="relative flex-1 overflow-x-clip px-4 pb-20 pt-8 sm:px-6 sm:pt-10 lg:px-10">
@@ -268,4 +237,38 @@ export default function AdminSettingsPage() {
       </div>
     </div>
   );
+}
+
+export default function AdminSettingsPage() {
+  const { admin, ready } = useAdminAuth();
+
+  if (!ready) {
+    return (
+      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 px-4" style={{ color: "var(--text-muted)" }}>
+        <span
+          className="loading-orbit h-10 w-10 rounded-full border-2 border-t-transparent"
+          style={{ borderColor: "#7B61FF", borderTopColor: "transparent" }}
+          aria-hidden
+        />
+        <p className="text-sm font-semibold tracking-wide">Loading…</p>
+      </div>
+    );
+  }
+
+  if (!admin) {
+    return (
+      <div className="mx-auto max-w-lg px-4 py-16 sm:py-24">
+        <div className="rounded-2xl border p-8 text-center" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)", color: "var(--text-muted)" }}>
+          <p className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>Admin sign-in required</p>
+          <p className="mt-2 text-sm">
+            <Link className="font-semibold text-[#00D4FF] hover:underline" href="/admin/login?next=/admindashboard/settings">
+              Admin login
+            </Link>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return <AdminSettingsForm key={admin.id} admin={admin} />;
 }

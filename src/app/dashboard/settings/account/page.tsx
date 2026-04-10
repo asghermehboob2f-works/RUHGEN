@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
+import type { SessionUser } from "@/lib/auth-storage";
 import {
   ProFieldGroup,
   ProLabel,
@@ -15,13 +16,12 @@ import {
   proInputStyle,
 } from "@/components/settings/ProSettingsShell";
 
-export default function UserAccountSettingsPage() {
-  const { user, ready, updateProfile } = useAuth();
-  const router = useRouter();
+function UserAccountForm({ user }: { user: SessionUser }) {
+  const { updateProfile } = useAuth();
   const reduce = useReducedMotion();
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [name, setName] = useState(user.name || "");
+  const [email, setEmail] = useState(user.email || "");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -29,16 +29,6 @@ export default function UserAccountSettingsPage() {
   const [showNew, setShowNew] = useState(false);
   const [status, setStatus] = useState("");
   const [pending, setPending] = useState(false);
-
-  useEffect(() => {
-    if (ready && !user) router.replace("/sign-in?next=/dashboard/settings/account");
-  }, [ready, user, router]);
-
-  useEffect(() => {
-    if (!user) return;
-    setName(user.name || "");
-    setEmail(user.email || "");
-  }, [user]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,9 +42,11 @@ export default function UserAccountSettingsPage() {
       return;
     }
     setPending(true);
+    const nm = name.trim();
+    const em = email.trim();
     const result = await updateProfile({
-      name: name.trim(),
-      email: email.trim(),
+      name: nm,
+      email: em,
       currentPassword,
       ...(newPassword.trim() ? { newPassword: newPassword.trim() } : {}),
     });
@@ -63,20 +55,13 @@ export default function UserAccountSettingsPage() {
       setStatus(result.error);
       return;
     }
+    setName(nm);
+    setEmail(em);
     setCurrentPassword("");
     setNewPassword("");
     setConfirmPassword("");
     setStatus("Account updated.");
   };
-
-  if (!ready) {
-    return (
-      <div className="flex min-h-[40vh] items-center justify-center text-sm" style={{ color: "var(--text-muted)" }}>
-        Loading…
-      </div>
-    );
-  }
-  if (!user) return null;
 
   return (
     <div className="mx-auto max-w-[640px] space-y-8">
@@ -237,4 +222,24 @@ export default function UserAccountSettingsPage() {
       </motion.form>
     </div>
   );
+}
+
+export default function UserAccountSettingsPage() {
+  const { user, ready } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (ready && !user) router.replace("/sign-in?next=/dashboard/settings/account");
+  }, [ready, user, router]);
+
+  if (!ready) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center text-sm" style={{ color: "var(--text-muted)" }}>
+        Loading…
+      </div>
+    );
+  }
+  if (!user) return null;
+
+  return <UserAccountForm key={user.id} user={user} />;
 }

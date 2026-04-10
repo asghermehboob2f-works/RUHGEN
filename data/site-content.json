@@ -1,0 +1,98 @@
+{
+  "hero": {
+    "previews": [
+      {
+        "id": "hero-1",
+        "src": "/media/hero/38a2c7cb-84ea-434e-a333-a6c909a90060.jpg",
+        "alt": "wallpaperflare.com_wallpaper (2).jpg",
+        "prompt": "A warrior on top"
+      },
+      {
+        "id": "hero-2",
+        "src": "/media/hero/16ec4a9a-fa11-4344-8cf8-1da240ec6458.jpg",
+        "alt": "wallpaperflare.com_wallpaper.jpg",
+        "prompt": "A warrior in dark shade"
+      },
+      {
+        "id": "hero-3",
+        "src": "/media/hero/a942957a-a13b-4878-a352-007f4396a9be.jpg",
+        "alt": "wallpaperflare.com_wallpaper (1).jpg",
+        "prompt": "samurai on fire"
+      },
+      {
+        "id": "hero-4",
+        "src": "/media/hero/c21daecc-4afa-4b3d-af95-5e2d689d7c69.png",
+        "alt": "copy2.png",
+        "prompt": "Samurai in dark"
+      }
+    ]
+  },
+  "gallery": {
+    "items": [
+      {
+        "id": "g-1",
+        "src": "/media/gallery/f4576312-9ac7-4bbd-801e-2144694743e3.jpg",
+        "alt": "hennessey-dodge-challenger-srt-demon-7680x4320-20754.jpg",
+        "prompt": "A dorge",
+        "category": "cinematic"
+      },
+      {
+        "id": "g-2",
+        "src": "/media/gallery/7632da42-bb89-44c9-a0b5-1f79c182e702.jpg",
+        "alt": "lamborghini-urus-7680x4320-26554.jpg",
+        "prompt": "A lamborgini",
+        "category": "sci-fi"
+      },
+      {
+        "id": "g-3",
+        "src": "/media/gallery/56f3d08d-4e9c-427b-8a26-37b36cb778fc.jpg",
+        "alt": "wallpaperflare.com_wallpaper (2).jpg",
+        "prompt": "A warrior on mountains",
+        "category": "cinematic"
+      },
+      {
+        "id": "g-4",
+        "src": "/media/gallery/fe583c8c-185e-42c6-aa21-615f89dfb1a9.jpg",
+        "alt": "spider-man-dark-5120x2880-18796.jpg",
+        "prompt": "A dark spider man",
+        "category": "realistic"
+      },
+      {
+        "id": "g-5",
+        "src": "/media/gallery/f786c428-1dd1-4273-9559-b874910ac693.jpg",
+        "alt": "tengen-uzui-dark-7680x4320-18405.jpg",
+        "prompt": "Samurai",
+        "category": "cinematic"
+      },
+      {
+        "id": "g-6",
+        "src": "/media/gallery/80a15047-f21b-4dba-9c72-d1866c7d649b.jpg",
+        "alt": "wallpaperflare.com_wallpaper (1).jpg",
+        "prompt": "A samurai on fire",
+        "category": "realistic"
+      }
+    ]
+  },
+  "showcase": {
+    "slides": [
+      {
+        "id": "show-2",
+        "title": "Background genius",
+        "caption": "Replace environments in one pass—studio cyclorama, matte painting, or full CG—with depth-aware separation.",
+        "videoSrc": "/media/showcase/c7560b51-d360-429f-bd68-1999bae6dcf5.mp4"
+      },
+      {
+        "id": "385e2964-8995-4509-833c-881f5e338fda",
+        "title": "Face swap",
+        "caption": "Identity-aware blends that respect lighting, skin tone, and camera angle—built for believable hero shots.",
+        "videoSrc": "/media/showcase/53dbba86-54ba-43f8-b759-4fdc083975f4.mp4"
+      },
+      {
+        "id": "62f56e06-cfd9-493f-a27c-ca8416b94720",
+        "title": "Background genius v2",
+        "caption": "Replace environments in one pass—studio cyclorama, matte painting, or full CG—with depth-aware separation. and many more",
+        "videoSrc": "/media/showcase/dcd4f376-4861-4205-bed7-a5763ba2f2c8.mp4"
+      }
+    ]
+  }
+}

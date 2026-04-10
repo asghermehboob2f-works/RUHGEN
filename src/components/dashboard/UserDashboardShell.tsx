@@ -8,16 +8,13 @@ import {
   Menu,
   Moon,
   Settings,
-  Shield,
   Sun,
-  UserCircle,
   X,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BrandLogo } from "@/components/BrandLogo";
-import { useAdminAuth } from "@/components/AdminAuthProvider";
 import { useAuth } from "@/components/AuthProvider";
 import { useTheme } from "@/components/ThemeProvider";
 
@@ -25,7 +22,6 @@ const navItems = [
   { href: "/dashboard", label: "Overview", icon: Home, end: true },
   { href: "/dashboard/billing", label: "Billing", icon: CreditCard },
   { href: "/dashboard/settings", label: "Preferences", icon: Settings },
-  { href: "/dashboard/settings/account", label: "Account", icon: UserCircle },
 ] as const;
 
 function initials(name: string) {
@@ -44,7 +40,6 @@ export function UserDashboardShell({ children }: { children: React.ReactNode }) 
   const pathname = usePathname();
   const router = useRouter();
   const { user, ready, signOut } = useAuth();
-  const { admin: adminSession } = useAdminAuth();
   const { theme, toggle } = useTheme();
   const reduce = useReducedMotion();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -57,7 +52,10 @@ export function UserDashboardShell({ children }: { children: React.ReactNode }) 
   }, [mobileOpen]);
 
   useEffect(() => {
-    setMobileOpen(false);
+    const id = window.requestAnimationFrame(() => {
+      setMobileOpen(false);
+    });
+    return () => window.cancelAnimationFrame(id);
   }, [pathname]);
 
   return (
@@ -144,19 +142,6 @@ export function UserDashboardShell({ children }: { children: React.ReactNode }) 
             >
               {theme === "dark" ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
             </button>
-
-            <Link
-              href={adminSession ? "/admindashboard" : "/admin/login"}
-              className="hidden min-h-10 items-center gap-1.5 rounded-xl border px-3 text-xs font-semibold text-[var(--text-muted)] transition-colors hover:text-[var(--text-primary)] lg:inline-flex"
-              style={{
-                borderColor: "var(--border-subtle)",
-                background: "var(--glass)",
-              }}
-              title="Operator console"
-            >
-              <Shield className="h-4 w-4 shrink-0 opacity-85" strokeWidth={1.75} />
-              <span className="hidden xl:inline">Admin</span>
-            </Link>
 
             {ready && user && (
               <div

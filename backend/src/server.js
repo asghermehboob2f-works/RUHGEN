@@ -64,7 +64,8 @@ app.use(express.json({ limit: "4mb" }));
 app.post("/api/admin/auth/login", (req, res) => {
   try {
     const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
-    const password = typeof req.body?.password === "string" ? req.body.password : "";
+    const password =
+      typeof req.body?.password === "string" ? req.body.password.trim() : "";
     if (!email || !password) {
       return res.status(400).json({ ok: false, error: "Email and password are required." });
     }

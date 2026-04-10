@@ -15,6 +15,7 @@ const product = [
 
 const company = [
   { href: "/about", label: "About" },
+  { href: "/platform", label: "Platform" },
   { href: "/contact", label: "Contact" },
   { href: "/about#join", label: "Careers" },
   { href: "/#faq", label: "FAQ" },

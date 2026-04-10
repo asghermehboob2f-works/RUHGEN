@@ -29,7 +29,7 @@ const nav = [
   { href: "/admindashboard/content", label: "Content studio", icon: FileStack },
   { href: "/admindashboard/subscribers", label: "Newsletter", icon: Mail },
   { href: "/admindashboard/messages", label: "Contact inbox", icon: Inbox },
-  { href: "/admindashboard/settings", label: "Account", icon: UserCircle },
+  { href: "/admindashboard/settings", label: "Settings", icon: UserCircle },
 ] as const;
 
 function initials(name: string) {
@@ -39,34 +39,22 @@ function initials(name: string) {
   return (a + b).toUpperCase();
 }
 
-export function DashboardShell({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const router = useRouter();
-  const { admin, ready, logout } = useAdminAuth();
-  const { theme, toggle } = useTheme();
-  const reduce = useReducedMotion();
-  const [mobileNav, setMobileNav] = useState(false);
+function navActive(pathname: string, href: string, end?: boolean) {
+  if (end) return pathname === href;
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
-  useEffect(() => {
-    document.body.style.overflow = mobileNav ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [mobileNav]);
-
-  useEffect(() => {
-    setMobileNav(false);
-  }, [pathname]);
-
-  const active = (href: string, end?: boolean) => {
-    if (end) return pathname === href;
-    return pathname === href || pathname.startsWith(`${href}/`);
-  };
-
-  const NavLinks = ({ onNavigate }: { onNavigate?: () => void }) => (
+function DashboardNavLinks({
+  pathname,
+  onNavigate,
+}: {
+  pathname: string;
+  onNavigate?: () => void;
+}) {
+  return (
     <nav className="flex flex-col gap-1" aria-label="Workspace">
       {nav.map((item) => {
-        const isOn = active(item.href, "end" in item ? item.end : false);
+        const isOn = navActive(pathname, item.href, "end" in item ? item.end : false);
         return (
           <Link
             key={item.href}
@@ -134,6 +122,29 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       </Link>
     </nav>
   );
+}
+
+export function DashboardShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { admin, ready, logout } = useAdminAuth();
+  const { theme, toggle } = useTheme();
+  const reduce = useReducedMotion();
+  const [mobileNav, setMobileNav] = useState(false);
+
+  useEffect(() => {
+    document.body.style.overflow = mobileNav ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileNav]);
+
+  useEffect(() => {
+    const id = window.requestAnimationFrame(() => {
+      setMobileNav(false);
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, [pathname]);
 
   return (
     <>
@@ -159,13 +170,13 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                 Workspace
               </p>
               <div className="mt-3">
-                <NavLinks />
+                <DashboardNavLinks pathname={pathname} />
               </div>
             </div>
 
             <div className="mt-auto rounded-2xl border p-4" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
               <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--text-subtle)" }}>
-                Admin console
+                Console
               </p>
               <p className="mt-1 text-sm font-medium leading-snug" style={{ color: "var(--text-muted)" }}>
                 Content & newsletter tools for site operators.
@@ -249,7 +260,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                   </span>
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
-                      {admin.name || "Admin"}
+                      {admin.name || admin.email?.split("@")[0] || "Operator"}
                     </p>
                     <p className="truncate font-mono text-[11px]" style={{ color: "var(--text-muted)" }}>
                       {admin.email}
@@ -289,7 +300,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               color: "var(--text-subtle)",
             }}
           >
-            Admin dashboard
+            Operator console
           </footer>
         </div>
 
@@ -340,7 +351,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                   </button>
                 </div>
                 <div className="flex-1 overflow-y-auto px-4 py-5">
-                  <NavLinks onNavigate={() => setMobileNav(false)} />
+                  <DashboardNavLinks pathname={pathname} onNavigate={() => setMobileNav(false)} />
                 </div>
               </motion.div>
             </>

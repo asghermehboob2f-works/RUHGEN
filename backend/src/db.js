@@ -1,6 +1,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const Database = require("better-sqlite3");
+const { hashPassword } = require("./auth");
 
 /**
  * Resolve directory for SQLite and local JSON (seeds, legacy migration).
@@ -87,25 +88,98 @@ function openDb(projectRoot) {
   `);
   seedSiteContentIfEmpty(db, dataDir, projectRoot);
   migrateLegacyJsonIfEmpty(db, dataDir, projectRoot);
-  seedAdminsIfEmpty(db);
+  ensureAdminFromEnv(db);
   return { db, dataDir };
 }
 
-function hashPasswordSha256(password) {
-  const crypto = require("node:crypto");
-  return crypto.createHash("sha256").update(String(password), "utf8").digest("hex");
+/** Strip BOM/CR and optional wrapping quotes from .env values (Windows-friendly). */
+function normalizeSeedName() {
+  let n = String(process.env.ADMIN_SEED_NAME ?? "Site Admin")
+    .replace(/^\uFEFF/, "")
+    .trim();
+  if ((n.startsWith('"') && n.endsWith('"')) || (n.startsWith("'") && n.endsWith("'"))) {
+    n = n.slice(1, -1).trim();
+  }
+  return n || "Site Admin";
 }
 
-function seedAdminsIfEmpty(db) {
+function getSeedCredentials() {
+  const email = String(process.env.ADMIN_SEED_EMAIL ?? "admin@ruhgen.local")
+    .replace(/^\uFEFF/, "")
+    .trim()
+    .toLowerCase();
+  const rawPw = process.env.ADMIN_SEED_PASSWORD;
+  const password =
+    rawPw != null && String(rawPw).replace(/^\uFEFF/, "").trim() !== ""
+      ? String(rawPw).replace(/^\uFEFF/, "").trim()
+      : "admin123";
+  const name = normalizeSeedName();
+  return { email, password, name };
+}
+
+/**
+ * Keeps SQLite `admins` in sync with ADMIN_SEED_* from .env when the API starts.
+ * - Empty table: insert one operator from env.
+ * - Exactly one row: update email, password hash, and name from env (so changing .env fixes login).
+ * - Multiple rows: update only the row whose email matches ADMIN_SEED_EMAIL.
+ * Set ADMIN_SEED_DISABLE_SYNC=1 to only seed an empty DB (legacy behavior).
+ */
+function ensureAdminFromEnv(db) {
+  const legacyOnly = ["1", "true", "yes"].includes(
+    String(process.env.ADMIN_SEED_DISABLE_SYNC ?? "")
+      .trim()
+      .toLowerCase()
+  );
+  if (legacyOnly) {
+    seedAdminsIfEmptyOnly(db);
+    return;
+  }
+
+  const { email, password, name } = getSeedCredentials();
+  const password_hash = hashPassword(password);
+
+  const count = db.prepare("SELECT COUNT(*) AS c FROM admins").get().c;
+  if (count === 0) {
+    const crypto = require("node:crypto");
+    const id = crypto.randomUUID();
+    const created_at = new Date().toISOString();
+    db.prepare(
+      "INSERT INTO admins (id, email, password_hash, name, created_at) VALUES (?, ?, ?, ?, ?)"
+    ).run(id, email, password_hash, name, created_at);
+    return;
+  }
+
+  if (count === 1) {
+    const row = db.prepare("SELECT id FROM admins LIMIT 1").get();
+    if (row) {
+      db.prepare("UPDATE admins SET email = ?, password_hash = ?, name = ? WHERE id = ?").run(
+        email,
+        password_hash,
+        name,
+        row.id
+      );
+    }
+    return;
+  }
+
+  const found = db.prepare("SELECT id FROM admins WHERE email = ?").get(email);
+  if (found) {
+    db.prepare("UPDATE admins SET password_hash = ?, name = ? WHERE id = ?").run(
+      password_hash,
+      name,
+      found.id
+    );
+  }
+}
+
+function seedAdminsIfEmptyOnly(db) {
   const crypto = require("node:crypto");
   const n = db.prepare("SELECT COUNT(*) AS c FROM admins").get().c;
   if (n > 0) return;
 
-  const email = (process.env.ADMIN_SEED_EMAIL || "admin@ruhgen.local").trim().toLowerCase();
-  const password = process.env.ADMIN_SEED_PASSWORD || "admin123";
-  const name = (process.env.ADMIN_SEED_NAME || "Site Admin").trim() || "Site Admin";
+  const { email, password, name } = getSeedCredentials();
   const id = crypto.randomUUID();
-  const password_hash = hashPasswordSha256(password);
+  const password_hash = hashPassword(password);
   const created_at = new Date().toISOString();
 
   db.prepare(

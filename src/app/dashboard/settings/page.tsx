@@ -93,10 +93,13 @@ export default function SettingsPage() {
   }, [ready, user, router]);
 
   useEffect(() => {
-    setEmailNotif(readBool(NOTIFY_KEY, true));
-    setProductNotif(readBool(PRODUCT_KEY, true));
-    setMarketing(readBool(MARKETING_KEY, false));
-    setPrefsReady(true);
+    const t = window.setTimeout(() => {
+      setEmailNotif(readBool(NOTIFY_KEY, true));
+      setProductNotif(readBool(PRODUCT_KEY, true));
+      setMarketing(readBool(MARKETING_KEY, false));
+      setPrefsReady(true);
+    }, 0);
+    return () => window.clearTimeout(t);
   }, []);
 
   const persist = useCallback((key: string, value: boolean) => {
