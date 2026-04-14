@@ -80,7 +80,7 @@ export default function BillingPage() {
           </div>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
-              href="/#pricing"
+              href="/pricing"
               className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-2xl px-5 text-sm font-semibold text-white"
               style={{
                 background: "linear-gradient(135deg, var(--primary-purple), var(--primary-cyan))",

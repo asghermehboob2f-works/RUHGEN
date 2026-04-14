@@ -3,6 +3,7 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
+import { SITE_CONTAINER } from "@/lib/site-layout";
 
 type Category = "all" | "cinematic" | "sci-fi" | "art" | "realistic";
 
@@ -22,7 +23,13 @@ const filters: { key: Category; label: string }[] = [
   { key: "realistic", label: "Realistic" },
 ];
 
-export function GallerySection({ items }: { items: Item[] }) {
+export function GallerySection({
+  items,
+  hideHeading = false,
+}: {
+  items: Item[];
+  hideHeading?: boolean;
+}) {
   const [filter, setFilter] = useState<Category>("all");
   const [selected, setSelected] = useState<Item | null>(null);
   const reduce = useReducedMotion();
@@ -50,29 +57,33 @@ export function GallerySection({ items }: { items: Item[] }) {
 
   return (
     <section id="gallery" className="mesh-section-muted scroll-mt-24 py-12 md:py-24">
-      <div className="mx-auto max-w-[1400px] px-3 sm:px-6 lg:px-10">
-        <div className="mb-8 text-center md:mb-12">
-          <p
-            className="mb-2 text-xs font-bold uppercase tracking-[0.2em] sm:text-sm"
-            style={{ color: "var(--text-subtle)" }}
-          >
-            Inspiration
-          </p>
-          <h2
-            className="font-display text-[clamp(1.55rem,3.8vw,3rem)] font-bold tracking-tight"
-            style={{ color: "var(--text-primary)" }}
-          >
-            Showcase gallery
-          </h2>
-          <p
-            className="mx-auto mt-2 max-w-lg text-sm sm:mt-3 sm:text-lg"
-            style={{ color: "var(--text-muted)" }}
-          >
-            Explore what creators are building
-          </p>
-        </div>
+      <div className={SITE_CONTAINER}>
+        {!hideHeading && (
+          <div className="mb-10 grid gap-8 md:mb-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:items-end lg:gap-12">
+            <div className="text-center lg:text-left">
+              <p
+                className="mb-2 text-xs font-bold uppercase tracking-[0.2em] sm:text-sm"
+                style={{ color: "var(--text-subtle)" }}
+              >
+                Inspiration
+              </p>
+              <h2
+                className="font-display text-[clamp(1.55rem,3.8vw,3rem)] font-bold tracking-tight"
+                style={{ color: "var(--text-primary)" }}
+              >
+                Showcase gallery
+              </h2>
+            </div>
+            <p
+              className="text-center text-sm sm:mt-3 sm:text-lg lg:text-left"
+              style={{ color: "var(--text-muted)" }}
+            >
+              Explore what creators are building
+            </p>
+          </div>
+        )}
 
-        <div className="mb-6 flex flex-wrap justify-center gap-1.5 sm:mb-10 sm:gap-2.5">
+        <div className="mb-6 flex flex-wrap justify-center gap-1.5 sm:mb-10 sm:gap-2.5 lg:justify-end">
           {filters.map((f) => (
             <button
               key={f.key}
@@ -103,7 +114,7 @@ export function GallerySection({ items }: { items: Item[] }) {
 
         <motion.div
           layout
-          className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3"
+          className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4 xl:gap-5"
         >
           <AnimatePresence mode="popLayout">
             {visible.map((item) => (

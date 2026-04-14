@@ -5,10 +5,11 @@
   "scripts": {
     "sync:media": "node scripts/sync-media.cjs",
     "prebuild": "node scripts/sync-media.cjs",
-    "dev": "next dev",
+    "dev": "concurrently -n next,api -c cyan,magenta \"next dev\" \"npm run dev:backend\"",
+    "dev:next": "next dev",
     "dev:webpack": "next dev --webpack",
     "dev:backend": "npm --prefix backend run dev",
-    "dev:full": "concurrently -k -n next,api -c cyan,magenta \"npm run dev\" \"npm run dev:backend\"",
+    "dev:full": "npm run dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",

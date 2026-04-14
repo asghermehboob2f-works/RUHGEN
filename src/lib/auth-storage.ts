@@ -1,5 +1,7 @@
 export const AUTH_USERS_KEY = "ruhgen_auth_users_v1";
 export const AUTH_SESSION_KEY = "ruhgen_auth_session_v1";
+/** Bearer JWT from POST /api/auth/login — source of truth when set. */
+export const AUTH_USER_TOKEN_KEY = "ruhgen_user_jwt_v1";
 
 export type StoredUser = {
   id: string;
@@ -13,6 +15,8 @@ export type SessionUser = {
   id: string;
   email: string;
   name: string;
+  subscriptionPlan?: string;
+  subscriptionStatus?: string;
 };
 
 export async function hashPassword(password: string): Promise<string> {
@@ -55,4 +59,14 @@ export function readSession(): SessionUser | null {
 export function writeSession(user: SessionUser | null) {
   if (!user) localStorage.removeItem(AUTH_SESSION_KEY);
   else localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(user));
+}
+
+export function readUserToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(AUTH_USER_TOKEN_KEY);
+}
+
+export function writeUserToken(token: string | null) {
+  if (!token) localStorage.removeItem(AUTH_USER_TOKEN_KEY);
+  else localStorage.setItem(AUTH_USER_TOKEN_KEY, token);
 }

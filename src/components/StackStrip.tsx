@@ -1,5 +1,7 @@
 "use client";
 
+import { SITE_CONTAINER } from "@/lib/site-layout";
+
 const tools = [
   "Unreal Engine",
   "Blender",
@@ -22,7 +24,7 @@ export function StackStrip() {
         background: "var(--rich-black)",
       }}
     >
-      <div className="mx-auto max-w-[1400px] px-3 sm:px-6 lg:px-10">
+      <div className={SITE_CONTAINER}>
         <div className="flex flex-col items-center gap-5 text-center sm:gap-8">
           <div>
             <p

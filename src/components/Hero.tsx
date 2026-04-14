@@ -76,7 +76,7 @@ export function Hero({ previews }: { previews: Preview[] }) {
   return (
     <section
       id="hero"
-      className="mesh-section relative flex min-h-[100dvh] flex-col justify-start overflow-x-hidden pb-10 pt-[max(5.25rem,env(safe-area-inset-top,0px)+4.5rem)] sm:pb-14 sm:pt-28 md:pt-32"
+      className="mesh-section relative flex min-h-[min(100dvh,920px)] flex-col justify-start overflow-x-hidden pb-10 pt-[max(5.25rem,env(safe-area-inset-top,0px)+4.5rem)] sm:min-h-[min(100dvh,960px)] sm:pb-14 sm:pt-28 md:pt-32"
     >
       {!reduce ? (
         <>
@@ -172,7 +172,7 @@ export function Hero({ previews }: { previews: Preview[] }) {
               Start creating free
             </Link>
             <Link
-              href="/#preview"
+              href="/demo"
               className="inline-flex min-h-[50px] w-full items-center justify-center rounded-xl border px-6 py-3 text-[15px] font-semibold transition-colors hover:border-[#7B61FF]/50 sm:min-h-[52px] sm:w-auto sm:min-w-[200px] sm:rounded-2xl sm:px-8 sm:py-3.5 sm:text-base"
               style={{
                 borderColor: "var(--border-subtle)",

@@ -85,9 +85,21 @@ function openDb(projectRoot) {
       name TEXT NOT NULL DEFAULT '',
       created_at TEXT NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      email TEXT NOT NULL UNIQUE COLLATE NOCASE,
+      name TEXT NOT NULL,
+      password_hash TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      suspended INTEGER NOT NULL DEFAULT 0,
+      subscription_plan TEXT NOT NULL DEFAULT 'free',
+      subscription_status TEXT NOT NULL DEFAULT 'active',
+      admin_notes TEXT NOT NULL DEFAULT ''
+    );
   `);
   seedSiteContentIfEmpty(db, dataDir, projectRoot);
   migrateLegacyJsonIfEmpty(db, dataDir, projectRoot);
+  syncSiteContentFromSeedFile(db, dataDir, projectRoot);
   ensureAdminFromEnv(db);
   return { db, dataDir };
 }
@@ -227,6 +239,153 @@ function seedSiteContentIfEmpty(db, dataDir, projectRoot) {
     },
   });
   db.prepare("INSERT INTO site_content (id, json) VALUES (1, ?)").run(fallback);
+}
+
+/**
+ * Admin UI reads site content only from SQLite. The repo's `data/site-content.json` usually has
+ * real `/media/...` paths while an older DB row has empty hero/gallery/showcase placeholders.
+ * Sync from the seed file so /admindashboard/content matches assets on disk (same idea as the
+ * Next.js merge for the public homepage).
+ */
+function syncSiteContentFromSeedFile(db, dataDir, projectRoot) {
+  const seedPath = siteContentSeedPath(dataDir, projectRoot);
+  if (!fs.existsSync(seedPath)) return;
+  let seed;
+  try {
+    seed = JSON.parse(fs.readFileSync(seedPath, "utf8"));
+  } catch {
+    return;
+  }
+
+  const row = db.prepare("SELECT json FROM site_content WHERE id = 1").get();
+  if (!row) return;
+  let data;
+  try {
+    data = JSON.parse(row.json);
+  } catch {
+    return;
+  }
+
+  let changed = false;
+  if (syncHeroPreviewsFromSeed(data, seed)) changed = true;
+  if (syncGalleryItemsFromSeed(data, seed)) changed = true;
+  if (syncShowcaseSlidesFromSeed(data, seed)) changed = true;
+
+  if (changed) {
+    db.prepare("UPDATE site_content SET json = ? WHERE id = 1").run(JSON.stringify(data));
+  }
+}
+
+function heroPreviewHasSrc(p) {
+  return p && typeof p.src === "string" && p.src.trim() !== "";
+}
+
+function syncHeroPreviewsFromSeed(data, seed) {
+  const seedPrev = seed?.hero?.previews;
+  if (!Array.isArray(seedPrev) || seedPrev.length === 0) return false;
+  if (!seedPrev.some(heroPreviewHasSrc)) return false;
+
+  const dbPrev = data.hero?.previews;
+  if (!Array.isArray(dbPrev) || dbPrev.length === 0) {
+    data.hero = JSON.parse(JSON.stringify(seed.hero));
+    return true;
+  }
+  const allMissing = dbPrev.every((p) => !heroPreviewHasSrc(p));
+  if (allMissing) {
+    data.hero = JSON.parse(JSON.stringify(seed.hero));
+    return true;
+  }
+
+  const byId = new Map(seedPrev.filter((p) => p && p.id).map((p) => [p.id, p]));
+  let changed = false;
+  for (let i = 0; i < dbPrev.length; i++) {
+    const p = dbPrev[i];
+    if (!p || heroPreviewHasSrc(p)) continue;
+    let s = byId.get(p.id);
+    if (!s || !heroPreviewHasSrc(s)) s = seedPrev[i];
+    if (s && heroPreviewHasSrc(s)) {
+      p.src = s.src;
+      if (typeof s.alt === "string" && s.alt.trim()) p.alt = s.alt;
+      if (typeof s.prompt === "string") p.prompt = s.prompt;
+      changed = true;
+    }
+  }
+  return changed;
+}
+
+function galleryItemHasSrc(g) {
+  return g && typeof g.src === "string" && g.src.trim() !== "";
+}
+
+function syncGalleryItemsFromSeed(data, seed) {
+  const seedItems = seed?.gallery?.items;
+  if (!Array.isArray(seedItems) || seedItems.length === 0) return false;
+  if (!seedItems.some(galleryItemHasSrc)) return false;
+
+  const dbItems = data.gallery?.items;
+  if (!Array.isArray(dbItems) || dbItems.length === 0) {
+    data.gallery = JSON.parse(JSON.stringify(seed.gallery));
+    return true;
+  }
+  const allMissing = dbItems.every((g) => !galleryItemHasSrc(g));
+  if (allMissing) {
+    data.gallery = JSON.parse(JSON.stringify(seed.gallery));
+    return true;
+  }
+
+  const byId = new Map(seedItems.filter((g) => g && g.id).map((g) => [g.id, g]));
+  let changed = false;
+  for (let i = 0; i < dbItems.length; i++) {
+    const g = dbItems[i];
+    if (!g || galleryItemHasSrc(g)) continue;
+    let s = byId.get(g.id);
+    if (!s || !galleryItemHasSrc(s)) s = seedItems[i];
+    if (s && galleryItemHasSrc(s)) {
+      g.src = s.src;
+      if (typeof s.alt === "string" && s.alt.trim()) g.alt = s.alt;
+      if (typeof s.prompt === "string") g.prompt = s.prompt;
+      if (typeof s.category === "string" && s.category.trim()) g.category = s.category;
+      changed = true;
+    }
+  }
+  return changed;
+}
+
+function slideHasVideo(s) {
+  return s && typeof s.videoSrc === "string" && s.videoSrc.trim() !== "";
+}
+
+function syncShowcaseSlidesFromSeed(data, seed) {
+  const seedSlides = seed?.showcase?.slides;
+  if (!Array.isArray(seedSlides) || seedSlides.length === 0) return false;
+  if (!seedSlides.some(slideHasVideo)) return false;
+
+  const dbSlides = data.showcase?.slides;
+  if (!Array.isArray(dbSlides) || dbSlides.length === 0) {
+    data.showcase = JSON.parse(JSON.stringify(seed.showcase));
+    return true;
+  }
+  const allMissing = dbSlides.every((s) => !slideHasVideo(s));
+  if (allMissing) {
+    data.showcase = JSON.parse(JSON.stringify(seed.showcase));
+    return true;
+  }
+
+  const byId = new Map(seedSlides.filter((s) => s && s.id).map((s) => [s.id, s]));
+  let changed = false;
+  for (let i = 0; i < dbSlides.length; i++) {
+    const slide = dbSlides[i];
+    if (!slide || slideHasVideo(slide)) continue;
+    let src = byId.get(slide.id);
+    if (!src || !slideHasVideo(src)) src = seedSlides[i];
+    if (src && slideHasVideo(src)) {
+      slide.videoSrc = src.videoSrc;
+      if (typeof src.title === "string" && src.title.trim()) slide.title = src.title;
+      if (typeof src.caption === "string" && src.caption.trim()) slide.caption = src.caption;
+      changed = true;
+    }
+  }
+  return changed;
 }
 
 function migrateLegacyJsonIfEmpty(db, dataDir, projectRoot) {

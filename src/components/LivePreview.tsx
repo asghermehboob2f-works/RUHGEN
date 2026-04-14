@@ -1,353 +1,681 @@
 "use client";
 
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ImageIcon, Loader2, RefreshCw, Sparkles, Video, Wand2 } from "lucide-react";
+import { Download, ImageIcon, Loader2, Sparkles, Video } from "lucide-react";
 import Image from "next/image";
-import { useCallback, useMemo, useState } from "react";
-import { LiveStudioBackdrop } from "./LiveStudioBackdrop";
+import { useRouter } from "next/navigation";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { SITE_CONTAINER } from "@/lib/site-layout";
 
-type Tab = "image" | "video";
+type Mode = "image" | "video";
+type DemoStatus = "idle" | "loading" | "done";
 
-const demoImage =
-  "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=85";
+const ASPECT_PRESETS = [
+  { label: "Square", sub: "1:1", w: 1024, h: 1024 },
+  { label: "Landscape", sub: "16:9", w: 768, h: 1344 },
+  { label: "Portrait", sub: "9:16", w: 1344, h: 768 },
+  { label: "Tall", sub: "4:5", w: 1152, h: 896 },
+  { label: "Wide", sub: "5:4", w: 896, h: 1152 },
+  { label: "Classic", sub: "3:2", w: 832, h: 1216 },
+  { label: "Poster", sub: "2:3", w: 1216, h: 832 },
+] as const;
 
-const SUGGESTIONS = {
-  image: [
-    "Alpine lake at dawn, 8K, mist, anamorphic flare",
-    "Brutalist lobby, volumetric god rays, film grain",
-  ],
-  video: [
-    "Slow dolly through neon rain alley, cinematic 24fps",
-    "Drone orbit of coastal cliff, golden hour",
-  ],
-} as const;
+const DETAIL_LEVELS = [
+  { label: "Fast", steps: 1 as const },
+  { label: "Balanced", steps: 2 as const },
+  { label: "Rich", steps: 3 as const },
+  { label: "Ultra", steps: 4 as const },
+];
 
-export function LivePreview() {
-  const reduce = useReducedMotion() === true;
-  const [tab, setTab] = useState<Tab>("image");
+const LOOK_CHIPS: { id: string; prefix: string }[] = [
+  { id: "none", prefix: "" },
+  { id: "photo", prefix: "Photorealistic, highly detailed. " },
+  { id: "film", prefix: "Cinematic lighting, shallow depth of field. " },
+  { id: "studio", prefix: "Clean studio lighting, crisp focus. " },
+];
+
+const VIDEO_FRAMES = [
+  { label: "Landscape", value: "16:9" as const },
+  { label: "Portrait", value: "9:16" as const },
+  { label: "Square", value: "1:1" as const },
+];
+
+const VIDEO_LOOKS: { id: string; prefix: string }[] = [
+  { id: "none", prefix: "" },
+  { id: "cine", prefix: "Cinematic camera movement, film grain. " },
+  { id: "slow", prefix: "Slow, smooth motion, atmospheric. " },
+  { id: "product", prefix: "Clean commercial motion, stable camera. " },
+];
+
+const FRIENDLY_IMAGE_FAIL = "We couldn't create your image. Please try again in a moment.";
+
+export function LivePreview({ hideHeading = false }: { hideHeading?: boolean }) {
+  const router = useRouter();
+  const [mode, setMode] = useState<Mode>("image");
   const [prompt, setPrompt] = useState("");
-  const [lastPrompt, setLastPrompt] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "done">("idle");
+  const [aspectIdx, setAspectIdx] = useState(0);
+  const [detailIdx, setDetailIdx] = useState(3);
+  const [lookId, setLookId] = useState("none");
+  const [randomVariation, setRandomVariation] = useState(true);
+  const [customVariation, setCustomVariation] = useState("");
 
-  const suggestions = useMemo(() => SUGGESTIONS[tab], [tab]);
+  const [videoSeconds, setVideoSeconds] = useState<5 | 10>(5);
+  const [videoFrame, setVideoFrame] = useState<(typeof VIDEO_FRAMES)[number]["value"]>("16:9");
+  const [videoLookId, setVideoLookId] = useState("none");
+  const [videoQuality, setVideoQuality] = useState<"std" | "pro">("std");
 
-  const runGenerate = useCallback(() => {
-    if (status === "loading") return;
-    const text = prompt.trim() || suggestions[0];
-    setLastPrompt(text);
-    setStatus("loading");
-    window.setTimeout(() => setStatus("done"), 2200);
-  }, [status, prompt, suggestions]);
+  const [status, setStatus] = useState<DemoStatus>("idle");
+  const [error, setError] = useState<string | null>(null);
+  const [videoNotice, setVideoNotice] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
-  const resetDemo = useCallback(() => {
+  const aspect = ASPECT_PRESETS[aspectIdx] ?? ASPECT_PRESETS[0];
+  const steps = DETAIL_LEVELS[detailIdx]?.steps ?? 4;
+  const detailLabel = DETAIL_LEVELS[detailIdx]?.label ?? "Ultra";
+  const lookPrefix = LOOK_CHIPS.find((x) => x.id === lookId)?.prefix ?? "";
+
+  const placeholder = useMemo(
+    () =>
+      mode === "image"
+        ? "What should we create?"
+        : "Describe the motion, setting, and mood…",
+    [mode],
+  );
+
+  const resetOutput = useCallback(() => {
+    setError(null);
+    setImageUrl(null);
     setStatus("idle");
-    setLastPrompt("");
   }, []);
+
+  const switchMode = useCallback(
+    (m: Mode) => {
+      setMode(m);
+      setVideoNotice(null);
+      resetOutput();
+      abortRef.current?.abort();
+    },
+    [resetOutput],
+  );
+
+  const buildImagePrompt = useCallback(() => {
+    const text = prompt.trim();
+    if (!text) return "";
+    return `${lookPrefix}${text}`;
+  }, [prompt, lookPrefix]);
+
+  const runImage = useCallback(async () => {
+    const text = buildImagePrompt();
+    if (!text.trim()) {
+      setError("Add a short description first.");
+      return;
+    }
+    abortRef.current?.abort();
+    const ac = new AbortController();
+    abortRef.current = ac;
+    setError(null);
+    setImageUrl(null);
+    setStatus("loading");
+
+    let seed = 0;
+    if (!randomVariation) {
+      const n = parseInt(customVariation.trim(), 10);
+      seed = Number.isFinite(n) && n >= 0 ? n : 0;
+    }
+
+    try {
+      const res = await fetch("/api/demo/flux-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: ac.signal,
+        body: JSON.stringify({
+          prompt: text,
+          width: aspect.w,
+          height: aspect.h,
+          seed,
+          steps,
+        }),
+      });
+      const j = (await res.json()) as {
+        ok?: boolean;
+        error?: string;
+        detail?: string;
+        imageDataUrl?: string;
+      };
+      if (ac.signal.aborted) return;
+      if (!res.ok || j.ok === false) {
+        setError(FRIENDLY_IMAGE_FAIL);
+        setStatus("idle");
+        return;
+      }
+      if (!j.imageDataUrl) {
+        setError(FRIENDLY_IMAGE_FAIL);
+        setStatus("idle");
+        return;
+      }
+      setImageUrl(j.imageDataUrl);
+      setStatus("done");
+    } catch (e) {
+      if (e instanceof DOMException && e.name === "AbortError") return;
+      setError(FRIENDLY_IMAGE_FAIL);
+      setStatus("idle");
+    }
+  }, [buildImagePrompt, aspect.w, aspect.h, steps, randomVariation, customVariation]);
+
+  const downloadImage = useCallback(() => {
+    if (!imageUrl) return;
+    const a = document.createElement("a");
+    a.href = imageUrl;
+    a.download = `ruhgen-still-${Date.now()}.jpg`;
+    a.rel = "noopener";
+    a.click();
+  }, [imageUrl]);
+
+  const goToVideoWorkspace = useCallback(() => {
+    const base = prompt.trim();
+    const prefix = VIDEO_LOOKS.find((x) => x.id === videoLookId)?.prefix ?? "";
+    const full = `${prefix}${base}`.trim();
+    if (full.length < 2) {
+      setVideoNotice("Add a short description first.");
+      return;
+    }
+    setVideoNotice(null);
+    try {
+      sessionStorage.setItem(
+        "ruhgen.videoDemo.handoff",
+        JSON.stringify({
+          prompt: full,
+          duration: videoSeconds,
+          aspect: videoFrame,
+          mode: videoQuality,
+        }),
+      );
+    } catch {
+      /* ignore */
+    }
+    router.push("/dashboard/generate/video");
+  }, [prompt, videoSeconds, videoFrame, videoQuality, videoLookId, router]);
 
   return (
     <section
       id="preview"
-      className="mesh-section relative scroll-mt-24 overflow-hidden py-12 sm:py-16 md:py-20"
+      className={
+        hideHeading
+          ? "mesh-section relative scroll-mt-24 py-8 sm:py-10"
+          : "mesh-section relative scroll-mt-24 border-t border-white/[0.06] py-20 sm:py-28"
+      }
     >
-      <LiveStudioBackdrop reduceMotion={reduce} />
-      {/* Light wash — backdrop carries most of the scene; keep this subtle for depth */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.22]"
-        aria-hidden
-        style={{
-          background:
-            "radial-gradient(ellipse 85% 60% at 18% 15%, rgba(123,97,255,0.18), transparent 55%), radial-gradient(ellipse 70% 55% at 88% 78%, rgba(0,212,255,0.14), transparent 60%), radial-gradient(ellipse 60% 45% at 55% 110%, rgba(255,46,154,0.06), transparent 60%)",
-        }}
-      />
-      <div className="relative z-[1] mx-auto max-w-[960px] px-3 sm:px-6 lg:px-8">
-        <div className="mb-6 text-center sm:mb-10">
-          <p
-            className="mb-2 text-xs font-bold uppercase tracking-[0.2em] sm:text-sm"
-            style={{ color: "var(--text-subtle)" }}
-          >
-            Live studio
-          </p>
-          <h2
-            className="font-display text-[clamp(1.5rem,3.8vw,3rem)] font-bold tracking-tight"
-            style={{ color: "var(--text-primary)" }}
-          >
-            Watch AI create magic
-          </h2>
-          <p
-            className="mx-auto mt-2 max-w-lg text-sm sm:mt-3 sm:text-lg"
-            style={{ color: "var(--text-muted)" }}
-          >
-            Experience real-time generation in action
-          </p>
-        </div>
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(123,97,255,0.12),transparent)]" />
+
+      <div className={`relative z-[1] ${SITE_CONTAINER}`}>
+        {!hideHeading && (
+          <header className="mb-10 grid gap-6 text-center sm:mb-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:items-end lg:text-left">
+            <div>
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] lg:mx-0" style={{ borderColor: "var(--border-subtle)", color: "var(--text-subtle)" }}>
+                <Sparkles className="h-3.5 w-3.5 text-[#7B61FF]" aria-hidden />
+                Try it
+              </div>
+              <h2
+                className="font-display text-3xl font-semibold tracking-tight sm:text-4xl md:text-[2.75rem]"
+                style={{ color: "var(--text-primary)" }}
+              >
+                Demo session
+              </h2>
+            </div>
+            <p className="text-sm leading-relaxed sm:text-base lg:max-w-none" style={{ color: "var(--text-muted)" }}>
+              Pick image or video, tune a few options, and create. No jargon—just results.
+            </p>
+          </header>
+        )}
 
         <div
-          className="premium-ring relative mx-auto overflow-hidden rounded-2xl border p-4 sm:rounded-[1.35rem] sm:p-6 md:p-8"
+          className="overflow-hidden rounded-[1.75rem] border shadow-2xl sm:rounded-[2rem]"
           style={{
             borderColor: "var(--border-subtle)",
             background:
-              "linear-gradient(180deg, rgba(255,255,255,0.09) 0%, rgba(255,255,255,0.06) 60%, rgba(255,255,255,0.05) 100%)",
-            backdropFilter: "blur(40px) saturate(170%)",
-            boxShadow:
-              "0 32px 80px -28px rgba(123,97,255,0.28), inset 0 1px 0 rgba(255,255,255,0.08)",
+              "linear-gradient(180deg, color-mix(in srgb, var(--soft-black) 88%, transparent) 0%, color-mix(in srgb, var(--deep-black) 96%, transparent) 100%)",
+            boxShadow: "0 0 0 1px color-mix(in srgb, var(--border-subtle) 50%, transparent), 0 32px 80px -24px rgba(0,0,0,0.55)",
           }}
         >
           <div
-            className="pointer-events-none absolute -left-24 -top-24 h-56 w-56 rounded-full blur-3xl opacity-30"
-            aria-hidden
-            style={{ background: "rgba(123,97,255,0.75)" }}
-          />
-          <div
-            className="pointer-events-none absolute -bottom-28 -right-28 h-72 w-72 rounded-full blur-3xl opacity-20"
-            aria-hidden
-            style={{ background: "rgba(0,212,255,0.7)" }}
-          />
-          <div
-            className="mb-5 inline-flex w-full flex-col gap-3 sm:mb-6 sm:w-auto sm:flex-row sm:items-center sm:justify-between"
+            className="flex gap-1 p-1.5 sm:p-2"
+            style={{ borderBottom: "1px solid var(--border-subtle)" }}
+            role="tablist"
+            aria-label="Mode"
           >
-            <div
-              className="inline-flex w-full rounded-2xl border p-1 sm:w-auto"
-              style={{
-                borderColor: "var(--border-subtle)",
-                background: "var(--glass)",
-              }}
-              role="tablist"
-              aria-label="Generation type"
-            >
-              <button
-                type="button"
-                role="tab"
-                aria-selected={tab === "image"}
-                onClick={() => {
-                  setTab("image");
-                  setStatus("idle");
-                }}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-all sm:flex-initial sm:rounded-full sm:px-6 sm:py-2.5 ${
-                  tab === "image" ? "text-white shadow-lg" : ""
-                }`}
-                style={
-                  tab === "image"
-                    ? {
-                        background:
-                          "linear-gradient(135deg, #7B61FF 0%, #00D4FF 100%)",
-                        boxShadow: "0 0 28px rgba(123,97,255,0.4)",
-                      }
-                    : { color: "var(--text-muted)" }
-                }
-              >
-                <ImageIcon className="h-4 w-4 shrink-0" />
-                Image
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={tab === "video"}
-                onClick={() => {
-                  setTab("video");
-                  setStatus("idle");
-                }}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-all sm:flex-initial sm:rounded-full sm:px-6 sm:py-2.5 ${
-                  tab === "video" ? "text-white shadow-lg" : ""
-                }`}
-                style={
-                  tab === "video"
-                    ? {
-                        background:
-                          "linear-gradient(135deg, #7B61FF 0%, #00D4FF 100%)",
-                        boxShadow: "0 0 28px rgba(0,212,255,0.35)",
-                      }
-                    : { color: "var(--text-muted)" }
-                }
-              >
-                <Video className="h-4 w-4 shrink-0" />
-                Video
-              </button>
-            </div>
-            <p className="hidden text-center text-xs sm:block sm:text-left sm:text-sm" style={{ color: "var(--text-subtle)" }}>
-              Tap generate — demo simulates ~2s latency
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch sm:gap-3">
-            <label className="sr-only" htmlFor="demo-prompt">
-              Prompt
-            </label>
-            <textarea
-              id="demo-prompt"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Describe your vision…"
-              rows={2}
-              className="min-h-[5rem] w-full flex-1 resize-y rounded-2xl border py-3.5 pl-3.5 pr-3.5 text-[15px] outline-none transition-shadow focus:ring-2 focus:ring-[#7B61FF]/40 sm:min-h-[3.5rem] sm:resize-y sm:py-3.5 sm:pl-5 sm:pr-5 sm:text-base md:text-lg"
-              style={{
-                borderColor: "var(--border-subtle)",
-                background: "var(--glass)",
-                color: "var(--text-primary)",
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  runGenerate();
-                }
-              }}
-            />
             <button
               type="button"
-              onClick={runGenerate}
-              disabled={status === "loading"}
-              className="inline-flex min-h-[48px] w-full shrink-0 items-center justify-center gap-2 rounded-2xl px-5 text-sm font-semibold text-white btn-gradient sm:w-auto sm:self-center sm:rounded-xl sm:px-5 sm:py-2.5"
+              role="tab"
+              aria-selected={mode === "image"}
+              onClick={() => switchMode("image")}
+              className="flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-2xl text-sm font-semibold transition-all sm:min-h-[44px] sm:text-[15px]"
+              style={
+                mode === "image"
+                  ? {
+                      background: "linear-gradient(135deg, #7B61FF, #5B4FD9)",
+                      color: "#fff",
+                      boxShadow: "0 8px 28px -8px rgba(123,97,255,0.55)",
+                    }
+                  : { color: "var(--text-muted)" }
+              }
             >
-              {status === "loading" ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Working
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-4 w-4" />
-                  Generate
-                </>
-              )}
+              <ImageIcon className="h-4 w-4 shrink-0 opacity-90" strokeWidth={2} />
+              Image
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={mode === "video"}
+              onClick={() => switchMode("video")}
+              className="flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-2xl text-sm font-semibold transition-all sm:min-h-[44px] sm:text-[15px]"
+              style={
+                mode === "video"
+                  ? {
+                      background: "linear-gradient(135deg, #00C8F0, #5B4FD9)",
+                      color: "#fff",
+                      boxShadow: "0 8px 28px -8px rgba(0,200,255,0.4)",
+                    }
+                  : { color: "var(--text-muted)" }
+              }
+            >
+              <Video className="h-4 w-4 shrink-0 opacity-90" strokeWidth={2} />
+              Video
             </button>
           </div>
 
-          <div className="mt-3 flex flex-wrap gap-2">
-            <span className="text-xs font-medium" style={{ color: "var(--text-subtle)" }}>
-              Try:
-            </span>
-            {suggestions.map((s) => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => setPrompt(s)}
-                className="rounded-full border px-3 py-1 text-left text-xs font-medium transition-colors hover:border-[#7B61FF]/45"
-                style={{
-                  borderColor: "var(--border-subtle)",
-                  color: "var(--text-muted)",
-                  background: "var(--glass)",
-                }}
-              >
-                {s.length > 42 ? `${s.slice(0, 42)}…` : s}
-              </button>
-            ))}
-          </div>
+          <div className="grid gap-0 lg:grid-cols-[1fr_1.05fr]">
+            <div className="flex flex-col gap-5 p-6 sm:p-8 lg:border-r" style={{ borderColor: "var(--border-subtle)" }}>
+              <label className="block">
+                <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: "var(--text-subtle)" }}>
+                  Prompt
+                </span>
+                <textarea
+                  value={prompt}
+                  onChange={(e) => {
+                    setPrompt(e.target.value);
+                    setVideoNotice(null);
+                  }}
+                  placeholder={placeholder}
+                  rows={4}
+                  disabled={mode === "image" && status === "loading"}
+                  className="w-full resize-y rounded-2xl border px-4 py-3.5 text-[15px] leading-relaxed outline-none transition-shadow focus:ring-2 focus:ring-[#7B61FF]/30 disabled:opacity-50 sm:text-base"
+                  style={{
+                    borderColor: "var(--border-subtle)",
+                    background: "var(--glass)",
+                    color: "var(--text-primary)",
+                    minHeight: "7rem",
+                  }}
+                />
+              </label>
 
-          <div
-            className="relative mt-5 aspect-video overflow-hidden rounded-xl border sm:mt-6"
-            style={{
-              borderColor: "var(--border-subtle)",
-              background:
-                "linear-gradient(145deg, rgba(123,97,255,0.14) 0%, rgba(0,212,255,0.1) 50%, rgba(255,46,154,0.06) 100%)",
-            }}
-          >
-            <AnimatePresence mode="wait">
-              {status === "idle" && (
-                <motion.div
-                  key="idle"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="flex h-full min-h-[200px] flex-col items-center justify-center gap-4 p-8 text-center"
-                >
-                  <div
-                    className="flex h-16 w-16 items-center justify-center rounded-2xl border"
+              {mode === "image" && (
+                <>
+                  <div>
+                    <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: "var(--text-subtle)" }}>
+                      Frame
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {ASPECT_PRESETS.map((a, i) => (
+                        <button
+                          key={a.sub}
+                          type="button"
+                          onClick={() => setAspectIdx(i)}
+                          className="min-h-[42px] rounded-xl border px-3 py-2 text-left transition-colors"
+                          style={{
+                            borderColor: aspectIdx === i ? "rgba(123,97,255,0.5)" : "var(--border-subtle)",
+                            background:
+                              aspectIdx === i
+                                ? "color-mix(in srgb, var(--primary-purple) 16%, var(--deep-black))"
+                                : "color-mix(in srgb, var(--deep-black) 45%, transparent)",
+                          }}
+                        >
+                          <span className="block text-xs font-semibold" style={{ color: "var(--text-primary)" }}>
+                            {a.label}
+                          </span>
+                          <span className="text-[10px]" style={{ color: "var(--text-subtle)" }}>
+                            {a.sub}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: "var(--text-subtle)" }}>
+                      Look
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {LOOK_CHIPS.map((c) => (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onClick={() => setLookId(c.id)}
+                          className="min-h-[40px] rounded-xl border px-3.5 py-2 text-xs font-semibold sm:text-[13px]"
+                          style={{
+                            borderColor: lookId === c.id ? "rgba(123,97,255,0.5)" : "var(--border-subtle)",
+                            background:
+                              lookId === c.id
+                                ? "color-mix(in srgb, var(--primary-purple) 16%, var(--deep-black))"
+                                : "color-mix(in srgb, var(--deep-black) 45%, transparent)",
+                            color: lookId === c.id ? "var(--text-primary)" : "var(--text-muted)",
+                          }}
+                        >
+                          {c.id === "none" ? "None" : c.id === "photo" ? "Photoreal" : c.id === "film" ? "Film" : "Studio"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: "var(--text-subtle)" }}>
+                      Detail
+                    </span>
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                      {DETAIL_LEVELS.map((d, i) => (
+                        <button
+                          key={d.label}
+                          type="button"
+                          onClick={() => setDetailIdx(i)}
+                          className="min-h-[44px] rounded-xl border px-2 py-2 text-center text-xs font-semibold sm:text-sm"
+                          style={{
+                            borderColor: detailIdx === i ? "rgba(123,97,255,0.5)" : "var(--border-subtle)",
+                            background:
+                              detailIdx === i
+                                ? "color-mix(in srgb, var(--primary-purple) 16%, var(--deep-black))"
+                                : "color-mix(in srgb, var(--deep-black) 45%, transparent)",
+                            color: detailIdx === i ? "var(--text-primary)" : "var(--text-muted)",
+                          }}
+                        >
+                          {d.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: "var(--text-subtle)" }}>
+                      Variation
+                    </span>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <label className="inline-flex cursor-pointer items-center gap-2 text-sm" style={{ color: "var(--text-muted)" }}>
+                        <input
+                          type="checkbox"
+                          checked={randomVariation}
+                          onChange={(e) => setRandomVariation(e.target.checked)}
+                          className="h-4 w-4 rounded border-white/20 bg-transparent"
+                        />
+                        Surprise me each time
+                      </label>
+                    </div>
+                    {!randomVariation && (
+                      <input
+                        type="number"
+                        min={0}
+                        placeholder="Use the same number to recreate a look"
+                        value={customVariation}
+                        onChange={(e) => setCustomVariation(e.target.value)}
+                        className="mt-2 w-full rounded-xl border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#7B61FF]/25"
+                        style={{ borderColor: "var(--border-subtle)", background: "var(--glass)", color: "var(--text-primary)" }}
+                      />
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={runImage}
+                    disabled={status === "loading"}
+                    className="inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl text-[15px] font-semibold text-white transition-opacity disabled:opacity-60"
                     style={{
-                      borderColor: "var(--border-subtle)",
-                      background: "var(--glass)",
+                      background: "linear-gradient(135deg, #7B61FF 0%, #5B4FD9 55%, #00A8CC 100%)",
+                      boxShadow: "0 12px 36px -12px rgba(123,97,255,0.5)",
                     }}
                   >
-                    <Wand2 className="h-7 w-7" style={{ color: "#7B61FF" }} />
-                  </div>
-                  <p className="max-w-xs text-sm sm:text-base" style={{ color: "var(--text-muted)" }}>
-                    {tab === "image"
-                      ? "Your image preview will appear here after you generate."
-                      : "Your cinematic clip preview will appear here."}
-                  </p>
-                </motion.div>
+                    {status === "loading" ? (
+                      <>
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        Creating…
+                      </>
+                    ) : (
+                      "Generate"
+                    )}
+                  </button>
+                </>
               )}
-              {status === "loading" && (
-                <motion.div
-                  key="loading"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="relative flex h-full min-h-[220px] flex-col items-center justify-center gap-5 overflow-hidden"
-                >
-                  <div
-                    className="absolute inset-y-0 -left-1/3 w-1/2 animate-shimmer bg-gradient-to-r from-transparent via-white/[0.12] to-transparent"
-                  />
-                  <Loader2
-                    className="relative z-10 h-12 w-12 animate-spin"
-                    style={{ color: "#00D4FF" }}
-                  />
-                  <div className="relative z-10 text-center">
-                    <p className="font-display text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
-                      Synthesizing…
-                    </p>
-                    <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
-                      Routing to GPU cluster
-                    </p>
-                  </div>
-                </motion.div>
-              )}
-              {status === "done" && (
-                <motion.div
-                  key="done"
-                  initial={{ opacity: 0, scale: 0.97 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.45 }}
-                  className="relative h-full min-h-[200px] w-full"
-                >
-                  {tab === "image" ? (
-                    <Image
-                      src={demoImage}
-                      alt="Demo generation"
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 960px) 100vw, 960px"
-                    />
-                  ) : (
-                    <div className="flex h-full min-h-[220px] items-center justify-center bg-gradient-to-br from-[#7B61FF]/35 via-[#0a0a12] to-[#00D4FF]/25">
-                      <div className="mx-4 rounded-2xl border border-white/15 bg-black/50 px-6 py-8 text-center backdrop-blur-xl sm:px-10">
-                        <Video className="mx-auto mb-4 h-14 w-14 text-white" />
-                        <p className="font-display text-lg font-semibold text-white">
-                          Cinematic clip ready
-                        </p>
-                        <p className="mt-2 text-sm text-white/65">
-                          Prototype preview — full renderer in product
-                        </p>
-                      </div>
+
+              {mode === "video" && (
+                <>
+                  <div>
+                    <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: "var(--text-subtle)" }}>
+                      Frame
+                    </span>
+                    <div className="flex gap-2">
+                      {VIDEO_FRAMES.map((f) => (
+                        <button
+                          key={f.value}
+                          type="button"
+                          onClick={() => setVideoFrame(f.value)}
+                          className="min-h-[44px] flex-1 rounded-xl border px-2 text-sm font-semibold"
+                          style={{
+                            borderColor: videoFrame === f.value ? "rgba(0,200,255,0.45)" : "var(--border-subtle)",
+                            background:
+                              videoFrame === f.value
+                                ? "color-mix(in srgb, var(--primary-cyan) 12%, var(--deep-black))"
+                                : "color-mix(in srgb, var(--deep-black) 45%, transparent)",
+                            color: videoFrame === f.value ? "var(--text-primary)" : "var(--text-muted)",
+                          }}
+                        >
+                          {f.label}
+                        </button>
+                      ))}
                     </div>
-                  )}
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/92 via-black/55 to-transparent p-4 sm:p-6">
-                    <p className="text-[11px] font-semibold uppercase tracking-wider text-white/55">
-                      Prompt used
-                    </p>
-                    <p className="mt-1 text-sm font-medium leading-snug text-white sm:text-base">
-                      {lastPrompt}
-                    </p>
                   </div>
-                  <div className="absolute right-3 top-3 flex gap-2">
+
+                  <div>
+                    <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: "var(--text-subtle)" }}>
+                      Length
+                    </span>
+                    <div className="flex gap-2">
+                      {[5, 10].map((sec) => (
+                        <button
+                          key={sec}
+                          type="button"
+                          onClick={() => setVideoSeconds(sec as 5 | 10)}
+                          className="min-h-[44px] flex-1 rounded-xl border px-4 text-sm font-semibold"
+                          style={{
+                            borderColor: videoSeconds === sec ? "rgba(0,200,255,0.45)" : "var(--border-subtle)",
+                            background:
+                              videoSeconds === sec
+                                ? "color-mix(in srgb, var(--primary-cyan) 12%, var(--deep-black))"
+                                : "color-mix(in srgb, var(--deep-black) 45%, transparent)",
+                            color: videoSeconds === sec ? "var(--text-primary)" : "var(--text-muted)",
+                          }}
+                        >
+                          {sec} seconds
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: "var(--text-subtle)" }}>
+                      Motion style
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {VIDEO_LOOKS.map((c) => (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onClick={() => setVideoLookId(c.id)}
+                          className="min-h-[40px] rounded-xl border px-3 py-2 text-xs font-semibold sm:text-[13px]"
+                          style={{
+                            borderColor: videoLookId === c.id ? "rgba(0,200,255,0.4)" : "var(--border-subtle)",
+                            background:
+                              videoLookId === c.id
+                                ? "color-mix(in srgb, var(--primary-cyan) 12%, var(--deep-black))"
+                                : "color-mix(in srgb, var(--deep-black) 45%, transparent)",
+                            color: videoLookId === c.id ? "var(--text-primary)" : "var(--text-muted)",
+                          }}
+                        >
+                          {c.id === "none"
+                            ? "None"
+                            : c.id === "cine"
+                              ? "Cinematic"
+                              : c.id === "slow"
+                                ? "Gentle"
+                                : "Commercial"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: "var(--text-subtle)" }}>
+                      Output
+                    </span>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setVideoQuality("std")}
+                        className="min-h-[44px] flex-1 rounded-xl border px-3 text-sm font-semibold"
+                        style={{
+                          borderColor: videoQuality === "std" ? "rgba(0,200,255,0.45)" : "var(--border-subtle)",
+                          background:
+                            videoQuality === "std"
+                              ? "color-mix(in srgb, var(--primary-cyan) 12%, var(--deep-black))"
+                              : "color-mix(in srgb, var(--deep-black) 45%, transparent)",
+                          color: videoQuality === "std" ? "var(--text-primary)" : "var(--text-muted)",
+                        }}
+                      >
+                        Standard
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setVideoQuality("pro")}
+                        className="min-h-[44px] flex-1 rounded-xl border px-3 text-sm font-semibold"
+                        style={{
+                          borderColor: videoQuality === "pro" ? "rgba(0,200,255,0.45)" : "var(--border-subtle)",
+                          background:
+                            videoQuality === "pro"
+                              ? "color-mix(in srgb, var(--primary-cyan) 12%, var(--deep-black))"
+                              : "color-mix(in srgb, var(--deep-black) 45%, transparent)",
+                          color: videoQuality === "pro" ? "var(--text-primary)" : "var(--text-muted)",
+                        }}
+                      >
+                        Pro
+                      </button>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={goToVideoWorkspace}
+                    className="inline-flex min-h-[52px] w-full items-center justify-center rounded-2xl text-[15px] font-semibold text-white transition-opacity hover:opacity-95"
+                    style={{
+                      background: "linear-gradient(135deg, #00C8F0 0%, #7B61FF 100%)",
+                      boxShadow: "0 12px 36px -12px rgba(0,200,255,0.35)",
+                    }}
+                  >
+                    Continue in workspace
+                  </button>
+                  {videoNotice && (
+                    <p className="text-center text-xs" style={{ color: "#f87171" }}>
+                      {videoNotice}
+                    </p>
+                  )}
+                  <p className="text-center text-[11px] leading-snug" style={{ color: "var(--text-subtle)" }}>
+                    Sign in if asked—your choices carry over.
+                  </p>
+                </>
+              )}
+            </div>
+
+            <div
+              className="flex min-h-[280px] flex-col justify-center border-t p-6 sm:min-h-[360px] sm:p-8 lg:min-h-[420px] lg:border-t-0"
+              style={{ borderColor: "var(--border-subtle)", background: "color-mix(in srgb, var(--deep-black) 40%, transparent)" }}
+            >
+              {mode === "image" && error && status === "idle" && (
+                <p className="text-center text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                  {error}
+                </p>
+              )}
+
+              {mode === "image" && status === "loading" && (
+                <div className="flex flex-col items-center justify-center gap-4 py-12">
+                  <Loader2 className="h-11 w-11 animate-spin text-[#7B61FF]" />
+                  <p className="text-sm font-medium" style={{ color: "var(--text-muted)" }}>
+                    Creating your image…
+                  </p>
+                </div>
+              )}
+
+              {mode === "image" && status === "done" && imageUrl && (
+                <div className="flex flex-col items-center gap-4">
+                  <Image
+                    src={imageUrl}
+                    alt="Generated artwork"
+                    width={aspect.w}
+                    height={aspect.h}
+                    unoptimized
+                    className="max-h-[min(55vh,520px)] w-full rounded-xl object-contain shadow-xl"
+                  />
+                  <p className="text-center text-[11px]" style={{ color: "var(--text-subtle)" }}>
+                    {aspect.label} · {detailLabel} detail
+                  </p>
+                  <div className="flex flex-wrap items-center justify-center gap-3">
                     <button
                       type="button"
-                      onClick={runGenerate}
-                      className="flex items-center gap-1.5 rounded-xl border border-white/20 bg-black/45 px-3 py-2 text-xs font-semibold text-white backdrop-blur-md transition-colors hover:bg-black/65"
+                      onClick={runImage}
+                      className="rounded-xl border px-4 py-2 text-sm font-semibold transition-colors hover:bg-white/[0.04]"
+                      style={{ borderColor: "var(--border-subtle)", color: "var(--text-primary)" }}
                     >
-                      <RefreshCw className="h-3.5 w-3.5" />
                       Regenerate
                     </button>
                     <button
                       type="button"
-                      onClick={resetDemo}
-                      className="rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-xs font-semibold text-white/90 backdrop-blur-md hover:bg-black/55"
+                      onClick={downloadImage}
+                      className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition-colors hover:bg-white/[0.04]"
+                      style={{ borderColor: "var(--border-subtle)", color: "var(--text-primary)" }}
                     >
-                      Clear
+                      <Download className="h-4 w-4" />
+                      Download
+                    </button>
+                    <button
+                      type="button"
+                      onClick={resetOutput}
+                      className="text-sm font-medium underline-offset-4 hover:underline"
+                      style={{ color: "var(--text-muted)" }}
+                    >
+                      Start over
                     </button>
                   </div>
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
+
+              {mode === "image" && status === "idle" && !error && (
+                <p className="text-center text-sm" style={{ color: "var(--text-subtle)" }}>
+                  Your image will show here.
+                </p>
+              )}
+
+              {mode === "video" && (
+                <div className="flex flex-col items-center justify-center gap-6 py-10 text-center">
+                  <div
+                    className="flex h-24 w-24 items-center justify-center rounded-3xl border"
+                    style={{ borderColor: "var(--border-subtle)", background: "var(--glass)" }}
+                  >
+                    <Video className="h-12 w-12 opacity-85" style={{ color: "var(--primary-cyan)" }} strokeWidth={1.15} />
+                  </div>
+                  <div className="max-w-sm space-y-2">
+                    <p className="font-display text-xl font-semibold" style={{ color: "var(--text-primary)" }}>
+                      Ready when you are
+                    </p>
+                    <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                      Set frame, length, and style on the left, then continue to the full workspace to render your clip.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

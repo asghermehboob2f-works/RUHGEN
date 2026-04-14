@@ -3,12 +3,13 @@
 import { Clapperboard, Sparkles } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ShowcaseSlide } from "@/backend/site-content/types";
+import { SITE_CONTAINER } from "@/lib/site-layout";
 
-type Props = { slides: ShowcaseSlide[] };
+type Props = { slides: ShowcaseSlide[]; hideHeading?: boolean };
 
 const AUTO_MS = 6000;
 
-export function FeatureShowcase({ slides }: Props) {
+export function FeatureShowcase({ slides, hideHeading = false }: Props) {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const idxRef = useRef(0);
   const [idx, setIdx] = useState(0);
@@ -84,34 +85,36 @@ export function FeatureShowcase({ slides }: Props) {
         }}
       />
 
-      <div className="relative mx-auto max-w-[1400px] px-3 sm:px-6 lg:px-10">
-        <div className="mb-6 sm:mb-8">
-          <div>
+      <div className={`relative ${SITE_CONTAINER}`}>
+        {!hideHeading && (
+          <div className="mb-8 grid gap-6 sm:mb-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:items-end lg:gap-12">
+            <div className="text-center lg:text-left">
+              <p
+                className="mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] sm:text-xs"
+                style={{
+                  borderColor: "var(--border-subtle)",
+                  color: "var(--text-subtle)",
+                  background: "var(--glass)",
+                }}
+              >
+                <Sparkles className="h-3.5 w-3.5 text-[#7B61FF]" strokeWidth={1.75} />
+                Product spotlight
+              </p>
+              <h2
+                className="font-display text-[clamp(1.45rem,3.5vw,2.65rem)] font-bold tracking-tight"
+                style={{ color: "var(--text-primary)" }}
+              >
+                What RUHGEN can do
+              </h2>
+            </div>
             <p
-              className="mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] sm:text-xs"
-              style={{
-                borderColor: "var(--border-subtle)",
-                color: "var(--text-subtle)",
-                background: "var(--glass)",
-              }}
-            >
-              <Sparkles className="h-3.5 w-3.5 text-[#7B61FF]" strokeWidth={1.75} />
-              Product spotlight
-            </p>
-            <h2
-              className="font-display text-[clamp(1.45rem,3.5vw,2.65rem)] font-bold tracking-tight"
-              style={{ color: "var(--text-primary)" }}
-            >
-              What RUHGEN can do
-            </h2>
-            <p
-              className="mt-2 max-w-xl text-sm leading-relaxed sm:text-base"
+              className="text-center text-sm leading-relaxed sm:text-base lg:text-left"
               style={{ color: "var(--text-muted)" }}
             >
               Short trial clips (16∶9) and copy you control from the content editor—pauses on hover for easy reading.
             </p>
           </div>
-        </div>
+        )}
 
         <div
           ref={scrollerRef}

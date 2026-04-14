@@ -3,6 +3,7 @@
 import { Check } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { SITE_CONTAINER } from "@/lib/site-layout";
 
 const plans = [
   {
@@ -55,34 +56,38 @@ const plans = [
   },
 ];
 
-export function Pricing() {
+export function Pricing({ hideHeading = false }: { hideHeading?: boolean }) {
   const [yearly, setYearly] = useState(false);
 
   return (
     <section id="pricing" className="mesh-section-muted scroll-mt-24 py-12 md:py-24">
-      <div className="mx-auto max-w-[1400px] px-3 sm:px-6 lg:px-10">
-        <div className="mb-10 text-center sm:mb-12">
-          <p
-            className="mb-2 text-xs font-bold uppercase tracking-[0.2em] sm:text-sm"
-            style={{ color: "var(--text-subtle)" }}
-          >
-            Pricing
-          </p>
-          <h2
-            className="font-display text-[clamp(1.55rem,3.8vw,3rem)] font-bold tracking-tight"
-            style={{ color: "var(--text-primary)" }}
-          >
-            Choose your plan
-          </h2>
-          <p
-            className="mx-auto mt-2 max-w-lg text-sm sm:mt-3 sm:text-lg"
-            style={{ color: "var(--text-muted)" }}
-          >
-            Flexible pricing for every creator
-          </p>
-        </div>
-
-        <div className="mb-10 flex justify-center sm:mb-12">
+      <div className={SITE_CONTAINER}>
+        <div
+          className={`mb-10 grid gap-8 sm:mb-12 lg:items-end lg:gap-10 ${hideHeading ? "lg:grid-cols-1" : "lg:grid-cols-[minmax(0,1fr)_auto]"}`}
+        >
+          {!hideHeading && (
+            <div className="text-center lg:text-left">
+              <p
+                className="mb-2 text-xs font-bold uppercase tracking-[0.2em] sm:text-sm"
+                style={{ color: "var(--text-subtle)" }}
+              >
+                Pricing
+              </p>
+              <h2
+                className="font-display text-[clamp(1.55rem,3.8vw,3rem)] font-bold tracking-tight"
+                style={{ color: "var(--text-primary)" }}
+              >
+                Choose your plan
+              </h2>
+              <p
+                className="mx-auto mt-2 max-w-lg text-sm sm:mt-3 sm:text-lg lg:mx-0"
+                style={{ color: "var(--text-muted)" }}
+              >
+                Flexible pricing for every creator
+              </p>
+            </div>
+          )}
+          <div className={`flex justify-center ${hideHeading ? "" : "lg:justify-end"}`}>
           <div
             className="inline-flex min-h-12 rounded-full border p-1"
             style={{
@@ -130,9 +135,10 @@ export function Pricing() {
               </span>
             </button>
           </div>
+          </div>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-3 lg:gap-8">
+        <div className="grid gap-6 lg:grid-cols-3 lg:gap-8 xl:gap-10">
           {plans.map((plan) => {
             const price = yearly ? plan.yearly : plan.monthly;
             const suffix = plan.monthly === 0 ? "" : yearly ? "/yr" : "/mo";

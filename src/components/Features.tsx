@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
+import { SITE_CONTAINER } from "@/lib/site-layout";
 
 const features = [
   {
@@ -53,7 +54,7 @@ const item = {
   show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const } },
 };
 
-export function Features() {
+export function Features({ hideHeading = false }: { hideHeading?: boolean }) {
   const reduce = useReducedMotion();
 
   return (
@@ -65,42 +66,48 @@ export function Features() {
         }}
       />
 
-      <div className="relative mx-auto max-w-[1400px] px-3 sm:px-6 lg:px-10">
-        <motion.div
-          className="mb-7 text-center md:mb-11"
-          initial={reduce ? false : { opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.5 }}
-        >
-          <p
-            className="mb-2 text-[10px] font-bold uppercase tracking-[0.28em] sm:text-xs"
-            style={{ color: "var(--text-subtle)" }}
+      <div className={`relative ${SITE_CONTAINER}`}>
+        {!hideHeading && (
+          <motion.div
+            className="mb-10 grid gap-8 md:mb-14 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-end lg:gap-12"
+            initial={reduce ? false : { opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.5 }}
           >
-            Capabilities
-          </p>
-          <h2
-            className="font-display text-[clamp(1.6rem,4vw,3.1rem)] font-bold tracking-tight"
-            style={{ color: "var(--text-primary)" }}
-          >
-            Limitless creativity
-          </h2>
-          <p
-            className="mx-auto mt-2.5 max-w-lg text-sm leading-relaxed sm:mt-3 sm:text-base"
-            style={{ color: "var(--text-muted)" }}
-          >
-            Powered by cutting-edge AI technology — tuned for prod pipelines, not toy demos.
-          </p>
-          <div
-            className="mx-auto mt-5 h-px w-20 rounded-full sm:mt-6"
-            style={{
-              background: "linear-gradient(90deg, transparent, #7B61FF, #00D4FF, transparent)",
-            }}
-          />
-        </motion.div>
+            <div className="text-center lg:text-left">
+              <p
+                className="mb-2 text-[10px] font-bold uppercase tracking-[0.28em] sm:text-xs"
+                style={{ color: "var(--text-subtle)" }}
+              >
+                Capabilities
+              </p>
+              <h2
+                className="font-display text-[clamp(1.6rem,4vw,3.1rem)] font-bold tracking-tight"
+                style={{ color: "var(--text-primary)" }}
+              >
+                Limitless creativity
+              </h2>
+            </div>
+            <div className="text-center lg:text-left">
+              <p
+                className="text-sm leading-relaxed sm:text-base"
+                style={{ color: "var(--text-muted)" }}
+              >
+                Powered by cutting-edge AI technology — tuned for prod pipelines, not toy demos.
+              </p>
+              <div
+                className="mx-auto mt-5 h-px w-20 rounded-full sm:mt-6 lg:mx-0"
+                style={{
+                  background: "linear-gradient(90deg, transparent, #7B61FF, #00D4FF, transparent)",
+                }}
+              />
+            </div>
+          </motion.div>
+        )}
 
         <motion.div
-          className="mx-auto grid max-w-5xl gap-2 sm:grid-cols-2 sm:gap-2.5 lg:grid-cols-3 lg:gap-3"
+          className="grid gap-2 sm:grid-cols-2 sm:gap-2.5 lg:grid-cols-3 lg:gap-3"
           variants={reduce ? undefined : container}
           initial={reduce ? undefined : "hidden"}
           whileInView={reduce ? undefined : "show"}

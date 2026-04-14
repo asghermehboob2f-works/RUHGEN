@@ -28,4 +28,26 @@ function verifyAdminToken(token) {
   return jwt.verify(token, getJwtSecret());
 }
 
-module.exports = { hashPassword, getJwtSecret, signAdminToken, verifyAdminToken };
+/**
+ * @param {{ id: string; email: string; name: string }} user
+ */
+function signUserToken(user) {
+  return jwt.sign(
+    { typ: "user", sub: user.id, email: user.email, name: user.name },
+    getJwtSecret(),
+    { expiresIn: "30d" }
+  );
+}
+
+function verifyUserToken(token) {
+  return jwt.verify(token, getJwtSecret());
+}
+
+module.exports = {
+  hashPassword,
+  getJwtSecret,
+  signAdminToken,
+  verifyAdminToken,
+  signUserToken,
+  verifyUserToken,
+};

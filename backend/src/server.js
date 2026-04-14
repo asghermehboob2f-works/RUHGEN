@@ -9,6 +9,8 @@ const express = require("express");
 const multer = require("multer");
 const { openDb } = require("./db");
 const { hashPassword, signAdminToken, verifyAdminToken } = require("./auth");
+const { mountStudioRoutes } = require("./studio-routes");
+const { mountUserAuthRoutes } = require("./user-auth-routes");
 
 const PORT = Number(process.env.BACKEND_PORT || process.env.PORT || 4000, 10);
 const projectRoot = path.resolve(__dirname, "..", "..");
@@ -323,6 +325,9 @@ app.post("/api/admin/upload", requireAdmin, upload.single("file"), async (req, r
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true, service: "ruhgen-backend" });
 });
+
+mountUserAuthRoutes(app, { db });
+mountStudioRoutes(app, { upload });
 
 app.listen(PORT, "0.0.0.0", () => {
   // eslint-disable-next-line no-console

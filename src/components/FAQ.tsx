@@ -3,64 +3,60 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
+import { MARKETING_FAQS, type MarketingFaq } from "@/lib/marketing-faqs";
+import { SITE_CONTAINER } from "@/lib/site-layout";
 
-const faqs = [
-  {
-    q: "What can I create with RUHGEN?",
-    a: "Still images, image sequences, and short-form cinematic clips from text—or combine reference frames and style prompts. Pro and Studio add higher resolutions, longer outputs, and batch workflows.",
-  },
-  {
-    q: "How does pricing scale for teams?",
-    a: "Free is for experimentation. Pro fits solo creators and small squads with pooled monthly generations. Studio adds seats, shared prompt libraries, audit logs, and priority infrastructure.",
-  },
-  {
-    q: "Can I use outputs commercially?",
-    a: "Yes on Pro and Studio within the license terms in your agreement. Free tier is for personal exploration—upgrade before client or broadcast work.",
-  },
-  {
-    q: "Do you offer an API?",
-    a: "Studio includes REST hooks, webhooks on job completion, and signed URLs for assets so you can automate ingest into DAMs, MAMs, or custom render farms.",
-  },
-  {
-    q: "How do you handle data privacy?",
-    a: "Prompts and uploads are encrypted in transit. Retention defaults are configurable on Studio; we never sell your data or train on private Studio content without a contract addendum.",
-  },
-];
-
-export function FAQ() {
+export function FAQ({
+  hideHeading = false,
+  items,
+}: {
+  hideHeading?: boolean;
+  /** Defaults to first five entries — pricing embed. */
+  items?: MarketingFaq[];
+}) {
+  const list = items ?? MARKETING_FAQS.slice(0, 5);
   const [open, setOpen] = useState<number | null>(0);
   const reduce = useReducedMotion();
 
   return (
     <section id="faq" className="mesh-section scroll-mt-24 py-12 md:py-24">
-      <div className="mx-auto max-w-[880px] px-3 sm:px-6 lg:px-10">
-        <div className="mb-8 text-center md:mb-12">
-          <p
-            className="mb-2 text-xs font-bold uppercase tracking-[0.2em] sm:text-sm"
-            style={{ color: "var(--text-subtle)" }}
-          >
-            Questions
-          </p>
-          <h2
-            className="font-display text-[clamp(1.55rem,3.8vw,3rem)] font-bold tracking-tight"
-            style={{ color: "var(--text-primary)" }}
-          >
-            Straight answers
-          </h2>
-          <p
-            className="mx-auto mt-2 max-w-lg text-sm sm:mt-3 sm:text-lg"
-            style={{ color: "var(--text-muted)" }}
-          >
-            Everything you need to decide fast—no jargon wall.
-          </p>
-        </div>
+      <div className={SITE_CONTAINER}>
+        <div
+          className={
+            hideHeading
+              ? "mx-auto max-w-[min(100%,960px)]"
+              : "grid gap-10 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)] lg:gap-14 xl:gap-20"
+          }
+        >
+          {!hideHeading && (
+            <div className="text-center lg:sticky lg:top-28 lg:text-left">
+              <p
+                className="mb-2 text-xs font-bold uppercase tracking-[0.2em] sm:text-sm"
+                style={{ color: "var(--text-subtle)" }}
+              >
+                Questions
+              </p>
+              <h2
+                className="font-display text-[clamp(1.55rem,3.8vw,3rem)] font-bold tracking-tight"
+                style={{ color: "var(--text-primary)" }}
+              >
+                Straight answers
+              </h2>
+              <p
+                className="mx-auto mt-2 max-w-lg text-sm sm:mt-3 sm:text-lg lg:mx-0 lg:max-w-none"
+                style={{ color: "var(--text-muted)" }}
+              >
+                Everything you need to decide fast—no jargon wall.
+              </p>
+            </div>
+          )}
 
-        <div className="flex flex-col gap-2 sm:gap-3">
-          {faqs.map((item, i) => {
+          <div className="flex min-w-0 flex-col gap-2 sm:gap-3">
+          {list.map((item, i) => {
             const isOpen = open === i;
             return (
               <div
-                key={item.q}
+                key={item.id}
                 className="overflow-hidden rounded-2xl border transition-[box-shadow,border-color] duration-300"
                 style={{
                   borderColor: isOpen ? "rgba(123, 97, 255, 0.35)" : "var(--border-subtle)",
@@ -111,6 +107,7 @@ export function FAQ() {
               </div>
             );
           })}
+          </div>
         </div>
       </div>
     </section>

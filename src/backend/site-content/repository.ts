@@ -11,8 +11,8 @@ import type {
   SiteContent,
 } from "@/backend/site-content/types";
 
-const CONTENT_PATH = path.join(process.cwd(), "backend", "data", "site-content.json");
-const CONTENT_FALLBACK_PATH = path.join(process.cwd(), "data", "site-content.json");
+const CONTENT_PATH = path.join(/* turbopackIgnore: true */ process.cwd(), "backend", "data", "site-content.json");
+const CONTENT_FALLBACK_PATH = path.join(/* turbopackIgnore: true */ process.cwd(), "data", "site-content.json");
 
 const DEFAULT_SHOWCASE_SLIDES: ShowcaseSlide[] = [
   {

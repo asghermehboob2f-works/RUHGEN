@@ -2,6 +2,7 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
+import { SITE_CONTAINER } from "@/lib/site-layout";
 import { BrandLogo } from "./BrandLogo";
 
 type Props = {
@@ -25,7 +26,7 @@ export function AuthChrome({ title, subtitle, children, footer }: Props) {
         }}
       />
       <header className="relative z-10 border-b px-4 py-4 sm:px-6" style={{ borderColor: "var(--border-subtle)" }}>
-        <div className="mx-auto flex max-w-[1200px] items-center justify-between">
+        <div className={`${SITE_CONTAINER} flex items-center justify-between`}>
           <BrandLogo size="md" href="/" />
           <Link
             href="/"
@@ -37,7 +38,7 @@ export function AuthChrome({ title, subtitle, children, footer }: Props) {
         </div>
       </header>
 
-      <div className="relative z-10 mx-auto grid max-w-[1200px] gap-10 px-4 py-10 sm:gap-12 sm:px-6 sm:py-14 lg:grid-cols-2 lg:items-center lg:gap-16 lg:py-16">
+      <div className={`relative z-10 ${SITE_CONTAINER} grid gap-10 py-10 sm:gap-12 sm:py-14 lg:grid-cols-2 lg:items-center lg:gap-16 lg:py-16`}>
         <motion.div
           initial={reduce ? false : { opacity: 0, x: -24 }}
           animate={{ opacity: 1, x: 0 }}

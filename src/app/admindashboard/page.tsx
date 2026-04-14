@@ -1,13 +1,19 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { Inbox, Settings, Sparkles } from "lucide-react";
+import { Inbox, Settings, Sparkles, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useAdminAuth } from "@/components/AdminAuthProvider";
 
 const tiles = [
+  {
+    title: "Platform users",
+    desc: "View registered members, suspend accounts, and manage subscription labels.",
+    href: "/admindashboard/users",
+    icon: "users" as const,
+  },
   {
     title: "Content studio",
     desc: "Update homepage hero previews, gallery images, and spotlight slides.",
@@ -92,7 +98,7 @@ export default function DashboardPage() {
             </div>
             <div className="flex flex-wrap gap-2 lg:justify-end">
               <Link
-                href="/#preview"
+                href="/demo"
                 className="inline-flex min-h-[44px] items-center justify-center rounded-xl border px-4 text-sm font-semibold transition-colors hover:border-[#7B61FF]/45"
                 style={{
                   borderColor: "var(--border-subtle)",
@@ -135,6 +141,8 @@ export default function DashboardPage() {
                     <Inbox className="h-5 w-5" strokeWidth={1.75} style={{ color: "#00D4FF" }} />
                   ) : t.icon === "settings" ? (
                     <Settings className="h-5 w-5" strokeWidth={1.75} style={{ color: "#7B61FF" }} />
+                  ) : t.icon === "users" ? (
+                    <Users className="h-5 w-5" strokeWidth={1.75} style={{ color: "#FF2E9A" }} />
                   ) : (
                     <Sparkles className="h-5 w-5" strokeWidth={1.75} style={{ color: "var(--text-muted)" }} />
                   )}

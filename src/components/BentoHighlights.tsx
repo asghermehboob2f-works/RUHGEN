@@ -3,6 +3,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { ChevronRight, Globe2, Layers, ShieldCheck, Zap } from "lucide-react";
 import Link from "next/link";
+import { SITE_CONTAINER } from "@/lib/site-layout";
 
 const tiles = [
   {
@@ -12,7 +13,7 @@ const tiles = [
     span: "md:col-span-2",
     glow: "#7B61FF",
     tag: "Latency-optimized",
-    learnMoreHref: "/platform#global-edge",
+    learnMoreHref: "/platform/engineering#global-edge",
   },
   {
     title: "Multi-pass exports",
@@ -21,7 +22,7 @@ const tiles = [
     span: "md:col-span-1",
     glow: "#00D4FF",
     tag: "Pipeline-ready",
-    learnMoreHref: "/platform#multi-pass",
+    learnMoreHref: "/platform/engineering#multi-pass",
   },
   {
     title: "Guardrails by default",
@@ -30,7 +31,7 @@ const tiles = [
     span: "md:col-span-1",
     glow: "#FF2E9A",
     tag: "Studio-safe",
-    learnMoreHref: "/platform#guardrails",
+    learnMoreHref: "/platform/engineering#guardrails",
   },
   {
     title: "Burst when it matters",
@@ -39,11 +40,11 @@ const tiles = [
     span: "md:col-span-2",
     glow: "#7B61FF",
     tag: "Scale on demand",
-    learnMoreHref: "/platform#burst",
+    learnMoreHref: "/platform/engineering#burst",
   },
 ];
 
-export function BentoHighlights() {
+export function BentoHighlights({ hideTitle = false }: { hideTitle?: boolean }) {
   const reduce = useReducedMotion();
 
   return (
@@ -63,34 +64,38 @@ export function BentoHighlights() {
         }}
       />
 
-      <div className="relative mx-auto max-w-[1400px] px-3 sm:px-6 lg:px-10">
-        <motion.div
-          className="mb-8 text-center md:mb-12"
-          initial={reduce ? false : { opacity: 0, y: 14 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.45 }}
-        >
-          <p
-            className="mb-2 text-xs font-bold uppercase tracking-[0.2em] sm:text-sm"
-            style={{ color: "var(--text-subtle)" }}
+      <div className={`relative ${SITE_CONTAINER}`}>
+        {!hideTitle && (
+          <motion.div
+            className="mb-10 grid gap-8 md:mb-14 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:items-end lg:gap-12"
+            initial={reduce ? false : { opacity: 0, y: 14 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.45 }}
           >
-            Platform depth
-          </p>
-          <h2
-            className="font-display text-[clamp(1.55rem,3.8vw,3rem)] font-bold tracking-tight"
-            style={{ color: "var(--text-primary)" }}
-          >
-            Built past the demo
-          </h2>
-          <p
-            className="mx-auto mt-2 max-w-2xl px-1 text-sm leading-relaxed sm:mt-3 sm:text-lg"
-            style={{ color: "var(--text-muted)" }}
-          >
-            The interface is simple on purpose—the engine underneath is built for real timelines, real
-            clients, and real file sizes.
-          </p>
-        </motion.div>
+            <div className="text-center lg:text-left">
+              <p
+                className="mb-2 text-xs font-bold uppercase tracking-[0.2em] sm:text-sm"
+                style={{ color: "var(--text-subtle)" }}
+              >
+                Platform depth
+              </p>
+              <h2
+                className="font-display text-[clamp(1.55rem,3.8vw,3rem)] font-bold tracking-tight"
+                style={{ color: "var(--text-primary)" }}
+              >
+                Built past the demo
+              </h2>
+            </div>
+            <p
+              className="text-center text-sm leading-relaxed sm:text-lg lg:text-left"
+              style={{ color: "var(--text-muted)" }}
+            >
+              The interface is simple on purpose—the engine underneath is built for real timelines, real
+              clients, and real file sizes.
+            </p>
+          </motion.div>
+        )}
 
         <div className="grid auto-rows-fr gap-2.5 sm:gap-3 md:grid-cols-3 md:gap-4">
           {tiles.map((t, i) => (

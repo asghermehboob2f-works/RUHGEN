@@ -5,19 +5,24 @@ import {
   ArrowRight,
   Coins,
   HelpCircle,
-  History,
   Image as ImageIcon,
   Settings,
   Sparkles,
   TrendingUp,
   Video,
-  Wand2,
   Zap,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { DashboardLoading } from "@/components/dashboard/DashboardLoading";
 import { useAuth } from "@/components/AuthProvider";
+
+const DashboardRecentActivity = dynamic(
+  () => import("@/components/dashboard/DashboardRecentActivity").then((m) => m.DashboardRecentActivity),
+  { ssr: false },
+);
 
 const generateTiles = [
   {
@@ -37,9 +42,9 @@ const generateTiles = [
 ] as const;
 
 const quickLinks = [
-  { href: "/dashboard/billing", label: "Credits & plan", icon: Coins },
-  { href: "/dashboard/settings", label: "Settings", icon: Settings },
-  { href: "/contact", label: "Help & support", icon: HelpCircle },
+  { href: "/dashboard/billing", label: "Credits & plan", hint: "Balance and upgrades", icon: Coins },
+  { href: "/dashboard/settings", label: "Preferences", hint: "Theme and notifications", icon: Settings },
+  { href: "/contact", label: "Help & support", hint: "We reply within a day", icon: HelpCircle },
 ] as const;
 
 export default function DashboardPage() {
@@ -52,20 +57,7 @@ export default function DashboardPage() {
   }, [ready, user, router]);
 
   if (!ready) {
-    return (
-      <div className="flex min-h-[50vh] items-center justify-center" style={{ color: "var(--text-muted)" }}>
-        <div className="flex flex-col items-center gap-4">
-          <motion.span
-            className="h-11 w-11 rounded-full border-2 border-t-transparent"
-            style={{ borderColor: "var(--primary-purple)", borderTopColor: "transparent" }}
-            animate={reduce ? undefined : { rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            aria-hidden
-          />
-          <p className="text-sm font-medium">Loading your studio…</p>
-        </div>
-      </div>
-    );
+    return <DashboardLoading label="Loading your studio…" className="min-h-[50vh]" />;
   }
 
   if (!user) return null;
@@ -107,8 +99,7 @@ export default function DashboardPage() {
               <span className="text-gradient-primary">Hello, {firstName}</span>
             </h1>
             <p className="mt-3 max-w-xl text-sm leading-relaxed sm:text-base" style={{ color: "var(--text-muted)" }}>
-              Your workspace is ready. Jump into image or video generation, track credits, and tune preferences from
-              Settings.
+              Your workspace is ready. Jump into image or video generation, track credits, and tune preferences anytime.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -132,7 +123,7 @@ export default function DashboardPage() {
                 color: "var(--text-primary)",
               }}
             >
-              Settings
+              Preferences
             </Link>
           </div>
         </div>
@@ -172,35 +163,52 @@ export default function DashboardPage() {
         </div>
       </motion.section>
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        {quickLinks.map((q, i) => (
-          <motion.div
-            key={q.href}
-            initial={reduce ? false : { opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: reduce ? 0 : 0.15 + i * 0.05 }}
-          >
-            <Link
-              href={q.href}
-              className="group flex min-h-[72px] items-center gap-3 rounded-2xl border px-4 py-3 transition-all hover:border-[color-mix(in_srgb,var(--primary-purple)_40%,var(--border-subtle))]"
-              style={{
-                borderColor: "var(--border-subtle)",
-                background: "var(--soft-black)",
-                color: "var(--text-primary)",
-              }}
+      <section aria-labelledby="dash-shortcuts-heading">
+        <div className="mb-4 flex items-end justify-between gap-4">
+          <div>
+            <h2 id="dash-shortcuts-heading" className="font-display text-lg font-bold sm:text-xl" style={{ color: "var(--text-primary)" }}>
+              Shortcuts
+            </h2>
+            <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
+              Billing, preferences, and help in one tap.
+            </p>
+          </div>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          {quickLinks.map((q, i) => (
+            <motion.div
+              key={q.href}
+              initial={reduce ? false : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: reduce ? 0 : 0.15 + i * 0.05 }}
             >
-              <span
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
-                style={{ background: "var(--glass)" }}
+              <Link
+                href={q.href}
+                className="group flex min-h-[88px] flex-col justify-center gap-1 rounded-2xl border px-4 py-3.5 transition-all hover:border-[color-mix(in_srgb,var(--primary-purple)_40%,var(--border-subtle))] sm:min-h-[92px] sm:flex-row sm:items-center sm:gap-3"
+                style={{
+                  borderColor: "var(--border-subtle)",
+                  background: "var(--soft-black)",
+                  color: "var(--text-primary)",
+                }}
               >
-                <q.icon className="h-5 w-5 text-[var(--primary-cyan)]" strokeWidth={1.75} />
-              </span>
-              <span className="text-sm font-semibold">{q.label}</span>
-              <ArrowRight className="ml-auto h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
-            </Link>
-          </motion.div>
-        ))}
-      </div>
+                <span
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
+                  style={{ background: "var(--glass)" }}
+                >
+                  <q.icon className="h-5 w-5 text-[var(--primary-cyan)]" strokeWidth={1.75} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-semibold">{q.label}</span>
+                  <span className="mt-0.5 block text-xs leading-snug" style={{ color: "var(--text-muted)" }}>
+                    {q.hint}
+                  </span>
+                </span>
+                <ArrowRight className="hidden h-4 w-4 shrink-0 opacity-0 transition-opacity group-hover:opacity-100 sm:ml-auto sm:block" />
+              </Link>
+            </motion.div>
+          ))}
+        </div>
+      </section>
 
       <section>
         <div className="mb-4 flex items-end justify-between gap-4">
@@ -261,49 +269,7 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      <motion.section
-        initial={reduce ? false : { opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: reduce ? 0 : 0.25 }}
-        className="rounded-3xl border p-6 sm:p-8"
-        style={{
-          borderColor: "var(--border-subtle)",
-          background:
-            "linear-gradient(180deg, color-mix(in srgb, var(--soft-black) 100%, transparent) 0%, color-mix(in srgb, var(--deep-black) 100%, transparent) 100%)",
-        }}
-      >
-        <div className="flex items-center gap-3">
-          <span
-            className="flex h-11 w-11 items-center justify-center rounded-xl"
-            style={{ background: "var(--glass)" }}
-          >
-            <History className="h-5 w-5" style={{ color: "var(--text-muted)" }} strokeWidth={1.75} />
-          </span>
-          <div>
-            <h3 className="font-display text-lg font-bold" style={{ color: "var(--text-primary)" }}>
-              Recent activity
-            </h3>
-            <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-              Your generations will appear here once you start creating.
-            </p>
-          </div>
-        </div>
-        <div
-          className="mt-6 flex min-h-[120px] flex-col items-center justify-center rounded-2xl border border-dashed py-10"
-          style={{ borderColor: "var(--border-subtle)" }}
-        >
-          <Wand2 className="h-8 w-8 opacity-40" style={{ color: "var(--primary-purple)" }} strokeWidth={1.5} />
-          <p className="mt-3 text-sm font-medium" style={{ color: "var(--text-muted)" }}>
-            No activity yet — start with a new generation.
-          </p>
-          <Link
-            href="/dashboard/generate/image"
-            className="mt-4 text-sm font-semibold text-[var(--primary-cyan)] hover:underline"
-          >
-            Go to image studio
-          </Link>
-        </div>
-      </motion.section>
+      <DashboardRecentActivity userId={user.id} />
     </div>
   );
 }

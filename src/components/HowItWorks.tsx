@@ -2,6 +2,7 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, Cpu, Download, Wand2 } from "lucide-react";
+import { SITE_CONTAINER } from "@/lib/site-layout";
 
 const steps = [
   {
@@ -27,7 +28,7 @@ const steps = [
   },
 ];
 
-export function HowItWorks() {
+export function HowItWorks({ hideHeading = false }: { hideHeading?: boolean }) {
   const reduce = useReducedMotion() === true;
 
   return (
@@ -48,32 +49,36 @@ export function HowItWorks() {
         }}
       />
 
-      <div className="relative mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10">
-        <motion.div
-          className="mx-auto mb-10 max-w-2xl text-center sm:mb-14"
-          initial={reduce ? false : { opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-60px" }}
-          transition={{ duration: 0.5 }}
-        >
-          <p
-            className="mb-2 text-[10px] font-bold uppercase tracking-[0.32em] sm:text-xs sm:tracking-[0.26em]"
-            style={{ color: "var(--text-subtle)" }}
+      <div className={`relative ${SITE_CONTAINER}`}>
+        {!hideHeading && (
+          <motion.div
+            className="mb-10 grid gap-8 sm:mb-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:items-end lg:gap-12"
+            initial={reduce ? false : { opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.5 }}
           >
-            Workflow
-          </p>
-          <h2
-            className="font-display text-[clamp(1.5rem,5vw,3rem)] font-bold tracking-tight"
-            style={{ color: "var(--text-primary)" }}
-          >
-            How it works
-          </h2>
-          <p className="mt-3 text-sm leading-relaxed sm:text-base" style={{ color: "var(--text-muted)" }}>
-            Three calm steps — no timelines, no rails. Just clarity from prompt to pixel.
-          </p>
-        </motion.div>
+            <div className="text-center lg:text-left">
+              <p
+                className="mb-2 text-[10px] font-bold uppercase tracking-[0.32em] sm:text-xs sm:tracking-[0.26em]"
+                style={{ color: "var(--text-subtle)" }}
+              >
+                Workflow
+              </p>
+              <h2
+                className="font-display text-[clamp(1.5rem,5vw,3rem)] font-bold tracking-tight"
+                style={{ color: "var(--text-primary)" }}
+              >
+                How it works
+              </h2>
+            </div>
+            <p className="text-center text-sm leading-relaxed sm:text-base lg:text-left" style={{ color: "var(--text-muted)" }}>
+              Three calm steps — no timelines, no rails. Just clarity from prompt to pixel.
+            </p>
+          </motion.div>
+        )}
 
-        <div className="grid gap-4 sm:gap-5 lg:grid-cols-3 lg:gap-6">
+        <div className="grid gap-4 sm:gap-5 lg:grid-cols-3 lg:gap-6 xl:gap-8">
           {steps.map((s, i) => (
             <motion.article
               key={s.n}

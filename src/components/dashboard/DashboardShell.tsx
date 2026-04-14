@@ -13,6 +13,7 @@ import {
   PanelLeft,
   Sun,
   UserCircle,
+  Users,
   X,
 } from "lucide-react";
 import Link from "next/link";
@@ -26,6 +27,7 @@ import { CursorGlow } from "@/components/CursorGlow";
 
 const nav = [
   { href: "/admindashboard", label: "Overview", icon: LayoutDashboard, end: true },
+  { href: "/admindashboard/users", label: "Users", icon: Users },
   { href: "/admindashboard/content", label: "Content studio", icon: FileStack },
   { href: "/admindashboard/subscribers", label: "Newsletter", icon: Mail },
   { href: "/admindashboard/messages", label: "Contact inbox", icon: Inbox },
@@ -162,7 +164,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           }}
         >
           <div className="flex h-[4.25rem] items-center border-b px-5" style={{ borderColor: "var(--border-subtle)" }}>
-            <BrandLogo size="md" showWordmark href="/admindashboard" className="min-w-0" />
+            <BrandLogo size="md" showWordmark href="/" className="min-w-0" />
           </div>
           <div className="flex flex-1 flex-col gap-6 overflow-y-auto px-4 py-6">
             <div>
@@ -335,7 +337,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                 }}
               >
                 <div className="flex h-[4.25rem] items-center justify-between border-b px-4" style={{ borderColor: "var(--border-subtle)" }}>
-                  <BrandLogo size="sm" showWordmark href="/admindashboard" />
+                  <BrandLogo size="sm" showWordmark href="/" />
                   <button
                     type="button"
                     className="flex h-10 w-10 items-center justify-center rounded-xl border"
