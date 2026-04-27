@@ -137,7 +137,7 @@ export function FeatureShowcase({ slides, hideHeading = false }: Props) {
               <div className="grid overflow-hidden rounded-[calc(1.35rem-1px)] md:grid-cols-2 md:items-stretch">
                 {/* Strict 16:9 (1920×1080) frame — object-cover fills without stretching */}
                 <div
-                  className="relative aspect-video w-full max-h-[min(70vw,420px)] bg-black sm:max-h-none"
+                  className="relative aspect-video w-full max-h-[min(56svh,380px)] bg-black sm:max-h-none"
                   style={{
                     background:
                       "linear-gradient(145deg, rgba(123,97,255,0.12) 0%, rgba(0,212,255,0.08) 100%)",

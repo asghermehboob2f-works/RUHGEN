@@ -6,7 +6,7 @@ import { readSiteContent } from "@/backend/site-content";
 export const metadata: Metadata = {
   title: "Spotlight — RUHGEN",
   description:
-    "Highlighted workflows and looks—how teams ship cinematic stills and motion with RUHGEN.",
+    "Cinematic spotlight for RUHGEN—curated motion and stills you edit from the dashboard, built to feel like a premiere, not a feature list.",
 };
 
 export default async function SpotlightPage() {
