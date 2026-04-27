@@ -86,83 +86,85 @@ export function SpotlightPageContent({ content }: { content: SiteContent }) {
         onPointerMove={onHeroPointerMove}
         onPointerLeave={onHeroPointerLeave}
       >
-        <div className="relative min-h-[min(52svh,480px)] sm:min-h-[min(50svh,520px)]">
+        <div className="relative min-h-[min(56vh,520px)] sm:min-h-[min(52vh,560px)] lg:min-h-[min(50vh,600px)]">
           <SpotlightHeroGraphic pointer={heroPointer} hovered={heroHovered} />
 
           <div
-            className={`relative z-[2] flex min-h-[min(52svh,480px)] flex-col justify-start pb-8 pt-[max(5rem,calc(env(safe-area-inset-top,0px)+3.5rem+2px))] sm:min-h-[min(50svh,520px)] sm:justify-center sm:pb-12 sm:pt-[max(9rem,calc(env(safe-area-inset-top,0px)+4rem+2px))] md:pt-[max(11rem,calc(env(safe-area-inset-top,0px)+4rem+2px))] lg:pb-12 lg:pt-[max(12rem,calc(env(safe-area-inset-top,0px)+4rem+2px))] ${SITE_CONTAINER}`}
+            className={`relative z-[2] flex min-h-[inherit] w-full flex-col justify-center pb-12 pt-[max(6rem,calc(env(safe-area-inset-top,0px)+5.5rem))] sm:pb-16 sm:pt-28 lg:pb-20 ${SITE_CONTAINER}`}
           >
-            <div className="w-full max-w-6xl lg:mx-0 lg:max-w-none">
+            <div className="mx-auto w-full max-w-xl text-center lg:mx-0 lg:max-w-2xl lg:text-left">
               <motion.div
-                className="mx-auto w-full max-w-xl px-0 text-center sm:max-w-xl md:max-w-xl md:text-left lg:mx-0 lg:text-left"
+                className="flex w-full flex-col items-center gap-0 lg:items-start lg:text-left"
                 initial={reduce ? false : { opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
-                whileHover={
-                  reduce
-                    ? undefined
-                    : {
-                        y: -3,
-                        transition: { type: "spring", stiffness: 320, damping: 28 },
-                      }
-                }
               >
                 <motion.div
-                  className="mx-auto inline-flex w-fit max-w-full items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] backdrop-blur-md sm:text-[11px] md:mx-0"
+                  className="mx-auto inline-flex w-fit max-w-full items-center gap-2 rounded-full border px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] backdrop-blur-md sm:px-3.5 sm:py-1.5 sm:text-[11px] lg:mx-0"
                   style={{
-                    borderColor: "color-mix(in srgb, var(--border-subtle) 85%, transparent)",
+                    borderColor: "color-mix(in srgb, var(--border-subtle) 90%, transparent)",
                     color: "var(--text-subtle)",
-                    background: "color-mix(in srgb, var(--glass) 55%, transparent)",
+                    background: "color-mix(in srgb, var(--glass) 50%, transparent)",
                   }}
                   whileHover={
                     reduce
                       ? undefined
                       : {
-                          scale: 1.03,
-                          borderColor: "color-mix(in srgb, var(--border-subtle) 65%, rgba(123,97,255,0.45))",
-                          boxShadow: "0 0 24px rgba(123,97,255,0.15)",
-                          transition: { type: "spring", stiffness: 400, damping: 22 },
+                          borderColor: "color-mix(in srgb, var(--border-subtle) 70%, rgba(123,97,255,0.35))",
+                          transition: { duration: 0.2 },
                         }
                   }
                 >
-                  <Clapperboard className="h-3 w-3 shrink-0 text-[#7B61FF]" strokeWidth={1.75} />
+                  <Clapperboard className="h-3.5 w-3.5 shrink-0 text-[#7B61FF]" strokeWidth={1.75} />
                   Motion &amp; light
                 </motion.div>
 
                 <motion.h1
-                  className="font-display mx-auto mt-3 w-full max-w-[20rem] text-[clamp(1.5rem,5vw,3.25rem)] font-extrabold leading-[1.12] tracking-tight text-balance sm:mt-5 sm:max-w-2xl md:mx-0 md:max-w-xl"
+                  className="font-display mx-auto mt-3 w-full max-w-[22rem] text-balance text-[clamp(1.9rem,4.2vw+0.5rem,3.1rem)] font-extrabold leading-[1.06] tracking-tight sm:max-w-none lg:mx-0"
                   style={{ color: "var(--text-primary)" }}
-                  whileHover={
-                    reduce
-                      ? undefined
-                      : {
-                          scale: 1.01,
-                          textShadow: "0 0 40px rgba(123,97,255,0.12)",
-                          transition: { type: "spring", stiffness: 280, damping: 26 },
-                        }
-                  }
                 >
                   Spotlight: <span className="text-gradient-hero">the cut that stays</span>
                 </motion.h1>
 
-                <p className="mx-auto mt-3 max-w-xl text-pretty text-[13px] leading-relaxed text-[var(--text-muted)] sm:mt-5 sm:text-[15px] md:mx-0">
+                <p className="mx-auto mt-4 max-w-xl text-pretty text-sm leading-relaxed text-[var(--text-muted)] sm:mt-5 sm:text-base lg:mx-0">
                   Curated motion and stills in one beam—scroll the reels below, swap them from your dashboard when the story
                   changes. Nothing here reads like a spec sheet; it&apos;s meant to feel like opening night.
                 </p>
 
-                <div className="mx-auto mt-5 flex w-full max-w-xl flex-col items-stretch gap-2 sm:mt-7 sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:gap-x-4 sm:gap-y-2 md:mx-0 md:justify-start">
+                <div className="mx-auto mt-8 flex w-full max-w-sm flex-col gap-3 sm:max-w-none sm:flex-row sm:flex-wrap sm:justify-center lg:mx-0 lg:justify-start">
                   <Link
                     href="/gallery"
-                    className="inline-flex min-h-[44px] items-center justify-center rounded-md border border-transparent px-2 text-sm font-semibold text-[#00D4FF] underline-offset-4 hover:border-white/10 hover:underline sm:min-h-0 sm:justify-center sm:px-0 md:justify-start"
+                    className="group inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl border px-6 text-sm font-semibold tracking-tight shadow-sm transition-[border-color,background-color,box-shadow,transform] duration-200 motion-safe:hover:-translate-y-0.5 hover:border-[#00D4FF]/50 hover:bg-[color-mix(in_srgb,var(--glass)_55%,rgba(0,212,255,0.06))] hover:shadow-[0_12px_40px_-12px_rgba(0,212,255,0.25)] motion-safe:active:translate-y-0 sm:w-auto"
+                    style={{
+                      borderColor: "color-mix(in srgb, var(--border-subtle) 82%, rgba(0,212,255,0.28))",
+                      color: "var(--text-primary)",
+                      background: "color-mix(in srgb, var(--glass) 40%, transparent)",
+                    }}
                   >
-                    Browse the still gallery →
+                    Browse gallery
+                    <span
+                      className="text-xs opacity-80 transition-transform duration-200 motion-safe:group-hover:translate-x-0.5 group-hover:opacity-100"
+                      aria-hidden
+                    >
+                      →
+                    </span>
                   </Link>
-                  <span className="hidden text-sm text-[var(--text-subtle)] sm:inline">|</span>
                   <Link
                     href="/demo"
-                    className="inline-flex min-h-[44px] items-center justify-center rounded-md border border-transparent px-2 text-sm font-semibold text-[#7B61FF] underline-offset-4 hover:border-white/10 hover:underline sm:min-h-0 sm:justify-center sm:px-0 md:justify-start"
+                    className="group inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl border px-6 text-sm font-semibold tracking-tight shadow-sm transition-[border-color,background-color,box-shadow,transform] duration-200 motion-safe:hover:-translate-y-0.5 hover:border-[#7B61FF]/50 hover:bg-[color-mix(in_srgb,var(--glass)_55%,rgba(123,97,255,0.08))] hover:shadow-[0_12px_40px_-12px_rgba(123,97,255,0.28)] motion-safe:active:translate-y-0 sm:w-auto"
+                    style={{
+                      borderColor: "color-mix(in srgb, var(--border-subtle) 82%, rgba(123,97,255,0.32))",
+                      color: "var(--text-primary)",
+                      background: "color-mix(in srgb, var(--glass) 40%, transparent)",
+                    }}
                   >
-                    Run the live demo →
+                    Live demo
+                    <span
+                      className="text-xs opacity-80 transition-transform duration-200 motion-safe:group-hover:translate-x-0.5 group-hover:opacity-100"
+                      aria-hidden
+                    >
+                      →
+                    </span>
                   </Link>
                 </div>
               </motion.div>

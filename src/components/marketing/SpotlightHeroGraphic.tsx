@@ -13,16 +13,14 @@ type SpotlightHeroGraphicProps = {
 
 /** Snappy cursor follow */
 const snap = { type: "spring" as const, stiffness: 68, damping: 18, mass: 0.42 };
-/** Lock position to pointer each frame (parent batches via rAF) */
-const cursorFollow = { type: "tween" as const, duration: 0, ease: "linear" as const };
 /** Slower parallax depth */
 const drift = { type: "spring" as const, stiffness: 38, damping: 26, mass: 0.55 };
 /** Lagging “mass” layer */
 const lag = { type: "spring" as const, stiffness: 22, damping: 28, mass: 0.75 };
 
 /**
- * Cursor-first field: low-luminance, ink-forward palette (slate / indigo / deep cyan).
- * No white or champagne highlights — depth reads from dark hue shifts.
+ * Hero field: grid + hover-reactive wash; no cursor spotlight orbs.
+ * Ink-forward palette (slate / indigo); grid gains opacity on hero hover.
  */
 export function SpotlightHeroGraphic({
   className = "",
@@ -127,52 +125,6 @@ export function SpotlightHeroGraphic({
         />
       )}
 
-      {/* Cursor rig — compact soft pool; high pointer gain, low luminance */}
-      {!reduce && (
-        <>
-          <motion.div
-            className="absolute left-1/2 top-[42%] h-[min(46vw,280px)] w-[min(46vw,280px)] -translate-x-1/2 -translate-y-1/2 rounded-full mix-blend-soft-light blur-2xl max-md:top-[46%] max-md:h-[min(56vw,260px)] max-md:w-[min(56vw,260px)]"
-            style={{
-              background:
-                "radial-gradient(circle closest-side, rgba(15,23,42,0.46) 0%, rgba(30,27,75,0.48) 26%, rgba(30,58,138,0.34) 48%, rgba(71,85,105,0.26) 62%, transparent 78%)",
-            }}
-            animate={{
-              x: p.x * 210,
-              y: p.y * 165,
-              opacity: hovered ? 0.78 : 0.36,
-              scale: hovered ? 1.05 : 0.94,
-            }}
-            transition={{
-              x: cursorFollow,
-              y: cursorFollow,
-              opacity: { duration: 0.22, ease: "easeOut" },
-              scale: { duration: 0.22, ease: "easeOut" },
-            }}
-            aria-hidden
-          />
-          <motion.div
-            className="absolute left-1/2 top-[42%] h-[min(32vw,188px)] w-[min(32vw,188px)] -translate-x-1/2 -translate-y-1/2 rounded-full mix-blend-soft-light blur-xl max-md:top-[46%] max-md:h-[min(40vw,176px)] max-md:w-[min(40vw,176px)]"
-            style={{
-              background:
-                "radial-gradient(circle closest-side, rgba(2,6,23,0.4) 0%, rgba(30,58,138,0.32) 42%, rgba(15,23,42,0.22) 58%, transparent 74%)",
-            }}
-            animate={{
-              x: p.x * -175,
-              y: p.y * -135,
-              opacity: hovered ? 0.62 : 0.3,
-              scale: hovered ? 1.02 : 0.9,
-            }}
-            transition={{
-              x: cursorFollow,
-              y: cursorFollow,
-              opacity: { duration: 0.22, ease: "easeOut" },
-              scale: { duration: 0.22, ease: "easeOut" },
-            }}
-            aria-hidden
-          />
-        </>
-      )}
-
       {/* Edge blooms — large motion tied to pointer */}
       {!reduce && (
         <>
@@ -230,21 +182,22 @@ export function SpotlightHeroGraphic({
         }}
       />
 
-      {/* Grid — stronger on desktop; wider mask + denser cells on mobile for readability */}
+      {/* Grid — hero hover brightens + pointer parallax */}
       <motion.div
         className="absolute inset-0 bg-[length:52px_52px] will-change-transform max-md:bg-[length:40px_40px]"
         aria-hidden
         animate={
           reduce
-            ? { opacity: hovered ? 0.16 : 0.08 }
+            ? { opacity: hovered ? 0.2 : 0.1 }
             : {
-                opacity: hovered ? 0.38 : 0.18,
+                opacity: hovered ? 0.48 : 0.22,
                 x: p.x * 22,
                 y: p.y * 18,
                 rotate: p.x * 1.2 - p.y * 0.6,
+                scale: hovered ? 1.01 : 1,
               }
         }
-        transition={{ opacity: { duration: 0.4 }, x: drift, y: drift, rotate: drift }}
+        transition={{ opacity: { duration: 0.4 }, x: drift, y: drift, rotate: drift, scale: { duration: 0.35, ease: "easeOut" } }}
         style={{
           backgroundImage: `
             linear-gradient(rgba(100,116,139,0.9) 1px, transparent 1px),
@@ -254,30 +207,6 @@ export function SpotlightHeroGraphic({
           WebkitMaskImage: "radial-gradient(ellipse 92% 90% at 50% 32%, black 52%, transparent 86%)",
         }}
       />
-
-      {/* Cursor orbit ring — small, faint rim; follows cursor with high gain */}
-      {!reduce && (
-        <motion.div
-          className="absolute left-1/2 top-[40%] h-[min(38vw,220px)] w-[min(38vw,220px)] -translate-x-1/2 -translate-y-1/2 rounded-full max-md:top-[44%] max-md:h-[min(48vw,200px)] max-md:w-[min(48vw,200px)]"
-          style={{
-            background:
-              "radial-gradient(circle closest-side, transparent 55%, rgba(148,163,184,0.42) 58%, rgba(100,116,139,0.34) 61%, rgba(30,58,138,0.22) 64%, transparent 74%)",
-          }}
-          animate={{
-            x: p.x * 198,
-            y: p.y * 152,
-            opacity: hovered ? 0.72 : 0.32,
-            scale: hovered ? 1 : 0.94,
-          }}
-          transition={{
-            x: cursorFollow,
-            y: cursorFollow,
-            opacity: { duration: 0.22, ease: "easeOut" },
-            scale: { duration: 0.22, ease: "easeOut" },
-          }}
-          aria-hidden
-        />
-      )}
 
       <motion.div
         className="absolute inset-x-0 bottom-0 h-[54%]"
