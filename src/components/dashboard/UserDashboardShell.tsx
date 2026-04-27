@@ -11,6 +11,7 @@ import {
   Menu,
   Moon,
   Settings,
+  Sparkles,
   Sun,
   Video,
   X,
@@ -24,6 +25,7 @@ import { useTheme } from "@/components/ThemeProvider";
 
 const workspaceNav = [
   { href: "/dashboard", label: "Overview", icon: Home, end: true as const },
+  { href: "/community", label: "Community", icon: Sparkles },
   { href: "/dashboard/billing", label: "Billing", icon: CreditCard },
   { href: "/dashboard/settings", label: "Preferences", icon: Settings },
 ] as const;

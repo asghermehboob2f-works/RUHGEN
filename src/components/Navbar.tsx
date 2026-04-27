@@ -2,7 +2,6 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  ChevronRight,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -23,6 +22,7 @@ const links = [
   { href: "/features", label: "Features", id: "features" },
   { href: "/platform", label: "Platform", id: "platform" },
   { href: "/gallery", label: "Gallery", id: "gallery" },
+  { href: "/community", label: "Community", id: "community" },
   { href: "/workflow", label: "Workflow", id: "workflow" },
   { href: "/pricing", label: "Pricing", id: "pricing" },
   { href: "/faq", label: "FAQ", id: "faq" },
@@ -126,9 +126,9 @@ export function Navbar() {
         }}
         transition={{ duration: 0.4, ease: "easeOut" }}
       >
-        <div className="mx-auto flex h-16 max-w-[min(100%,1240px)] items-center justify-between gap-2 px-3 sm:h-[72px] sm:gap-3 sm:px-5 md:max-w-[min(100%,1320px)] md:px-6 lg:max-w-[1400px] lg:px-10">
+        <div className="mx-auto flex h-14 w-full max-w-[min(100%,1240px)] items-center justify-between gap-2 px-3 sm:h-16 sm:gap-2.5 sm:px-4 md:max-w-[min(100%,1360px)] md:gap-3 md:px-5 lg:max-w-[min(100%,1480px)] lg:gap-3 lg:px-8 xl:max-w-[min(100%,1580px)] xl:px-10 2xl:max-w-[min(100%,1720px)] 2xl:px-12">
           {/* Logo */}
-          <div className="flex shrink-0 items-center px-1 py-1">
+          <div className="flex min-w-0 shrink-0 items-center px-1 py-1">
             <BrandLogo
               size="md"
               showWordmark
@@ -138,88 +138,92 @@ export function Navbar() {
             />
           </div>
 
-          {/* Desktop nav pill bar */}
-          <nav
-            ref={navRef}
-            className="hidden w-fit max-w-[min(100%,min(calc(100vw-18.5rem),860px))] items-center gap-0.5 overflow-x-auto rounded-full border px-1 py-1 [scrollbar-width:none] md:flex md:gap-0.5 lg:gap-0 [&::-webkit-scrollbar]:hidden"
-            style={{
-              borderColor: "var(--border-subtle)",
-              background: "var(--glass)",
-            }}
-            aria-label="Main"
-            onMouseLeave={() => setHoveredId(null)}
-          >
-            {desktopItems.map((item) => {
-              if (item.kind === "sep") {
-                return (
-                  <span
-                    key={item.id}
-                    className="mx-1 h-4 w-px shrink-0 lg:mx-1.5"
-                    style={{ background: "var(--border-subtle)" }}
-                    aria-hidden
-                  />
-                );
-              }
-
-              const active =
-                item.kind === "section"
-                  ? pathname === item.href
-                  : pathname === item.href;
-
-              return (
-                <Link
-                  key={item.id}
-                  href={item.href}
-                  prefetch
-                  className="relative shrink-0 rounded-full px-2.5 py-1.5 text-[11px] font-medium md:px-3 md:py-2 md:text-[11px] lg:px-3.5 lg:text-[13px]"
-                  aria-current={active ? "page" : undefined}
-                  onMouseEnter={() => {
-                    setHoveredId(item.id);
-                    prefetchIfInternal(item.href);
-                  }}
-                  onFocus={() => prefetchIfInternal(item.href)}
-                  style={{
-                    color: active ? "#fff" : "var(--text-muted)",
-                  }}
-                >
-                  <NavPill active={active} layoutId="nav-active-pill" />
-
-                  {/* Hover glow */}
-                  <AnimatePresence>
-                    {hoveredId === item.id && !active && (
-                      <motion.span
-                        className="absolute inset-0 z-0 rounded-full"
-                        style={{
-                          background: isLight
-                            ? "rgba(123,97,255,0.07)"
-                            : "rgba(123,97,255,0.1)",
-                        }}
-                        initial={{ opacity: 0, scale: 0.92 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.92 }}
-                        transition={{ duration: 0.2 }}
+          {/* Desktop nav pill bar — flex-1 + min-w-0 so horizontal scroll works between logo and actions */}
+          <div className="hidden min-h-0 min-w-0 flex-1 items-center justify-center px-1 md:flex md:px-2">
+            <nav
+              ref={navRef}
+              className="nav-scroll-x max-w-full touch-pan-x overflow-x-auto overscroll-x-contain scroll-smooth rounded-full border px-1.5 py-1 pb-1.5 scroll-px-2.5 snap-x snap-proximity"
+              style={{
+                borderColor: "var(--border-subtle)",
+                background: "var(--glass)",
+              }}
+              aria-label="Main"
+              onMouseLeave={() => setHoveredId(null)}
+            >
+              <div className="mx-auto inline-flex w-max min-h-8 items-center gap-0.5 md:min-h-9 md:gap-0.5 lg:gap-0">
+                {desktopItems.map((item) => {
+                  if (item.kind === "sep") {
+                    return (
+                      <span
+                        key={item.id}
+                        className="mx-0.5 h-3.5 w-px shrink-0 md:mx-1 lg:mx-1.5"
+                        style={{ background: "var(--border-subtle)" }}
+                        aria-hidden
                       />
-                    )}
-                  </AnimatePresence>
+                    );
+                  }
 
-                  <motion.span
-                    className="relative z-[1] inline-flex"
-                    animate={{
-                      color: active
-                        ? "#fff"
-                        : hoveredId === item.id
-                          ? "var(--text-primary)"
-                          : "var(--text-muted)",
-                    }}
-                    transition={{ duration: 0.2 }}
-                    whileTap={{ scale: 0.96 }}
-                  >
-                    {item.label}
-                  </motion.span>
-                </Link>
-              );
-            })}
-          </nav>
+                  const active =
+                    item.kind === "section"
+                      ? pathname === item.href
+                      : pathname === item.href;
+
+                  return (
+                    <Link
+                      key={item.id}
+                      href={item.href}
+                      prefetch
+                      className="relative shrink-0 snap-start rounded-full px-1.5 py-1 text-[10px] font-medium md:px-2.5 md:py-1.5 md:text-[11px] lg:px-3 lg:text-[12px]"
+                      aria-current={active ? "page" : undefined}
+                      onMouseEnter={() => {
+                        setHoveredId(item.id);
+                        prefetchIfInternal(item.href);
+                      }}
+                      onFocus={() => prefetchIfInternal(item.href)}
+                      style={{
+                        color: active ? "#fff" : "var(--text-muted)",
+                      }}
+                    >
+                      <NavPill active={active} layoutId="nav-active-pill" />
+
+                      {/* Hover glow */}
+                      <AnimatePresence>
+                        {hoveredId === item.id && !active && (
+                          <motion.span
+                            className="absolute inset-0 z-0 rounded-full"
+                            style={{
+                              background: isLight
+                                ? "rgba(123,97,255,0.07)"
+                                : "rgba(123,97,255,0.1)",
+                            }}
+                            initial={{ opacity: 0, scale: 0.92 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.92 }}
+                            transition={{ duration: 0.2 }}
+                          />
+                        )}
+                      </AnimatePresence>
+
+                      <motion.span
+                        className="relative z-[1] inline-flex whitespace-nowrap"
+                        animate={{
+                          color: active
+                            ? "#fff"
+                            : hoveredId === item.id
+                              ? "var(--text-primary)"
+                              : "var(--text-muted)",
+                        }}
+                        transition={{ duration: 0.2 }}
+                        whileTap={{ scale: 0.96 }}
+                      >
+                        {item.label}
+                      </motion.span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </nav>
+          </div>
 
           {/* Right actions */}
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
@@ -232,7 +236,7 @@ export function Navbar() {
                 >
                   <Link
                     href="/dashboard"
-                    className={`inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition-colors duration-200 lg:px-3.5 lg:text-sm ${
+                    className={`inline-flex min-h-9 items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-colors duration-200 lg:px-3 lg:text-sm ${
                       pathname === "/dashboard" ||
                       pathname.startsWith("/dashboard/")
                         ? "border-[#7B61FF]/40"
@@ -266,7 +270,7 @@ export function Navbar() {
                     signOut();
                     router.push("/");
                   }}
-                  className="hidden min-h-10 items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition-colors duration-200 hover:border-[#7B61FF]/30 sm:inline-flex lg:text-sm"
+                  className="hidden min-h-9 items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-colors duration-200 hover:border-[#7B61FF]/30 sm:inline-flex lg:text-sm"
                   style={{
                     borderColor: "var(--border-subtle)",
                     color: "var(--text-muted)",
@@ -286,7 +290,7 @@ export function Navbar() {
                 >
                   <Link
                     href="/sign-in"
-                    className="inline-flex min-h-10 items-center rounded-xl border px-3.5 py-2 text-xs font-semibold transition-colors duration-200 hover:border-[#7B61FF]/30 lg:px-4 lg:text-sm"
+                    className="inline-flex min-h-9 items-center rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors duration-200 hover:border-[#7B61FF]/30 lg:px-3.5 lg:text-sm"
                     style={{
                       borderColor: "var(--border-subtle)",
                       color: "var(--text-primary)",
@@ -303,7 +307,7 @@ export function Navbar() {
                 >
                   <Link
                     href="/sign-up"
-                    className="inline-flex min-h-10 items-center rounded-xl px-3.5 py-2 text-xs font-semibold text-white btn-gradient lg:px-4 lg:text-sm"
+                    className="inline-flex min-h-9 items-center rounded-lg px-3 py-1.5 text-xs font-semibold text-white btn-gradient lg:px-3.5 lg:text-sm"
                   >
                     Get started
                   </Link>
@@ -315,7 +319,7 @@ export function Navbar() {
             <motion.button
               type="button"
               onClick={toggle}
-              className="flex h-10 w-10 items-center justify-center rounded-xl border transition-colors duration-200 hover:border-[#7B61FF]/35"
+              className="flex h-9 w-9 items-center justify-center rounded-lg border transition-colors duration-200 hover:border-[#7B61FF]/35"
               style={{
                 borderColor: "var(--border-subtle)",
                 color: "var(--text-primary)",
@@ -357,26 +361,24 @@ export function Navbar() {
             </motion.button>
 
             {/* Mobile menu button */}
-            <motion.button
+            <button
               type="button"
-              className="flex h-11 w-11 items-center justify-center rounded-xl border md:hidden"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border transition-transform active:scale-[0.97] md:hidden"
               style={{
                 borderColor: "var(--border-subtle)",
                 color: "var(--text-primary)",
                 background: "var(--glass)",
               }}
               onClick={() => setOpen(true)}
-              whileHover={{ scale: 1.06 }}
-              whileTap={{ scale: 0.94 }}
               aria-label="Open menu"
             >
               <Menu className="h-5 w-5" />
-            </motion.button>
+            </button>
           </div>
         </div>
       </motion.header>
 
-      {/* Mobile drawer */}
+      {/* Mobile drawer — lightweight: short tween slide, no blur, no staggered list motion */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -384,46 +386,30 @@ export function Navbar() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
+            transition={{ duration: 0.12, ease: "easeOut" }}
           >
-            {/* Backdrop */}
-            <motion.button
+            <button
               type="button"
-              className="absolute inset-0"
-              style={{
-                background: isLight
-                  ? "rgba(0,0,0,0.35)"
-                  : "rgba(0,0,0,0.65)",
-                backdropFilter: "blur(8px)",
-                WebkitBackdropFilter: "blur(8px)",
-              }}
+              className="absolute inset-0 bg-black/40 dark:bg-black/55"
               aria-label="Close menu"
               onClick={closeMobile}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
             />
 
-            {/* Panel */}
             <motion.aside
-              className="absolute right-0 top-0 flex h-full w-[min(100%,min(100vw-2rem),380px)] max-w-full flex-col border-l shadow-2xl"
+              className="absolute right-0 top-0 flex h-full min-h-0 w-[min(100%,min(100vw-2rem),340px)] max-w-full flex-col border-l shadow-2xl"
               style={{
                 borderColor: "var(--border-subtle)",
-                background: isLight
-                  ? "rgba(250,250,252,0.97)"
-                  : "rgba(12,12,14,0.97)",
-                backdropFilter: "blur(32px) saturate(180%)",
-                WebkitBackdropFilter: "blur(32px) saturate(180%)",
+                background: isLight ? "#f4f4f8" : "#121214",
                 paddingTop: "env(safe-area-inset-top)",
+                willChange: "transform",
               }}
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 28, stiffness: 300 }}
+              transition={{ type: "tween", duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
             >
-              {/* Drawer header */}
               <div
-                className="flex items-center justify-between border-b p-4 sm:p-5"
+                className="flex shrink-0 items-center justify-between gap-3 border-b px-4 py-2.5 sm:px-5 sm:py-3"
                 style={{ borderColor: "var(--border-subtle)" }}
               >
                 <BrandLogo
@@ -433,86 +419,60 @@ export function Navbar() {
                   onNavigate={closeMobile}
                   className="min-w-0 shrink sm:[&_.font-display]:text-xl"
                 />
-                <motion.button
+                <button
                   type="button"
                   onClick={closeMobile}
-                  className="flex h-11 w-11 items-center justify-center rounded-xl border"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center self-center rounded-lg border transition-transform active:scale-[0.97]"
                   style={{
                     borderColor: "var(--border-subtle)",
                     color: "var(--text-primary)",
                     background: "var(--glass)",
                   }}
-                  whileHover={{ scale: 1.06, rotate: 90 }}
-                  whileTap={{ scale: 0.94 }}
                   aria-label="Close"
                 >
                   <X className="h-5 w-5" />
-                </motion.button>
+                </button>
               </div>
 
-              {/* Drawer body */}
               <nav
-                className="flex flex-1 flex-col gap-1.5 overflow-y-auto overscroll-contain p-3 sm:gap-2 sm:p-4"
+                className="nav-scroll-y flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto overscroll-y-contain px-4 pb-[max(0.875rem,env(safe-area-inset-bottom))] pt-2.5 sm:px-5 sm:pt-3"
                 aria-label="Mobile"
               >
-                {/* Section links */}
-                {links.map((l, i) => {
-                  const isActive = pathname === l.href;
-                  return (
-                    <motion.div
-                      key={l.href}
-                      initial={{ opacity: 0, x: 32, filter: "blur(4px)" }}
-                      animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
-                      transition={{
-                        delay: 0.03 * i,
-                        duration: 0.35,
-                        ease: [0.25, 0.46, 0.45, 0.94],
-                      }}
-                    >
+                <div className="flex flex-col gap-px">
+                  {links.map((l) => {
+                    const isActive = pathname === l.href;
+                    return (
                       <Link
+                        key={l.href}
                         href={l.href}
                         onClick={closeMobile}
                         prefetch
-                        onMouseEnter={() => prefetchIfInternal(l.href)}
                         onFocus={() => prefetchIfInternal(l.href)}
-                        className="group relative flex min-h-[48px] items-center justify-between rounded-2xl border px-4 py-3.5 text-[15px] font-medium leading-snug transition-colors duration-200"
+                        className="flex min-h-10 items-center rounded-lg px-3 py-2 text-left text-[15px] font-medium leading-snug transition-colors active:opacity-90 sm:px-3.5"
                         style={{
-                          color: isActive ? "#fff" : "var(--text-primary)",
-                          borderColor: isActive
-                            ? "rgba(123,97,255,0.3)"
-                            : "var(--border-subtle)",
+                          color: isActive ? "#7B61FF" : "var(--text-primary)",
                           background: isActive
-                            ? "linear-gradient(135deg, #7B61FF 0%, #00D4FF 100%)"
-                            : "var(--glass)",
+                            ? "rgba(123,97,255,0.12)"
+                            : "transparent",
                         }}
                       >
-                        <span>{l.label}</span>
-                        <ChevronRight
-                          className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5"
-                          style={{
-                            color: isActive ? "rgba(255,255,255,0.7)" : "var(--text-subtle)",
-                          }}
-                        />
+                        {l.label}
                       </Link>
-                    </motion.div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
 
-                {/* Page links */}
-                <motion.div
-                  className="mt-3 border-t pt-4"
+                <div
+                  className="mt-4 border-t pt-4"
                   style={{ borderColor: "var(--border-subtle)" }}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3 }}
                 >
                   <p
-                    className="px-2 text-[10px] font-bold uppercase tracking-[0.18em]"
+                    className="px-3 pb-2 text-left text-[10px] font-bold uppercase tracking-[0.16em] sm:px-3.5"
                     style={{ color: "var(--text-subtle)" }}
                   >
                     Pages
                   </p>
-                  <div className="mt-2 flex flex-col gap-1">
+                  <div className="flex flex-col gap-px">
                     {[
                       { href: "/about", label: "About" },
                       { href: "/platform", label: "Platform" },
@@ -524,9 +484,8 @@ export function Navbar() {
                         href={x.href}
                         onClick={closeMobile}
                         prefetch
-                        onMouseEnter={() => prefetchIfInternal(x.href)}
                         onFocus={() => prefetchIfInternal(x.href)}
-                        className="group flex min-h-[44px] items-center justify-between rounded-xl px-4 py-3 text-sm font-medium transition-colors duration-200 hover:bg-[var(--glass-elevated)]"
+                        className="flex min-h-9 items-center rounded-lg px-3 py-1.5 text-left text-sm font-medium leading-snug transition-colors active:bg-[var(--glass-elevated)] sm:px-3.5"
                         style={{
                           color:
                             pathname === x.href
@@ -534,31 +493,23 @@ export function Navbar() {
                               : "var(--text-muted)",
                         }}
                       >
-                        <span>{x.label}</span>
-                        <ChevronRight
-                          className="h-3.5 w-3.5 opacity-0 transition-all duration-200 group-hover:translate-x-0.5 group-hover:opacity-100"
-                          style={{ color: "var(--text-subtle)" }}
-                        />
+                        {x.label}
                       </Link>
                     ))}
                   </div>
-                </motion.div>
+                </div>
 
-                {/* More links */}
-                <motion.div
-                  className="mt-2 border-t pt-4"
+                <div
+                  className="mt-3 border-t pt-4"
                   style={{ borderColor: "var(--border-subtle)" }}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.35 }}
                 >
                   <p
-                    className="px-2 text-[10px] font-bold uppercase tracking-[0.18em]"
+                    className="px-3 pb-2 text-left text-[10px] font-bold uppercase tracking-[0.16em] sm:px-3.5"
                     style={{ color: "var(--text-subtle)" }}
                   >
                     More
                   </p>
-                  <div className="mt-2 flex flex-col gap-1">
+                  <div className="flex flex-col gap-px">
                     {[
                       { href: "/privacy", label: "Privacy" },
                       { href: "/terms", label: "Terms" },
@@ -569,16 +520,11 @@ export function Navbar() {
                         href={x.href}
                         onClick={closeMobile}
                         prefetch={x.href.startsWith("/")}
-                        onMouseEnter={() => prefetchIfInternal(x.href)}
                         onFocus={() => prefetchIfInternal(x.href)}
-                        className="group flex min-h-[44px] items-center justify-between rounded-xl px-4 py-3 text-sm font-medium transition-colors duration-200 hover:bg-[var(--glass-elevated)]"
+                        className="flex min-h-9 items-center rounded-lg px-3 py-1.5 text-left text-sm font-medium leading-snug transition-colors active:bg-[var(--glass-elevated)] sm:px-3.5"
                         style={{ color: "var(--text-muted)" }}
                       >
-                        <span>{x.label}</span>
-                        <ChevronRight
-                          className="h-3.5 w-3.5 opacity-0 transition-all duration-200 group-hover:translate-x-0.5 group-hover:opacity-100"
-                          style={{ color: "var(--text-subtle)" }}
-                        />
+                        {x.label}
                       </Link>
                     ))}
                     {ready && user ? (
@@ -586,9 +532,8 @@ export function Navbar() {
                         href="/dashboard/content"
                         onClick={closeMobile}
                         prefetch
-                        onMouseEnter={() => prefetchIfInternal("/dashboard/content")}
                         onFocus={() => prefetchIfInternal("/dashboard/content")}
-                        className="flex min-h-[44px] items-center justify-center rounded-xl border px-4 py-3 text-center text-sm font-semibold transition-colors duration-200"
+                        className="mt-1 flex min-h-9 items-center justify-center rounded-lg border px-3 py-1.5 text-sm font-semibold transition-colors sm:px-3.5"
                         style={{
                           borderColor: "var(--border-subtle)",
                           background: "var(--glass)",
@@ -599,15 +544,11 @@ export function Navbar() {
                       </Link>
                     ) : null}
                   </div>
-                </motion.div>
+                </div>
 
-                {/* Auth section */}
-                <motion.div
-                  className="mt-3 flex flex-col gap-2 border-t pt-4"
+                <div
+                  className="mt-4 flex flex-col gap-2 border-t pt-4"
                   style={{ borderColor: "var(--border-subtle)" }}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
                 >
                   {ready && user ? (
                     <>
@@ -615,16 +556,15 @@ export function Navbar() {
                         href="/dashboard"
                         onClick={closeMobile}
                         prefetch
-                        onMouseEnter={() => prefetchIfInternal("/dashboard")}
                         onFocus={() => prefetchIfInternal("/dashboard")}
-                        className="flex min-h-[48px] items-center justify-center gap-2 rounded-2xl border py-3.5 text-sm font-semibold transition-colors duration-200"
+                        className="flex min-h-10 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors sm:px-3.5"
                         style={{
                           borderColor: "var(--border-subtle)",
                           background: "var(--glass)",
                           color: "var(--text-primary)",
                         }}
                       >
-                        <LayoutDashboard className="h-4 w-4" />
+                        <LayoutDashboard className="h-4 w-4 shrink-0" />
                         Dashboard
                       </Link>
                       <button
@@ -634,7 +574,7 @@ export function Navbar() {
                           closeMobile();
                           router.push("/");
                         }}
-                        className="min-h-[48px] rounded-2xl border py-3.5 text-sm font-semibold transition-colors duration-200"
+                        className="min-h-10 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors sm:px-3.5"
                         style={{
                           borderColor: "var(--border-subtle)",
                           color: "var(--text-muted)",
@@ -646,60 +586,42 @@ export function Navbar() {
                     </>
                   ) : (
                     <>
-                      <motion.div
-                        whileHover={{ scale: 1.01 }}
-                        whileTap={{ scale: 0.98 }}
+                      <Link
+                        href="/sign-in"
+                        onClick={closeMobile}
+                        prefetch
+                        onFocus={() => prefetchIfInternal("/sign-in")}
+                        className="flex min-h-10 items-center justify-center rounded-lg border px-3 py-2 text-sm font-semibold transition-colors sm:px-3.5"
+                        style={{
+                          borderColor: "var(--border-subtle)",
+                          background: "var(--glass)",
+                          color: "var(--text-primary)",
+                        }}
                       >
-                        <Link
-                          href="/sign-in"
-                          onClick={closeMobile}
-                          prefetch
-                          onMouseEnter={() => prefetchIfInternal("/sign-in")}
-                          onFocus={() => prefetchIfInternal("/sign-in")}
-                          className="flex min-h-[48px] items-center justify-center rounded-2xl border py-3.5 text-sm font-semibold transition-colors duration-200"
-                          style={{
-                            borderColor: "var(--border-subtle)",
-                            background: "var(--glass)",
-                            color: "var(--text-primary)",
-                          }}
-                        >
-                          Sign in
-                        </Link>
-                      </motion.div>
-                      <motion.div
-                        whileHover={{ scale: 1.01 }}
-                        whileTap={{ scale: 0.98 }}
+                        Sign in
+                      </Link>
+                      <Link
+                        href="/sign-up"
+                        onClick={closeMobile}
+                        prefetch
+                        onFocus={() => prefetchIfInternal("/sign-up")}
+                        className="flex min-h-10 items-center justify-center rounded-lg px-3 py-2 text-sm font-semibold text-white btn-gradient sm:px-3.5"
                       >
-                        <Link
-                          href="/sign-up"
-                          onClick={closeMobile}
-                          prefetch
-                          onMouseEnter={() => prefetchIfInternal("/sign-up")}
-                          onFocus={() => prefetchIfInternal("/sign-up")}
-                          className="block min-h-[48px] rounded-2xl py-3.5 text-center text-sm font-semibold text-white btn-gradient"
-                        >
-                          Create account
-                        </Link>
-                      </motion.div>
+                        Create account
+                      </Link>
                     </>
                   )}
-                </motion.div>
+                </div>
 
-                <div className="min-h-4 flex-1" />
+                <div className="min-h-2 flex-1 shrink-0" />
 
-                <motion.div
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="mb-2"
+                <Link
+                  href="/#cta"
+                  onClick={closeMobile}
+                  className="flex min-h-10 w-full items-center justify-center rounded-lg px-3 py-2 text-sm font-semibold text-white btn-gradient sm:px-3.5"
                 >
-                  <Link
-                    href="/#cta"
-                    onClick={closeMobile}
-                    className="block min-h-[48px] rounded-2xl py-3.5 text-center text-sm font-semibold text-white btn-gradient"
-                  >
-                    View plans
-                  </Link>
-                </motion.div>
+                  View plans
+                </Link>
               </nav>
             </motion.aside>
           </motion.div>

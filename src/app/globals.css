@@ -58,6 +58,60 @@ body {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+/* Navbar: thin themed scrollbars (desktop pill = horizontal, drawer = vertical) */
+.nav-scroll-x {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(123, 97, 255, 0.55) color-mix(in srgb, var(--border-subtle) 55%, transparent);
+}
+
+html.light .nav-scroll-x {
+  scrollbar-color: rgba(103, 80, 220, 0.48) rgba(0, 0, 0, 0.07);
+}
+
+.nav-scroll-x::-webkit-scrollbar {
+  height: 4px;
+}
+
+.nav-scroll-x::-webkit-scrollbar-track {
+  margin-inline: 10px;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--border-subtle) 70%, transparent);
+}
+
+.nav-scroll-x::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  background: linear-gradient(90deg, var(--primary-purple), var(--primary-cyan));
+  background-clip: padding-box;
+}
+
+.nav-scroll-y {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(123, 97, 255, 0.5) transparent;
+}
+
+html.light .nav-scroll-y {
+  scrollbar-color: rgba(103, 80, 220, 0.42) rgba(0, 0, 0, 0.06);
+}
+
+.nav-scroll-y::-webkit-scrollbar {
+  width: 4px;
+}
+
+.nav-scroll-y::-webkit-scrollbar-track {
+  margin-block: 8px;
+  margin-inline-end: 3px;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--border-subtle) 60%, transparent);
+}
+
+.nav-scroll-y::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  background: linear-gradient(180deg, var(--primary-purple), var(--primary-cyan));
+  background-clip: padding-box;
+}
+
 ::selection {
   background: rgba(123, 97, 255, 0.35);
   color: var(--text-primary);

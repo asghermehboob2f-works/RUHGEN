@@ -4,7 +4,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
 import { Download, ImageIcon, Sparkles, Wand2 } from "lucide-react";
 import { LivePreview } from "@/components/LivePreview";
-import { GraphicDemoConsole } from "@/components/marketing/graphics/MarketingGraphics";
+import { DemoHeroGraphic } from "@/components/marketing/DemoHeroGraphic";
 import { SITE_CONTAINER } from "@/lib/site-layout";
 
 const sessionPoints = [
@@ -77,8 +77,8 @@ export function DemoPageContent() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.55, delay: 0.06 }}
           >
-            <div className="relative w-full max-w-[420px]">
-              <GraphicDemoConsole className="h-auto w-full drop-shadow-[0_24px_64px_rgba(123,97,255,0.2)]" />
+            <div className="relative w-full max-w-[440px]">
+              <DemoHeroGraphic className="h-auto w-full drop-shadow-[0_28px_80px_rgba(123,97,255,0.22)]" />
             </div>
           </motion.div>
         </div>

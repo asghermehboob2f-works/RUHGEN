@@ -11,6 +11,7 @@ const { openDb } = require("./db");
 const { hashPassword, signAdminToken, verifyAdminToken } = require("./auth");
 const { mountStudioRoutes } = require("./studio-routes");
 const { mountUserAuthRoutes } = require("./user-auth-routes");
+const { mountCommunityRoutes } = require("./community-routes");
 
 const PORT = Number(process.env.BACKEND_PORT || process.env.PORT || 4000, 10);
 const projectRoot = path.resolve(__dirname, "..", "..");
@@ -328,6 +329,7 @@ app.get("/api/health", (_req, res) => {
 
 mountUserAuthRoutes(app, { db });
 mountStudioRoutes(app, { upload });
+mountCommunityRoutes(app, { db });
 
 app.listen(PORT, "0.0.0.0", () => {
   // eslint-disable-next-line no-console

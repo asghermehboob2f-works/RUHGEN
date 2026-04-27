@@ -56,7 +56,16 @@ function PreviewFrame({
 }
 
 export function Hero({ previews }: { previews: Preview[] }) {
-  const reduce = useReducedMotion() === true;
+  // Defer reduced-motion until after mount: useReducedMotion() returns the
+  // real value on the first client render, but `false` during SSR. If a user
+  // has prefers-reduced-motion enabled this would cause a hydration mismatch
+  // because the conditional branches below render different elements.
+  const reducedRaw = useReducedMotion() === true;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  const reduce = mounted ? reducedRaw : false;
   const [mobileIdx, setMobileIdx] = useState(0);
   const n = previews.length;
 
@@ -76,7 +85,7 @@ export function Hero({ previews }: { previews: Preview[] }) {
   return (
     <section
       id="hero"
-      className="mesh-section relative flex min-h-[min(100dvh,920px)] flex-col justify-start overflow-x-hidden pb-10 pt-[max(5.25rem,env(safe-area-inset-top,0px)+4.5rem)] sm:min-h-[min(100dvh,960px)] sm:pb-14 sm:pt-28 md:pt-32"
+      className="mesh-section relative flex h-[100dvh] min-h-[100dvh] flex-col overflow-hidden overflow-x-hidden pb-6 pt-[max(5rem,env(safe-area-inset-top,0px)+4.25rem)] sm:pb-8 sm:pt-20 md:pt-24"
     >
       {!reduce ? (
         <>
@@ -121,7 +130,7 @@ export function Hero({ previews }: { previews: Preview[] }) {
             initial={reduce ? false : { opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="mb-4 inline-flex items-center justify-center gap-2 rounded-full border border-transparent px-3.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] shadow-[0_0_40px_-12px_rgba(123,97,255,0.45)] sm:mb-5 sm:px-4 sm:text-xs sm:tracking-[0.22em] md:text-sm"
+            className="mb-6 inline-flex items-center justify-center gap-2 rounded-full border border-transparent px-3.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] shadow-[0_0_40px_-12px_rgba(123,97,255,0.45)] sm:mb-7 sm:px-4 sm:text-xs sm:tracking-[0.22em] md:mb-8 md:text-sm"
             style={{
               color: "var(--text-muted)",
               background:
@@ -143,14 +152,14 @@ export function Hero({ previews }: { previews: Preview[] }) {
               Where imagination becomes reality
             </span>
             <span
-              className="mt-1.5 block font-display text-[clamp(1.05rem,3.2vw,2.35rem)] font-semibold tracking-tight sm:mt-2 sm:mt-3"
+              className="mt-2 block font-display text-[clamp(1.05rem,3.2vw,2.35rem)] font-semibold tracking-tight sm:mt-2.5 md:mt-3"
               style={{ color: "var(--text-muted)" }}
             >
               — instantly.
             </span>
           </motion.h1>
           <motion.p
-            className="mx-auto mt-4 max-w-[34rem] px-1 text-[13px] leading-relaxed sm:mt-6 sm:max-w-2xl sm:text-sm md:mt-7 md:text-lg lg:text-xl"
+            className="mx-auto mt-5 max-w-[36rem] px-1 text-[13px] leading-relaxed sm:mt-6 sm:max-w-2xl sm:text-sm md:mt-7 md:text-lg md:leading-relaxed lg:text-xl"
             style={{ color: "var(--text-muted)" }}
             initial={reduce ? false : { opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
@@ -160,7 +169,7 @@ export function Hero({ previews }: { previews: Preview[] }) {
             real-time feedback, built for studios and solo creators alike.
           </motion.p>
           <motion.div
-            className="mx-auto mt-10 flex w-full max-w-[20rem] flex-col items-stretch gap-2.5 sm:mt-12 sm:max-w-none sm:flex-row sm:items-center sm:justify-center sm:gap-4"
+            className="mx-auto mt-6 flex w-full max-w-[20rem] flex-col items-stretch gap-3.5 sm:mt-7 sm:max-w-none sm:flex-row sm:items-center sm:justify-center sm:gap-5"
             initial={reduce ? false : { opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.24 }}
@@ -187,7 +196,7 @@ export function Hero({ previews }: { previews: Preview[] }) {
 
         {/* Phone: carousel in document flow (mt-auto was pushing it below the fold). */}
         {current && (
-          <div className="relative z-[11] mx-auto mt-14 flex w-full max-w-lg shrink-0 flex-col items-center pb-2 sm:hidden">
+          <div className="relative z-[11] mx-auto mt-11 flex w-full max-w-sm shrink-0 flex-col items-center pb-1 sm:hidden">
             <div
               className="relative w-full overflow-hidden rounded-2xl border shadow-[0_24px_80px_-24px_rgba(123,97,255,0.4)] ring-1 ring-white/[0.07]"
               style={{ borderColor: "var(--border-subtle)" }}
@@ -230,7 +239,7 @@ export function Hero({ previews }: { previews: Preview[] }) {
             </div>
 
             {n > 1 && (
-              <div className="mt-4 flex items-center justify-center gap-2">
+              <div className="mt-3 flex items-center justify-center gap-2">
                 {previews.map((p, i) => {
                   const on = i === mobileIdx;
                   return (
@@ -256,7 +265,7 @@ export function Hero({ previews }: { previews: Preview[] }) {
         )}
 
         {/* sm+: grid — keep responsive display off motion.* (Framer can set inline display and break sm:grid). */}
-        <div className="mx-auto mt-auto hidden w-full pt-12 pb-1 sm:block">
+        <div className="mx-auto mt-auto hidden w-full pb-1 pt-7 sm:block md:pt-9">
           <motion.div
             className="grid w-full grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4"
             initial={reduce ? false : { opacity: 0 }}

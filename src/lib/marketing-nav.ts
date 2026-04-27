@@ -5,6 +5,7 @@ export const MARKETING_NAV_PRIMARY = [
   { href: "/features", label: "Features" },
   { href: "/platform", label: "Platform" },
   { href: "/gallery", label: "Gallery" },
+  { href: "/community", label: "Community" },
   { href: "/workflow", label: "Workflow" },
   { href: "/pricing", label: "Pricing" },
   { href: "/faq", label: "FAQ" },

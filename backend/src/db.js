@@ -96,6 +96,77 @@ function openDb(projectRoot) {
       subscription_status TEXT NOT NULL DEFAULT 'active',
       admin_notes TEXT NOT NULL DEFAULT ''
     );
+
+    -- Community: posts shared by members (images/videos generated in studio
+    -- or pasted external URLs).  Counters are denormalized for fast feed reads.
+    CREATE TABLE IF NOT EXISTS community_posts (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      kind TEXT NOT NULL CHECK (kind IN ('image','video')),
+      media_url TEXT NOT NULL,
+      thumbnail_url TEXT NOT NULL DEFAULT '',
+      title TEXT NOT NULL DEFAULT '',
+      prompt TEXT NOT NULL DEFAULT '',
+      tags_json TEXT NOT NULL DEFAULT '[]',
+      width INTEGER NOT NULL DEFAULT 0,
+      height INTEGER NOT NULL DEFAULT 0,
+      likes INTEGER NOT NULL DEFAULT 0,
+      saves INTEGER NOT NULL DEFAULT 0,
+      comments_count INTEGER NOT NULL DEFAULT 0,
+      views INTEGER NOT NULL DEFAULT 0,
+      featured INTEGER NOT NULL DEFAULT 0,
+      removed INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_community_posts_created
+      ON community_posts (removed, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_community_posts_user
+      ON community_posts (user_id, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_community_posts_kind
+      ON community_posts (kind, removed, created_at DESC);
+
+    CREATE TABLE IF NOT EXISTS community_likes (
+      post_id TEXT NOT NULL,
+      user_id TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      PRIMARY KEY (post_id, user_id),
+      FOREIGN KEY (post_id) REFERENCES community_posts(id) ON DELETE CASCADE,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_community_likes_user
+      ON community_likes (user_id, created_at DESC);
+
+    CREATE TABLE IF NOT EXISTS community_saves (
+      post_id TEXT NOT NULL,
+      user_id TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      PRIMARY KEY (post_id, user_id),
+      FOREIGN KEY (post_id) REFERENCES community_posts(id) ON DELETE CASCADE,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_community_saves_user
+      ON community_saves (user_id, created_at DESC);
+
+    CREATE TABLE IF NOT EXISTS community_comments (
+      id TEXT PRIMARY KEY,
+      post_id TEXT NOT NULL,
+      user_id TEXT NOT NULL,
+      body TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (post_id) REFERENCES community_posts(id) ON DELETE CASCADE,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_community_comments_post
+      ON community_comments (post_id, created_at DESC);
+
+    -- Per-IP/per-user view tracking so view counts can't be inflated by spam.
+    CREATE TABLE IF NOT EXISTS community_views (
+      post_id TEXT NOT NULL,
+      viewer_key TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      PRIMARY KEY (post_id, viewer_key)
+    );
   `);
   seedSiteContentIfEmpty(db, dataDir, projectRoot);
   migrateLegacyJsonIfEmpty(db, dataDir, projectRoot);
