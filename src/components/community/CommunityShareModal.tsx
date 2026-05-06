@@ -84,7 +84,7 @@ export function CommunityShareModal({
     if (!user || hideRecent) return [];
     if (typeof window === "undefined") return [];
     return readRecentGenerations(user.id, 12);
-  }, [user, hideRecent, open]);
+  }, [user, hideRecent]);
 
   useEffect(() => {
     if (!open) return;
@@ -295,7 +295,7 @@ export function CommunityShareModal({
                       <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--text-subtle)" }}>
                         From your studio
                       </p>
-                      <div className="mt-2 flex gap-2 overflow-x-auto pb-1.5">
+                      <div className="mt-2 flex gap-2.5 overflow-x-auto pb-2">
                         {recent.map((g) => {
                           const selected = mediaUrl === g.previewUrl;
                           return (
@@ -303,18 +303,27 @@ export function CommunityShareModal({
                               type="button"
                               key={g.id}
                               onClick={() => selectRecent(g)}
-                              className="group relative h-20 w-28 shrink-0 overflow-hidden rounded-xl border transition-transform"
+                              className="group relative h-20 w-28 shrink-0 overflow-hidden rounded-2xl border transition-[transform,box-shadow,border-color] hover:-translate-y-0.5"
                               style={{
                                 borderColor: selected
                                   ? "color-mix(in srgb, var(--primary-cyan) 65%, var(--border-subtle))"
                                   : "var(--border-subtle)",
-                                background: "var(--deep-black)",
+                                background:
+                                  "linear-gradient(180deg, color-mix(in srgb, var(--deep-black) 92%, rgba(123,97,255,0.10)), color-mix(in srgb, var(--deep-black) 96%, rgba(0,212,255,0.06)))",
                                 boxShadow: selected
-                                  ? "0 0 0 2px color-mix(in srgb, var(--primary-cyan) 35%, transparent)"
-                                  : undefined,
+                                  ? "0 0 0 2px color-mix(in srgb, var(--primary-cyan) 35%, transparent), 0 18px 50px -30px rgba(0,0,0,0.7)"
+                                  : "0 14px 40px -32px rgba(0,0,0,0.7)",
                               }}
                               aria-pressed={selected}
                             >
+                              <span
+                                className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                                aria-hidden
+                                style={{
+                                  background:
+                                    "radial-gradient(120% 120% at 15% 0%, rgba(255,255,255,0.14), transparent 55%), radial-gradient(120% 120% at 85% 100%, rgba(123,97,255,0.18), transparent 60%)",
+                                }}
+                              />
                               {g.kind === "image" ? (
                                 // eslint-disable-next-line @next/next/no-img-element -- arbitrary remote URL
                                 <img
@@ -334,8 +343,12 @@ export function CommunityShareModal({
                                 />
                               )}
                               <span
-                                className="absolute left-1.5 top-1.5 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white"
-                                style={{ background: "rgba(0,0,0,0.55)" }}
+                                className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white backdrop-blur-md"
+                                style={{
+                                  borderColor: "rgba(255,255,255,0.12)",
+                                  background: "rgba(0,0,0,0.42)",
+                                  boxShadow: "0 10px 24px -18px rgba(0,0,0,0.75)",
+                                }}
                               >
                                 {g.kind === "image" ? <ImageIcon className="h-2.5 w-2.5" /> : <VideoIcon className="h-2.5 w-2.5" />}
                                 {g.kind}
@@ -343,7 +356,10 @@ export function CommunityShareModal({
                               {selected && (
                                 <span
                                   className="absolute inset-0 flex items-center justify-center text-white"
-                                  style={{ background: "color-mix(in srgb, var(--primary-cyan) 25%, rgba(0,0,0,0.55))" }}
+                                  style={{
+                                    background:
+                                      "radial-gradient(140% 140% at 50% 50%, color-mix(in srgb, var(--primary-cyan) 28%, rgba(0,0,0,0.55)), rgba(0,0,0,0.58))",
+                                  }}
                                 >
                                   <Check className="h-5 w-5" strokeWidth={2.5} />
                                 </span>

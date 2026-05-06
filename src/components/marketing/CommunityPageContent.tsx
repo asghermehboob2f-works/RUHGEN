@@ -435,9 +435,42 @@ function CommunityHero({
   return (
     <section
       id="community-hero"
-      className="relative overflow-hidden border-b pt-20 sm:pt-24"
+      className="relative overflow-hidden border-b pt-20 sm:pt-24 md:pt-32"
       style={{ borderColor: "var(--border-subtle)" }}
     >
+      {!reduce ? (
+        <>
+          <motion.div
+            className="pointer-events-none absolute -left-40 top-12 h-[min(420px,70vw)] w-[min(420px,70vw)] rounded-full blur-[140px] sm:-left-48 sm:top-16 sm:h-[min(480px,50vw)] sm:w-[min(480px,50vw)] sm:blur-[160px]"
+            style={{ background: "var(--primary-purple)", opacity: 0.15 }}
+            animate={{ scale: [1, 1.08, 1], opacity: [0.12, 0.18, 0.12] }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div
+            className="pointer-events-none absolute -right-36 bottom-20 h-[min(380px,65vw)] w-[min(380px,65vw)] rounded-full blur-[130px] sm:-right-40 sm:bottom-24 sm:h-[min(440px,48vw)] sm:w-[min(440px,48vw)] sm:blur-[150px]"
+            style={{ background: "var(--primary-cyan)", opacity: 0.12 }}
+            animate={{ scale: [1, 1.06, 1], opacity: [0.1, 0.16, 0.1] }}
+            transition={{
+              duration: 7,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 1,
+            }}
+          />
+        </>
+      ) : (
+        <>
+          <div
+            className="pointer-events-none absolute -left-40 top-12 h-[min(380px,70vw)] w-[min(380px,70vw)] rounded-full blur-[140px] sm:-left-48 sm:h-[420px] sm:w-[420px]"
+            style={{ background: "var(--primary-purple)", opacity: 0.12 }}
+          />
+          <div
+            className="pointer-events-none absolute -right-36 bottom-20 h-[min(360px,65vw)] w-[min(360px,65vw)] rounded-full blur-[130px] sm:-right-40 sm:h-[400px] sm:w-[400px]"
+            style={{ background: "var(--primary-cyan)", opacity: 0.1 }}
+          />
+        </>
+      )}
+
       <div
         className="pointer-events-none absolute inset-0"
         aria-hidden
@@ -447,18 +480,19 @@ function CommunityHero({
         }}
       />
 
-      <div className={`relative ${SITE_CONTAINER} pb-14 sm:pb-20`}>
-        <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-14">
+      <div className={`relative ${SITE_CONTAINER} pb-14 sm:pb-24`}>
+        <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:gap-14">
           <div className="text-center lg:text-left">
             <motion.div
               initial={reduce ? false : { opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45 }}
-              className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em]"
+              className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] shadow-[0_0_30px_-10px_rgba(123,97,255,0.3)]"
               style={{
                 borderColor: "var(--border-subtle)",
                 background: "var(--glass)",
                 color: "var(--text-subtle)",
+                backdropFilter: "blur(8px)",
               }}
             >
               <span className="relative inline-flex h-2 w-2 items-center justify-center" aria-hidden>
@@ -485,19 +519,18 @@ function CommunityHero({
             </motion.div>
 
             <motion.h1
-              className="font-display mt-5 text-[clamp(2.1rem,5vw,3.85rem)] font-extrabold leading-[1.04] tracking-tight"
+              className="font-display mt-6 text-[clamp(2.4rem,6vw,4.5rem)] font-extrabold leading-[1.02] tracking-tight sm:mt-7"
               style={{ color: "var(--text-primary)" }}
               initial={reduce ? false : { opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.05 }}
             >
-              Show your craft.
-              <br />
-              <span style={{ color: "var(--text-muted)" }}>Steal a little inspiration.</span>
+              <span className="text-gradient-hero block px-0.5">Show your craft.</span>
+              <span className="mt-2 block" style={{ color: "var(--text-muted)" }}>Steal some inspiration.</span>
             </motion.h1>
 
             <motion.p
-              className="mx-auto mt-5 max-w-xl text-sm leading-relaxed sm:text-base lg:mx-0"
+              className="mx-auto mt-6 hidden max-w-xl text-sm leading-relaxed sm:block sm:text-base lg:mx-0 lg:text-lg"
               style={{ color: "var(--text-muted)" }}
               initial={reduce ? false : { opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -506,6 +539,7 @@ function CommunityHero({
               A live wall of photos and motion pieces shared by members from their own studio.
               Browse, remix prompts, follow makers — or post your own and put it in front of every creator here.
             </motion.p>
+
 
             <motion.div
               className="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start"
@@ -1183,8 +1217,8 @@ function FeedSection({
   currentUserId: string | null;
 }) {
   return (
-    <section id="community-feed" className={`${SITE_CONTAINER} mt-16 sm:mt-24`}>
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <section id="community-feed" className={`${SITE_CONTAINER} mt-20 sm:mt-32`}>
+      <div className="flex flex-wrap items-end justify-between gap-6">
         <div>
           <div className="flex items-center gap-2">
             <span className="relative inline-flex h-2 w-2 items-center justify-center" aria-hidden>
@@ -1199,14 +1233,15 @@ function FeedSection({
                 style={{ background: "rgba(34,197,94,0.9)", boxShadow: "0 0 6px rgba(34,197,94,0.5)" }}
               />
             </span>
-            <p className="text-[11px] font-medium uppercase tracking-[0.22em]" style={{ color: "var(--text-subtle)" }}>
+            <p className="text-[11px] font-bold uppercase tracking-[0.25em]" style={{ color: "var(--text-subtle)" }}>
               Live feed
             </p>
           </div>
-          <h2 className="font-display mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl">
-            What the community is shipping
+          <h2 className="font-display mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">
+            What the community is <span className="text-gradient-primary">shipping</span>
           </h2>
         </div>
+
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -1706,20 +1741,21 @@ function FeedCard({
 function CreatorsSection({ creators }: { creators: CommunityCreator[] }) {
   if (creators.length === 0) return null;
   return (
-    <section className={`${SITE_CONTAINER} mt-20 sm:mt-28`}>
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <section className={`${SITE_CONTAINER} mt-24 sm:mt-36`}>
+      <div className="flex flex-wrap items-end justify-between gap-6">
         <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.22em]" style={{ color: "var(--text-subtle)" }}>
+          <p className="text-[11px] font-bold uppercase tracking-[0.25em]" style={{ color: "var(--text-subtle)" }}>
             Top creators
           </p>
-          <h2 className="font-display mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl">
-            People shipping the most loved work
+          <h2 className="font-display mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">
+            People shipping the <span className="text-gradient-primary">most loved</span> work
           </h2>
         </div>
-        <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+        <p className="text-xs sm:text-sm" style={{ color: "var(--text-muted)" }}>
           Ranked by the past 30 days of likes, saves, and views.
         </p>
       </div>
+
       <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {creators.map((c, i) => {
           const rankTints: { bg: string; color: string; border: string } = (() => {
@@ -1844,7 +1880,7 @@ function FinalCta({
             className="font-display mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl"
             style={{ color: "var(--text-primary)" }}
           >
-            Drop your latest into the feed
+            Drop your latest <span className="text-gradient-hero">into the feed</span>
           </h2>
           <p
             className="mx-auto mt-4 max-w-xl text-sm leading-relaxed sm:text-[15px]"
@@ -2251,23 +2287,37 @@ function PostLightbox({
                     maxLength={800}
                     placeholder={signedIn ? "Add a comment…" : "Sign in to comment"}
                     disabled={!signedIn || posting}
-                    className="flex-1 resize-y rounded-xl border px-3.5 py-2 text-sm leading-relaxed outline-none transition-colors focus:border-[color-mix(in_srgb,var(--primary-cyan)_45%,var(--border-subtle))] disabled:opacity-60"
+                    className="flex-1 resize-y rounded-2xl border px-3.5 py-2.5 text-sm leading-relaxed outline-none transition-[border-color,box-shadow,background] focus:border-[color-mix(in_srgb,var(--primary-cyan)_55%,var(--border-subtle))] disabled:opacity-60"
                     style={{
                       borderColor: "var(--border-subtle)",
-                      background: "var(--deep-black)",
+                      background:
+                        "linear-gradient(180deg, color-mix(in srgb, var(--deep-black) 92%, rgba(123,97,255,0.10)), color-mix(in srgb, var(--deep-black) 96%, rgba(0,212,255,0.06)))",
                       color: "var(--text-primary)",
+                      boxShadow:
+                        "0 0 0 1px rgba(255,255,255,0.02) inset, 0 14px 30px -22px rgba(0,0,0,0.65)",
                     }}
                   />
                   <button
                     type="submit"
                     disabled={!signedIn || posting || commentBody.trim().length === 0}
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white disabled:cursor-not-allowed disabled:opacity-60"
+                    className="group relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-2xl text-white shadow-[0_18px_40px_-22px_rgba(123,97,255,0.65)] transition-transform disabled:cursor-not-allowed disabled:opacity-60 [&:not(:disabled):hover]:scale-[1.03] [&:not(:disabled):active]:scale-[0.99]"
                     style={{
-                      background: "linear-gradient(135deg, var(--primary-purple) 0%, var(--primary-cyan) 100%)",
+                      background:
+                        "linear-gradient(135deg, color-mix(in srgb, var(--primary-purple) 95%, #fff 5%) 0%, color-mix(in srgb, var(--primary-cyan) 92%, #fff 8%) 100%)",
                     }}
                     aria-label="Post comment"
                   >
-                    {posting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                    <span
+                      className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                      aria-hidden
+                      style={{
+                        background:
+                          "radial-gradient(120% 120% at 20% 0%, rgba(255,255,255,0.28), transparent 55%), radial-gradient(120% 120% at 80% 100%, rgba(0,0,0,0.25), transparent 55%)",
+                      }}
+                    />
+                    <span className="relative">
+                      {posting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                    </span>
                   </button>
                 </form>
 
@@ -2356,7 +2406,7 @@ function PostLightbox({
                   }}
                 >
                   <p className="text-xs" style={{ color: "var(--text-primary)" }}>
-                    Remove this post from the community feed? This can't be undone.
+                    Remove this post from the community feed? This can&apos;t be undone.
                   </p>
                   <div className="mt-2 flex items-center justify-end gap-2">
                     <button
@@ -2632,7 +2682,7 @@ function SavedPostsDrawer({
                   Sign in to access saves
                 </p>
                 <p className="mt-2 max-w-sm text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                  Once you're signed in, posts you save show up here for quick access from any device.
+                  Once you&apos;re signed in, posts you save show up here for quick access from any device.
                 </p>
                 <Link
                   href="/sign-in?next=/community"
