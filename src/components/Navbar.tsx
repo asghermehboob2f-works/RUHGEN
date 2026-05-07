@@ -181,7 +181,7 @@ export function Navbar() {
                       }}
                       onFocus={() => prefetchIfInternal(item.href)}
                       style={{
-                        color: active ? "#fff" : "var(--text-muted)",
+                        color: active ? "#fff" : "rgba(255, 255, 255, 0.7)",
                       }}
                     >
                       <NavPill active={active} layoutId="nav-active-pill" />
@@ -211,7 +211,7 @@ export function Navbar() {
                             ? "#fff"
                             : hoveredId === item.id
                               ? "var(--text-primary)"
-                              : "var(--text-muted)",
+                              : "rgba(255, 255, 255, 0.7)",
                         }}
                         transition={{ duration: 0.2 }}
                         whileTap={{ scale: 0.96 }}
@@ -490,7 +490,7 @@ export function Navbar() {
                           color:
                             pathname === x.href
                               ? "#7B61FF"
-                              : "var(--text-muted)",
+                              : "rgba(255, 255, 255, 0.65)",
                         }}
                       >
                         {x.label}
@@ -522,7 +522,7 @@ export function Navbar() {
                         prefetch={x.href.startsWith("/")}
                         onFocus={() => prefetchIfInternal(x.href)}
                         className="flex min-h-9 items-center rounded-lg px-3 py-1.5 text-left text-sm font-medium leading-snug transition-colors active:bg-[var(--glass-elevated)] sm:px-3.5"
-                        style={{ color: "var(--text-muted)" }}
+                        style={{ color: "rgba(255, 255, 255, 0.65)" }}
                       >
                         {x.label}
                       </Link>

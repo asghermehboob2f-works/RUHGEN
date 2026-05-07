@@ -85,22 +85,32 @@ export function Hero({ previews }: { previews: Preview[] }) {
   return (
     <section
       id="hero"
-      className="mesh-section relative flex h-[100dvh] min-h-[100dvh] flex-col overflow-hidden overflow-x-hidden pb-6 pt-[max(5rem,env(safe-area-inset-top,0px)+4.25rem)] sm:pb-8 sm:pt-20 md:pt-24"
+      className="mesh-section relative flex min-h-[100dvh] flex-col overflow-hidden overflow-x-hidden pb-10 pt-[max(5rem,env(safe-area-inset-top,0px)+3rem)] sm:pb-12 sm:pt-20 md:h-screen md:min-h-[700px] md:pb-6 md:pt-24 lg:pt-28"
     >
       {!reduce ? (
         <>
           <motion.div
-            className="pointer-events-none absolute -left-40 top-12 h-[min(420px,70vw)] w-[min(420px,70vw)] rounded-full blur-[140px] sm:-left-48 sm:top-16 sm:h-[min(480px,50vw)] sm:w-[min(480px,50vw)] sm:blur-[160px]"
-            style={{ background: "#7B61FF", opacity: 0.2 }}
-            animate={{ scale: [1, 1.08, 1], opacity: [0.16, 0.24, 0.16] }}
-            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+            className="pointer-events-none absolute -left-[10%] -top-[5%] h-[min(600px,80vw)] w-[min(600px,80vw)] rounded-full blur-[140px]"
+            style={{ background: "#7B61FF", opacity: 0.16 }}
+            animate={{ 
+              scale: [1, 1.1, 1], 
+              opacity: [0.12, 0.2, 0.12],
+              x: [0, 15, 0],
+              y: [0, 5, 0]
+            }}
+            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
           />
           <motion.div
-            className="pointer-events-none absolute -right-36 bottom-20 h-[min(380px,65vw)] w-[min(380px,65vw)] rounded-full blur-[130px] sm:-right-40 sm:bottom-24 sm:h-[min(440px,48vw)] sm:w-[min(440px,48vw)] sm:blur-[150px]"
-            style={{ background: "#00D4FF", opacity: 0.18 }}
-            animate={{ scale: [1, 1.06, 1], opacity: [0.14, 0.22, 0.14] }}
+            className="pointer-events-none absolute -right-[5%] bottom-[5%] h-[min(540px,75vw)] w-[min(540px,75vw)] rounded-full blur-[130px]"
+            style={{ background: "#00D4FF", opacity: 0.14 }}
+            animate={{ 
+              scale: [1, 1.08, 1], 
+              opacity: [0.1, 0.16, 0.1],
+              x: [0, -20, 0],
+              y: [0, -5, 0]
+            }}
             transition={{
-              duration: 5.5,
+              duration: 12,
               repeat: Infinity,
               ease: "easeInOut",
               delay: 0.5,
@@ -110,12 +120,12 @@ export function Hero({ previews }: { previews: Preview[] }) {
       ) : (
         <>
           <div
-            className="pointer-events-none absolute -left-40 top-12 h-[min(380px,70vw)] w-[min(380px,70vw)] rounded-full blur-[140px] sm:-left-48 sm:h-[420px] sm:w-[420px]"
-            style={{ background: "#7B61FF", opacity: 0.16 }}
+            className="pointer-events-none absolute -left-40 top-12 h-[440px] w-[440px] rounded-full blur-[140px]"
+            style={{ background: "#7B61FF", opacity: 0.1 }}
           />
           <div
-            className="pointer-events-none absolute -right-36 bottom-20 h-[min(360px,65vw)] w-[min(360px,65vw)] rounded-full blur-[130px] sm:-right-40 sm:h-[400px] sm:w-[400px]"
-            style={{ background: "#00D4FF", opacity: 0.14 }}
+            className="pointer-events-none absolute -right-36 bottom-20 h-[400px] w-[400px] rounded-full blur-[130px]"
+            style={{ background: "#00D4FF", opacity: 0.08 }}
           />
         </>
       )}
@@ -124,26 +134,26 @@ export function Hero({ previews }: { previews: Preview[] }) {
         <NeuralBackground />
       </div>
 
-      <div className="relative z-10 mx-auto flex min-h-0 w-full max-w-[1400px] flex-1 flex-col px-4 sm:px-6 lg:px-10">
-        <div className="mx-auto w-full max-w-4xl shrink-0 text-center sm:px-0">
+      <div className="relative z-10 mx-auto flex w-full max-w-[1440px] flex-1 flex-col px-6 sm:px-8 lg:px-12">
+        <div className="mx-auto flex w-full max-w-4xl shrink-0 flex-col items-center justify-center text-center sm:px-0 md:flex-1">
           <motion.p
             initial={reduce ? false : { opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="mb-6 inline-flex items-center justify-center gap-2 rounded-full border border-transparent px-3.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] shadow-[0_0_40px_-12px_rgba(123,97,255,0.45)] sm:mb-7 sm:px-4 sm:text-xs sm:tracking-[0.22em] md:mb-8 md:text-sm"
+            className="mb-6 inline-flex items-center justify-center gap-2 rounded-full border border-transparent px-4 py-1.5 text-[clamp(0.625rem,0.15vw+0.5rem,0.875rem)] font-bold uppercase tracking-[0.22em] shadow-[0_0_40px_-12px_rgba(123,97,255,0.4)] sm:mb-8 md:mb-[clamp(1.25rem,3.5vh,2rem)]"
             style={{
               color: "var(--text-muted)",
               background:
-                "linear-gradient(var(--glass), var(--glass)) padding-box, linear-gradient(135deg, rgba(123,97,255,0.35), rgba(0,212,255,0.18)) border-box",
+                "linear-gradient(var(--glass), var(--glass)) padding-box, linear-gradient(135deg, rgba(123,97,255,0.4), rgba(0,212,255,0.22)) border-box",
               border: "1px solid transparent",
-              backdropFilter: "blur(16px)",
+              backdropFilter: "blur(20px)",
             }}
           >
             <span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-[#00D4FF]" />
             Ultimate AI generation
           </motion.p>
           <motion.h1
-            className="font-display text-[clamp(1.85rem,6.2vw,5.75rem)] font-extrabold leading-[1.05] tracking-[-0.03em] sm:leading-[1.02]"
+            className="font-display text-[clamp(2.15rem,4vw+1.2rem,4.5rem)] font-extrabold leading-[1.08] tracking-[-0.03em] sm:leading-[1.04]"
             initial={reduce ? false : { opacity: 0, y: 22 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.65, delay: 0.05 }}
@@ -152,14 +162,14 @@ export function Hero({ previews }: { previews: Preview[] }) {
               Where imagination becomes reality
             </span>
             <span
-              className="mt-2 block font-display text-[clamp(1.05rem,3.2vw,2.35rem)] font-semibold tracking-tight sm:mt-2.5 md:mt-3"
+              className="mt-2 block font-display text-[clamp(1.05rem,1.8vw+0.6rem,2.25rem)] font-semibold tracking-tight sm:mt-3 md:mt-4"
               style={{ color: "var(--text-muted)" }}
             >
               — instantly.
             </span>
           </motion.h1>
           <motion.p
-            className="mx-auto mt-5 max-w-[36rem] px-1 text-[13px] leading-relaxed sm:mt-6 sm:max-w-2xl sm:text-sm md:mt-7 md:text-lg md:leading-relaxed lg:text-xl"
+            className="mx-auto mt-6 max-w-[34rem] px-2 text-[clamp(0.875rem,0.2vw+0.8rem,1.125rem)] leading-relaxed sm:mt-8 sm:max-w-2xl md:mt-[clamp(1.5rem,4vh,2.5rem)] md:leading-relaxed"
             style={{ color: "var(--text-muted)" }}
             initial={reduce ? false : { opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
@@ -169,20 +179,20 @@ export function Hero({ previews }: { previews: Preview[] }) {
             real-time feedback, built for studios and solo creators alike.
           </motion.p>
           <motion.div
-            className="mx-auto mt-6 flex w-full max-w-[20rem] flex-col items-stretch gap-3.5 sm:mt-7 sm:max-w-none sm:flex-row sm:items-center sm:justify-center sm:gap-5"
+            className="mx-auto mt-8 flex w-full max-w-[18rem] flex-col items-stretch gap-4 sm:mt-10 sm:max-w-none sm:flex-row sm:items-center sm:justify-center sm:gap-6 md:mt-[clamp(1.75rem,4.5vh,3rem)]"
             initial={reduce ? false : { opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.24 }}
           >
             <Link
               href="/sign-up"
-              className="inline-flex min-h-[50px] w-full items-center justify-center rounded-xl px-6 py-3 text-[15px] font-semibold text-white btn-gradient sm:min-h-[52px] sm:w-auto sm:min-w-[200px] sm:rounded-2xl sm:px-8 sm:py-3.5 sm:text-base"
+              className="inline-flex min-h-[50px] w-full items-center justify-center rounded-xl px-6 py-3 text-[clamp(0.875rem,0.1vw+0.85rem,1rem)] font-bold text-white btn-gradient sm:min-h-[54px] sm:w-auto sm:min-w-[210px] sm:rounded-2xl sm:px-9 sm:py-3.5"
             >
               Start creating free
             </Link>
             <Link
               href="/demo"
-              className="inline-flex min-h-[50px] w-full items-center justify-center rounded-xl border px-6 py-3 text-[15px] font-semibold transition-colors hover:border-[#7B61FF]/50 sm:min-h-[52px] sm:w-auto sm:min-w-[200px] sm:rounded-2xl sm:px-8 sm:py-3.5 sm:text-base"
+              className="inline-flex min-h-[50px] w-full items-center justify-center rounded-xl border px-6 py-3 text-[clamp(0.875rem,0.1vw+0.85rem,1rem)] font-bold transition-all hover:border-[#7B61FF]/60 hover:bg-white/[0.03] sm:min-h-[54px] sm:w-auto sm:min-w-[210px] sm:rounded-2xl sm:px-9 sm:py-3.5"
               style={{
                 borderColor: "var(--border-subtle)",
                 color: "var(--text-primary)",
@@ -194,14 +204,14 @@ export function Hero({ previews }: { previews: Preview[] }) {
           </motion.div>
         </div>
 
-        {/* Phone: carousel in document flow (mt-auto was pushing it below the fold). */}
+        {/* Phone: carousel in document flow */}
         {current && (
-          <div className="relative z-[11] mx-auto mt-11 flex w-full max-w-sm shrink-0 flex-col items-center pb-1 sm:hidden">
+          <div className="relative z-[11] mx-auto mt-12 flex w-full max-w-sm shrink-0 flex-col items-center pb-2 sm:hidden">
             <div
-              className="relative w-full overflow-hidden rounded-2xl border shadow-[0_24px_80px_-24px_rgba(123,97,255,0.4)] ring-1 ring-white/[0.07]"
+              className="relative w-full overflow-hidden rounded-2xl border shadow-[0_24px_80px_-24px_rgba(123,97,255,0.45)] ring-1 ring-white/[0.08]"
               style={{ borderColor: "var(--border-subtle)" }}
             >
-              <div className="relative aspect-video w-full bg-black/20">
+              <div className="relative aspect-video w-full bg-black/30">
                 <AnimatePresence initial={false} mode="sync">
                   <motion.div
                     key={current.id}
@@ -212,7 +222,7 @@ export function Hero({ previews }: { previews: Preview[] }) {
                     exit={{ opacity: 0 }}
                     transition={{
                       type: "tween",
-                      duration: reduce ? 0.12 : 0.26,
+                      duration: reduce ? 0.12 : 0.3,
                       ease: [0.4, 0, 0.2, 1],
                     }}
                   >
@@ -224,12 +234,12 @@ export function Hero({ previews }: { previews: Preview[] }) {
                       sizes="(max-width: 640px) 100vw, 400px"
                       priority
                     />
-                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent" />
-                    <div className="pointer-events-none absolute bottom-0 left-0 right-0 p-4">
-                      <span className="inline-flex rounded-full bg-white/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-white backdrop-blur-md">
+                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent" />
+                    <div className="pointer-events-none absolute bottom-0 left-0 right-0 p-5">
+                      <span className="inline-flex rounded-full bg-white/18 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-md">
                         Prompt
                       </span>
-                      <p className="mt-2 text-left text-sm font-medium leading-snug text-white">
+                      <p className="mt-2.5 text-left text-sm font-medium leading-snug text-white">
                         {current.prompt}
                       </p>
                     </div>
@@ -239,7 +249,7 @@ export function Hero({ previews }: { previews: Preview[] }) {
             </div>
 
             {n > 1 && (
-              <div className="mt-3 flex items-center justify-center gap-2">
+              <div className="mt-4 flex items-center justify-center gap-2.5">
                 {previews.map((p, i) => {
                   const on = i === mobileIdx;
                   return (
@@ -249,12 +259,12 @@ export function Hero({ previews }: { previews: Preview[] }) {
                       aria-label={`Go to preview ${i + 1}`}
                       aria-current={on}
                       onClick={() => setMobileIdx(i)}
-                      className="h-2 rounded-full transition-all"
+                      className="h-2 rounded-full transition-all duration-300"
                       style={{
-                        width: on ? 28 : 8,
+                        width: on ? 32 : 8,
                         background: on
                           ? "linear-gradient(90deg, #7B61FF, #00D4FF)"
-                          : "rgba(255,255,255,0.14)",
+                          : "rgba(255,255,255,0.18)",
                       }}
                     />
                   );
@@ -264,13 +274,13 @@ export function Hero({ previews }: { previews: Preview[] }) {
           </div>
         )}
 
-        {/* sm+: grid — keep responsive display off motion.* (Framer can set inline display and break sm:grid). */}
-        <div className="mx-auto mt-auto hidden w-full pb-1 pt-7 sm:block md:pt-9">
+        {/* sm+: grid */}
+        <div className="mx-auto mt-[clamp(1.5rem,5vh,3.5rem)] hidden w-full pb-6 sm:block md:mt-auto md:pb-10">
           <motion.div
-            className="grid w-full grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4"
+            className="grid w-full grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4"
             initial={reduce ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.4, delay: reduce ? 0 : 0.28 }}
+            transition={{ duration: 0.5, delay: reduce ? 0 : 0.28 }}
           >
             {previews.map((p, i) => (
               <PreviewFrame key={p.id} p={p} priority={i < 2} i={i} reduce={reduce} />

@@ -129,7 +129,7 @@ export function MobileDockNav() {
                   transition={{ type: "spring", stiffness: 350, damping: 30 }}
                 >
                   <slot.Icon 
-                    className={`h-[16px] w-[16px] transition-colors duration-500 ${on ? "text-white" : "text-[#555]"}`} 
+                    className={`h-[16px] w-[16px] transition-colors duration-500 ${on ? "text-white" : "text-white/70"}`} 
                     strokeWidth={on ? 2.4 : 1.4} 
                   />
                 </motion.div>
@@ -147,8 +147,8 @@ export function MobileDockNav() {
                 <span
                   className="mt-0.5 text-[6.5px] font-black uppercase tracking-[0.3em] transition-all duration-500"
                   style={{
-                    color: on ? "#fff" : "#444",
-                    opacity: on ? 1 : 0.8,
+                    color: on ? "#fff" : "rgba(255, 255, 255, 0.65)",
+                    opacity: on ? 1 : 0.9,
                   }}
                 >
                   {slot.label}
