@@ -1,10 +1,21 @@
 export type GalleryCategory = "cinematic" | "sci-fi" | "art" | "realistic";
 
-export type HeroPreview = {
+
+export type HeroBackgroundMedia = {
   id: string;
+  type: "image" | "video";
   src: string;
-  alt: string;
-  prompt: string;
+  thumbnail?: string;
+  filename: string;
+};
+
+export type HeroBackgroundConfig = {
+  media: HeroBackgroundMedia[];
+  overlayOpacity: number;
+  crossfadeDuration: number;
+  staggerDelay: number;
+  enableParallax: boolean;
+  parallaxIntensity: number;
 };
 
 export type GalleryItem = {
@@ -23,7 +34,8 @@ export type ShowcaseSlide = {
 };
 
 export type SiteContent = {
-  hero: { previews: HeroPreview[] };
+  hero: {};
+  heroBackground: HeroBackgroundConfig;
   gallery: { items: GalleryItem[] };
   showcase: { slides: ShowcaseSlide[] };
 };

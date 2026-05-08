@@ -1,7 +1,6 @@
 export type {
   GalleryCategory,
   GalleryItem,
-  HeroPreview,
   ShowcaseSlide,
   SiteContent,
 } from "@/backend/site-content/types";

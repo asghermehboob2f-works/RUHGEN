@@ -6,7 +6,8 @@ import { PUBLIC_DEFAULT_SITE_CONTENT } from "@/backend/site-content/default-cont
 import type {
   GalleryCategory,
   GalleryItem,
-  HeroPreview,
+  HeroBackgroundConfig,
+  HeroBackgroundMedia,
   ShowcaseSlide,
   SiteContent,
 } from "@/backend/site-content/types";
@@ -50,11 +51,6 @@ function isCategory(x: unknown): x is GalleryCategory {
   return x === "cinematic" || x === "sci-fi" || x === "art" || x === "realistic";
 }
 
-function parseHeroPreview(x: unknown): HeroPreview | null {
-  if (!isRecord(x)) return null;
-  if (!isString(x.id) || !isString(x.src) || !isString(x.alt) || !isString(x.prompt)) return null;
-  return { id: x.id, src: x.src, alt: x.alt, prompt: x.prompt };
-}
 
 function parseGalleryItem(x: unknown): GalleryItem | null {
   if (!isRecord(x)) return null;
@@ -62,6 +58,33 @@ function parseGalleryItem(x: unknown): GalleryItem | null {
     return null;
   }
   return { id: x.id, src: x.src, alt: x.alt, prompt: x.prompt, category: x.category };
+}
+
+function parseHeroBackgroundMedia(x: unknown): HeroBackgroundMedia | null {
+  if (!isRecord(x)) return null;
+  if (!isString(x.id) || !isString(x.type) || !isString(x.src) || !isString(x.filename)) return null;
+  if (x.type !== "image" && x.type !== "video") return null;
+  return {
+    id: x.id,
+    type: x.type as "image" | "video",
+    src: x.src,
+    thumbnail: isString(x.thumbnail) ? x.thumbnail : undefined,
+    filename: x.filename,
+  };
+}
+
+function parseHeroBackgroundConfig(x: unknown): HeroBackgroundConfig | null {
+  if (!isRecord(x)) return null;
+  const mediaRaw = Array.isArray(x.media) ? x.media : [];
+  const media = mediaRaw.map(parseHeroBackgroundMedia).filter(Boolean) as HeroBackgroundMedia[];
+  return {
+    media,
+    overlayOpacity: typeof x.overlayOpacity === "number" ? x.overlayOpacity : 0.55,
+    crossfadeDuration: typeof x.crossfadeDuration === "number" ? x.crossfadeDuration : 6,
+    staggerDelay: typeof x.staggerDelay === "number" ? x.staggerDelay : 0.8,
+    enableParallax: typeof x.enableParallax === "boolean" ? x.enableParallax : true,
+    parallaxIntensity: typeof x.parallaxIntensity === "number" ? x.parallaxIntensity : 10,
+  };
 }
 
 function parseShowcaseSlide(x: unknown): ShowcaseSlide | null {
@@ -75,16 +98,14 @@ function parseShowcaseSlide(x: unknown): ShowcaseSlide | null {
 export function parseSiteContentPayload(data: unknown): SiteContent {
   if (!isRecord(data)) throw new Error("Invalid content: root is not an object.");
 
-  const hero = isRecord(data.hero) ? data.hero : null;
+  const hero = isRecord(data.hero) ? data.hero : {};
   const gallery = isRecord(data.gallery) ? data.gallery : null;
-  const previewsRaw = hero && Array.isArray(hero.previews) ? hero.previews : null;
   const itemsRaw = gallery && Array.isArray(gallery.items) ? gallery.items : null;
 
-  if (!previewsRaw || !itemsRaw) {
-    throw new Error("Invalid content: missing hero.previews or gallery.items.");
+  if (!itemsRaw) {
+    throw new Error("Invalid content: missing gallery.items.");
   }
 
-  const previews = previewsRaw.map(parseHeroPreview).filter(Boolean) as HeroPreview[];
   const items = itemsRaw.map(parseGalleryItem).filter(Boolean) as GalleryItem[];
 
   const showcaseRaw =
@@ -92,14 +113,15 @@ export function parseSiteContentPayload(data: unknown): SiteContent {
   let slides = showcaseRaw ? (showcaseRaw.map(parseShowcaseSlide).filter(Boolean) as ShowcaseSlide[]) : [];
   if (!slides.length) slides = structuredClone(DEFAULT_SHOWCASE_SLIDES);
 
-  return { hero: { previews }, gallery: { items }, showcase: { slides } };
+  const heroBackground = parseHeroBackgroundConfig(data.heroBackground) || PUBLIC_DEFAULT_SITE_CONTENT.heroBackground;
+
+  return { hero, heroBackground, gallery: { items }, showcase: { slides } };
 }
 
-/** True when the CMS payload has no real hero/gallery media (common after empty DB seed). */
+/** True when the CMS payload has no real gallery media (common after empty DB seed). */
 function isSparseContent(c: SiteContent): boolean {
-  const hasHero = c.hero.previews.length > 0 && c.hero.previews.some((p) => p.src?.trim());
   const hasGallery = c.gallery.items.length > 0 && c.gallery.items.some((i) => i.src?.trim());
-  return !hasHero || !hasGallery;
+  return !hasGallery;
 }
 
 async function loadSiteContentFromDisk(): Promise<SiteContent | null> {
@@ -122,7 +144,6 @@ export function applyPublicSiteDefaults(c: SiteContent): SiteContent {
   const def = PUBLIC_DEFAULT_SITE_CONTENT;
   const videoById = new Map(def.showcase.slides.map((s) => [s.id, s.videoSrc]));
 
-  const heroPreviews = c.hero.previews.filter((p) => p.src?.trim());
   const galleryItems = c.gallery.items.filter((i) => i.src?.trim());
 
   const slides =
@@ -138,8 +159,11 @@ export function applyPublicSiteDefaults(c: SiteContent): SiteContent {
   const hasVideo = slides.some((s) => s.videoSrc?.trim());
   const showcaseSlides = hasVideo ? slides : def.showcase.slides;
 
+  const heroBackground = c.heroBackground || def.heroBackground;
+
   return {
-    hero: { previews: heroPreviews.length > 0 ? heroPreviews : def.hero.previews },
+    hero: c.hero,
+    heroBackground,
     gallery: { items: galleryItems.length > 0 ? galleryItems : def.gallery.items },
     showcase: { slides: showcaseSlides },
   };

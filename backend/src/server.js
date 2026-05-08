@@ -35,16 +35,19 @@ function getBearer(req) {
 function requireAdmin(req, res, next) {
   const bearer = getBearer(req);
   if (!bearer) {
+    console.warn("[auth] missing bearer token");
     return res.status(401).json({ ok: false, error: "Unauthorized." });
   }
   try {
     const payload = verifyAdminToken(bearer);
     if (payload.typ !== "admin" || typeof payload.sub !== "string") {
+      console.warn("[auth] invalid payload typ or sub", payload);
       throw new Error("invalid");
     }
     req.admin = payload;
     next();
-  } catch {
+  } catch (err) {
+    console.error("[auth] jwt verification failed:", err.message);
     return res.status(401).json({ ok: false, error: "Unauthorized." });
   }
 }
@@ -286,19 +289,21 @@ app.post("/api/admin/upload", requireAdmin, upload.single("file"), async (req, r
     if (!file) {
       return res.status(400).json({ ok: false, error: "Missing file." });
     }
-    if (folder !== "hero" && folder !== "gallery" && folder !== "img" && folder !== "showcase") {
+    if (folder !== "hero" && folder !== "gallery" && folder !== "img" && folder !== "showcase" && folder !== "homepage") {
       return res.status(400).json({ ok: false, error: "Invalid folder." });
     }
 
     const ext = path.extname(file.originalname || "").toLowerCase();
     const imageOk = ext === ".png" || ext === ".jpg" || ext === ".jpeg" || ext === ".webp";
     const videoOk = ext === ".mp4" || ext === ".webm";
-    if (folder === "showcase") {
-      if (!videoOk) {
-        return res.status(400).json({ ok: false, error: "Showcase: only .mp4 or .webm (short clips, ~3s recommended)." });
+
+    if (folder === "showcase" || folder === "hero" || folder === "homepage") {
+      // Both showcase, hero and homepage now support videos/images
+      if (!imageOk && !videoOk) {
+        return res.status(400).json({ ok: false, error: "Only images (.png, .jpg, .webp) or videos (.mp4, .webm) allowed." });
       }
-      if (file.size > MAX_SHOWCASE_VIDEO_BYTES) {
-        return res.status(400).json({ ok: false, error: "Showcase video too large (max ~22MB). Export a shorter clip." });
+      if (videoOk && file.size > MAX_SHOWCASE_VIDEO_BYTES) {
+        return res.status(400).json({ ok: false, error: "Video file too large (max ~22MB)." });
       }
     } else if (!imageOk) {
       return res.status(400).json({ ok: false, error: "Only .png, .jpg, .jpeg, .webp allowed." });
@@ -319,7 +324,8 @@ app.post("/api/admin/upload", requireAdmin, upload.single("file"), async (req, r
     });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Unknown error";
-    return res.status(401).json({ ok: false, error: msg });
+    console.error("[upload error]", e);
+    return res.status(500).json({ ok: false, error: msg });
   }
 });
 

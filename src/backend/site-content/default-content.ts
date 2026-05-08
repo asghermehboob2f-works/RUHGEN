@@ -2,33 +2,63 @@ import type { SiteContent } from "@/backend/site-content/types";
 
 /** Used only when the API has no usable content and `site-content.json` files are missing or invalid. */
 export const PUBLIC_DEFAULT_SITE_CONTENT: SiteContent = {
-  hero: {
-    previews: [
+  hero: {},
+  heroBackground: {
+    media: [
       {
-        id: "hp-1",
-        src: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1400&q=85&auto=format&fit=crop",
-        alt: "Alpine ridge at dawn",
-        prompt: "Cinematic wide shot, mist rolling over peaks, golden hour.",
-      },
-      {
-        id: "hp-2",
+        id: "bg-1",
+        type: "image",
         src: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1400&q=85&auto=format&fit=crop",
-        alt: "Abstract fluid gradients",
-        prompt: "Liquid chrome and neon gel lighting, macro detail.",
+        filename: "gradient-1.webp",
       },
       {
-        id: "hp-3",
+        id: "bg-2",
+        type: "video",
+        src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+        filename: "blazes.mp4",
+      },
+      {
+        id: "bg-3",
+        type: "image",
+        src: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1400&q=85&auto=format&fit=crop",
+        filename: "alpine.webp",
+      },
+      {
+        id: "bg-4",
+        type: "image",
         src: "https://images.unsplash.com/photo-1633167605827-e8f50f098a8d?w=1400&q=85&auto=format&fit=crop",
-        alt: "Sci-fi corridor",
-        prompt: "Brutalist sci-fi hallway, volumetric fog, cyan rim light.",
+        filename: "sci-fi.webp",
       },
       {
-        id: "hp-4",
+        id: "bg-5",
+        type: "video",
+        src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+        filename: "escapes.mp4",
+      },
+      {
+        id: "bg-6",
+        type: "image",
         src: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=1400&q=85&auto=format&fit=crop",
-        alt: "Neon city street",
-        prompt: "Night street, rain puddles, neon bokeh.",
+        filename: "neon.webp",
+      },
+      {
+        id: "bg-7",
+        type: "image",
+        src: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1200&q=85&auto=format&fit=crop",
+        filename: "theater.webp",
+      },
+      {
+        id: "bg-8",
+        type: "video",
+        src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
+        filename: "joyrides.mp4",
       },
     ],
+    overlayOpacity: 0.55,
+    crossfadeDuration: 6,
+    staggerDelay: 0.8,
+    enableParallax: true,
+    parallaxIntensity: 10,
   },
   gallery: {
     items: [

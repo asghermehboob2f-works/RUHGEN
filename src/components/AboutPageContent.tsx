@@ -70,7 +70,7 @@ export function AboutPageContent() {
               <span style={{ color: "var(--text-primary)" }}>We build the layer between </span>
               <span className="text-gradient-hero">imagination</span>
               <span style={{ color: "var(--text-primary)" }}> and </span>
-              <span className="text-gradient-primary">ship.</span>
+              <span style={{ color: "var(--text-primary)" }}>reality.</span>
             </h1>
             <p
               className="mx-auto mt-5 max-w-2xl text-base leading-relaxed sm:text-lg lg:mx-0 lg:max-w-none"

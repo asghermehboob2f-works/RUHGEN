@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Inter+Tight:ital,wght@0,100..900;1,100..900&display=swap');
 @import "tailwindcss";
 
 @custom-variant light (&:where(.light, .light *));
@@ -38,15 +39,23 @@ html.light {
 @theme inline {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, monospace;
-  --font-display: var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Inter Tight", var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-premium: var(--font-bricolage), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-orith: var(--font-orith), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-groote: var(--font-groote), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-shooting-star: var(--font-shooting-star), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-audiowide: var(--font-audiowide), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-calsans: var(--font-calsans), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-zendots: var(--font-zendots), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-elms-sans: var(--font-elms-sans), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-bungee-hairline: var(--font-bungee-hairline), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --color-brand-purple: #7b61ff;
   --color-brand-cyan: #00d4ff;
   --color-brand-pink: #ff2e9a;
 
   /* Premium Responsive Typography Scale */
-  --text-hero-title: clamp(1.5rem, 8vw, 4.25rem);
-  --text-hero-subtitle: clamp(0.95rem, 2.2vw, 1.3rem);
+  --text-hero-title: clamp(1.65rem, 8vw, 5rem);
+  --text-hero-subtitle: clamp(1.1rem, 2.5vw, 1.5rem);
   --text-section-title: clamp(1.65rem, 5vw, 2.5rem);
   --text-page-title: clamp(1.85rem, 6vw, 3.25rem);
   --text-display-lg: clamp(1.5rem, 4vw, 2.25rem);
@@ -130,6 +139,40 @@ html.light .nav-scroll-y {
   font-family: var(--font-display);
 }
 
+.font-orith {
+  font-family: var(--font-orith);
+}
+
+.font-groote {
+  font-family: var(--font-groote);
+}
+
+.font-shooting-star {
+  font-family: var(--font-shooting-star);
+}
+
+.font-audiowide {
+  font-family: var(--font-audiowide);
+}
+
+.font-calsans {
+  font-family: var(--font-calsans);
+}
+
+.font-zendots {
+  font-family: var(--font-zendots);
+}
+
+.font-elms-sans {
+  font-family: var(--font-elms-sans), sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+.font-bungee-hairline {
+  font-family: var(--font-bungee-hairline);
+}
+
 .mesh-section {
   background-color: var(--deep-black);
   background-image:
@@ -155,6 +198,58 @@ html.light .nav-scroll-y {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+}
+
+/* World-class High-End Shimmer */
+.premium-text-shimmer {
+  background: linear-gradient(
+    to right,
+    var(--primary-purple),
+    var(--primary-cyan),
+    var(--accent-pink),
+    var(--primary-cyan),
+    var(--primary-purple)
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: premium-shimmer 8s linear infinite;
+  transition: filter 0.5s ease, transform 0.5s ease;
+}
+
+@keyframes premium-shimmer {
+  to {
+    background-position: 200% center;
+  }
+}
+
+.heading-high-end-glow {
+  filter: drop-shadow(0 0 15px rgba(123, 97, 255, 0));
+  transition: filter 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.heading-high-end-glow:hover {
+  filter: drop-shadow(0 0 25px rgba(123, 97, 255, 0.45))
+          drop-shadow(0 0 45px rgba(0, 212, 255, 0.25));
+}
+
+.text-crystal-glass {
+  background: linear-gradient(
+    135deg,
+    #ffffff 20%,
+    var(--primary-cyan) 80%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  /* Minimal sharp shadow for depth without blurriness */
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
 .text-gradient-primary {

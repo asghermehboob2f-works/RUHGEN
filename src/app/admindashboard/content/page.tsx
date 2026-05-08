@@ -3,15 +3,19 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import HeroBackground from "@/components/HeroBackground";
+import Hero from "@/components/Hero";
 import { motion, useReducedMotion } from "framer-motion";
 import { useAdminAuth } from "@/components/AdminAuthProvider";
 import type { GalleryCategory, SiteContent } from "@/backend/site-content/types";
+import { PUBLIC_DEFAULT_SITE_CONTENT } from "@/backend/site-content/default-content";
 
 export default function DashboardContentPage() {
   const { admin, ready, authHeaders } = useAdminAuth();
   const reduce = useReducedMotion();
   const [content, setContent] = useState<SiteContent | null>(null);
   const [status, setStatus] = useState<string>("");
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   useEffect(() => {
     let ok = true;
@@ -20,6 +24,12 @@ export default function DashboardContentPage() {
         const res = await fetch("/api/admin/content", { cache: "no-store" });
         const data = (await res.json()) as SiteContent;
         if (!ok) return;
+        
+        // Ensure heroBackground exists for older DB records
+        if (!data.heroBackground) {
+          data.heroBackground = PUBLIC_DEFAULT_SITE_CONTENT.heroBackground;
+        }
+        
         setContent(data);
       } catch {
         if (!ok) return;
@@ -59,6 +69,7 @@ export default function DashboardContentPage() {
             .
           </p>
         </div>
+
       </div>
     );
   }
@@ -80,7 +91,7 @@ export default function DashboardContentPage() {
     setStatus(data.ok ? "Saved. Homepage updated." : `Save failed: ${data.error || "Unknown error"}`);
   };
 
-  const upload = async (folder: "hero" | "gallery" | "img" | "showcase", file: File) => {
+  const upload = async (folder: "hero" | "gallery" | "img" | "showcase" | "homepage", file: File) => {
     const h = authHeaders();
     if (!h.Authorization) {
       setStatus("Upload failed: sign in again at /admin/login.");
@@ -164,48 +175,144 @@ export default function DashboardContentPage() {
           </div>
         ) : (
           <div className="mt-10 grid gap-10">
+
+            {/* Hero Background Management */}
             <section className="rounded-2xl border p-5 sm:p-7" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
-              <h2 className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>Hero previews</h2>
-              <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
-                These are the 4 landscape tiles in the Hero section.
-              </p>
-              <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {content.hero.previews.map((p, idx) => (
-                  <div key={p.id} className="editor-card p-3">
+              <h2 className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>Hero Background</h2>
+              <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>Manage background media and visual settings for the hero section.</p>
+
+              {/* Media Manager */}
+              <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {content?.heroBackground?.media?.map((m, idx) => (
+                  <div key={m.id} className="editor-card p-3 flex flex-col gap-2">
                     <div className="relative aspect-video overflow-hidden rounded-lg border" style={{ borderColor: "var(--border-subtle)" }}>
-                      <Image src={p.src} alt={p.alt} fill className="object-cover" sizes="(max-width: 1024px) 50vw, 25vw" />
+                      {m.type === "image" ? (
+                        <Image src={m.src} alt={m.filename} fill className="object-cover" />
+                      ) : (
+                        <video src={m.src} autoPlay muted loop className="h-full w-full object-cover" />
+                      )}
                     </div>
-                    <div className="mt-3 grid gap-2">
-                      <input
-                        value={p.prompt}
-                        onChange={(e) => {
-                          const next = structuredClone(content);
-                          next.hero.previews[idx].prompt = e.target.value;
-                          setContent(next);
-                        }}
-                        className="min-h-[40px] w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#7B61FF]/40"
-                        style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
-                        placeholder="Prompt"
-                      />
-                      <input
-                        type="file"
-                        accept="image/png,image/jpeg,image/webp"
-                        onChange={async (e) => {
-                          const f = e.target.files?.[0];
-                          if (!f) return;
-                          const src = await upload("hero", f);
-                          if (!src) return;
-                          const next = structuredClone(content);
-                          next.hero.previews[idx].src = src;
-                          next.hero.previews[idx].alt = f.name;
-                          setContent(next);
-                          e.target.value = "";
-                        }}
-                        className="block w-full text-xs"
-                      />
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-medium">{m.type.toUpperCase()}</span>
+                      <span className="font-mono text-[#00D4FF]">{m.filename}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <button type="button" onClick={() => {
+                        if (!content) return;
+                        const next = structuredClone(content);
+                        if (!next.heroBackground) return;
+                        next.heroBackground.media.splice(idx, 1);
+                        setContent(next);
+                      }} className="text-sm font-semibold text-[#FF2E9A] hover:underline">Remove</button>
+                      <button type="button" onClick={() => {
+                        if (!content || idx === 0) return;
+                        const next = structuredClone(content);
+                        if (!next.heroBackground) return;
+                        const tmp = next.heroBackground.media[idx - 1];
+                        next.heroBackground.media[idx - 1] = next.heroBackground.media[idx];
+                        next.heroBackground.media[idx] = tmp;
+                        setContent(next);
+                      }} className="text-sm font-medium text-[#00D4FF]">↑</button>
+                      <button type="button" onClick={() => {
+                        if (!content || idx === content.heroBackground.media.length - 1) return;
+                        const next = structuredClone(content);
+                        if (!next.heroBackground) return;
+                        const tmp = next.heroBackground.media[idx + 1];
+                        next.heroBackground.media[idx + 1] = next.heroBackground.media[idx];
+                        next.heroBackground.media[idx] = tmp;
+                        setContent(next);
+                      }} className="text-sm font-medium text-[#00D4FF]">↓</button>
                     </div>
                   </div>
                 ))}
+                {/* Add Media Card */}
+                <div className="editor-card p-3 flex flex-col items-center justify-center border-dashed border-2" style={{ borderColor: "var(--border-subtle)" }}>
+                  <label className="cursor-pointer">
+                    <span className="text-sm font-medium text-[#00D4FF]">Add Media</span>
+                    <input type="file" accept=".jpg,.png,.webp,.mp4,.webm" className="hidden" onChange={async (e) => {
+                      const f = e.target.files?.[0];
+                      if (!f) return;
+                      const src = await upload("homepage", f);
+                      if (!src || !content) return;
+                      const next = structuredClone(content);
+                      if (!next.heroBackground) {
+                        next.heroBackground = {
+                          media: [],
+                          overlayOpacity: 0.55,
+                          crossfadeDuration: 6,
+                          staggerDelay: 0.8,
+                          enableParallax: true,
+                          parallaxIntensity: 10,
+                        };
+                      }
+                      next.heroBackground.media.push({
+                        id: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `bg-${Date.now()}`,
+                        type: f.type.startsWith("video") ? "video" : "image",
+                        src,
+                        filename: f.name,
+                      });
+                      setContent(next);
+                      e.target.value = "";
+                    }} />
+                  </label>
+                </div>
+              </div>
+
+              {/* Settings Panel */}
+              <div className="mt-6 space-y-4">
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>Overlay Opacity</label>
+                  <input type="range" min={0} max={100} value={Math.round((content?.heroBackground?.overlayOpacity || 0) * 100)} onChange={(e) => {
+                    const next = structuredClone(content);
+                    if (!next.heroBackground) return;
+                    next.heroBackground.overlayOpacity = Number(e.target.value) / 100;
+                    setContent(next);
+                  }} className="flex-1" />
+                  <span className="text-sm">{Math.round((content?.heroBackground?.overlayOpacity || 0) * 100)}%</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>Crossfade Duration (s)</label>
+                  <input type="number" min={0} step={0.1} value={content?.heroBackground?.crossfadeDuration || 0} onChange={(e) => {
+                    const next = structuredClone(content);
+                    if (!next.heroBackground) return;
+                    next.heroBackground.crossfadeDuration = Number(e.target.value);
+                    setContent(next);
+                  }} className="w-20 rounded px-2 py-1" style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>Stagger Delay (s)</label>
+                  <input type="number" min={0} step={0.1} value={content?.heroBackground?.staggerDelay || 0} onChange={(e) => {
+                    const next = structuredClone(content);
+                    if (!next.heroBackground) return;
+                    next.heroBackground.staggerDelay = Number(e.target.value);
+                    setContent(next);
+                  }} className="w-20 rounded px-2 py-1" style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="flex items-center gap-1 text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                    <input type="checkbox" checked={content?.heroBackground?.enableParallax || false} onChange={(e) => {
+                      const next = structuredClone(content);
+                      if (!next.heroBackground) return;
+                      next.heroBackground.enableParallax = e.target.checked;
+                      setContent(next);
+                    }} />
+                    Enable Parallax
+                  </label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>Parallax Intensity (px)</label>
+                  <input type="range" min={1} max={20} value={content?.heroBackground?.parallaxIntensity || 10} onChange={(e) => {
+                    const next = structuredClone(content);
+                    if (!next.heroBackground) return;
+                    next.heroBackground.parallaxIntensity = Number(e.target.value);
+                    setContent(next);
+                  }} className="flex-1" />
+                  <span className="text-sm">{content?.heroBackground?.parallaxIntensity || 10}px</span>
+                </div>
+                <div className="flex gap-4">
+                  <button type="button" onClick={() => setPreviewOpen(true)} className="inline-flex items-center rounded-full border px-4 py-2 text-sm font-medium" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)", color: "var(--text-primary)" }}>Preview Changes</button>
+                  <button type="button" onClick={save} disabled={!content} className="inline-flex items-center rounded-full border px-4 py-2 text-sm font-medium disabled:opacity-60" style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}>Save &amp; Publish</button>
+                </div>
               </div>
             </section>
 
@@ -444,6 +551,16 @@ export default function DashboardContentPage() {
           </div>
         )}
       </div>
+{/* Preview Modal */}
+{previewOpen && content && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+    <div className="relative w-full max-w-4xl rounded-lg overflow-hidden bg-black">
+      <button className="absolute top-2 right-2 text-white text-xl" onClick={() => setPreviewOpen(false)}>✕</button>
+      <HeroBackground config={content.heroBackground || PUBLIC_DEFAULT_SITE_CONTENT.heroBackground} />
+      <Hero />
+    </div>
+  </div>
+)}
     </div>
   );
 }

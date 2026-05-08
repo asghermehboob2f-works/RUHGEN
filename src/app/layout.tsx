@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, Inter, JetBrains_Mono, Syne } from "next/font/google";
+import localFont from "next/font/local";
 import { BRAND_LOGO_SRC } from "@/lib/constants";
 import { AdminAuthProvider } from "@/components/AdminAuthProvider";
 import { AuthProvider } from "@/components/AuthProvider";
@@ -28,6 +29,54 @@ const syne = Syne({
 const bricolage = Bricolage_Grotesque({
   variable: "--font-bricolage",
   subsets: ["latin"],
+  display: "swap",
+});
+
+const orithDisplay = localFont({
+  src: "../../public/fonts/OrithDisplay-Regular.otf",
+  variable: "--font-orith",
+  display: "swap",
+});
+
+const grooteRegular = localFont({
+  src: "../../public/fonts/Groote-Regular.otf",
+  variable: "--font-groote",
+  display: "swap",
+});
+
+const shootingStar = localFont({
+  src: "../../public/fonts/Shooting Star.ttf",
+  variable: "--font-shooting-star",
+  display: "swap",
+});
+
+const audiowide = localFont({
+  src: "../../public/fonts/Audiowide-Regular.ttf",
+  variable: "--font-audiowide",
+  display: "swap",
+});
+
+const calsans = localFont({
+  src: "../../public/fonts/CalSans-Regular.ttf",
+  variable: "--font-calsans",
+  display: "swap",
+});
+
+const zendots = localFont({
+  src: "../../public/fonts/ZenDots-Regular.ttf",
+  variable: "--font-zendots",
+  display: "swap",
+});
+
+const elmsSans = localFont({
+  src: "../../public/fonts/ElmsSans-VariableFont_wght.ttf",
+  variable: "--font-elms-sans",
+  display: "swap",
+});
+
+const bungeeHairline = localFont({
+  src: "../../public/fonts/BungeeHairline-Regular.ttf",
+  variable: "--font-bungee-hairline",
   display: "swap",
 });
 
@@ -65,7 +114,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${jetbrains.variable} ${syne.variable} ${bricolage.variable} h-full scroll-smooth antialiased`}
+      className={`${inter.variable} ${jetbrains.variable} ${syne.variable} ${bricolage.variable} ${orithDisplay.variable} ${grooteRegular.variable} ${shootingStar.variable} ${audiowide.variable} ${calsans.variable} ${zendots.variable} ${elmsSans.variable} ${bungeeHairline.variable} h-full scroll-smooth antialiased`}
       suppressHydrationWarning
     >
       <body

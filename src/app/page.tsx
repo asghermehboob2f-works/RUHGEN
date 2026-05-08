@@ -1,5 +1,6 @@
 import { FinalCta } from "@/components/FinalCta";
 import { Hero } from "@/components/Hero";
+import { HeroBackground } from "@/components/HeroBackground";
 import { MarketingShell } from "@/components/MarketingShell";
 import { StatsStrip } from "@/components/StatsStrip";
 import { Testimonials } from "@/components/Testimonials";
@@ -10,8 +11,9 @@ export default async function Home() {
   const content = await readSiteContent();
   return (
     <MarketingShell>
-      <main>
-        <Hero previews={content.hero.previews} />
+      <main className="relative">
+        <HeroBackground config={content.heroBackground} />
+        <Hero />
         <ValueProposition />
         <StatsStrip />
         <Testimonials />
