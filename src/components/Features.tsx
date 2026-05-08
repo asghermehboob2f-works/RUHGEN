@@ -83,7 +83,7 @@ export function Features({ hideHeading = false }: { hideHeading?: boolean }) {
                 Capabilities
               </p>
               <h2
-                className="font-display text-[clamp(1.6rem,4vw,3.1rem)] font-bold tracking-tight"
+                className="font-display text-section-title font-bold leading-[1.2] tracking-tight"
                 style={{ color: "var(--text-primary)" }}
               >
                 Limitless creativity

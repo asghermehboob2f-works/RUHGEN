@@ -120,7 +120,7 @@ export function SpotlightPageContent({ content }: { content: SiteContent }) {
                 </motion.div>
 
                 <motion.h1
-                  className="font-display mx-auto mt-3 w-full max-w-[22rem] text-balance text-[clamp(1.9rem,4.2vw+0.5rem,3.1rem)] font-extrabold leading-[1.06] tracking-tight sm:max-w-none lg:mx-0"
+                  className="font-display mx-auto mt-3 w-full max-w-[22rem] text-balance text-hero-title font-extrabold leading-[1.1] tracking-tight sm:max-w-none lg:mx-0"
                   style={{ color: "var(--text-primary)" }}
                 >
                   Spotlight: <span className="text-gradient-hero">the cut that stays</span>

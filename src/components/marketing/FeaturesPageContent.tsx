@@ -49,7 +49,7 @@ export function FeaturesPageContent() {
             <p className="text-[10px] font-bold uppercase tracking-[0.28em]" style={{ color: "var(--text-subtle)" }}>
               Capabilities
             </p>
-            <h1 className="font-display mt-3 text-[clamp(2rem,5vw,3.5rem)] font-extrabold leading-[1.06] tracking-tight" style={{ color: "var(--text-primary)" }}>
+            <h1 className="font-display mt-3 text-page-title font-extrabold leading-[1.1] tracking-tight" style={{ color: "var(--text-primary)" }}>
               Everything to go from <span className="text-gradient-primary">prompt</span> to{" "}
               <span className="text-gradient-hero">master</span>
             </h1>

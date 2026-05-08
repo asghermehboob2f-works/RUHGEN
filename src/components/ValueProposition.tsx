@@ -56,7 +56,7 @@ export function ValueProposition() {
             Why teams choose RUHGEN
           </p>
           <h2
-            className="font-display mt-3 text-[clamp(1.45rem,3.5vw,2.75rem)] font-bold tracking-tight"
+            className="font-display mt-3 text-section-title font-bold leading-[1.2] tracking-tight"
             style={{ color: "var(--text-primary)" }}
           >
             One engine for stills, motion, and momentum

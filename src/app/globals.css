@@ -39,9 +39,18 @@ html.light {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, monospace;
   --font-display: var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-premium: var(--font-bricolage), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --color-brand-purple: #7b61ff;
   --color-brand-cyan: #00d4ff;
   --color-brand-pink: #ff2e9a;
+
+  /* Premium Responsive Typography Scale */
+  --text-hero-title: clamp(1.5rem, 8vw, 4.25rem);
+  --text-hero-subtitle: clamp(0.95rem, 2.2vw, 1.3rem);
+  --text-section-title: clamp(1.65rem, 5vw, 2.5rem);
+  --text-page-title: clamp(1.85rem, 6vw, 3.25rem);
+  --text-display-lg: clamp(1.5rem, 4vw, 2.25rem);
+  --text-display-md: clamp(1.25rem, 3vw, 1.75rem);
 }
 
 html {

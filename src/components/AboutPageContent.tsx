@@ -66,7 +66,7 @@ export function AboutPageContent() {
             >
               Company
             </p>
-            <h1 className="font-display text-[clamp(2.1rem,5.2vw,3.5rem)] font-extrabold leading-[1.08] tracking-tight">
+            <h1 className="font-display text-page-title font-extrabold leading-[1.1] tracking-tight">
               <span style={{ color: "var(--text-primary)" }}>We build the layer between </span>
               <span className="text-gradient-hero">imagination</span>
               <span style={{ color: "var(--text-primary)" }}> and </span>

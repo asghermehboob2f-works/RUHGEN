@@ -50,7 +50,7 @@ export function WorkflowPageContent() {
               <p className="text-[10px] font-bold uppercase tracking-[0.28em]" style={{ color: "var(--text-subtle)" }}>
                 Operating model
               </p>
-              <h1 className="font-display mt-3 text-[clamp(2rem,4.6vw,3.4rem)] font-extrabold leading-[1.06] tracking-tight" style={{ color: "var(--text-primary)" }}>
+              <h1 className="font-display mt-3 text-page-title font-extrabold leading-[1.1] tracking-tight" style={{ color: "var(--text-primary)" }}>
                 From spark to <span className="text-gradient-primary">shipped</span>—on purpose
               </h1>
               <p className="mt-5 text-sm leading-relaxed sm:text-base lg:max-w-xl" style={{ color: "var(--text-muted)" }}>

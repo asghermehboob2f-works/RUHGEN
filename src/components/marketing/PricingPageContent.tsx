@@ -26,7 +26,7 @@ export function PricingPageContent() {
               <p className="font-mono text-[11px] font-medium uppercase tracking-[0.22em]" style={{ color: "#7B61FF" }}>
                 Plans & credits
               </p>
-              <h1 className="font-display mt-3 text-[clamp(2rem,4.5vw,3.25rem)] font-extrabold leading-[1.06] tracking-tight" style={{ color: "var(--text-primary)" }}>
+              <h1 className="font-display mt-3 text-page-title font-extrabold leading-[1.1] tracking-tight" style={{ color: "var(--text-primary)" }}>
                 Pay for what you <span className="text-gradient-primary">ship</span>
               </h1>
               <p className="mt-5 max-w-xl text-sm leading-relaxed sm:text-base" style={{ color: "var(--text-muted)" }}>
@@ -82,7 +82,7 @@ export function PricingPageContent() {
       <section className="mesh-section py-14 md:py-20">
         <div className={`${SITE_CONTAINER} grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:gap-12`}>
           <div className="text-center lg:text-left">
-            <p className="font-display text-[clamp(1.35rem,3vw,2rem)] font-bold tracking-tight">
+            <p className="font-display text-display-lg font-bold tracking-tight">
               <span className="text-gradient-hero">Still comparing tools?</span>
             </p>
             <p className="mt-3 text-sm leading-relaxed sm:text-base lg:max-w-xl" style={{ color: "var(--text-muted)" }}>

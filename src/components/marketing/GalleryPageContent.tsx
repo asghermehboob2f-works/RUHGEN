@@ -32,7 +32,7 @@ export function GalleryPageContent({ content }: { content: SiteContent }) {
                 Community wall
               </motion.p>
               <motion.h1
-                className="font-display mt-3 text-[clamp(2.1rem,5vw,3.75rem)] font-extrabold leading-[1.05] tracking-tight"
+                className="font-display mt-3 text-page-title font-extrabold leading-[1.1] tracking-tight"
                 style={{ color: "var(--text-primary)" }}
                 initial={reduce ? false : { opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}

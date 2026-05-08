@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono, Syne } from "next/font/google";
+import { Bricolage_Grotesque, Inter, JetBrains_Mono, Syne } from "next/font/google";
 import { BRAND_LOGO_SRC } from "@/lib/constants";
 import { AdminAuthProvider } from "@/components/AdminAuthProvider";
 import { AuthProvider } from "@/components/AuthProvider";
@@ -23,6 +23,12 @@ const syne = Syne({
   subsets: ["latin"],
   display: "swap",
   weight: ["400", "500", "600", "700", "800"],
+});
+
+const bricolage = Bricolage_Grotesque({
+  variable: "--font-bricolage",
+  subsets: ["latin"],
+  display: "swap",
 });
 
 export const viewport = {
@@ -59,7 +65,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${jetbrains.variable} ${syne.variable} h-full scroll-smooth antialiased`}
+      className={`${inter.variable} ${jetbrains.variable} ${syne.variable} ${bricolage.variable} h-full scroll-smooth antialiased`}
       suppressHydrationWarning
     >
       <body

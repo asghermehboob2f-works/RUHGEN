@@ -23,7 +23,7 @@ export function PlatformPageContent() {
               <p className="font-mono text-[11px] font-medium uppercase tracking-[0.22em]" style={{ color: "#00D4FF" }}>
                 Infrastructure
               </p>
-              <h1 className="font-display mt-3 text-[clamp(2rem,4.5vw,3.25rem)] font-extrabold leading-[1.06] tracking-tight" style={{ color: "var(--text-primary)" }}>
+              <h1 className="font-display mt-3 text-page-title font-extrabold leading-[1.1] tracking-tight" style={{ color: "var(--text-primary)" }}>
                 Calm UI. <span className="text-gradient-primary">Serious engine.</span>
               </h1>
               <p className="mt-5 max-w-xl text-sm leading-relaxed sm:text-base" style={{ color: "var(--text-muted)" }}>

@@ -48,7 +48,7 @@ export function FaqHubContent() {
               <p className="text-[10px] font-bold uppercase tracking-[0.3em]" style={{ color: "var(--text-subtle)" }}>
                 Help center
               </p>
-              <h1 className="font-display mt-3 text-[clamp(2rem,4.5vw,3.25rem)] font-extrabold leading-[1.06] tracking-tight" style={{ color: "var(--text-primary)" }}>
+              <h1 className="font-display mt-3 text-page-title font-extrabold leading-[1.1] tracking-tight" style={{ color: "var(--text-primary)" }}>
                 Answers, <span className="text-gradient-primary">searchable</span>
               </h1>
             </div>

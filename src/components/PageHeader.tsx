@@ -16,7 +16,7 @@ export function PageHeader({ eyebrow, title, description }: Props) {
         </p>
       )}
       <h1
-        className="font-display text-[clamp(2rem,5vw,3.25rem)] font-extrabold tracking-tight"
+        className="font-display text-page-title font-extrabold leading-[1.15] tracking-tight"
         style={{ color: "var(--text-primary)" }}
       >
         {title}

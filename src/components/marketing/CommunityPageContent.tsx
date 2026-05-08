@@ -519,7 +519,7 @@ function CommunityHero({
             </motion.div>
 
             <motion.h1
-              className="font-display mt-6 text-[clamp(2.4rem,6vw,4.5rem)] font-extrabold leading-[1.02] tracking-tight sm:mt-7"
+              className="font-display mt-6 text-hero-title font-extrabold leading-[1.05] tracking-tight sm:mt-7"
               style={{ color: "var(--text-primary)" }}
               initial={reduce ? false : { opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
@@ -930,7 +930,7 @@ function LivePulsePanel({
       </div>
       <div className="relative">
         <p
-          className="font-display text-[clamp(1.4rem,2.6vw,1.8rem)] font-extrabold leading-none tabular-nums"
+          className="font-display text-display-md font-extrabold leading-none tabular-nums"
           style={{ color: "var(--text-primary)" }}
         >
           {fmtCount(totalCreators)}

@@ -4,6 +4,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { SITE_CONTAINER } from "@/lib/site-layout";
 import { NeuralBackground } from "./NeuralBackground";
 
 type Preview = {
@@ -30,24 +31,24 @@ function PreviewFrame({
     <motion.div
       initial={reduce ? false : { opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.45, delay: reduce ? 0 : 0.12 + i * 0.06 }}
+      transition={{ duration: 0.5, delay: reduce ? 0 : 0.12 + i * 0.08 }}
       className="group premium-ring relative aspect-video overflow-hidden rounded-xl border md:rounded-2xl"
-      style={{ borderColor: "var(--border-subtle)" }}
+      style={{ borderColor: "var(--border-subtle)", background: "var(--glass)" }}
     >
       <Image
         src={p.src}
         alt={p.alt}
         fill
-        className="object-cover transition-transform duration-700 ease-out group-active:scale-[1.03] md:group-hover:scale-[1.06]"
+        className="object-cover transition-transform duration-1000 ease-out group-active:scale-[1.02] md:group-hover:scale-[1.05]"
         sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
         priority={priority}
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/25 to-transparent opacity-100 transition-opacity duration-500 md:opacity-0 md:group-hover:opacity-100" />
-      <div className="absolute bottom-0 left-0 right-0 translate-y-0 p-3 opacity-100 transition-all duration-500 sm:p-4 md:p-5 md:translate-y-2 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100">
-        <span className="inline-flex rounded-full bg-white/14 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-white/95 backdrop-blur-md sm:px-2.5 sm:py-1 sm:text-[10px] md:text-xs">
+      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-100 transition-opacity duration-700 md:opacity-0 md:group-hover:opacity-100" />
+      <div className="absolute bottom-0 left-0 right-0 translate-y-0 p-3 opacity-100 transition-all duration-700 sm:p-4 md:p-6 md:translate-y-3 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100">
+        <span className="inline-flex rounded-full bg-white/12 px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white/90 backdrop-blur-lg sm:text-[10px] md:text-[11px]">
           Prompt
         </span>
-        <span className="mt-1.5 block line-clamp-2 text-left text-[11px] font-medium leading-snug text-white sm:mt-2 sm:line-clamp-3 sm:text-sm md:line-clamp-none">
+        <span className="mt-2 block line-clamp-2 text-left text-[11px] font-medium leading-relaxed text-white/95 sm:mt-2.5 sm:line-clamp-3 sm:text-sm md:line-clamp-none">
           {p.prompt}
         </span>
       </div>
@@ -85,7 +86,7 @@ export function Hero({ previews }: { previews: Preview[] }) {
   return (
     <section
       id="hero"
-      className="mesh-section relative flex min-h-[100dvh] flex-col overflow-hidden overflow-x-hidden pb-10 pt-[max(5rem,env(safe-area-inset-top,0px)+3rem)] sm:pb-12 sm:pt-20 md:h-screen md:min-h-[700px] md:pb-6 md:pt-24 lg:pt-28"
+      className="mesh-section relative flex min-h-[100dvh] flex-col overflow-hidden overflow-x-hidden pb-8 pt-[max(4.5rem,env(safe-area-inset-top,0px)+3rem)] sm:pb-12 sm:pt-20 md:h-screen md:min-h-[720px] md:pb-8 md:pt-24"
     >
       {!reduce ? (
         <>
@@ -134,13 +135,13 @@ export function Hero({ previews }: { previews: Preview[] }) {
         <NeuralBackground />
       </div>
 
-      <div className="relative z-10 mx-auto flex w-full max-w-[1440px] flex-1 flex-col px-6 sm:px-8 lg:px-12">
-        <div className="mx-auto flex w-full max-w-4xl shrink-0 flex-col items-center justify-center text-center sm:px-0 md:flex-1">
+      <div className={`relative z-10 ${SITE_CONTAINER} flex flex-1 flex-col`}>
+        <div className="mx-auto flex w-full max-w-4xl shrink-0 flex-col items-center text-center sm:px-0 md:flex-1 md:justify-start md:pt-[4vh]">
           <motion.p
             initial={reduce ? false : { opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="mb-6 inline-flex items-center justify-center gap-2 rounded-full border border-transparent px-4 py-1.5 text-[clamp(0.625rem,0.15vw+0.5rem,0.875rem)] font-bold uppercase tracking-[0.22em] shadow-[0_0_40px_-12px_rgba(123,97,255,0.4)] sm:mb-8 md:mb-[clamp(1.25rem,3.5vh,2rem)]"
+            className="mb-8 inline-flex items-center justify-center gap-2 rounded-full border border-transparent px-3 py-1 text-[0.65rem] font-bold uppercase tracking-[0.2em] shadow-[0_0_40px_-12px_rgba(123,97,255,0.4)] sm:mb-12 sm:px-4 sm:py-1.5 sm:text-[0.75rem] sm:tracking-[0.22em] md:mb-16"
             style={{
               color: "var(--text-muted)",
               background:
@@ -153,7 +154,7 @@ export function Hero({ previews }: { previews: Preview[] }) {
             Ultimate AI generation
           </motion.p>
           <motion.h1
-            className="font-display text-[clamp(2.15rem,4vw+1.2rem,4.5rem)] font-extrabold leading-[1.08] tracking-[-0.03em] sm:leading-[1.04]"
+            className="font-display text-hero-title font-extrabold leading-[1.1] tracking-[-0.035em] sm:leading-[1.05]"
             initial={reduce ? false : { opacity: 0, y: 22 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.65, delay: 0.05 }}
@@ -162,14 +163,14 @@ export function Hero({ previews }: { previews: Preview[] }) {
               Where imagination becomes reality
             </span>
             <span
-              className="mt-2 block font-display text-[clamp(1.05rem,1.8vw+0.6rem,2.25rem)] font-semibold tracking-tight sm:mt-3 md:mt-4"
+              className="mt-2 block font-display text-hero-subtitle font-semibold tracking-tight sm:mt-2.5 md:mt-3"
               style={{ color: "var(--text-muted)" }}
             >
               — instantly.
             </span>
           </motion.h1>
           <motion.p
-            className="mx-auto mt-6 max-w-[34rem] px-2 text-[clamp(0.875rem,0.2vw+0.8rem,1.125rem)] leading-relaxed sm:mt-8 sm:max-w-2xl md:mt-[clamp(1.5rem,4vh,2.5rem)] md:leading-relaxed"
+            className="font-premium mx-auto mt-4 max-w-[30rem] px-2 text-[clamp(0.8rem,2vw,0.95rem)] leading-[1.6] sm:mt-5 sm:max-w-2xl md:mt-6"
             style={{ color: "var(--text-muted)" }}
             initial={reduce ? false : { opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
@@ -179,20 +180,20 @@ export function Hero({ previews }: { previews: Preview[] }) {
             real-time feedback, built for studios and solo creators alike.
           </motion.p>
           <motion.div
-            className="mx-auto mt-8 flex w-full max-w-[18rem] flex-col items-stretch gap-4 sm:mt-10 sm:max-w-none sm:flex-row sm:items-center sm:justify-center sm:gap-6 md:mt-[clamp(1.75rem,4.5vh,3rem)]"
+            className="mx-auto mt-7 flex w-full max-w-[15rem] flex-col items-stretch gap-2.5 sm:mt-8 sm:max-w-none sm:flex-row sm:items-center sm:justify-center sm:gap-4 md:mt-8"
             initial={reduce ? false : { opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.24 }}
           >
             <Link
               href="/sign-up"
-              className="inline-flex min-h-[50px] w-full items-center justify-center rounded-xl px-6 py-3 text-[clamp(0.875rem,0.1vw+0.85rem,1rem)] font-bold text-white btn-gradient sm:min-h-[54px] sm:w-auto sm:min-w-[210px] sm:rounded-2xl sm:px-9 sm:py-3.5"
+              className="inline-flex min-h-[36px] w-full items-center justify-center rounded-lg px-3.5 py-1.5 text-[0.68rem] font-bold text-white btn-gradient sm:min-h-[50px] sm:w-auto sm:min-w-[180px] sm:rounded-[14px] sm:px-7 sm:text-[0.9rem]"
             >
               Start creating free
             </Link>
             <Link
               href="/demo"
-              className="inline-flex min-h-[50px] w-full items-center justify-center rounded-xl border px-6 py-3 text-[clamp(0.875rem,0.1vw+0.85rem,1rem)] font-bold transition-all hover:border-[#7B61FF]/60 hover:bg-white/[0.03] sm:min-h-[54px] sm:w-auto sm:min-w-[210px] sm:rounded-2xl sm:px-9 sm:py-3.5"
+              className="inline-flex min-h-[36px] w-full items-center justify-center rounded-lg border px-3.5 py-1.5 text-[0.68rem] font-bold transition-all hover:border-[#7B61FF]/60 hover:bg-white/[0.03] sm:min-h-[50px] sm:w-auto sm:min-w-[180px] sm:rounded-[14px] sm:px-7 sm:text-[0.9rem]"
               style={{
                 borderColor: "var(--border-subtle)",
                 color: "var(--text-primary)",
@@ -206,12 +207,12 @@ export function Hero({ previews }: { previews: Preview[] }) {
 
         {/* Phone: carousel in document flow */}
         {current && (
-          <div className="relative z-[11] mx-auto mt-12 flex w-full max-w-sm shrink-0 flex-col items-center pb-2 sm:hidden">
+          <div className="relative z-[11] mx-auto mt-8 flex w-full max-w-[340px] shrink-0 flex-col items-center pb-2 sm:hidden">
             <div
-              className="relative w-full overflow-hidden rounded-2xl border shadow-[0_24px_80px_-24px_rgba(123,97,255,0.45)] ring-1 ring-white/[0.08]"
-              style={{ borderColor: "var(--border-subtle)" }}
+              className="relative w-full overflow-hidden rounded-2xl border shadow-[0_24px_80px_-24px_rgba(123,97,255,0.4)] ring-1 ring-white/[0.05]"
+              style={{ borderColor: "var(--border-subtle)", background: "var(--glass)" }}
             >
-              <div className="relative aspect-video w-full bg-black/30">
+              <div className="relative aspect-video w-full bg-black/40">
                 <AnimatePresence initial={false} mode="sync">
                   <motion.div
                     key={current.id}
@@ -222,7 +223,7 @@ export function Hero({ previews }: { previews: Preview[] }) {
                     exit={{ opacity: 0 }}
                     transition={{
                       type: "tween",
-                      duration: reduce ? 0.12 : 0.3,
+                      duration: reduce ? 0.12 : 0.4,
                       ease: [0.4, 0, 0.2, 1],
                     }}
                   >
@@ -234,12 +235,12 @@ export function Hero({ previews }: { previews: Preview[] }) {
                       sizes="(max-width: 640px) 100vw, 400px"
                       priority
                     />
-                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent" />
-                    <div className="pointer-events-none absolute bottom-0 left-0 right-0 p-5">
-                      <span className="inline-flex rounded-full bg-white/18 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-md">
+                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/95 via-black/25 to-transparent" />
+                    <div className="pointer-events-none absolute bottom-0 left-0 right-0 p-4 sm:p-5">
+                      <span className="inline-flex rounded-full bg-white/12 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-white/90 backdrop-blur-lg">
                         Prompt
                       </span>
-                      <p className="mt-2.5 text-left text-sm font-medium leading-snug text-white">
+                      <p className="mt-2 text-left text-[11px] font-medium leading-relaxed text-white/95">
                         {current.prompt}
                       </p>
                     </div>
@@ -249,7 +250,7 @@ export function Hero({ previews }: { previews: Preview[] }) {
             </div>
 
             {n > 1 && (
-              <div className="mt-4 flex items-center justify-center gap-2.5">
+              <div className="mt-3.5 flex items-center justify-center gap-2">
                 {previews.map((p, i) => {
                   const on = i === mobileIdx;
                   return (
@@ -259,9 +260,9 @@ export function Hero({ previews }: { previews: Preview[] }) {
                       aria-label={`Go to preview ${i + 1}`}
                       aria-current={on}
                       onClick={() => setMobileIdx(i)}
-                      className="h-2 rounded-full transition-all duration-300"
+                      className="h-1.5 rounded-full transition-all duration-300"
                       style={{
-                        width: on ? 32 : 8,
+                        width: on ? 24 : 6,
                         background: on
                           ? "linear-gradient(90deg, #7B61FF, #00D4FF)"
                           : "rgba(255,255,255,0.18)",
@@ -274,8 +275,8 @@ export function Hero({ previews }: { previews: Preview[] }) {
           </div>
         )}
 
-        {/* sm+: grid */}
-        <div className="mx-auto mt-[clamp(1.5rem,5vh,3.5rem)] hidden w-full pb-6 sm:block md:mt-auto md:pb-10">
+        {/* Gallery grid (sm+) */}
+        <div className="mx-auto mt-10 hidden w-full max-w-7xl pb-6 sm:block md:mt-auto md:pb-12">
           <motion.div
             className="grid w-full grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4"
             initial={reduce ? false : { opacity: 0 }}

@@ -134,7 +134,7 @@ export function DemoHeroGraphic({ className = "" }: DemoHeroGraphicProps) {
                 <p className="font-mono text-[10px] font-medium uppercase tracking-[0.28em] text-[var(--primary-cyan)]/90">
                   Session
                 </p>
-                <p className="font-display text-[clamp(1.25rem,2.8vw,1.75rem)] font-semibold leading-[1.15] tracking-tight text-[var(--text-primary)]">
+                <p className="font-display text-display-md font-semibold leading-[1.15] tracking-tight text-[var(--text-primary)]">
                   Compose
                   <span className="font-light text-[var(--text-muted)]">, </span>
                   <span className="bg-gradient-to-r from-[var(--primary-purple)] via-[var(--primary-cyan)] to-[var(--accent-pink)] bg-clip-text text-transparent">

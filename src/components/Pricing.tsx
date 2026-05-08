@@ -74,7 +74,7 @@ export function Pricing({ hideHeading = false }: { hideHeading?: boolean }) {
                 Pricing
               </p>
               <h2
-                className="font-display text-[clamp(1.55rem,3.8vw,3rem)] font-bold tracking-tight"
+                className="font-display text-section-title font-bold leading-[1.2] tracking-tight"
                 style={{ color: "var(--text-primary)" }}
               >
                 Choose your plan
