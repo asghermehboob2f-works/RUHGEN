@@ -46,24 +46,11 @@ export function Hero() {
   return (
     <section
       id="hero"
-      className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden pt-16 pb-20"
+      className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden pt-24 pb-12"
     >
-      {/* Background glowing blobs */}
-      <div className="pointer-events-none absolute inset-0 z-0">
-        <motion.div
-          className="absolute -left-[10%] -top-[5%] h-[min(600px,80vw)] w-[min(600px,80vw)] rounded-full blur-[80px]"
-          style={{ background: "#7B61FF", opacity: 0.12 }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.12, rotate: 360 }}
-          transition={{ repeat: Infinity, duration: 30, ease: "linear" as const }}
-        />
-        <motion.div
-          className="absolute -right-[5%] bottom-[5%] h-[min(540px,75vw)] w-[min(540px,75vw)] rounded-full blur-[70px]"
-          style={{ background: "#00D4FF", opacity: 0.1 }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.1, rotate: -360 }}
-          transition={{ repeat: Infinity, duration: 30, ease: "linear" as const }}
-        />
+      {/* Background glowing blobs (removed to let cinematic background shine) */}
+      <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center">
+        <div className="absolute h-full w-full bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0)_0%,rgba(0,0,0,0.4)_100%)]" />
       </div>
 
       <div className={`relative z-10 ${SITE_CONTAINER} flex flex-col items-center text-center px-4`}>
@@ -94,87 +81,79 @@ export function Hero() {
 
         {/* Headline */}
         <motion.div
-          className="mb-8"
+          className="mb-8 flex flex-col items-center"
           variants={container}
           initial="hidden"
           animate="visible"
         >
           <motion.h1
-            className="font-display text-[clamp(48px,6vw,90px)] font-extrabold leading-[0.95] text-transparent bg-clip-text tracking-[-0.03em]"
-            style={{
-              backgroundImage: "linear-gradient(90deg, #00CFFF, #8B5CF6, #FF2DAF)",
-              backgroundSize: "200%",
-              animation: "gradientShift 8s ease infinite",
-            }}
+            className="font-display text-[clamp(36px,8vw,90px)] font-bold leading-[1.05] tracking-tight text-white drop-shadow-2xl"
             variants={fadeUp()}
           >
             Where imagination
           </motion.h1>
           <motion.h1
-            className="font-display text-[clamp(48px,6vw,90px)] font-extrabold leading-[0.95] text-transparent bg-clip-text tracking-[-0.03em]"
-            style={{
-              backgroundImage: "linear-gradient(90deg, #00CFFF, #8B5CF6, #FF2DAF)",
-              backgroundSize: "200%",
-              animation: "gradientShift 8s ease infinite",
-            }}
+            className="font-display text-[clamp(36px,8vw,90px)] font-bold leading-[1.05] tracking-tight text-white/90 drop-shadow-2xl"
             variants={fadeUp()}
           >
-            becomes
+            becomes{' '}
+            <span 
+              className="text-transparent bg-clip-text" 
+              style={{
+                backgroundImage: "linear-gradient(to right, #A855F7, #06B6D4, #A855F7)",
+                backgroundSize: "200% auto",
+                animation: "gradientShift 8s linear infinite",
+              }}
+            >
+              reality.
+            </span>
           </motion.h1>
-          <motion.h1
-            className="font-display text-[clamp(56px,8vw,110px)] font-black leading-[1] text-transparent bg-clip-text tracking-[-0.04em]"
-            style={{
-              backgroundImage: "linear-gradient(90deg, #00CFFF, #8B5CF6, #FF2DAF)",
-              backgroundSize: "200%",
-              animation: "gradientShift 8s ease infinite",
-            }}
-            variants={fadeUp()}
-          >
-            reality
-          </motion.h1>
-          <motion.h2
-            className="mt-4 font-sans text-[clamp(18px,2vw,22px)] font-medium tracking-tight text-white/50"
-            variants={fadeUp()}
-          >
-            — instantly.
-          </motion.h2>
         </motion.div>
 
         {/* Subheadline */}
         <motion.p
-          className="max-w-[480px] font-sans text-[clamp(15px,1.8vw,19px)] leading-[1.7] text-white/65 tracking-[0.01em]"
-          style={{ fontFamily: "'DM Sans', sans-serif" }}
+          className="mt-6 max-w-[600px] font-sans text-[clamp(16px,4vw,20px)] font-medium leading-[1.6] text-white/60 tracking-tight"
           initial="hidden"
           animate="visible"
           variants={fadeUp(1.1)}
         >
-          Cinematic AI. Real-time. Built for creators who refuse to compromise.
+          Cinematic real-time AI generation. Built for creators who refuse to compromise.
         </motion.p>
 
         {/* CTA Buttons */}
         <motion.div
-          className="mt-8 flex flex-col gap-4 sm:flex-row sm:justify-center"
+          className="mt-10 flex flex-col gap-4 sm:flex-row sm:justify-center w-full sm:w-auto"
           initial="hidden"
           animate="visible"
           variants={springIn(1.4)}
         >
+          {/* Modern Clean Theme-Gradient Primary Button */}
           <Link
             href="/sign-up"
-            className="group relative inline-flex items-center justify-center rounded-full px-10 py-4 text-[15px] font-bold text-white transition-all duration-300 hover:scale-[1.03]"
+            className="group relative inline-flex items-center justify-center rounded-full px-8 py-3.5 sm:px-10 sm:py-4 text-[15px] sm:text-[16px] font-bold text-white transition-all duration-300 hover:scale-[1.03] shadow-[0_8px_30px_rgba(139,92,246,0.2)] hover:shadow-[0_8px_30px_rgba(139,92,246,0.4)] overflow-hidden border-0"
             style={{
               background: "linear-gradient(135deg, #00CFFF, #8B5CF6, #FF2DAF)",
-              backgroundSize: "200%",
-              animation: "gradientShift 8s ease infinite",
-              boxShadow: "0 10px 30px -10px rgba(139, 92, 246, 0.5)",
+              backgroundSize: "200% auto",
+              animation: "gradientShift 6s linear infinite",
             }}
           >
-            Start Creating Free
+            {/* Sweeping Shimmer Effect */}
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" style={{
+              background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent)",
+              transform: "skewX(-20deg)",
+              animation: "shimmer-move 2s infinite ease-in-out"
+            }} />
+            
+            <span className="relative z-10 drop-shadow-sm tracking-wide">Start Creating Free</span>
           </Link>
+
+          {/* Ultra-Premium Secondary Button */}
           <Link
             href="/demo"
-            className="inline-flex items-center justify-center rounded-full border px-10 py-4 text-[15px] font-bold text-white bg-white/5 border-white/15 backdrop-blur-xl transition-all duration-300 hover:scale-[1.03] hover:bg-white/10 hover:border-white/25 hover:shadow-[0_0_20px_rgba(255,255,255,0.1)]"
+            className="group relative inline-flex items-center justify-center rounded-full px-8 py-3.5 sm:px-10 sm:py-4 text-[15px] sm:text-[16px] font-medium text-white transition-transform duration-300 hover:scale-[1.02]"
           >
-            Watch the Demo
+            <div className="absolute inset-0 rounded-full bg-white/5 border border-white/10 backdrop-blur-md transition-all duration-300 group-hover:bg-white/10 group-hover:border-white/20" />
+            <span className="relative z-10">Watch the Demo</span>
           </Link>
         </motion.div>
 

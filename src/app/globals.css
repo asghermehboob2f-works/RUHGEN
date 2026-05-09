@@ -207,7 +207,6 @@ html.light .nav-scroll-y {
     var(--primary-purple),
     var(--primary-cyan),
     var(--accent-pink),
-    var(--primary-cyan),
     var(--primary-purple)
   );
   background-size: 200% auto;
@@ -230,8 +229,7 @@ html.light .nav-scroll-y {
 }
 @keyframes gradientShift {
   0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
 }
 
 .heading-high-end-glow:hover {
