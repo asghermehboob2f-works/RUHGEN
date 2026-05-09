@@ -94,5 +94,56 @@
         "videoSrc": "/media/showcase/dcd4f376-4861-4205-bed7-a5763ba2f2c8.mp4"
       }
     ]
+  },
+  "heroBackground": {
+    "media": [
+      {
+        "id": "hb-1",
+        "type": "image",
+        "src": "/media/hero/08b9c102-edba-46cc-9736-8298f3a56357.png",
+        "filename": "08b9c102-edba-46cc-9736-8298f3a56357.png"
+      },
+      {
+        "id": "hb-2",
+        "type": "image",
+        "src": "/media/hero/16ec4a9a-fa11-4344-8cf8-1da240ec6458.jpg",
+        "filename": "16ec4a9a-fa11-4344-8cf8-1da240ec6458.jpg"
+      },
+      {
+        "id": "hb-3",
+        "type": "image",
+        "src": "/media/hero/38a2c7cb-84ea-434e-a333-a6c909a90060.jpg",
+        "filename": "38a2c7cb-84ea-434e-a333-a6c909a90060.jpg"
+      },
+      {
+        "id": "hb-4",
+        "type": "image",
+        "src": "/media/hero/a942957a-a13b-4878-a352-007f4396a9be.jpg",
+        "filename": "a942957a-a13b-4878-a352-007f4396a9be.jpg"
+      },
+      {
+        "id": "hb-5",
+        "type": "image",
+        "src": "/media/hero/c21daecc-4afa-4b3d-af95-5e2d689d7c69.png",
+        "filename": "c21daecc-4afa-4b3d-af95-5e2d689d7c69.png"
+      },
+      {
+        "id": "hb-6",
+        "type": "image",
+        "src": "/media/hero/fa94b151-cf0f-4926-8e6f-09d6c3ac9b48.jpg",
+        "filename": "fa94b151-cf0f-4926-8e6f-09d6c3ac9b48.jpg"
+      },
+      {
+        "id": "hb-7",
+        "type": "image",
+        "src": "/media/hero/fb4a18eb-1787-410d-b766-4f54f4b41b1e.jpg",
+        "filename": "fb4a18eb-1787-410d-b766-4f54f4b41b1e.jpg"
+      }
+    ],
+    "overlayOpacity": 0.55,
+    "crossfadeDuration": 6,
+    "staggerDelay": 0.8,
+    "enableParallax": true,
+    "parallaxIntensity": 10
   }
 }
