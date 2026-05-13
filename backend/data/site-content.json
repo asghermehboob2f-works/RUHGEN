@@ -78,19 +78,19 @@
       {
         "id": "show-2",
         "title": "Background genius",
-        "caption": "Replace environments in one pass—studio cyclorama, matte painting, or full CG—with depth-aware separation.",
+        "caption": "Replace environments in one pass\u00e2\u20ac\u201dstudio cyclorama, matte painting, or full CG\u00e2\u20ac\u201dwith depth-aware separation.",
         "videoSrc": "/media/showcase/c7560b51-d360-429f-bd68-1999bae6dcf5.mp4"
       },
       {
         "id": "385e2964-8995-4509-833c-881f5e338fda",
         "title": "Face swap",
-        "caption": "Identity-aware blends that respect lighting, skin tone, and camera angle—built for believable hero shots.",
+        "caption": "Identity-aware blends that respect lighting, skin tone, and camera angle\u00e2\u20ac\u201dbuilt for believable hero shots.",
         "videoSrc": "/media/showcase/53dbba86-54ba-43f8-b759-4fdc083975f4.mp4"
       },
       {
         "id": "62f56e06-cfd9-493f-a27c-ca8416b94720",
         "title": "Background genius v2",
-        "caption": "Replace environments in one pass—studio cyclorama, matte painting, or full CG—with depth-aware separation. and many more",
+        "caption": "Replace environments in one pass\u00e2\u20ac\u201dstudio cyclorama, matte painting, or full CG\u00e2\u20ac\u201dwith depth-aware separation. and many more",
         "videoSrc": "/media/showcase/dcd4f376-4861-4205-bed7-a5763ba2f2c8.mp4"
       }
     ]
@@ -138,6 +138,252 @@
         "type": "image",
         "src": "/media/hero/fb4a18eb-1787-410d-b766-4f54f4b41b1e.jpg",
         "filename": "fb4a18eb-1787-410d-b766-4f54f4b41b1e.jpg"
+      },
+      {
+        "id": "hb-hp-03870eaa-03a5-4c94-a811-3f08b8948193",
+        "type": "image",
+        "src": "/media/homepage/03870eaa-03a5-4c94-a811-3f08b8948193.png",
+        "filename": "03870eaa-03a5-4c94-a811-3f08b8948193.png"
+      },
+      {
+        "id": "hb-hp-07f13d90-38c7-468e-ac18-51b323715bbe",
+        "type": "image",
+        "src": "/media/homepage/07f13d90-38c7-468e-ac18-51b323715bbe.jpg",
+        "filename": "07f13d90-38c7-468e-ac18-51b323715bbe.jpg"
+      },
+      {
+        "id": "hb-hp-1406c68c-1d6d-4c2e-9002-9ccbf1e60136",
+        "type": "image",
+        "src": "/media/homepage/1406c68c-1d6d-4c2e-9002-9ccbf1e60136.png",
+        "filename": "1406c68c-1d6d-4c2e-9002-9ccbf1e60136.png"
+      },
+      {
+        "id": "hb-hp-1af46df8-8c38-4903-ba06-5bbfe2c3b0d8",
+        "type": "image",
+        "src": "/media/homepage/1af46df8-8c38-4903-ba06-5bbfe2c3b0d8.png",
+        "filename": "1af46df8-8c38-4903-ba06-5bbfe2c3b0d8.png"
+      },
+      {
+        "id": "hb-hp-1d41ae9e-85b2-448f-a00c-e5047798658f",
+        "type": "image",
+        "src": "/media/homepage/1d41ae9e-85b2-448f-a00c-e5047798658f.jpg",
+        "filename": "1d41ae9e-85b2-448f-a00c-e5047798658f.jpg"
+      },
+      {
+        "id": "hb-hp-20488cd5-c7f3-4380-83a8-1f2ee880101c",
+        "type": "image",
+        "src": "/media/homepage/20488cd5-c7f3-4380-83a8-1f2ee880101c.jpg",
+        "filename": "20488cd5-c7f3-4380-83a8-1f2ee880101c.jpg"
+      },
+      {
+        "id": "hb-hp-23dcd8db-7ded-41e3-b744-c9574a65c12a",
+        "type": "image",
+        "src": "/media/homepage/23dcd8db-7ded-41e3-b744-c9574a65c12a.jpg",
+        "filename": "23dcd8db-7ded-41e3-b744-c9574a65c12a.jpg"
+      },
+      {
+        "id": "hb-hp-241c07b6-649f-4aea-9799-c7317eb14bba",
+        "type": "image",
+        "src": "/media/homepage/241c07b6-649f-4aea-9799-c7317eb14bba.png",
+        "filename": "241c07b6-649f-4aea-9799-c7317eb14bba.png"
+      },
+      {
+        "id": "hb-hp-28a60d16-e916-4b5c-94d5-561f0487f745",
+        "type": "image",
+        "src": "/media/homepage/28a60d16-e916-4b5c-94d5-561f0487f745.jpg",
+        "filename": "28a60d16-e916-4b5c-94d5-561f0487f745.jpg"
+      },
+      {
+        "id": "hb-hp-2d7de9bd-eb5d-4414-98f1-dfdeaef0543e",
+        "type": "video",
+        "src": "/media/homepage/2d7de9bd-eb5d-4414-98f1-dfdeaef0543e.mp4",
+        "filename": "2d7de9bd-eb5d-4414-98f1-dfdeaef0543e.mp4"
+      },
+      {
+        "id": "hb-hp-339ca1b1-09b3-4727-afc2-89270c4ab8a8",
+        "type": "image",
+        "src": "/media/homepage/339ca1b1-09b3-4727-afc2-89270c4ab8a8.jpg",
+        "filename": "339ca1b1-09b3-4727-afc2-89270c4ab8a8.jpg"
+      },
+      {
+        "id": "hb-hp-36d2416f-e4de-4235-8dbc-3851676d0ac9",
+        "type": "image",
+        "src": "/media/homepage/36d2416f-e4de-4235-8dbc-3851676d0ac9.jpg",
+        "filename": "36d2416f-e4de-4235-8dbc-3851676d0ac9.jpg"
+      },
+      {
+        "id": "hb-hp-3c760179-d141-4e72-919c-0fc9bc8201e9",
+        "type": "image",
+        "src": "/media/homepage/3c760179-d141-4e72-919c-0fc9bc8201e9.jpg",
+        "filename": "3c760179-d141-4e72-919c-0fc9bc8201e9.jpg"
+      },
+      {
+        "id": "hb-hp-3d9f457a-b733-4c5a-87ac-23f5559c996e",
+        "type": "image",
+        "src": "/media/homepage/3d9f457a-b733-4c5a-87ac-23f5559c996e.png",
+        "filename": "3d9f457a-b733-4c5a-87ac-23f5559c996e.png"
+      },
+      {
+        "id": "hb-hp-44eb08ee-00a6-4343-9ced-b98889f2ec53",
+        "type": "image",
+        "src": "/media/homepage/44eb08ee-00a6-4343-9ced-b98889f2ec53.png",
+        "filename": "44eb08ee-00a6-4343-9ced-b98889f2ec53.png"
+      },
+      {
+        "id": "hb-hp-46fc8635-1247-4994-b922-1d6318524842",
+        "type": "image",
+        "src": "/media/homepage/46fc8635-1247-4994-b922-1d6318524842.png",
+        "filename": "46fc8635-1247-4994-b922-1d6318524842.png"
+      },
+      {
+        "id": "hb-hp-49c29523-4ef2-494f-83fa-a75d655511f9",
+        "type": "image",
+        "src": "/media/homepage/49c29523-4ef2-494f-83fa-a75d655511f9.jpg",
+        "filename": "49c29523-4ef2-494f-83fa-a75d655511f9.jpg"
+      },
+      {
+        "id": "hb-hp-5c6e92de-d079-4a68-97fd-572acf076053",
+        "type": "image",
+        "src": "/media/homepage/5c6e92de-d079-4a68-97fd-572acf076053.jpg",
+        "filename": "5c6e92de-d079-4a68-97fd-572acf076053.jpg"
+      },
+      {
+        "id": "hb-hp-5d292289-1334-47bd-95eb-d6132dd29e91",
+        "type": "image",
+        "src": "/media/homepage/5d292289-1334-47bd-95eb-d6132dd29e91.png",
+        "filename": "5d292289-1334-47bd-95eb-d6132dd29e91.png"
+      },
+      {
+        "id": "hb-hp-5ed02cd6-5c87-4d43-baaa-3c6c0028b451",
+        "type": "image",
+        "src": "/media/homepage/5ed02cd6-5c87-4d43-baaa-3c6c0028b451.jpg",
+        "filename": "5ed02cd6-5c87-4d43-baaa-3c6c0028b451.jpg"
+      },
+      {
+        "id": "hb-hp-5fcdd742-97cb-4375-bd6d-6a7792541d15",
+        "type": "image",
+        "src": "/media/homepage/5fcdd742-97cb-4375-bd6d-6a7792541d15.png",
+        "filename": "5fcdd742-97cb-4375-bd6d-6a7792541d15.png"
+      },
+      {
+        "id": "hb-hp-6669cf2a-04ac-4e6d-89a9-3734c747587c",
+        "type": "image",
+        "src": "/media/homepage/6669cf2a-04ac-4e6d-89a9-3734c747587c.jpg",
+        "filename": "6669cf2a-04ac-4e6d-89a9-3734c747587c.jpg"
+      },
+      {
+        "id": "hb-hp-6b044084-2a1e-4619-8beb-80bd6ab00a49",
+        "type": "image",
+        "src": "/media/homepage/6b044084-2a1e-4619-8beb-80bd6ab00a49.png",
+        "filename": "6b044084-2a1e-4619-8beb-80bd6ab00a49.png"
+      },
+      {
+        "id": "hb-hp-73bb7ade-bb0e-41aa-abee-3b1726fe0b20",
+        "type": "image",
+        "src": "/media/homepage/73bb7ade-bb0e-41aa-abee-3b1726fe0b20.jpg",
+        "filename": "73bb7ade-bb0e-41aa-abee-3b1726fe0b20.jpg"
+      },
+      {
+        "id": "hb-hp-76c43dbb-a020-4af6-8443-8c5fe4527cb1",
+        "type": "image",
+        "src": "/media/homepage/76c43dbb-a020-4af6-8443-8c5fe4527cb1.jpg",
+        "filename": "76c43dbb-a020-4af6-8443-8c5fe4527cb1.jpg"
+      },
+      {
+        "id": "hb-hp-8b490b6e-dfd9-4025-b996-a70642b97f45",
+        "type": "image",
+        "src": "/media/homepage/8b490b6e-dfd9-4025-b996-a70642b97f45.jpg",
+        "filename": "8b490b6e-dfd9-4025-b996-a70642b97f45.jpg"
+      },
+      {
+        "id": "hb-hp-ad638073-fd3d-4a73-bf8d-68da8658ee82",
+        "type": "video",
+        "src": "/media/homepage/ad638073-fd3d-4a73-bf8d-68da8658ee82.mp4",
+        "filename": "ad638073-fd3d-4a73-bf8d-68da8658ee82.mp4"
+      },
+      {
+        "id": "hb-hp-b3f1031b-0ee9-4bb0-ad9e-ab1f737f753e",
+        "type": "image",
+        "src": "/media/homepage/b3f1031b-0ee9-4bb0-ad9e-ab1f737f753e.png",
+        "filename": "b3f1031b-0ee9-4bb0-ad9e-ab1f737f753e.png"
+      },
+      {
+        "id": "hb-hp-ba0e3b65-4e22-49c0-8fd8-e21bde60dea5",
+        "type": "image",
+        "src": "/media/homepage/ba0e3b65-4e22-49c0-8fd8-e21bde60dea5.jpg",
+        "filename": "ba0e3b65-4e22-49c0-8fd8-e21bde60dea5.jpg"
+      },
+      {
+        "id": "hb-hp-be57207d-0349-464b-bf4d-fd2d5e756885",
+        "type": "image",
+        "src": "/media/homepage/be57207d-0349-464b-bf4d-fd2d5e756885.png",
+        "filename": "be57207d-0349-464b-bf4d-fd2d5e756885.png"
+      },
+      {
+        "id": "hb-hp-be8ecaeb-53ce-4eae-a337-0363c139952f",
+        "type": "video",
+        "src": "/media/homepage/be8ecaeb-53ce-4eae-a337-0363c139952f.mp4",
+        "filename": "be8ecaeb-53ce-4eae-a337-0363c139952f.mp4"
+      },
+      {
+        "id": "hb-hp-c5392110-1d90-4f80-a6d2-d446117d9ab2",
+        "type": "image",
+        "src": "/media/homepage/c5392110-1d90-4f80-a6d2-d446117d9ab2.jpg",
+        "filename": "c5392110-1d90-4f80-a6d2-d446117d9ab2.jpg"
+      },
+      {
+        "id": "hb-hp-d8648ca6-d062-4071-85d0-496efa832233",
+        "type": "image",
+        "src": "/media/homepage/d8648ca6-d062-4071-85d0-496efa832233.png",
+        "filename": "d8648ca6-d062-4071-85d0-496efa832233.png"
+      },
+      {
+        "id": "hb-hp-e0e97232-e787-4b62-a326-1afd3250f8b5",
+        "type": "image",
+        "src": "/media/homepage/e0e97232-e787-4b62-a326-1afd3250f8b5.png",
+        "filename": "e0e97232-e787-4b62-a326-1afd3250f8b5.png"
+      },
+      {
+        "id": "hb-hp-e44f29b7-d618-477f-8c1d-3f77e10072bf",
+        "type": "image",
+        "src": "/media/homepage/e44f29b7-d618-477f-8c1d-3f77e10072bf.jpg",
+        "filename": "e44f29b7-d618-477f-8c1d-3f77e10072bf.jpg"
+      },
+      {
+        "id": "hb-hp-ec6e34e9-e1f6-4c7d-9a28-b9e5f981183b",
+        "type": "image",
+        "src": "/media/homepage/ec6e34e9-e1f6-4c7d-9a28-b9e5f981183b.jpg",
+        "filename": "ec6e34e9-e1f6-4c7d-9a28-b9e5f981183b.jpg"
+      },
+      {
+        "id": "hb-hp-ed2acc38-c2a3-4f49-9694-5e0db3ef668c",
+        "type": "image",
+        "src": "/media/homepage/ed2acc38-c2a3-4f49-9694-5e0db3ef668c.png",
+        "filename": "ed2acc38-c2a3-4f49-9694-5e0db3ef668c.png"
+      },
+      {
+        "id": "hb-hp-f083a988-fde2-4cdf-ae92-e65af35c1779",
+        "type": "image",
+        "src": "/media/homepage/f083a988-fde2-4cdf-ae92-e65af35c1779.png",
+        "filename": "f083a988-fde2-4cdf-ae92-e65af35c1779.png"
+      },
+      {
+        "id": "hb-hp-f9272ff9-de93-455a-b99b-c566f72f19ff",
+        "type": "image",
+        "src": "/media/homepage/f9272ff9-de93-455a-b99b-c566f72f19ff.png",
+        "filename": "f9272ff9-de93-455a-b99b-c566f72f19ff.png"
+      },
+      {
+        "id": "hb-hp-fc21b6ea-7ef0-4f8e-bf32-715e315fc342",
+        "type": "image",
+        "src": "/media/homepage/fc21b6ea-7ef0-4f8e-bf32-715e315fc342.png",
+        "filename": "fc21b6ea-7ef0-4f8e-bf32-715e315fc342.png"
+      },
+      {
+        "id": "hb-hp-ff0eeccb-f9fa-4a6b-b131-47c11699ac2b",
+        "type": "image",
+        "src": "/media/homepage/ff0eeccb-f9fa-4a6b-b131-47c11699ac2b.png",
+        "filename": "ff0eeccb-f9fa-4a6b-b131-47c11699ac2b.png"
       }
     ],
     "overlayOpacity": 0.55,
