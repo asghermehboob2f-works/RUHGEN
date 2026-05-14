@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion, Variants } from "framer-motion";
 import Link from "next/link";
 import { SITE_CONTAINER } from "@/lib/site-layout";
 import { Play } from "lucide-react";
@@ -8,7 +8,7 @@ import { Play } from "lucide-react";
 export function Hero() {
   const shouldReduceMotion = useReducedMotion();
 
-  const container = {
+  const container: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -19,7 +19,7 @@ export function Hero() {
     },
   };
 
-  const fadeUpBlur = {
+  const fadeUpBlur: Variants = {
     hidden: { opacity: 0, y: 40, filter: "blur(15px)" },
     visible: { 
       opacity: 1, 
@@ -32,7 +32,7 @@ export function Hero() {
     },
   };
 
-  const badgeReveal = {
+  const badgeReveal: Variants = {
     hidden: { opacity: 0, scale: 0.9, filter: "blur(5px)" },
     visible: { 
       opacity: 1, 
@@ -40,7 +40,7 @@ export function Hero() {
       filter: "blur(0px)",
       transition: { 
         duration: 1, 
-        ease: "easeOut" 
+        ease: "easeOut"
       } 
     },
   };
