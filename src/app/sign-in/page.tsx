@@ -138,8 +138,8 @@ export default function SignInPage() {
       <div className="relative my-6 flex items-center gap-3">
         <div className="h-px flex-1" style={{ background: "var(--border-subtle)" }} />
         <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-subtle)" }}>
-              or email
-            </span>
+          or email
+        </span>
         <div className="h-px flex-1" style={{ background: "var(--border-subtle)" }} />
       </div>
 

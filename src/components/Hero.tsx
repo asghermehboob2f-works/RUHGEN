@@ -1,196 +1,182 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
 import { SITE_CONTAINER } from "@/lib/site-layout";
+import { Play } from "lucide-react";
 
 export function Hero() {
-  // Animation variants for staggered entry
+  const shouldReduceMotion = useReducedMotion();
+
   const container = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: { 
-        staggerChildren: 0.12, 
-        delayChildren: 0.5 
+        staggerChildren: 0.25, 
+        delayChildren: 0.4 
       },
     },
   };
 
-  const fadeUp = (delay: number = 0) => ({
-    hidden: { opacity: 0, y: 30 },
+  const fadeUpBlur = {
+    hidden: { opacity: 0, y: 40, filter: "blur(15px)" },
     visible: { 
       opacity: 1, 
       y: 0, 
+      filter: "blur(0px)",
       transition: { 
-        duration: 0.8, 
-        ease: "easeOut" as const,
-        delay 
+        duration: 1.4, 
+        ease: [0.16, 1, 0.3, 1] 
       } 
     },
-  });
+  };
 
-  const springIn = (delay: number = 0) => ({
-    hidden: { opacity: 0, scale: 0.92 },
+  const badgeReveal = {
+    hidden: { opacity: 0, scale: 0.9, filter: "blur(5px)" },
     visible: { 
       opacity: 1, 
-      scale: 1, 
+      scale: 1,
+      filter: "blur(0px)",
       transition: { 
-        duration: 0.8, 
-        ease: [0.34, 1.56, 0.64, 1] as const,
-        delay 
+        duration: 1, 
+        ease: "easeOut" 
       } 
     },
-  });
+  };
 
   return (
     <section
       id="hero"
-      className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden pt-24 pb-12"
+      className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden pt-24 pb-20"
     >
-      {/* Background glowing blobs (removed to let cinematic background shine) */}
-      <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center">
-        <div className="absolute h-full w-full bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0)_0%,rgba(0,0,0,0.4)_100%)]" />
+      {/* Cinematic Background Atmosphere - Maximum Visibility */}
+      <div className="pointer-events-none absolute inset-0 z-0">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(0,0,0,0)_0%,rgba(0,0,0,0.4)_100%)]" />
+        
+        {/* Animated Light Leaks/Glows (Softer) */}
+        <motion.div 
+          className="absolute top-[20%] left-[20%] w-[40%] h-[40%] bg-blue-500/5 blur-[120px] rounded-full"
+          animate={{
+            scale: [1, 1.1, 1],
+            opacity: [0.2, 0.3, 0.2],
+          }}
+          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+        />
       </div>
 
-      <div className={`relative z-10 ${SITE_CONTAINER} flex flex-col items-center text-center px-4`}>
-        {/* Badge */}
+      <motion.div 
+        className={`relative z-10 ${SITE_CONTAINER} flex flex-col items-center text-center px-6`}
+        variants={container}
+        initial="hidden"
+        animate="visible"
+      >
+        {/* 2. TOP BADGE - Ultra-Luxury Minimalist */}
         <motion.div
-          className="mb-6 flex items-center gap-3 rounded-full px-5 py-2 backdrop-blur-2xl border"
-          style={{
-            borderColor: "rgba(255,255,255,0.08)",
-            background: "linear-gradient(90deg, rgba(59, 51, 115, 0.7) 0%, rgba(21, 58, 71, 0.7) 100%)",
-            boxShadow: "0 8px 32px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.05)",
-          }}
-          initial="hidden"
-          animate="visible"
-          variants={fadeUp(0.3)}
+          className="relative mb-20 group"
+          variants={badgeReveal}
         >
-          <div className="relative flex h-2 w-2 items-center justify-center">
-            <div className="absolute h-full w-full rounded-full bg-[#00D4FF] shadow-[0_0_10px_#00D4FF]" />
-            <motion.div 
-              className="absolute h-full w-full rounded-full bg-[#00D4FF]" 
-              animate={{ scale: [1, 1.8, 1], opacity: [1, 0, 1] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            />
-          </div>
-          <span className="text-[12px] font-bold uppercase tracking-[0.2em] text-white/90">
-            ULTIMATE AI GENERATION
-          </span>
-        </motion.div>
+          {/* Subtle flare effect */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-8 bg-white/5 blur-2xl opacity-0 group-hover:opacity-100 transition-all duration-1000" />
+          
+          <div className="relative px-8 py-3 flex items-center justify-center overflow-hidden">
+            {/* Minimalist Corner Accents */}
+            <div className="absolute top-0 left-0 w-2.5 h-2.5 border-t border-l border-white/30 transition-all duration-500 group-hover:w-4 group-hover:h-4 group-hover:border-white/60" />
+            <div className="absolute top-0 right-0 w-2.5 h-2.5 border-t border-r border-white/30 transition-all duration-500 group-hover:w-4 group-hover:h-4 group-hover:border-white/60" />
+            <div className="absolute bottom-0 left-0 w-2.5 h-2.5 border-b border-l border-white/30 transition-all duration-500 group-hover:w-4 group-hover:h-4 group-hover:border-white/60" />
+            <div className="absolute bottom-0 right-0 w-2.5 h-2.5 border-b border-r border-white/30 transition-all duration-500 group-hover:w-4 group-hover:h-4 group-hover:border-white/60" />
+            
+            {/* Fine Shimmer Line */}
+            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+            <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
-        {/* Headline */}
-        <motion.div
-          className="mb-8 flex flex-col items-center"
-          variants={container}
-          initial="hidden"
-          animate="visible"
-        >
-          <motion.h1
-            className="font-display text-[clamp(36px,8vw,90px)] font-bold leading-[1.05] tracking-tight text-white drop-shadow-2xl"
-            variants={fadeUp()}
-          >
-            Where imagination
-          </motion.h1>
-          <motion.h1
-            className="font-display text-[clamp(36px,8vw,90px)] font-bold leading-[1.05] tracking-tight text-white/90 drop-shadow-2xl"
-            variants={fadeUp()}
-          >
-            becomes{' '}
-            <span 
-              className="text-transparent bg-clip-text" 
-              style={{
-                backgroundImage: "linear-gradient(to right, #A855F7, #06B6D4, #A855F7)",
-                backgroundSize: "200% auto",
-                animation: "gradientShift 8s linear infinite",
-              }}
-            >
-              reality.
+            <span className="text-[10px] font-medium uppercase tracking-[0.6em] text-white/50 group-hover:text-white/90 transition-all duration-700 ml-[0.6em]">
+              Ultimate AI Generation
             </span>
-          </motion.h1>
+          </div>
         </motion.div>
 
-        {/* Subheadline */}
-        <motion.p
-          className="mt-6 max-w-[600px] font-sans text-[clamp(16px,4vw,20px)] font-medium leading-[1.6] text-white/60 tracking-tight"
-          initial="hidden"
-          animate="visible"
-          variants={fadeUp(1.1)}
-        >
-          Cinematic real-time AI generation. Built for creators who refuse to compromise.
-        </motion.p>
-
-        {/* CTA Buttons */}
+        {/* 1. HERO HEADING - Refined Alignment */}
         <motion.div
-          className="mt-10 flex flex-col gap-4 sm:flex-row sm:justify-center w-full sm:w-auto"
-          initial="hidden"
-          animate="visible"
-          variants={springIn(1.4)}
+          className="mb-14 flex flex-col items-center"
+          variants={fadeUpBlur}
         >
-          {/* Modern Clean Theme-Gradient Primary Button */}
+          <h1 className="font-display text-[clamp(48px,10vw,110px)] font-bold leading-[1] tracking-tighter text-white/60 selection:bg-white/10">
+            <span className="block">Where imagination</span>
+            <span className="block mt-1">becomes reality.</span>
+          </h1>
+          
+          <motion.span 
+            className="mt-4 font-shooting-star text-[clamp(14px,2vw,22px)] tracking-[0.3em] font-extralight text-white/50 opacity-80"
+            variants={fadeUpBlur}
+          >
+            — instantly.
+          </motion.span>
+        </motion.div>
+
+        {/* 3 & 4. FRESH BUTTONS REDESIGN - Simple Clean Gradient */}
+        <motion.div
+          className="flex flex-col gap-6 sm:flex-row sm:items-center"
+          variants={fadeUpBlur}
+        >
+          {/* PRIMARY: Bluish Gradient */}
           <Link
             href="/sign-up"
-            className="group relative inline-flex items-center justify-center rounded-full px-8 py-3.5 sm:px-10 sm:py-4 text-[15px] sm:text-[16px] font-bold text-white transition-all duration-300 hover:scale-[1.03] shadow-[0_8px_30px_rgba(139,92,246,0.2)] hover:shadow-[0_8px_30px_rgba(139,92,246,0.4)] overflow-hidden border-0"
-            style={{
-              background: "linear-gradient(135deg, #00CFFF, #8B5CF6, #FF2DAF)",
-              backgroundSize: "200% auto",
-              animation: "gradientShift 6s linear infinite",
-            }}
+            className="group relative"
           >
-            {/* Sweeping Shimmer Effect */}
-            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" style={{
-              background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent)",
-              transform: "skewX(-20deg)",
-              animation: "shimmer-move 2s infinite ease-in-out"
-            }} />
-            
-            <span className="relative z-10 drop-shadow-sm tracking-wide">Start Creating Free</span>
+            <motion.div 
+              className="relative z-10 flex items-center justify-center rounded-full px-10 py-3.5 overflow-hidden transition-all duration-500 btn-gradient"
+              whileHover={{ y: -3, scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <span className="relative z-20 text-[14px] font-semibold tracking-wide text-white">
+                Start Creating Now
+              </span>
+            </motion.div>
           </Link>
 
-          {/* Ultra-Premium Secondary Button */}
+          {/* SECONDARY: Glass with refined border */}
           <Link
             href="/demo"
-            className="group relative inline-flex items-center justify-center rounded-full px-8 py-3.5 sm:px-10 sm:py-4 text-[15px] sm:text-[16px] font-medium text-white transition-transform duration-300 hover:scale-[1.02]"
+            className="group relative"
           >
-            <div className="absolute inset-0 rounded-full bg-white/5 border border-white/10 backdrop-blur-md transition-all duration-300 group-hover:bg-white/10 group-hover:border-white/20" />
-            <span className="relative z-10">Watch the Demo</span>
+            <motion.div 
+              className="relative z-10 flex items-center justify-center gap-2.5 rounded-full px-9 py-3.5 overflow-hidden transition-all duration-500 bg-white/[0.03] backdrop-blur-md border border-white/10 hover:border-[#00D4FF]/40 hover:bg-white/[0.06]"
+              whileHover={{ y: -3, scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Play className="w-3.5 h-3.5 text-white fill-white/80" />
+              <span className="relative z-20 text-[14px] font-medium tracking-wide text-white/90">
+                Watch Demo
+              </span>
+            </motion.div>
           </Link>
         </motion.div>
 
-        {/* Scroll Indicator */}
+        {/* 6. SCROLL INDICATOR - Even More Minimal */}
         <motion.div
-          className="mt-12 flex flex-col items-center gap-2 text-[10px] tracking-[0.2em] text-white/40 uppercase"
-          initial="hidden"
-          animate="visible"
-          variants={fadeUp(1.8)}
+          className="mt-28 flex flex-col items-center gap-6"
+          variants={fadeUpBlur}
         >
-          <motion.span 
-            className="block h-10 w-[1px] bg-gradient-to-b from-white/60 to-transparent"
-            animate={{ 
-              scaleY: [0, 1, 0],
-              y: [0, 10, 20],
-              opacity: [0, 1, 0]
-            }}
-            transition={{ 
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut" as const
-            }}
-          />
-          <span>Scroll to explore</span>
+          <div className="relative flex flex-col items-center">
+            <div className="h-12 w-px bg-gradient-to-b from-white/20 to-transparent" />
+            <motion.div 
+              className="absolute top-0 w-px h-6 bg-white/40"
+              animate={{
+                y: [0, 24, 0],
+                opacity: [0, 1, 0]
+              }}
+              transition={{
+                duration: 2.5,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            />
+          </div>
         </motion.div>
-      </div>
+      </motion.div>
     </section>
   );
 }
 
-/* Add the following CSS to globals.css or a dedicated module */
-/*
-@keyframes gradientShift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-*/
 export default Hero;
-
