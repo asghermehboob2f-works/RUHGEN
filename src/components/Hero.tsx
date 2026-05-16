@@ -3,7 +3,7 @@
 import { motion, useReducedMotion, Variants } from "framer-motion";
 import Link from "next/link";
 import { SITE_CONTAINER } from "@/lib/site-layout";
-import { Play } from "lucide-react";
+import { Play, Sparkles } from "lucide-react";
 
 export function Hero() {
   const shouldReduceMotion = useReducedMotion();
@@ -71,47 +71,41 @@ export function Hero() {
         initial="hidden"
         animate="visible"
       >
-        {/* 2. TOP BADGE - Ultra-Luxury Minimalist */}
         <motion.div
-          className="relative mb-20 group"
+          className="relative mb-20 inline-flex"
           variants={badgeReveal}
         >
-          {/* Subtle flare effect */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-8 bg-white/5 blur-2xl opacity-0 group-hover:opacity-100 transition-all duration-1000" />
-          
-          <div className="relative px-8 py-3 flex items-center justify-center overflow-hidden">
-            {/* Minimalist Corner Accents */}
-            <div className="absolute top-0 left-0 w-2.5 h-2.5 border-t border-l border-white/30 transition-all duration-500 group-hover:w-4 group-hover:h-4 group-hover:border-white/60" />
-            <div className="absolute top-0 right-0 w-2.5 h-2.5 border-t border-r border-white/30 transition-all duration-500 group-hover:w-4 group-hover:h-4 group-hover:border-white/60" />
-            <div className="absolute bottom-0 left-0 w-2.5 h-2.5 border-b border-l border-white/30 transition-all duration-500 group-hover:w-4 group-hover:h-4 group-hover:border-white/60" />
-            <div className="absolute bottom-0 right-0 w-2.5 h-2.5 border-b border-r border-white/30 transition-all duration-500 group-hover:w-4 group-hover:h-4 group-hover:border-white/60" />
+          <div className="relative group flex items-center justify-center rounded-none border border-white/20 bg-white/[0.04] px-8 py-2 backdrop-blur-3xl transition-all duration-1000 hover:border-white/40 hover:bg-white/10">
+            {/* Precision corner accents */}
+            <div className="absolute top-0 left-0 w-1.5 h-1.5 border-t border-l border-white/40 transition-all duration-700 group-hover:border-white/70" />
+            <div className="absolute top-0 right-0 w-1.5 h-1.5 border-t border-r border-white/40 transition-all duration-700 group-hover:border-white/70" />
+            <div className="absolute bottom-0 left-0 w-1.5 h-1.5 border-b border-l border-white/40 transition-all duration-700 group-hover:border-white/70" />
+            <div className="absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r border-white/40 transition-all duration-700 group-hover:border-white/70" />
             
-            {/* Fine Shimmer Line */}
-            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-            <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-
-            <span className="text-[10px] font-medium uppercase tracking-[0.6em] text-white/50 group-hover:text-white/90 transition-all duration-700 ml-[0.6em]">
+            <span className="relative z-10 bg-gradient-to-r from-white/60 via-white to-white/60 bg-clip-text text-[8px] font-medium uppercase tracking-[1em] text-transparent drop-shadow-sm ml-[1em]">
               Ultimate AI Generation
             </span>
           </div>
         </motion.div>
 
-        {/* 1. HERO HEADING - Refined Alignment */}
+        {/* 1. HERO HEADING - Classic & High-End */}
         <motion.div
-          className="mb-14 flex flex-col items-center"
+          className="mb-24 flex flex-col items-center text-center"
           variants={fadeUpBlur}
         >
-          <h1 className="font-display text-[clamp(48px,10vw,110px)] font-bold leading-[1] tracking-tighter text-white/60 selection:bg-white/10">
-            <span className="block">Where imagination</span>
-            <span className="block mt-1">becomes reality.</span>
+          <h1 className="font-display text-[clamp(48px,9vw,110px)] font-light leading-[0.95] tracking-tightest text-white selection:bg-white/10">
+            <span className="block bg-gradient-to-b from-white via-white to-white/60 bg-clip-text text-transparent drop-shadow-2xl">Where imagination</span>
+            <span className="block mt-2 premium-text-shimmer bg-gradient-to-b from-white/90 via-white to-white/30 bg-clip-text text-transparent">becomes reality.</span>
           </h1>
           
-          <motion.span 
-            className="mt-4 font-shooting-star text-[clamp(14px,2vw,22px)] tracking-[0.3em] font-extralight text-white/50 opacity-80"
+          <motion.div 
+            className="mt-6 flex items-center justify-center"
             variants={fadeUpBlur}
           >
-            — instantly.
-          </motion.span>
+            <span className="font-shooting-star text-[clamp(18px,2.2vw,24px)] font-normal tracking-[0.15em] text-white/50 lowercase">
+              — instantly.
+            </span>
+          </motion.div>
         </motion.div>
 
         {/* 3 & 4. FRESH BUTTONS REDESIGN - Simple Clean Gradient */}
@@ -125,8 +119,8 @@ export function Hero() {
             className="group relative"
           >
             <motion.div 
-              className="relative z-10 flex items-center justify-center rounded-full px-10 py-3.5 overflow-hidden transition-all duration-500 btn-gradient"
-              whileHover={{ y: -3, scale: 1.02 }}
+              className="relative z-10 flex items-center justify-center rounded-full px-12 py-4 overflow-hidden transition-all duration-700 btn-gradient"
+              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
               <span className="relative z-20 text-[14px] font-semibold tracking-wide text-white">
@@ -141,8 +135,8 @@ export function Hero() {
             className="group relative"
           >
             <motion.div 
-              className="relative z-10 flex items-center justify-center gap-2.5 rounded-full px-9 py-3.5 overflow-hidden transition-all duration-500 bg-white/[0.03] backdrop-blur-md border border-white/10 hover:border-[#00D4FF]/40 hover:bg-white/[0.06]"
-              whileHover={{ y: -3, scale: 1.02 }}
+              className="relative z-10 flex items-center justify-center gap-3 rounded-full px-10 py-4 overflow-hidden transition-all duration-700 bg-white/5 backdrop-blur-xl border border-white/10 hover:border-white/30 hover:bg-white/10"
+              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
               <Play className="w-3.5 h-3.5 text-white fill-white/80" />
