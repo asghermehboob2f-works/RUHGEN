@@ -249,10 +249,9 @@ export function Footer() {
 
   return (
     <footer
-      className="footer-site relative border-t pb-[max(0.5rem,env(safe-area-inset-bottom))]"
+      className="footer-site relative pb-[calc(max(0.5rem,env(safe-area-inset-bottom))+6.5rem)] md:pb-[max(0.5rem,env(safe-area-inset-bottom))]"
       style={{
-        borderColor: "var(--border-subtle)",
-        background: "var(--rich-black)",
+        background: "transparent",
       }}
     >
       <div
@@ -260,7 +259,7 @@ export function Footer() {
         aria-hidden
       />
       <div
-        className="footer-ambient-glow pointer-events-none absolute inset-x-0 bottom-0 h-[min(28%,72px)] bg-[radial-gradient(ellipse_75%_55%_at_50%_100%,rgba(123,97,255,0.045),transparent_72%)]"
+        className="footer-ambient-glow pointer-events-none absolute inset-x-0 bottom-0 h-[min(28%,72px)] bg-[radial-gradient(ellipse_75%_55%_at_50%_100%,rgba(123,97,255,0.08),transparent_72%)]"
         aria-hidden
       />
 

@@ -1,6 +1,5 @@
 export type GalleryCategory = "cinematic" | "sci-fi" | "art" | "realistic";
 
-
 export type HeroBackgroundMedia = {
   id: string;
   type: "image" | "video";
@@ -33,9 +32,43 @@ export type ShowcaseSlide = {
   videoSrc: string;
 };
 
+export type PillarItem = {
+  id: string;
+  title: string;
+  body: string;
+  accent: string;
+  glowColor: string;
+  cap1: string;
+  cap2: string;
+};
+
+export type StatItem = {
+  id: string;
+  label: string;
+  value: string;
+  sub: string;
+  glowColor: string;
+  textColor: string;
+  accentColor: string;
+  pct: number;
+};
+
+export type TestimonialItem = {
+  id: string;
+  body: string;
+  name: string;
+  role: string;
+  avatarColor: string;
+  hoverColor: string;
+  initials: string;
+};
+
 export type SiteContent = {
   hero: {};
   heroBackground: HeroBackgroundConfig;
   gallery: { items: GalleryItem[] };
   showcase: { slides: ShowcaseSlide[] };
+  pillars?: PillarItem[];
+  stats?: StatItem[];
+  testimonials?: TestimonialItem[];
 };

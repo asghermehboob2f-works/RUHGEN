@@ -14,9 +14,9 @@ export default async function Home() {
       <main className="relative">
         <HeroBackground config={content.heroBackground} />
         <Hero />
-        <ValueProposition />
-        <StatsStrip />
-        <Testimonials />
+        <ValueProposition pillars={content.pillars} />
+        <StatsStrip stats={content.stats} />
+        <Testimonials quotes={content.testimonials} />
         <FinalCta />
       </main>
     </MarketingShell>

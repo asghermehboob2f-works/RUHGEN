@@ -3,7 +3,7 @@
 import { motion, useReducedMotion, Variants } from "framer-motion";
 import Link from "next/link";
 import { SITE_CONTAINER } from "@/lib/site-layout";
-import { Play, Sparkles } from "lucide-react";
+import { Play } from "lucide-react";
 
 export function Hero() {
   const shouldReduceMotion = useReducedMotion();

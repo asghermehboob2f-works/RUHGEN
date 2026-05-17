@@ -1,88 +1,117 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { Quote } from "lucide-react";
+import type { TestimonialItem } from "@/backend/site-content/types";
 
-const quotes = [
+const defaultQuotes: TestimonialItem[] = [
   {
+    id: "test-1",
     body: "We replaced a week of mood-board iteration with one RUHGEN session. The team finally stopped fighting over references and started shipping.",
     name: "Elena Voss",
     role: "Creative Director, Northwind Studio",
+    avatarColor: "from-brand-purple to-indigo-950/40",
+    hoverColor: "group-hover:text-brand-purple/70",
+    initials: "EV",
   },
   {
-    body: "Latency is honestly wild. I can iterate on a shot while the director is still in the room—feels like a realtime renderer for Ideas.",
+    id: "test-2",
+    body: "Latency is honestly wild. I can iterate on a shot while the director is still in the room—feels like a realtime renderer for ideas.",
     name: "Marcus Chen",
     role: "VFX Supervisor",
+    avatarColor: "from-brand-cyan to-teal-950/40",
+    hoverColor: "group-hover:text-brand-cyan/70",
+    initials: "MC",
   },
   {
+    id: "test-3",
     body: "The API slots straight into our asset pipeline. Webhooks fire when renders finish; our DAM ingests frames without anyone touching FTP.",
     name: "Priya Nair",
     role: "Head of Platform, Lumen Labs",
+    avatarColor: "from-brand-pink to-rose-950/40",
+    hoverColor: "group-hover:text-brand-pink/70",
+    initials: "PN",
   },
 ];
 
-export function Testimonials() {
+export function Testimonials({ quotes }: { quotes?: TestimonialItem[] }) {
+  const activeQuotes = quotes && quotes.length > 0 ? quotes : defaultQuotes;
+
   return (
     <section
       id="stories"
-      className="mesh-section-muted scroll-mt-24 py-12 md:py-24"
+      className="mesh-section-muted scroll-mt-24 py-16 sm:py-20 md:py-28 relative overflow-hidden"
     >
-      <div className="mx-auto max-w-[1400px] px-3 sm:px-6 lg:px-10">
-        <div className="mb-8 text-center md:mb-14">
-          <p
-            className="mb-2 text-xs font-bold uppercase tracking-[0.2em] sm:text-sm"
-            style={{ color: "var(--text-subtle)" }}
-          >
-            Voices from the field
-          </p>
+      <div className="mx-auto max-w-full px-6 sm:px-12 lg:px-20 xl:px-32 relative z-10">
+        <div className="mb-14 text-center">
+          {/* Enhanced Badge */}
+          <div className="relative mb-5 inline-flex items-center justify-center rounded-full border border-white/10 bg-white/[0.02] px-5 py-1.5 backdrop-blur-2xl transition-all duration-500 hover:border-brand-purple/20">
+            <span className="text-[8px] font-semibold uppercase tracking-[0.4em] text-white/40 ml-[0.5em]">
+              Industry Endorsements
+            </span>
+          </div>
+
+          {/* BOLD Testimonial Heading with cohesive brand gradient shimmer */}
           <h2
-            className="font-display text-[clamp(1.55rem,3.8vw,3rem)] font-bold tracking-tight"
-            style={{ color: "var(--text-primary)" }}
+            className="font-display text-[clamp(2.25rem,6.5vw,4.5rem)] font-extrabold leading-[1.02] tracking-[-0.03em] text-white"
           >
-            Trusted where pixels matter
+            Trusted where <br className="hidden md:block" />
+            <span className="premium-text-shimmer bg-gradient-to-r from-brand-purple via-white to-brand-cyan bg-clip-text text-transparent">pixels matter</span>
           </h2>
-          <p
-            className="mx-auto mt-2 max-w-lg text-sm sm:mt-3 sm:text-lg"
-            style={{ color: "var(--text-muted)" }}
-          >
-            Studios, indies, and product teams use RUHGEN to move from concept to
-            final—not just pretty thumbnails.
-          </p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3 md:gap-6">
-          {quotes.map((q) => (
-            <article
-              key={q.name}
-              className="premium-ring flex h-full flex-col rounded-[1.15rem] border p-5 sm:rounded-2xl sm:p-8"
+        {/* Enhanced grid layout to support perfect responsive viewing on all mobile/tablet views */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+          {activeQuotes.map((q, i) => (
+            <motion.article
+              key={q.id || q.name}
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.7, delay: i * 0.08 }}
+              className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-white/[0.03] bg-[#0c0c0f]/20 p-6 sm:p-8 backdrop-blur-2xl transition-all duration-700 hover:border-white/10 hover:bg-[#0e0e12]/35"
               style={{
-                borderColor: "var(--border-subtle)",
-                background: "var(--glass)",
-                backdropFilter: "blur(24px)",
+                boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.01)",
               }}
             >
-              <Quote
-                className="h-9 w-9 shrink-0 opacity-40"
-                style={{ color: "#7B61FF" }}
-                strokeWidth={1.25}
-              />
-              <p
-                className="mt-3 flex-1 text-sm leading-relaxed sm:mt-4 sm:text-base"
-                style={{ color: "var(--text-primary)" }}
-              >
-                {q.body}
-              </p>
-              <div
-                className="mt-6 border-t pt-5 sm:mt-8 sm:pt-6"
-                style={{ borderColor: "var(--border-subtle)" }}
-              >
-                <p className="font-display font-semibold" style={{ color: "var(--text-primary)" }}>
-                  {q.name}
-                </p>
-                <p className="mt-0.5 text-sm" style={{ color: "var(--text-muted)" }}>
-                  {q.role}
-                </p>
+              <div className="relative z-10 flex flex-col h-full justify-between">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <Quote
+                      className="h-6 w-6 shrink-0 opacity-10 transition-all duration-1000 group-hover:opacity-20"
+                      style={{ color: "#ffffff" }}
+                      strokeWidth={1.5}
+                    />
+                  </div>
+                  
+                  {/* Clean Normal Typography for quote body */}
+                  <blockquote
+                    className="mt-6 flex-1 text-[12px] sm:text-xs leading-relaxed font-normal tracking-wide text-white/30 group-hover:text-white/50 transition-colors duration-700"
+                  >
+                    "{q.body}"
+                  </blockquote>
+                </div>
+
+                <div
+                  className="mt-8 border-t border-white/[0.03] pt-6 flex items-center gap-3.5"
+                >
+                  {/* Unique author initials bubble with brand gradient and thin border */}
+                  <div className={`h-9 w-9 rounded-full bg-gradient-to-br ${q.avatarColor || 'from-zinc-800 to-zinc-900'} flex items-center justify-center border border-white/10 shadow-lg text-[10px] font-bold text-white tracking-wide relative overflow-hidden group-hover:border-white/20 transition-colors duration-500`}>
+                    <div className="absolute inset-0 bg-black/10 mix-blend-overlay" />
+                    <span className="relative z-10">{q.initials}</span>
+                  </div>
+                  
+                  <div>
+                    <p className="font-display text-sm font-semibold tracking-wide text-white transition-colors duration-500">
+                      {q.name}
+                    </p>
+                    <p className={`mt-1 text-[8px] uppercase tracking-[0.2em] text-white/30 font-semibold transition-colors duration-500 ${q.hoverColor || 'group-hover:text-white/50'}`}>
+                      {q.role}
+                    </p>
+                  </div>
+                </div>
               </div>
-            </article>
+            </motion.article>
           ))}
         </div>
       </div>

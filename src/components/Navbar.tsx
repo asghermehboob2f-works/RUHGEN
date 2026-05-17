@@ -145,7 +145,8 @@ export function Navbar() {
               className="nav-scroll-x max-w-full touch-pan-x overflow-x-auto overscroll-x-contain scroll-smooth rounded-full border px-1.5 py-1 pb-1.5 scroll-px-2.5 snap-x snap-proximity"
               style={{
                 borderColor: "var(--border-subtle)",
-                background: "var(--glass)",
+                background: "rgba(255, 255, 255, 0.03)",
+                backdropFilter: "blur(40px) saturate(200%)",
               }}
               aria-label="Main"
               onMouseLeave={() => setHoveredId(null)}

@@ -14,7 +14,7 @@ export function MarketingShell({ children }: { children: React.ReactNode }) {
       <div className="app-grain fixed inset-0 z-[1]" aria-hidden />
       <div className="relative z-10 flex min-h-screen flex-col">
         <Navbar />
-        <div className="pb-24 md:pb-0">{children}</div>
+        <div>{children}</div>
         <Footer />
         <MobileDockNav />
       </div>

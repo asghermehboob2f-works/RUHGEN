@@ -51,7 +51,6 @@ function isCategory(x: unknown): x is GalleryCategory {
   return x === "cinematic" || x === "sci-fi" || x === "art" || x === "realistic";
 }
 
-
 function parseGalleryItem(x: unknown): GalleryItem | null {
   if (!isRecord(x)) return null;
   if (!isString(x.id) || !isString(x.src) || !isString(x.alt) || !isString(x.prompt) || !isCategory(x.category)) {
@@ -115,7 +114,11 @@ export function parseSiteContentPayload(data: unknown): SiteContent {
 
   const heroBackground = parseHeroBackgroundConfig(data.heroBackground) || PUBLIC_DEFAULT_SITE_CONTENT.heroBackground;
 
-  return { hero, heroBackground, gallery: { items }, showcase: { slides } };
+  const pillars = Array.isArray(data.pillars) ? data.pillars : PUBLIC_DEFAULT_SITE_CONTENT.pillars;
+  const stats = Array.isArray(data.stats) ? data.stats : PUBLIC_DEFAULT_SITE_CONTENT.stats;
+  const testimonials = Array.isArray(data.testimonials) ? data.testimonials : PUBLIC_DEFAULT_SITE_CONTENT.testimonials;
+
+  return { hero, heroBackground, gallery: { items }, showcase: { slides }, pillars, stats, testimonials };
 }
 
 /** True when the CMS payload has no real gallery media (common after empty DB seed). */
@@ -161,11 +164,18 @@ export function applyPublicSiteDefaults(c: SiteContent): SiteContent {
 
   const heroBackground = c.heroBackground || def.heroBackground;
 
+  const pillars = c.pillars && c.pillars.length > 0 ? c.pillars : def.pillars;
+  const stats = c.stats && c.stats.length > 0 ? c.stats : def.stats;
+  const testimonials = c.testimonials && c.testimonials.length > 0 ? c.testimonials : def.testimonials;
+
   return {
     hero: c.hero,
     heroBackground,
     gallery: { items: galleryItems.length > 0 ? galleryItems : def.gallery.items },
     showcase: { slides: showcaseSlides },
+    pillars,
+    stats,
+    testimonials,
   };
 }
 

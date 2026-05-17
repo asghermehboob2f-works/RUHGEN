@@ -171,6 +171,7 @@ function openDb(projectRoot) {
   seedSiteContentIfEmpty(db, dataDir, projectRoot);
   migrateLegacyJsonIfEmpty(db, dataDir, projectRoot);
   syncSiteContentFromSeedFile(db, dataDir, projectRoot);
+  upgradeExistingSiteContent(db);
   ensureAdminFromEnv(db);
   return { db, dataDir };
 }
@@ -308,6 +309,9 @@ function seedSiteContentIfEmpty(db, dataDir, projectRoot) {
         },
       ],
     },
+    pillars: DEFAULT_PILLARS,
+    stats: DEFAULT_STATS,
+    testimonials: DEFAULT_TESTIMONIALS,
   });
   db.prepare("INSERT INTO site_content (id, json) VALUES (1, ?)").run(fallback);
 }
@@ -510,6 +514,139 @@ function migrateLegacyJsonIfEmpty(db, dataDir, projectRoot) {
     } catch {
       /* ignore */
     }
+  }
+}
+
+const DEFAULT_PILLARS = [
+  {
+    id: "pil-1",
+    title: "Iterate at the speed of thought",
+    body: "Tight feedback loops from prompt to pixel—so you stay in flow instead of waiting on renders.",
+    accent: "#00D4FF",
+    glowColor: "rgba(0, 212, 255, 0.04)",
+    cap1: "Core latency: 14ms",
+    cap2: "Edge rendering",
+  },
+  {
+    id: "pil-2",
+    title: "Cinematic fidelity, production discipline",
+    body: "HDR-aware looks, consistent aspect pipelines, and exports that slot into review and finishing.",
+    accent: "#7B61FF",
+    glowColor: "rgba(123, 97, 255, 0.04)",
+    cap1: "10-bit HDR color",
+    cap2: "DAM Export Ready",
+  },
+  {
+    id: "pil-3",
+    title: "Built for teams, not just tabs",
+    body: "Policies, audit trails, and burst capacity when launch week refuses to be predictable.",
+    accent: "#FF2E9A",
+    glowColor: "rgba(255, 46, 154, 0.04)",
+    cap1: "Concurrence: Unlimited",
+    cap2: "SLA-backed",
+  },
+];
+
+const DEFAULT_STATS = [
+  {
+    id: "stat-1",
+    label: "Generations delivered",
+    value: "12.4M+",
+    sub: "and counting",
+    glowColor: "rgba(123, 97, 255, 0.05)",
+    textColor: "from-brand-purple to-white",
+    accentColor: "#7B61FF",
+    pct: 88,
+  },
+  {
+    id: "stat-2",
+    label: "Median time to first frame",
+    value: "4.2s",
+    sub: "Pro tier, global edge",
+    glowColor: "rgba(0, 212, 255, 0.05)",
+    textColor: "from-brand-cyan to-white",
+    accentColor: "#00D4FF",
+    pct: 95,
+  },
+  {
+    id: "stat-3",
+    label: "Creators & studios",
+    value: "84K+",
+    sub: "in 120+ countries",
+    glowColor: "rgba(255, 46, 154, 0.05)",
+    textColor: "from-brand-pink to-white",
+    accentColor: "#FF2E9A",
+    pct: 74,
+  },
+  {
+    id: "stat-4",
+    label: "Peak output resolution",
+    value: "8K",
+    sub: "HDR-ready exports",
+    glowColor: "rgba(123, 97, 255, 0.05)",
+    textColor: "from-brand-purple via-white to-brand-cyan",
+    accentColor: "#7B61FF",
+    pct: 99,
+  },
+];
+
+const DEFAULT_TESTIMONIALS = [
+  {
+    id: "test-1",
+    body: "We replaced a week of mood-board iteration with one RUHGEN session. The team finally stopped fighting over references and started shipping.",
+    name: "Elena Voss",
+    role: "Creative Director, Northwind Studio",
+    avatarColor: "from-brand-purple to-indigo-950/40",
+    hoverColor: "group-hover:text-brand-purple/70",
+    initials: "EV",
+  },
+  {
+    id: "test-2",
+    body: "Latency is honestly wild. I can iterate on a shot while the director is still in the room—feels like a realtime renderer for ideas.",
+    name: "Marcus Chen",
+    role: "VFX Supervisor",
+    avatarColor: "from-brand-cyan to-teal-950/40",
+    hoverColor: "group-hover:text-brand-cyan/70",
+    initials: "MC",
+  },
+  {
+    id: "test-3",
+    body: "The API slots straight into our asset pipeline. Webhooks fire when renders finish; our DAM ingests frames without anyone touching FTP.",
+    name: "Priya Nair",
+    role: "Head of Platform, Lumen Labs",
+    avatarColor: "from-brand-pink to-rose-950/40",
+    hoverColor: "group-hover:text-brand-pink/70",
+    initials: "PN",
+  },
+];
+
+function upgradeExistingSiteContent(db) {
+  const row = db.prepare("SELECT json FROM site_content WHERE id = 1").get();
+  if (!row) return;
+  let data;
+  try {
+    data = JSON.parse(row.json);
+  } catch (e) {
+    return;
+  }
+
+  let changed = false;
+  if (!data.pillars || !Array.isArray(data.pillars) || data.pillars.length === 0) {
+    data.pillars = DEFAULT_PILLARS;
+    changed = true;
+  }
+  if (!data.stats || !Array.isArray(data.stats) || data.stats.length === 0) {
+    data.stats = DEFAULT_STATS;
+    changed = true;
+  }
+  if (!data.testimonials || !Array.isArray(data.testimonials) || data.testimonials.length === 0) {
+    data.testimonials = DEFAULT_TESTIMONIALS;
+    changed = true;
+  }
+
+  if (changed) {
+    db.prepare("UPDATE site_content SET json = ? WHERE id = 1").run(JSON.stringify(data));
+    console.log("[db] upgraded site content table in SQLite database to include pillars, stats, and testimonials.");
   }
 }
 

@@ -548,8 +548,249 @@ export default function DashboardContentPage() {
                 ))}
               </div>
             </section>
+
+            {/* Value Proposition Editor */}
+            <section className="rounded-2xl border p-5 sm:p-7" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
+              <h2 className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>Value Proposition Pillars</h2>
+              <p className="mt-1 text-sm mb-6" style={{ color: "var(--text-muted)" }}>Customize the three core value feature pillars displayed on the homepage.</p>
+              
+              <div className="grid gap-6 md:grid-cols-3">
+                {content.pillars?.map((p, idx) => (
+                  <div key={p.id || idx} className="editor-card p-4 flex flex-col gap-4 rounded-xl border border-white/5 bg-[#0a0a0d]">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold uppercase tracking-wider text-[#7B61FF]">Pillar {idx + 1}</span>
+                      <div className="h-2 w-2 rounded-full" style={{ backgroundColor: p.accent }} />
+                    </div>
+                    <div className="grid gap-3">
+                      <label className="text-[10px] font-semibold uppercase tracking-wider text-white/40">Title</label>
+                      <input
+                        value={p.title}
+                        onChange={(e) => {
+                          const next = structuredClone(content);
+                          if (!next.pillars) return;
+                          next.pillars[idx].title = e.target.value;
+                          setContent(next);
+                        }}
+                        className="min-h-[40px] w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#7B61FF]/40"
+                        style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
+                        placeholder="Feature title"
+                      />
+                      <label className="text-[10px] font-semibold uppercase tracking-wider text-white/40">Body</label>
+                      <textarea
+                        value={p.body}
+                        onChange={(e) => {
+                          const next = structuredClone(content);
+                          if (!next.pillars) return;
+                          next.pillars[idx].body = e.target.value;
+                          setContent(next);
+                        }}
+                        rows={3}
+                        className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#7B61FF]/40"
+                        style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
+                        placeholder="Feature description text"
+                      />
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-[9px] font-semibold uppercase tracking-wider text-white/30">Spec 1 (Left)</label>
+                          <input
+                            value={p.cap1}
+                            onChange={(e) => {
+                              const next = structuredClone(content);
+                              if (!next.pillars) return;
+                              next.pillars[idx].cap1 = e.target.value;
+                              setContent(next);
+                            }}
+                            className="min-h-[36px] w-full rounded-lg border px-2.5 py-1.5 text-xs outline-none focus:ring-2 focus:ring-[#7B61FF]/40"
+                            style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
+                            placeholder="e.g. Core latency: 14ms"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[9px] font-semibold uppercase tracking-wider text-white/30">Spec 2 (Right Badge)</label>
+                          <input
+                            value={p.cap2}
+                            onChange={(e) => {
+                              const next = structuredClone(content);
+                              if (!next.pillars) return;
+                              next.pillars[idx].cap2 = e.target.value;
+                              setContent(next);
+                            }}
+                            className="min-h-[36px] w-full rounded-lg border px-2.5 py-1.5 text-xs outline-none focus:ring-2 focus:ring-[#7B61FF]/40"
+                            style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
+                            placeholder="e.g. Edge Rendering"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-semibold uppercase tracking-wider text-white/40">Accent Color</label>
+                        <select
+                          value={p.accent}
+                          onChange={(e) => {
+                            const next = structuredClone(content);
+                            if (!next.pillars) return;
+                            const val = e.target.value;
+                            next.pillars[idx].accent = val;
+                            next.pillars[idx].glowColor = val === "#00D4FF" 
+                              ? "rgba(0, 212, 255, 0.04)" 
+                              : val === "#7B61FF" 
+                              ? "rgba(123, 97, 255, 0.04)" 
+                              : "rgba(255, 46, 154, 0.04)";
+                            setContent(next);
+                          }}
+                          className="min-h-[38px] w-full rounded-lg border px-3 py-1.5 text-xs outline-none"
+                          style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
+                        >
+                          <option value="#00D4FF">Brand Cyan</option>
+                          <option value="#7B61FF">Brand Purple</option>
+                          <option value="#FF2E9A">Brand Pink</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* Metrics/Stats Editor */}
+            <section className="rounded-2xl border p-5 sm:p-7" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
+              <h2 className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>Homepage Metrics</h2>
+              <p className="mt-1 text-sm mb-6" style={{ color: "var(--text-muted)" }}>Manage numeric statistics and progress values shown in the live stats bar.</p>
+              
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                {content.stats?.map((s, idx) => (
+                  <div key={s.id || idx} className="editor-card p-4 flex flex-col gap-4 rounded-xl border border-white/5 bg-[#0a0a0d]">
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#00D4FF]">Stat {idx + 1}</span>
+                    <div className="grid gap-3">
+                      <label className="text-[10px] font-semibold uppercase tracking-wider text-white/40">Label</label>
+                      <input
+                        value={s.label}
+                        onChange={(e) => {
+                          const next = structuredClone(content);
+                          if (!next.stats) return;
+                          next.stats[idx].label = e.target.value;
+                          setContent(next);
+                        }}
+                        className="min-h-[40px] w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#7B61FF]/40"
+                        style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
+                        placeholder="Label"
+                      />
+                      <label className="text-[10px] font-semibold uppercase tracking-wider text-white/40">Value</label>
+                      <input
+                        value={s.value}
+                        onChange={(e) => {
+                          const next = structuredClone(content);
+                          if (!next.stats) return;
+                          next.stats[idx].value = e.target.value;
+                          setContent(next);
+                        }}
+                        className="min-h-[40px] w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#7B61FF]/40"
+                        style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
+                        placeholder="Value (e.g. 12.4M+)"
+                      />
+                      <label className="text-[10px] font-semibold uppercase tracking-wider text-white/40">Subtext</label>
+                      <input
+                        value={s.sub}
+                        onChange={(e) => {
+                          const next = structuredClone(content);
+                          if (!next.stats) return;
+                          next.stats[idx].sub = e.target.value;
+                          setContent(next);
+                        }}
+                        className="min-h-[40px] w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#7B61FF]/40"
+                        style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
+                        placeholder="Subtext"
+                      />
+                      <label className="text-[10px] font-semibold uppercase tracking-wider text-white/40">Percentage ({s.pct}%)</label>
+                      <input
+                        type="range"
+                        min={0}
+                        max={100}
+                        value={s.pct}
+                        onChange={(e) => {
+                          const next = structuredClone(content);
+                          if (!next.stats) return;
+                          next.stats[idx].pct = Number(e.target.value);
+                          setContent(next);
+                        }}
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* Testimonials Editor */}
+            <section className="rounded-2xl border p-5 sm:p-7" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
+              <h2 className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>Verified Testimonials</h2>
+              <p className="mt-1 text-sm mb-6" style={{ color: "var(--text-muted)" }}>Edit the verified customer endorsements and quotes shown on the homepage.</p>
+              
+              <div className="grid gap-6 md:grid-cols-3">
+                {content.testimonials?.map((t, idx) => (
+                  <div key={t.id || idx} className="editor-card p-4 flex flex-col gap-4 rounded-xl border border-white/5 bg-[#0a0a0d]">
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#ff2e9a]">Testimonial {idx + 1}</span>
+                    <div className="grid gap-3">
+                      <label className="text-[10px] font-semibold uppercase tracking-wider text-white/40">Quote Body</label>
+                      <textarea
+                        value={t.body}
+                        onChange={(e) => {
+                          const next = structuredClone(content);
+                          if (!next.testimonials) return;
+                          next.testimonials[idx].body = e.target.value;
+                          setContent(next);
+                        }}
+                        rows={4}
+                        className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#7B61FF]/40"
+                        style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
+                        placeholder="Quote text"
+                      />
+                      <label className="text-[10px] font-semibold uppercase tracking-wider text-white/40">Name</label>
+                      <input
+                        value={t.name}
+                        onChange={(e) => {
+                          const next = structuredClone(content);
+                          if (!next.testimonials) return;
+                          next.testimonials[idx].name = e.target.value;
+                          setContent(next);
+                        }}
+                        className="min-h-[40px] w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#7B61FF]/40"
+                        style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
+                        placeholder="Client name"
+                      />
+                      <label className="text-[10px] font-semibold uppercase tracking-wider text-white/40">Role / Company</label>
+                      <input
+                        value={t.role}
+                        onChange={(e) => {
+                          const next = structuredClone(content);
+                          if (!next.testimonials) return;
+                          next.testimonials[idx].role = e.target.value;
+                          setContent(next);
+                        }}
+                        className="min-h-[40px] w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#7B61FF]/40"
+                        style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
+                        placeholder="Creative Director, Studio"
+                      />
+                      <label className="text-[10px] font-semibold uppercase tracking-wider text-white/40">Initials</label>
+                      <input
+                        value={t.initials}
+                        onChange={(e) => {
+                          const next = structuredClone(content);
+                          if (!next.testimonials) return;
+                          next.testimonials[idx].initials = e.target.value.slice(0, 3).toUpperCase();
+                          setContent(next);
+                        }}
+                        className="min-h-[40px] w-24 rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#7B61FF]/40"
+                        style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
+                        placeholder="EV"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
           </div>
         )}
+
       </div>
 {/* Preview Modal */}
 {previewOpen && content && (

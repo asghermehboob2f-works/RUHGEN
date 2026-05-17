@@ -2,116 +2,159 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import { Cpu, Film, Zap } from "lucide-react";
+import type { PillarItem } from "@/backend/site-content/types";
 
-const pillars = [
+const defaultPillars: PillarItem[] = [
   {
-    icon: Zap,
+    id: "pil-1",
     title: "Iterate at the speed of thought",
     body: "Tight feedback loops from prompt to pixel—so you stay in flow instead of waiting on renders.",
     accent: "#00D4FF",
+    glowColor: "rgba(0, 212, 255, 0.04)",
+    cap1: "Core latency: 14ms",
+    cap2: "Edge rendering",
   },
   {
-    icon: Film,
+    id: "pil-2",
     title: "Cinematic fidelity, production discipline",
     body: "HDR-aware looks, consistent aspect pipelines, and exports that slot into review and finishing.",
     accent: "#7B61FF",
+    glowColor: "rgba(123, 97, 255, 0.04)",
+    cap1: "10-bit HDR color",
+    cap2: "DAM Export Ready",
   },
   {
-    icon: Cpu,
+    id: "pil-3",
     title: "Built for teams, not just tabs",
     body: "Policies, audit trails, and burst capacity when launch week refuses to be predictable.",
     accent: "#FF2E9A",
+    glowColor: "rgba(255, 46, 154, 0.04)",
+    cap1: "Concurrence: Unlimited",
+    cap2: "SLA-backed",
   },
 ];
 
-export function ValueProposition() {
+const iconMap = [Zap, Film, Cpu];
+
+export function ValueProposition({ pillars }: { pillars?: PillarItem[] }) {
   const reduce = useReducedMotion();
+  const activePillars = pillars && pillars.length > 0 ? pillars : defaultPillars;
 
   return (
     <section
       id="value"
-      className="relative scroll-mt-24 border-y py-14 md:py-20"
+      className="relative scroll-mt-24 overflow-hidden border-y py-16 sm:py-20 md:py-28"
       style={{
         borderColor: "var(--border-subtle)",
-        background:
-          "linear-gradient(180deg, color-mix(in srgb, var(--rich-black) 88%, transparent) 0%, var(--deep-black) 45%, var(--deep-black) 100%)",
+        background: "radial-gradient(ellipse 80% 50% at 50% 100%, rgba(123, 97, 255, 0.02), transparent 70%), #050505",
       }}
     >
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#7B61FF]/35 to-transparent"
-        aria-hidden
+      {/* Precision grid backdrop (Minimal & Subtle) */}
+      <div 
+        className="absolute inset-0 opacity-[0.008] mix-blend-screen pointer-events-none"
+        style={{
+          backgroundImage: `
+            linear-gradient(to right, white 1px, transparent 1px),
+            linear-gradient(to bottom, white 1px, transparent 1px)
+          `,
+          backgroundSize: "120px 120px",
+        }}
       />
-      <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-10">
+
+      <div className="mx-auto max-w-full px-6 sm:px-12 lg:px-20 xl:px-32 relative z-10">
+        
         <motion.div
           className="mx-auto max-w-3xl text-center"
-          initial={reduce ? false : { opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-60px" }}
-          transition={{ duration: 0.45 }}
+          initial={reduce ? false : { opacity: 0, y: 12, filter: "blur(5px)" }}
+          whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         >
-          <p
-            className="text-xs font-bold uppercase tracking-[0.2em] sm:text-sm"
-            style={{ color: "var(--text-subtle)" }}
-          >
-            Why teams choose RUHGEN
-          </p>
+          {/* Elegant Badge */}
+          <div className="relative mb-5 inline-flex items-center justify-center rounded-full border border-white/10 bg-white/[0.02] px-5 py-1.5 backdrop-blur-2xl transition-all duration-500 hover:border-brand-purple/20">
+            <span className="text-[8px] font-semibold uppercase tracking-[0.4em] text-white/40 ml-[0.4em]">
+              Platform Architecture
+            </span>
+          </div>
+
+          {/* display heading with cohesive brand shimmer */}
           <h2
-            className="font-display mt-3 text-section-title font-bold leading-[1.2] tracking-tight"
-            style={{ color: "var(--text-primary)" }}
+            className="font-display text-[clamp(2rem,5vw,3.75rem)] font-extrabold leading-[1.05] tracking-[-0.03em] text-white"
           >
-            One engine for stills, motion, and momentum
+            One engine. <br className="md:hidden" />
+            <span className="premium-text-shimmer bg-gradient-to-r from-brand-purple via-white to-brand-cyan bg-clip-text text-transparent">Infinite vision.</span>
           </h2>
+          
           <p
-            className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed sm:mt-4 sm:text-base"
-            style={{ color: "var(--text-muted)" }}
+            className="mx-auto mt-5 max-w-lg text-xs sm:text-sm leading-relaxed font-normal tracking-wide text-white/40"
           >
-            A focused surface with serious infrastructure underneath—so creative direction leads, and
-            tooling gets out of the way.
+            A cohesive creation space backed by high-fidelity infrastructure—so your creative direction leads, and the tooling follows.
           </p>
         </motion.div>
 
-        <div className="mt-10 grid gap-4 sm:mt-14 sm:grid-cols-1 sm:gap-5 md:grid-cols-3 md:gap-6">
-          {pillars.map((p, i) => (
-            <motion.article
-              key={p.title}
-              initial={reduce ? false : { opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-40px" }}
-              transition={{ duration: 0.4, delay: reduce ? 0 : i * 0.06 }}
-              className="premium-ring relative overflow-hidden rounded-[1.15rem] border p-5 sm:rounded-2xl sm:p-7"
-              style={{
-                borderColor: "var(--border-subtle)",
-                background: "var(--glass)",
-                backdropFilter: "blur(20px)",
-              }}
-            >
-              <div
-                className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full opacity-25 blur-3xl"
-                style={{ background: p.accent }}
-              />
-              <div
-                className="relative mb-4 flex h-11 w-11 items-center justify-center rounded-xl border"
-                style={{
-                  borderColor: "var(--border-subtle)",
-                  background: `linear-gradient(135deg, color-mix(in srgb, ${p.accent} 22%, transparent), rgba(255,255,255,0.04))`,
-                }}
+        {/* Pillars Grid with soft roundness and unified brand colors */}
+        <div className="mt-12 sm:mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
+          {activePillars.map((p, i) => {
+            const IconComponent = iconMap[i % iconMap.length];
+            return (
+              <motion.article
+                key={p.id || p.title}
+                initial={reduce ? false : { opacity: 0, y: 12, filter: "blur(2px)" }}
+                whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 0.7, delay: reduce ? 0 : i * 0.05, ease: [0.16, 1, 0.3, 1] }}
+                className="group relative h-full overflow-hidden rounded-2xl border border-white/[0.03] bg-[#07070a]/20 p-6 sm:p-8 backdrop-blur-2xl transition-all duration-700 hover:border-white/10 hover:bg-[#0c0c10]/30 flex flex-col justify-between"
               >
-                <p.icon className="h-5 w-5" strokeWidth={1.75} style={{ color: p.accent }} />
-              </div>
-              <h3
-                className="font-display relative text-base font-semibold leading-snug sm:text-lg"
-                style={{ color: "var(--text-primary)" }}
-              >
-                {p.title}
-              </h3>
-              <p
-                className="relative mt-2 text-sm leading-relaxed"
-                style={{ color: "var(--text-muted)" }}
-              >
-                {p.body}
-              </p>
-            </motion.article>
-          ))}
+                {/* Soft, minimal ambient glow behind cards on hover (Brand integrated) */}
+                <div 
+                  className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none"
+                  style={{
+                    background: `radial-gradient(circle at 50% 0%, ${p.glowColor || 'rgba(255, 255, 255, 0.02)'}, transparent 60%)`,
+                  }}
+                />
+
+                {/* Dynamic top gradient line that shines on hover (Brand integrated) */}
+                <div 
+                  className="absolute top-0 inset-x-0 h-[1.5px] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
+                  style={{
+                    backgroundImage: `linear-gradient(to right, transparent, ${p.accent || '#ffffff'}, transparent)`
+                  }}
+                />
+
+                <div className="relative z-10 flex flex-col h-full justify-between">
+                  <div>
+                    
+                    {/* Glowing Iconic Container (Brand integrated) */}
+                    <div
+                      className="mb-6 flex h-11 w-11 items-center justify-center rounded-xl border border-white/5 bg-white/[0.01] transition-all duration-700 group-hover:border-white/15"
+                    >
+                      <IconComponent className="h-5 w-5 transition-colors duration-500" strokeWidth={1.5} style={{ color: p.accent || '#ffffff' }} />
+                    </div>
+                    
+                    {/* BOLD Pillar Title */}
+                    <h3
+                      className="font-display text-sm font-semibold tracking-tight text-white transition-colors duration-500"
+                    >
+                      {p.title}
+                    </h3>
+                    
+                    {/* Slimmed description text */}
+                    <p
+                      className="mt-3 text-[11.5px] sm:text-xs leading-relaxed font-normal tracking-wide text-white/30 transition-colors duration-500 group-hover:text-white/45"
+                    >
+                      {p.body}
+                    </p>
+                  </div>
+
+                  {/* Elegant dynamic capability indicators visible at all times */}
+                  <div className="mt-8 pt-4 border-t border-white/[0.03] flex items-center justify-between text-[8px] font-mono tracking-wider text-white/20 transition-colors duration-500 group-hover:text-white/40">
+                    <span className="uppercase">{p.cap1}</span>
+                    <span className="uppercase px-2 py-0.5 rounded border border-white/5 bg-white/[0.01]" style={{ borderColor: `${p.accent || '#ffffff'}20`, color: p.accent || '#ffffff' }}>{p.cap2}</span>
+                  </div>
+                </div>
+              </motion.article>
+            );
+          })}
         </div>
       </div>
     </section>
