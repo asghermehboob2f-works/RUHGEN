@@ -53,7 +53,7 @@ function detectKindFromUrl(url: string): CommunityKind | null {
 function isValidUrl(value: string) {
   const v = value.trim();
   if (!v) return false;
-  if (v.startsWith("/media/")) return true;
+  if (v.startsWith("/media/") || v.startsWith("/community-media/")) return true;
   return /^https:\/\//i.test(v) || /^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?\//i.test(v);
 }
 

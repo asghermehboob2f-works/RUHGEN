@@ -136,6 +136,8 @@ function gradientFor(name: string): string {
 /*  Top-level component                                                       */
 /* -------------------------------------------------------------------------- */
 
+const PAGE_SIZE = 18;
+
 export function CommunityPageContent() {
   const { user, ready } = useAuth();
   const reduce = useReducedMotion();
@@ -147,6 +149,8 @@ export function CommunityPageContent() {
   const [search, setSearch] = useState("");
 
   const [posts, setPosts] = useState<CommunityPost[]>([]);
+  const [totalPostsCount, setTotalPostsCount] = useState(0);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [stats, setStats] = useState<CommunityStats | null>(null);
   const [tags, setTags] = useState<CommunityTag[]>([]);
   const [creators, setCreators] = useState<CommunityCreator[]>([]);
@@ -184,10 +188,12 @@ export function CommunityPageContent() {
           sort,
           tag: tag || undefined,
           q: search || undefined,
-          limit: 36,
+          limit: PAGE_SIZE,
+          offset: 0,
         });
         if (!aliveRef.current) return;
         setPosts(r.posts);
+        setTotalPostsCount(r.total);
       } catch (e) {
         if (!aliveRef.current) return;
         setError(e instanceof Error ? e.message : "Couldn't load the feed.");
@@ -200,6 +206,36 @@ export function CommunityPageContent() {
     },
     [type, sort, tag, search]
   );
+
+  const loadMore = useCallback(async () => {
+    if (loadingMore || posts.length >= totalPostsCount) return;
+    setLoadingMore(true);
+    setError(null);
+    try {
+      const r = await fetchFeed({
+        type,
+        sort,
+        tag: tag || undefined,
+        q: search || undefined,
+        limit: PAGE_SIZE,
+        offset: posts.length,
+      });
+      if (!aliveRef.current) return;
+      setPosts((prev) => {
+        const existingIds = new Set(prev.map((p) => p.id));
+        const newPosts = r.posts.filter((p) => !existingIds.has(p.id));
+        return [...prev, ...newPosts];
+      });
+      setTotalPostsCount(r.total);
+    } catch (e) {
+      if (!aliveRef.current) return;
+      setError(e instanceof Error ? e.message : "Couldn't load more posts.");
+    } finally {
+      if (aliveRef.current) {
+        setLoadingMore(false);
+      }
+    }
+  }, [type, sort, tag, search, posts.length, totalPostsCount, loadingMore]);
 
   const loadAux = useCallback(async () => {
     try {
@@ -361,6 +397,9 @@ export function CommunityPageContent() {
         onOpen={(p) => setOpenPost(p)}
         onShareClick={() => setShareOpen(true)}
         currentUserId={user?.id ?? null}
+        hasMore={posts.length < totalPostsCount}
+        loadingMore={loadingMore}
+        onLoadMore={loadMore}
       />
 
       <CreatorsSection creators={creators} />
@@ -1194,6 +1233,9 @@ function FeedSection({
   onOpen,
   onShareClick,
   currentUserId,
+  hasMore,
+  loadingMore,
+  onLoadMore,
 }: {
   posts: CommunityPost[];
   loading: boolean;
@@ -1215,6 +1257,9 @@ function FeedSection({
   onOpen: (p: CommunityPost) => void;
   onShareClick: () => void;
   currentUserId: string | null;
+  hasMore: boolean;
+  loadingMore: boolean;
+  onLoadMore: () => void;
 }) {
   return (
     <section id="community-feed" className={`${SITE_CONTAINER} mt-20 sm:mt-32`}>
@@ -1308,17 +1353,48 @@ function FeedSection({
             onShare={onShareClick}
           />
         ) : (
-          <div className="grid auto-rows-[1fr] gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {posts.map((p, idx) => (
-              <FeedCard
-                key={p.id}
-                post={p}
-                index={idx}
-                onOpen={() => onOpen(p)}
-                isOwn={!!currentUserId && p.author.id === currentUserId}
-              />
-            ))}
-          </div>
+          <>
+            <div className="columns-2 gap-3 sm:columns-3 md:columns-4 lg:columns-5 xl:columns-6 w-full [column-fill:balance]">
+              {posts.map((p, idx) => (
+                <div key={p.id} className="break-inside-avoid mb-4 block w-full">
+                  <FeedCard
+                    post={p}
+                    index={idx}
+                    onOpen={() => onOpen(p)}
+                    isOwn={!!currentUserId && p.author.id === currentUserId}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {hasMore && (
+              <div className="mt-12 flex justify-center pb-6">
+                <button
+                  type="button"
+                  onClick={onLoadMore}
+                  disabled={loadingMore}
+                  className="inline-flex min-h-[50px] items-center gap-2 rounded-xl border px-8 text-sm font-semibold transition-all hover:-translate-y-0.5 hover:border-[color-mix(in_srgb,var(--primary-cyan)_35%,var(--border-subtle))] disabled:opacity-50"
+                  style={{
+                    borderColor: "var(--border-subtle)",
+                    color: "var(--text-primary)",
+                    background: "var(--glass)",
+                  }}
+                >
+                  {loadingMore ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Retrieving drops...
+                    </>
+                  ) : (
+                    <>
+                      <span>Load more drops</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </section>
@@ -1472,12 +1548,13 @@ function TagsRail({
 }
 
 function FeedSkeleton() {
+  const heights = ["aspect-[4/5]", "aspect-[3/4]", "aspect-[1/1]", "aspect-[4/5]", "aspect-[3/2]", "aspect-[4/5]"];
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {Array.from({ length: 6 }).map((_, i) => (
+    <div className="columns-2 gap-3 sm:columns-3 md:columns-4 lg:columns-5 xl:columns-6 w-full">
+      {Array.from({ length: PAGE_SIZE }).map((_, i) => (
         <div
           key={i}
-          className="aspect-[4/5] animate-pulse rounded-2xl border"
+          className={`break-inside-avoid mb-4 ${heights[i % heights.length]} animate-pulse rounded-2xl border`}
           style={{
             borderColor: "var(--border-subtle)",
             background:
@@ -1562,6 +1639,7 @@ function FeedCard({
   isOwn: boolean;
 }) {
   const reduce = useReducedMotion();
+  const hasValidRatio = post.width && post.height && post.width > 0 && post.height > 0;
   return (
     <motion.button
       type="button"
@@ -1571,14 +1649,19 @@ function FeedCard({
       viewport={{ once: true, margin: "0px 0px -10% 0px" }}
       transition={{ delay: reduce ? 0 : Math.min(index * 0.04, 0.4), duration: 0.35 }}
       whileHover={reduce ? undefined : { y: -3 }}
-      className="group relative flex h-full flex-col overflow-hidden rounded-2xl border text-left transition-colors hover:border-[color-mix(in_srgb,var(--primary-purple)_22%,var(--border-subtle))]"
+      className="group relative flex w-full flex-col overflow-hidden rounded-2xl border text-left transition-colors hover:border-[color-mix(in_srgb,var(--primary-purple)_22%,var(--border-subtle))]"
       style={{
         borderColor: "var(--border-subtle)",
         background: "var(--soft-black)",
       }}
       aria-label={`Open ${post.title || "post"} by ${post.author.name}`}
     >
-      <div className="relative aspect-[4/5] w-full overflow-hidden bg-black/30">
+      <div
+        className="relative w-full overflow-hidden bg-black/30"
+        style={{
+          aspectRatio: hasValidRatio ? `${post.width} / ${post.height}` : "4/5",
+        }}
+      >
         {post.kind === "image" ? (
           // eslint-disable-next-line @next/next/no-img-element -- arbitrary remote URL
           <img
@@ -1609,32 +1692,32 @@ function FeedCard({
         )}
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[var(--deep-black)] via-transparent to-transparent" aria-hidden />
 
-        <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
+        <div className="absolute left-2 top-2 flex flex-wrap gap-1">
           <span
-            className="inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-white backdrop-blur-md"
+            className="inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[8px] sm:text-[10px] font-medium uppercase tracking-wider text-white backdrop-blur-md"
             style={{
               borderColor: "rgba(255,255,255,0.18)",
               background: "rgba(0,0,0,0.45)",
             }}
           >
-            {post.kind === "image" ? <ImageIcon className="h-3 w-3" /> : <VideoIcon className="h-3 w-3" />}
+            {post.kind === "image" ? <ImageIcon className="h-2.5 w-2.5 sm:h-3 sm:w-3" /> : <VideoIcon className="h-2.5 w-2.5 sm:h-3 sm:w-3" />}
             {post.kind}
           </span>
           {post.featured && (
             <span
-              className="inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-white backdrop-blur-md"
+              className="inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[8px] sm:text-[10px] font-medium uppercase tracking-wider text-white backdrop-blur-md"
               style={{
                 borderColor: "rgba(255,255,255,0.22)",
                 background: "rgba(0,0,0,0.45)",
               }}
             >
-              <Crown className="h-3 w-3" strokeWidth={2} />
+              <Crown className="h-2.5 w-2.5 sm:h-3 sm:w-3" strokeWidth={2} />
               Featured
             </span>
           )}
           {isOwn && (
             <span
-              className="inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-white backdrop-blur-md"
+              className="inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[8px] sm:text-[10px] font-medium uppercase tracking-wider text-white backdrop-blur-md"
               style={{
                 borderColor: "rgba(255,255,255,0.18)",
                 background: "rgba(0,0,0,0.45)",
@@ -1647,75 +1730,75 @@ function FeedCard({
 
         {post.kind === "video" && (
           <span
-            className="pointer-events-none absolute right-3 top-3 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider backdrop-blur-md"
+            className="pointer-events-none absolute right-2 top-2 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[8px] sm:text-[10px] font-bold uppercase tracking-wider backdrop-blur-md"
             style={{
               background: "color-mix(in srgb, var(--rich-black) 70%, transparent)",
               color: "var(--text-primary)",
               border: "1px solid var(--border-subtle)",
             }}
           >
-            <Play className="h-3 w-3" strokeWidth={2} />
+            <Play className="h-2.5 w-2.5 sm:h-3 sm:w-3" strokeWidth={2} />
             Preview
           </span>
         )}
 
-        <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 px-3 pb-3">
-          <div className="flex min-w-0 items-center gap-2">
+        <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1.5 px-2 pb-2 sm:px-3 sm:pb-3">
+          <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
             <span
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
+              className="flex h-5 w-5 sm:h-7 sm:w-7 shrink-0 items-center justify-center rounded-full text-[8px] sm:text-[10px] font-bold text-white"
               style={{ background: gradientFor(post.author.name || post.id) }}
             >
               {initials(post.author.name || "??")}
             </span>
             <div className="min-w-0">
-              <p className="truncate text-xs font-bold" style={{ color: "var(--text-primary)" }}>
+              <p className="truncate text-[10px] sm:text-xs font-bold leading-tight" style={{ color: "var(--text-primary)" }}>
                 {post.author.name}
               </p>
-              <p className="truncate text-[10px]" style={{ color: "var(--text-subtle)" }}>
+              <p className="truncate text-[8px] sm:text-[10px] leading-tight" style={{ color: "var(--text-subtle)" }}>
                 {timeAgo(post.createdAt)}
               </p>
             </div>
           </div>
           <span
-            className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-bold tabular-nums"
+            className="inline-flex items-center gap-0.5 sm:gap-1 rounded-md px-1 py-0.5 text-[8px] sm:text-[10px] font-bold tabular-nums"
             style={{
               background: "color-mix(in srgb, var(--rich-black) 65%, transparent)",
               color: "var(--text-primary)",
               border: "1px solid var(--border-subtle)",
             }}
           >
-            <Eye className="h-3 w-3" strokeWidth={2} /> {fmtCount(post.views)}
+            <Eye className="h-2.5 w-2.5 sm:h-3 sm:w-3" strokeWidth={2} /> {fmtCount(post.views)}
           </span>
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col gap-2 p-4">
+      <div className="flex flex-1 flex-col gap-1.5 p-2.5 sm:p-4">
         {post.title && (
-          <p className="font-display line-clamp-1 text-sm font-bold" style={{ color: "var(--text-primary)" }}>
+          <p className="font-display line-clamp-1 text-xs sm:text-sm font-bold" style={{ color: "var(--text-primary)" }}>
             {post.title}
           </p>
         )}
-        <p className="line-clamp-2 text-xs leading-snug" style={{ color: "var(--text-muted)" }}>
+        <p className="line-clamp-2 text-[10px] sm:text-xs leading-snug" style={{ color: "var(--text-muted)" }}>
           {post.prompt}
         </p>
         <div className="mt-auto flex items-center justify-between gap-2 pt-1">
-          <div className="flex items-center gap-3 text-[11px] font-semibold tabular-nums" style={{ color: "var(--text-muted)" }}>
-            <span className="inline-flex items-center gap-1">
+          <div className="flex items-center gap-1.5 sm:gap-3 text-[9px] sm:text-[11px] font-semibold tabular-nums" style={{ color: "var(--text-muted)" }}>
+            <span className="inline-flex items-center gap-0.5 sm:gap-1">
               <Heart
-                className="h-3.5 w-3.5"
+                className="h-3 w-3 sm:h-3.5 sm:w-3.5"
                 strokeWidth={2}
                 fill={post.viewer.liked ? "currentColor" : "none"}
                 style={{ color: post.viewer.liked ? "var(--primary-pink)" : undefined }}
               />
               {fmtCount(post.likes)}
             </span>
-            <span className="inline-flex items-center gap-1">
-              <MessageCircle className="h-3.5 w-3.5" strokeWidth={2} />
+            <span className="inline-flex items-center gap-0.5 sm:gap-1">
+              <MessageCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5" strokeWidth={2} />
               {fmtCount(post.comments)}
             </span>
-            <span className="inline-flex items-center gap-1">
+            <span className="inline-flex items-center gap-0.5 sm:gap-1">
               <Bookmark
-                className="h-3.5 w-3.5"
+                className="h-3 w-3 sm:h-3.5 sm:w-3.5"
                 strokeWidth={2}
                 fill={post.viewer.saved ? "currentColor" : "none"}
                 style={{ color: post.viewer.saved ? "var(--primary-cyan)" : undefined }}
@@ -1724,7 +1807,7 @@ function FeedCard({
             </span>
           </div>
           {post.tags.length > 0 && (
-            <span className="truncate text-[11px] font-semibold" style={{ color: "var(--primary-cyan)" }}>
+            <span className="truncate text-[9px] sm:text-[11px] font-semibold" style={{ color: "var(--primary-cyan)" }}>
               #{post.tags[0]}
             </span>
           )}

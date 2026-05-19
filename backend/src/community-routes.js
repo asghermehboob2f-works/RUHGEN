@@ -7,6 +7,77 @@
 
 const crypto = require("node:crypto");
 const { verifyUserToken } = require("./auth");
+const fs = require("node:fs");
+const path = require("node:path");
+
+// Ensure media directory exists
+const persistentDir = path.resolve(__dirname, "..", "..", "media", "community-media");
+const publicDir = path.resolve(__dirname, "..", "..", "public", "community-media");
+
+if (!fs.existsSync(persistentDir)) {
+  fs.mkdirSync(persistentDir, { recursive: true });
+}
+if (!fs.existsSync(publicDir)) {
+  fs.mkdirSync(publicDir, { recursive: true });
+}
+
+/**
+ * Download media from a URL or parse base64 and store it locally, returning the public path.
+ * @param {string} url - The external media URL or data URL.
+ * @returns {Promise<string>} - The local media URL (e.g., "/community-media/<filename>").
+ */
+async function storeCommunityMedia(url) {
+  try {
+    let ext = ".jpg";
+    let buffer;
+    
+    // Handle data URL (base64-encoded image)
+    if (url.startsWith("data:")) {
+      const matches = url.match(/^data:([^;]+);base64,(.+)$/);
+      if (!matches) throw new Error("Unsupported data URL format");
+      const mime = matches[1];
+      const base64Data = matches[2];
+      const extMap = { 
+        "image/jpeg": ".jpg", 
+        "image/png": ".png", 
+        "image/gif": ".gif", 
+        "image/webp": ".webp",
+        "video/mp4": ".mp4",
+        "video/webm": ".webm"
+      };
+      ext = extMap[mime] || ".jpg";
+      buffer = Buffer.from(base64Data, "base64");
+    } else {
+      // Regular URL download
+      const parsed = new URL(url);
+      ext = path.extname(parsed.pathname) || ".jpg";
+      // Remove query parameters or hash from extension
+      ext = ext.split(/[?#]/)[0];
+      if (!/^\.[a-zA-Z0-9]+$/.test(ext)) {
+        ext = ".jpg";
+      }
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`Failed to download media: ${response.statusText}`);
+      const arrayBuffer = await response.arrayBuffer();
+      buffer = Buffer.from(arrayBuffer);
+    }
+
+    const filename = crypto.randomUUID() + ext;
+    
+    // Write to persistent media storage
+    const persistentPath = path.join(persistentDir, filename);
+    fs.writeFileSync(persistentPath, buffer);
+    
+    // Write to public folder for serving
+    const publicPath = path.join(publicDir, filename);
+    fs.writeFileSync(publicPath, buffer);
+    
+    return `/community-media/${filename}`;
+  } catch (e) {
+    console.error("Community media storage error:", e);
+    throw e;
+  }
+}
 
 const MAX_TAGS = 8;
 const MAX_TAG_LENGTH = 24;
@@ -15,6 +86,9 @@ const MAX_TITLE = 140;
 const MAX_COMMENT = 800;
 const FEED_PAGE_SIZE = 24;
 const MAX_FEED_PAGE_SIZE = 60;
+
+
+
 
 function getBearer(req) {
   const auth = String(req.headers.authorization || "").trim();
@@ -54,7 +128,7 @@ function isAcceptableMediaUrl(value) {
   const v = value.trim();
   if (!v) return false;
   if (v.length > 2048) return false;
-  if (v.startsWith("/media/")) return true;
+  if (v.startsWith("/media/") || v.startsWith("/community-media/")) return true;
   return isHttpsUrl(v);
 }
 
@@ -387,21 +461,27 @@ function mountCommunityRoutes(app, { db }) {
     }
   });
 
-  app.post("/api/community/posts", requireUser, (req, res) => {
+  app.post("/api/community/posts", requireUser, async (req, res) => {
     try {
       const kindRaw = String(req.body?.kind || "").toLowerCase();
       if (!["image", "video"].includes(kindRaw)) {
         return res.status(400).json({ ok: false, error: "Pick image or video." });
       }
-      const mediaUrl = typeof req.body?.mediaUrl === "string" ? req.body.mediaUrl.trim() : "";
-      if (!isAcceptableMediaUrl(mediaUrl)) {
+      let mediaUrl = typeof req.body?.mediaUrl === "string" ? req.body.mediaUrl.trim() : "";
+      if (mediaUrl.startsWith("data:") || isHttpsUrl(mediaUrl)) {
+        mediaUrl = await storeCommunityMedia(mediaUrl);
+      } else if (!isAcceptableMediaUrl(mediaUrl)) {
         return res
           .status(400)
-          .json({ ok: false, error: "Media URL must be HTTPS or a /media/... path." });
+          .json({ ok: false, error: "Media URL must be HTTPS or a local media path." });
       }
+      
       const thumbInput =
         typeof req.body?.thumbnailUrl === "string" ? req.body.thumbnailUrl.trim() : "";
-      const thumbnailUrl = thumbInput && isAcceptableMediaUrl(thumbInput) ? thumbInput : "";
+      let thumbnailUrl = thumbInput && isAcceptableMediaUrl(thumbInput) ? thumbInput : "";
+      if (thumbnailUrl.startsWith("data:") || isHttpsUrl(thumbnailUrl)) {
+        thumbnailUrl = await storeCommunityMedia(thumbnailUrl);
+      }
 
       const title =
         typeof req.body?.title === "string" ? req.body.title.trim().slice(0, MAX_TITLE) : "";
@@ -456,13 +536,50 @@ function mountCommunityRoutes(app, { db }) {
   app.delete("/api/community/posts/:id", requireUser, (req, res) => {
     try {
       const id = String(req.params.id || "").trim();
-      const row = db.prepare("SELECT user_id FROM community_posts WHERE id = ? AND removed = 0").get(id);
+      const row = db.prepare("SELECT user_id, media_url, thumbnail_url FROM community_posts WHERE id = ? AND removed = 0").get(id);
       if (!row) {
         return res.status(404).json({ ok: false, error: "Post not found." });
       }
       if (row.user_id !== req.user.id) {
         return res.status(403).json({ ok: false, error: "Only the author can remove this post." });
       }
+
+      // Helper function to safely delete local media files
+      const deleteLocalMedia = (mediaUrl) => {
+        if (typeof mediaUrl !== "string" || !mediaUrl.startsWith("/community-media/")) {
+          return;
+        }
+        const filename = mediaUrl.slice("/community-media/".length);
+        if (!filename || filename.includes("..") || filename.includes("/") || filename.includes("\\")) {
+          return; // Prevent directory traversal
+        }
+
+        const pPath = path.join(persistentDir, filename);
+        const pubPath = path.join(publicDir, filename);
+
+        try {
+          if (fs.existsSync(pPath)) {
+            fs.unlinkSync(pPath);
+            console.log(`Deleted persistent media file: ${pPath}`);
+          }
+        } catch (e) {
+          console.error(`Error deleting persistent media file ${pPath}:`, e);
+        }
+
+        try {
+          if (fs.existsSync(pubPath)) {
+            fs.unlinkSync(pubPath);
+            console.log(`Deleted public media file: ${pubPath}`);
+          }
+        } catch (e) {
+          console.error(`Error deleting public media file ${pubPath}:`, e);
+        }
+      };
+
+      // Delete files from storage
+      deleteLocalMedia(row.media_url);
+      deleteLocalMedia(row.thumbnail_url);
+
       db.prepare("UPDATE community_posts SET removed = 1 WHERE id = ?").run(id);
       return res.json({ ok: true });
     } catch (e) {
