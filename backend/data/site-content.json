@@ -30,6 +30,13 @@
   "gallery": {
     "items": [
       {
+        "id": "04961352-c28d-4e7d-8a6e-ed067d012069",
+        "src": "/media/gallery/f578e102-a5d4-4f8e-99ae-e8d09069a542.png",
+        "alt": "tanjiro-kamado-3840x2160-9323.png",
+        "prompt": "A faceless high-quality anime characterr",
+        "category": "art"
+      },
+      {
         "id": "g-1",
         "src": "/media/gallery/f4576312-9ac7-4bbd-801e-2144694743e3.jpg",
         "alt": "hennessey-dodge-challenger-srt-demon-7680x4320-20754.jpg",
@@ -78,19 +85,19 @@
       {
         "id": "show-2",
         "title": "Background genius",
-        "caption": "Replace environments in one pass\u00e2\u20ac\u201dstudio cyclorama, matte painting, or full CG\u00e2\u20ac\u201dwith depth-aware separation.",
+        "caption": "Replace environments in one pass—studio cyclorama, matte painting, or full CG—with depth-aware separation.",
         "videoSrc": "/media/showcase/c7560b51-d360-429f-bd68-1999bae6dcf5.mp4"
       },
       {
         "id": "385e2964-8995-4509-833c-881f5e338fda",
         "title": "Face swap",
-        "caption": "Identity-aware blends that respect lighting, skin tone, and camera angle\u00e2\u20ac\u201dbuilt for believable hero shots.",
+        "caption": "Identity-aware blends that respect lighting, skin tone, and camera angle—built for believable hero shots.",
         "videoSrc": "/media/showcase/53dbba86-54ba-43f8-b759-4fdc083975f4.mp4"
       },
       {
         "id": "62f56e06-cfd9-493f-a27c-ca8416b94720",
         "title": "Background genius v2",
-        "caption": "Replace environments in one pass\u00e2\u20ac\u201dstudio cyclorama, matte painting, or full CG\u00e2\u20ac\u201dwith depth-aware separation. and many more",
+        "caption": "Replace environments in one pass—studio cyclorama, matte painting, or full CG—with depth-aware separation. and many more",
         "videoSrc": "/media/showcase/dcd4f376-4861-4205-bed7-a5763ba2f2c8.mp4"
       }
     ]
@@ -98,298 +105,248 @@
   "heroBackground": {
     "media": [
       {
-        "id": "hb-1",
-        "type": "image",
-        "src": "/media/hero/08b9c102-edba-46cc-9736-8298f3a56357.png",
-        "filename": "08b9c102-edba-46cc-9736-8298f3a56357.png"
-      },
-      {
-        "id": "hb-2",
-        "type": "image",
-        "src": "/media/hero/16ec4a9a-fa11-4344-8cf8-1da240ec6458.jpg",
-        "filename": "16ec4a9a-fa11-4344-8cf8-1da240ec6458.jpg"
-      },
-      {
-        "id": "hb-3",
-        "type": "image",
-        "src": "/media/hero/38a2c7cb-84ea-434e-a333-a6c909a90060.jpg",
-        "filename": "38a2c7cb-84ea-434e-a333-a6c909a90060.jpg"
-      },
-      {
-        "id": "hb-4",
-        "type": "image",
-        "src": "/media/hero/a942957a-a13b-4878-a352-007f4396a9be.jpg",
-        "filename": "a942957a-a13b-4878-a352-007f4396a9be.jpg"
-      },
-      {
-        "id": "hb-5",
-        "type": "image",
-        "src": "/media/hero/c21daecc-4afa-4b3d-af95-5e2d689d7c69.png",
-        "filename": "c21daecc-4afa-4b3d-af95-5e2d689d7c69.png"
-      },
-      {
-        "id": "hb-6",
-        "type": "image",
-        "src": "/media/hero/fa94b151-cf0f-4926-8e6f-09d6c3ac9b48.jpg",
-        "filename": "fa94b151-cf0f-4926-8e6f-09d6c3ac9b48.jpg"
-      },
-      {
-        "id": "hb-7",
-        "type": "image",
-        "src": "/media/hero/fb4a18eb-1787-410d-b766-4f54f4b41b1e.jpg",
-        "filename": "fb4a18eb-1787-410d-b766-4f54f4b41b1e.jpg"
-      },
-      {
-        "id": "hb-hp-03870eaa-03a5-4c94-a811-3f08b8948193",
-        "type": "image",
-        "src": "/media/homepage/03870eaa-03a5-4c94-a811-3f08b8948193.png",
-        "filename": "03870eaa-03a5-4c94-a811-3f08b8948193.png"
-      },
-      {
-        "id": "hb-hp-07f13d90-38c7-468e-ac18-51b323715bbe",
-        "type": "image",
-        "src": "/media/homepage/07f13d90-38c7-468e-ac18-51b323715bbe.jpg",
-        "filename": "07f13d90-38c7-468e-ac18-51b323715bbe.jpg"
-      },
-      {
-        "id": "hb-hp-1406c68c-1d6d-4c2e-9002-9ccbf1e60136",
-        "type": "image",
-        "src": "/media/homepage/1406c68c-1d6d-4c2e-9002-9ccbf1e60136.png",
-        "filename": "1406c68c-1d6d-4c2e-9002-9ccbf1e60136.png"
-      },
-      {
-        "id": "hb-hp-1af46df8-8c38-4903-ba06-5bbfe2c3b0d8",
-        "type": "image",
-        "src": "/media/homepage/1af46df8-8c38-4903-ba06-5bbfe2c3b0d8.png",
-        "filename": "1af46df8-8c38-4903-ba06-5bbfe2c3b0d8.png"
-      },
-      {
-        "id": "hb-hp-1d41ae9e-85b2-448f-a00c-e5047798658f",
-        "type": "image",
-        "src": "/media/homepage/1d41ae9e-85b2-448f-a00c-e5047798658f.jpg",
-        "filename": "1d41ae9e-85b2-448f-a00c-e5047798658f.jpg"
-      },
-      {
-        "id": "hb-hp-20488cd5-c7f3-4380-83a8-1f2ee880101c",
-        "type": "image",
-        "src": "/media/homepage/20488cd5-c7f3-4380-83a8-1f2ee880101c.jpg",
-        "filename": "20488cd5-c7f3-4380-83a8-1f2ee880101c.jpg"
-      },
-      {
-        "id": "hb-hp-23dcd8db-7ded-41e3-b744-c9574a65c12a",
-        "type": "image",
-        "src": "/media/homepage/23dcd8db-7ded-41e3-b744-c9574a65c12a.jpg",
-        "filename": "23dcd8db-7ded-41e3-b744-c9574a65c12a.jpg"
-      },
-      {
-        "id": "hb-hp-241c07b6-649f-4aea-9799-c7317eb14bba",
-        "type": "image",
-        "src": "/media/homepage/241c07b6-649f-4aea-9799-c7317eb14bba.png",
-        "filename": "241c07b6-649f-4aea-9799-c7317eb14bba.png"
-      },
-      {
-        "id": "hb-hp-28a60d16-e916-4b5c-94d5-561f0487f745",
-        "type": "image",
-        "src": "/media/homepage/28a60d16-e916-4b5c-94d5-561f0487f745.jpg",
-        "filename": "28a60d16-e916-4b5c-94d5-561f0487f745.jpg"
-      },
-      {
-        "id": "hb-hp-2d7de9bd-eb5d-4414-98f1-dfdeaef0543e",
-        "type": "video",
-        "src": "/media/homepage/2d7de9bd-eb5d-4414-98f1-dfdeaef0543e.mp4",
-        "filename": "2d7de9bd-eb5d-4414-98f1-dfdeaef0543e.mp4"
-      },
-      {
-        "id": "hb-hp-339ca1b1-09b3-4727-afc2-89270c4ab8a8",
-        "type": "image",
-        "src": "/media/homepage/339ca1b1-09b3-4727-afc2-89270c4ab8a8.jpg",
-        "filename": "339ca1b1-09b3-4727-afc2-89270c4ab8a8.jpg"
-      },
-      {
-        "id": "hb-hp-36d2416f-e4de-4235-8dbc-3851676d0ac9",
-        "type": "image",
-        "src": "/media/homepage/36d2416f-e4de-4235-8dbc-3851676d0ac9.jpg",
-        "filename": "36d2416f-e4de-4235-8dbc-3851676d0ac9.jpg"
-      },
-      {
-        "id": "hb-hp-3c760179-d141-4e72-919c-0fc9bc8201e9",
-        "type": "image",
-        "src": "/media/homepage/3c760179-d141-4e72-919c-0fc9bc8201e9.jpg",
-        "filename": "3c760179-d141-4e72-919c-0fc9bc8201e9.jpg"
-      },
-      {
-        "id": "hb-hp-3d9f457a-b733-4c5a-87ac-23f5559c996e",
-        "type": "image",
-        "src": "/media/homepage/3d9f457a-b733-4c5a-87ac-23f5559c996e.png",
-        "filename": "3d9f457a-b733-4c5a-87ac-23f5559c996e.png"
-      },
-      {
-        "id": "hb-hp-44eb08ee-00a6-4343-9ced-b98889f2ec53",
-        "type": "image",
-        "src": "/media/homepage/44eb08ee-00a6-4343-9ced-b98889f2ec53.png",
-        "filename": "44eb08ee-00a6-4343-9ced-b98889f2ec53.png"
-      },
-      {
-        "id": "hb-hp-46fc8635-1247-4994-b922-1d6318524842",
-        "type": "image",
-        "src": "/media/homepage/46fc8635-1247-4994-b922-1d6318524842.png",
-        "filename": "46fc8635-1247-4994-b922-1d6318524842.png"
-      },
-      {
-        "id": "hb-hp-49c29523-4ef2-494f-83fa-a75d655511f9",
-        "type": "image",
-        "src": "/media/homepage/49c29523-4ef2-494f-83fa-a75d655511f9.jpg",
-        "filename": "49c29523-4ef2-494f-83fa-a75d655511f9.jpg"
-      },
-      {
-        "id": "hb-hp-5c6e92de-d079-4a68-97fd-572acf076053",
-        "type": "image",
-        "src": "/media/homepage/5c6e92de-d079-4a68-97fd-572acf076053.jpg",
-        "filename": "5c6e92de-d079-4a68-97fd-572acf076053.jpg"
-      },
-      {
-        "id": "hb-hp-5d292289-1334-47bd-95eb-d6132dd29e91",
-        "type": "image",
-        "src": "/media/homepage/5d292289-1334-47bd-95eb-d6132dd29e91.png",
-        "filename": "5d292289-1334-47bd-95eb-d6132dd29e91.png"
-      },
-      {
-        "id": "hb-hp-5ed02cd6-5c87-4d43-baaa-3c6c0028b451",
-        "type": "image",
-        "src": "/media/homepage/5ed02cd6-5c87-4d43-baaa-3c6c0028b451.jpg",
-        "filename": "5ed02cd6-5c87-4d43-baaa-3c6c0028b451.jpg"
-      },
-      {
-        "id": "hb-hp-5fcdd742-97cb-4375-bd6d-6a7792541d15",
-        "type": "image",
-        "src": "/media/homepage/5fcdd742-97cb-4375-bd6d-6a7792541d15.png",
-        "filename": "5fcdd742-97cb-4375-bd6d-6a7792541d15.png"
-      },
-      {
-        "id": "hb-hp-6669cf2a-04ac-4e6d-89a9-3734c747587c",
-        "type": "image",
-        "src": "/media/homepage/6669cf2a-04ac-4e6d-89a9-3734c747587c.jpg",
-        "filename": "6669cf2a-04ac-4e6d-89a9-3734c747587c.jpg"
-      },
-      {
-        "id": "hb-hp-6b044084-2a1e-4619-8beb-80bd6ab00a49",
+        "id": "6d7f6101-fa7d-465f-b0f7-c32ec62b41ce",
         "type": "image",
         "src": "/media/homepage/6b044084-2a1e-4619-8beb-80bd6ab00a49.png",
-        "filename": "6b044084-2a1e-4619-8beb-80bd6ab00a49.png"
+        "filename": "g.png"
       },
       {
-        "id": "hb-hp-73bb7ade-bb0e-41aa-abee-3b1726fe0b20",
+        "id": "02b05afa-78d2-49a0-862f-c940f3d26238",
         "type": "image",
-        "src": "/media/homepage/73bb7ade-bb0e-41aa-abee-3b1726fe0b20.jpg",
-        "filename": "73bb7ade-bb0e-41aa-abee-3b1726fe0b20.jpg"
+        "src": "/media/homepage/44eb08ee-00a6-4343-9ced-b98889f2ec53.png",
+        "filename": "Screenshot 2025-08-12 213432.png"
       },
       {
-        "id": "hb-hp-76c43dbb-a020-4af6-8443-8c5fe4527cb1",
-        "type": "image",
-        "src": "/media/homepage/76c43dbb-a020-4af6-8443-8c5fe4527cb1.jpg",
-        "filename": "76c43dbb-a020-4af6-8443-8c5fe4527cb1.jpg"
-      },
-      {
-        "id": "hb-hp-8b490b6e-dfd9-4025-b996-a70642b97f45",
-        "type": "image",
-        "src": "/media/homepage/8b490b6e-dfd9-4025-b996-a70642b97f45.jpg",
-        "filename": "8b490b6e-dfd9-4025-b996-a70642b97f45.jpg"
-      },
-      {
-        "id": "hb-hp-ad638073-fd3d-4a73-bf8d-68da8658ee82",
-        "type": "video",
-        "src": "/media/homepage/ad638073-fd3d-4a73-bf8d-68da8658ee82.mp4",
-        "filename": "ad638073-fd3d-4a73-bf8d-68da8658ee82.mp4"
-      },
-      {
-        "id": "hb-hp-b3f1031b-0ee9-4bb0-ad9e-ab1f737f753e",
-        "type": "image",
-        "src": "/media/homepage/b3f1031b-0ee9-4bb0-ad9e-ab1f737f753e.png",
-        "filename": "b3f1031b-0ee9-4bb0-ad9e-ab1f737f753e.png"
-      },
-      {
-        "id": "hb-hp-ba0e3b65-4e22-49c0-8fd8-e21bde60dea5",
-        "type": "image",
-        "src": "/media/homepage/ba0e3b65-4e22-49c0-8fd8-e21bde60dea5.jpg",
-        "filename": "ba0e3b65-4e22-49c0-8fd8-e21bde60dea5.jpg"
-      },
-      {
-        "id": "hb-hp-be57207d-0349-464b-bf4d-fd2d5e756885",
-        "type": "image",
-        "src": "/media/homepage/be57207d-0349-464b-bf4d-fd2d5e756885.png",
-        "filename": "be57207d-0349-464b-bf4d-fd2d5e756885.png"
-      },
-      {
-        "id": "hb-hp-be8ecaeb-53ce-4eae-a337-0363c139952f",
-        "type": "video",
-        "src": "/media/homepage/be8ecaeb-53ce-4eae-a337-0363c139952f.mp4",
-        "filename": "be8ecaeb-53ce-4eae-a337-0363c139952f.mp4"
-      },
-      {
-        "id": "hb-hp-c5392110-1d90-4f80-a6d2-d446117d9ab2",
-        "type": "image",
-        "src": "/media/homepage/c5392110-1d90-4f80-a6d2-d446117d9ab2.jpg",
-        "filename": "c5392110-1d90-4f80-a6d2-d446117d9ab2.jpg"
-      },
-      {
-        "id": "hb-hp-d8648ca6-d062-4071-85d0-496efa832233",
-        "type": "image",
-        "src": "/media/homepage/d8648ca6-d062-4071-85d0-496efa832233.png",
-        "filename": "d8648ca6-d062-4071-85d0-496efa832233.png"
-      },
-      {
-        "id": "hb-hp-e0e97232-e787-4b62-a326-1afd3250f8b5",
+        "id": "27c692cb-c3d5-4d19-8a8f-11b01c7b6626",
         "type": "image",
         "src": "/media/homepage/e0e97232-e787-4b62-a326-1afd3250f8b5.png",
-        "filename": "e0e97232-e787-4b62-a326-1afd3250f8b5.png"
+        "filename": "Screenshot 2025-08-12 213500.png"
       },
       {
-        "id": "hb-hp-e44f29b7-d618-477f-8c1d-3f77e10072bf",
+        "id": "80704dd2-d904-4806-89a6-349d537ff8b3",
         "type": "image",
-        "src": "/media/homepage/e44f29b7-d618-477f-8c1d-3f77e10072bf.jpg",
-        "filename": "e44f29b7-d618-477f-8c1d-3f77e10072bf.jpg"
+        "src": "/media/homepage/3d9f457a-b733-4c5a-87ac-23f5559c996e.png",
+        "filename": "Screenshot 2025-08-12 213447.png"
       },
       {
-        "id": "hb-hp-ec6e34e9-e1f6-4c7d-9a28-b9e5f981183b",
+        "id": "1ee6e5a1-f310-4695-a424-04b5e8f5b81d",
         "type": "image",
-        "src": "/media/homepage/ec6e34e9-e1f6-4c7d-9a28-b9e5f981183b.jpg",
-        "filename": "ec6e34e9-e1f6-4c7d-9a28-b9e5f981183b.jpg"
+        "src": "/media/homepage/5fcdd742-97cb-4375-bd6d-6a7792541d15.png",
+        "filename": "Screenshot 2025-08-12 213454.png"
       },
       {
-        "id": "hb-hp-ed2acc38-c2a3-4f49-9694-5e0db3ef668c",
+        "id": "d819a4fa-67cf-4141-b2d8-bb713dc6e34d",
         "type": "image",
-        "src": "/media/homepage/ed2acc38-c2a3-4f49-9694-5e0db3ef668c.png",
-        "filename": "ed2acc38-c2a3-4f49-9694-5e0db3ef668c.png"
+        "src": "/media/homepage/46fc8635-1247-4994-b922-1d6318524842.png",
+        "filename": "Screenshot 2025-08-12 213517.png"
       },
       {
-        "id": "hb-hp-f083a988-fde2-4cdf-ae92-e65af35c1779",
+        "id": "55e1e3f0-9238-44bd-8fd0-384036070045",
         "type": "image",
-        "src": "/media/homepage/f083a988-fde2-4cdf-ae92-e65af35c1779.png",
-        "filename": "f083a988-fde2-4cdf-ae92-e65af35c1779.png"
+        "src": "/media/homepage/1af46df8-8c38-4903-ba06-5bbfe2c3b0d8.png",
+        "filename": "Screenshot 2025-08-12 213511.png"
       },
       {
-        "id": "hb-hp-f9272ff9-de93-455a-b99b-c566f72f19ff",
-        "type": "image",
-        "src": "/media/homepage/f9272ff9-de93-455a-b99b-c566f72f19ff.png",
-        "filename": "f9272ff9-de93-455a-b99b-c566f72f19ff.png"
-      },
-      {
-        "id": "hb-hp-fc21b6ea-7ef0-4f8e-bf32-715e315fc342",
-        "type": "image",
-        "src": "/media/homepage/fc21b6ea-7ef0-4f8e-bf32-715e315fc342.png",
-        "filename": "fc21b6ea-7ef0-4f8e-bf32-715e315fc342.png"
-      },
-      {
-        "id": "hb-hp-ff0eeccb-f9fa-4a6b-b131-47c11699ac2b",
+        "id": "8d6f52da-a076-49f5-8857-1ea2b1843c2e",
         "type": "image",
         "src": "/media/homepage/ff0eeccb-f9fa-4a6b-b131-47c11699ac2b.png",
-        "filename": "ff0eeccb-f9fa-4a6b-b131-47c11699ac2b.png"
+        "filename": "Screenshot 2025-08-12 213506.png"
+      },
+      {
+        "id": "4545f956-7a5b-4376-a24e-690072d5cd32",
+        "type": "image",
+        "src": "/media/homepage/f083a988-fde2-4cdf-ae92-e65af35c1779.png",
+        "filename": "Screenshot 2025-08-12 213424.png"
+      },
+      {
+        "id": "db53e7bf-6907-49eb-a544-d613b7fa3519",
+        "type": "image",
+        "src": "/media/homepage/d8648ca6-d062-4071-85d0-496efa832233.png",
+        "filename": "Screenshot 2025-08-12 214622.png"
+      },
+      {
+        "id": "a9dd7c5e-ebb1-4614-97b8-287acff978ea",
+        "type": "image",
+        "src": "/media/homepage/b3f1031b-0ee9-4bb0-ad9e-ab1f737f753e.png",
+        "filename": "Screenshot 2025-08-12 214645.png"
+      },
+      {
+        "id": "0678cbd6-b923-455d-b4af-b0bdf68f1e17",
+        "type": "image",
+        "src": "/media/homepage/ed2acc38-c2a3-4f49-9694-5e0db3ef668c.png",
+        "filename": "Screenshot 2025-08-12 214414.png"
+      },
+      {
+        "id": "0a3d0d99-c873-4090-b2bf-24b62d50b059",
+        "type": "image",
+        "src": "/media/homepage/fc21b6ea-7ef0-4f8e-bf32-715e315fc342.png",
+        "filename": "Screenshot 2025-08-12 214706.png"
+      },
+      {
+        "id": "2bb015a5-10fb-48c2-8545-3f86b3a7adf5",
+        "type": "image",
+        "src": "/media/homepage/be57207d-0349-464b-bf4d-fd2d5e756885.png",
+        "filename": "Gemini_Generated_Image_eqz9xieqz9xieqz9.png"
+      },
+      {
+        "id": "1d5c2367-99d7-4eb6-bde7-c170b72b8d01",
+        "type": "image",
+        "src": "/media/homepage/49c29523-4ef2-494f-83fa-a75d655511f9.jpg",
+        "filename": "tanjiro-kamado-5120x2880-16947.jpg"
+      },
+      {
+        "id": "fa4b9280-7c59-449b-a8c0-b28c3e0d203a",
+        "type": "image",
+        "src": "/media/homepage/23dcd8db-7ded-41e3-b744-c9574a65c12a.jpg",
+        "filename": "copy1.jpg"
+      },
+      {
+        "id": "4a22c536-688a-430b-9fd4-bfb1fe85419a",
+        "type": "image",
+        "src": "/media/homepage/5ed02cd6-5c87-4d43-baaa-3c6c0028b451.jpg",
+        "filename": "wallpaperflare.com_wallpaper (1).jpg"
+      },
+      {
+        "id": "57984a93-0ba5-47df-83c9-80e8503aec39",
+        "type": "video",
+        "src": "/media/homepage/ad638073-fd3d-4a73-bf8d-68da8658ee82.mp4",
+        "filename": "53dbba86-54ba-43f8-b759-4fdc083975f4.mp4"
+      },
+      {
+        "id": "422e7321-4c18-4ea6-bfa1-4f59b1eeb396",
+        "type": "image",
+        "src": "/media/homepage/339ca1b1-09b3-4727-afc2-89270c4ab8a8.jpg",
+        "filename": "514641196_17899521360233074_3477170231361369169_n..jpg"
+      },
+      {
+        "id": "21fdf62a-ab83-4917-826c-9b305c81d55f",
+        "type": "image",
+        "src": "/media/homepage/76c43dbb-a020-4af6-8443-8c5fe4527cb1.jpg",
+        "filename": "Feel the fear and do it anyway.Follow me (@bracket) for more.jpg"
+      },
+      {
+        "id": "a2aedcec-7cf3-4e76-94d3-d2b98d7f0f5e",
+        "type": "image",
+        "src": "/media/homepage/5c6e92de-d079-4a68-97fd-572acf076053.jpg",
+        "filename": "sanemi-shinazugawa-5120x2880-16953.jpg"
+      },
+      {
+        "id": "ddb43675-2387-489b-94c2-45de4211fd35",
+        "type": "image",
+        "src": "/media/homepage/07f13d90-38c7-468e-ac18-51b323715bbe.jpg",
+        "filename": "tengen-uzui-dark-7680x4320-18405.jpg"
+      },
+      {
+        "id": "02e3ebb9-a791-4393-b3d1-e3e48b03bcae",
+        "type": "image",
+        "src": "/media/homepage/f9272ff9-de93-455a-b99b-c566f72f19ff.png",
+        "filename": "tanjiro-kamado-5120x2880-18345.png"
       }
     ],
-    "overlayOpacity": 0.55,
+    "overlayOpacity": 0.36,
     "crossfadeDuration": 6,
     "staggerDelay": 0.8,
     "enableParallax": true,
-    "parallaxIntensity": 10
-  }
+    "parallaxIntensity": 9
+  },
+  "pillars": [
+    {
+      "id": "pil-1",
+      "title": "Iterate at the speed of thought",
+      "body": "Tight feedback loops from prompt to pixel—so you stay in flow instead of waiting on renders.",
+      "accent": "#00D4FF",
+      "glowColor": "rgba(0, 212, 255, 0.04)",
+      "cap1": "Core latency: 14ms",
+      "cap2": "Edge rendering"
+    },
+    {
+      "id": "pil-2",
+      "title": "Cinematic fidelity, production discipline",
+      "body": "HDR-aware looks, consistent aspect pipelines, and exports that slot into review and finishing.",
+      "accent": "#7B61FF",
+      "glowColor": "rgba(123, 97, 255, 0.04)",
+      "cap1": "10-bit HDR color",
+      "cap2": "DAM Export Ready"
+    },
+    {
+      "id": "pil-3",
+      "title": "Built for teams, not just tabs",
+      "body": "Policies, audit trails, and burst capacity when launch week refuses to be predictable.",
+      "accent": "#FF2E9A",
+      "glowColor": "rgba(255, 46, 154, 0.04)",
+      "cap1": "Concurrence: Unlimited",
+      "cap2": "SLA-backed"
+    }
+  ],
+  "stats": [
+    {
+      "id": "stat-1",
+      "label": "Generations delivered",
+      "value": "12.4K+",
+      "sub": "and counting",
+      "glowColor": "rgba(123, 97, 255, 0.05)",
+      "textColor": "from-brand-purple to-white",
+      "accentColor": "#7B61FF",
+      "pct": 88
+    },
+    {
+      "id": "stat-2",
+      "label": "Median time to first frame",
+      "value": "4.2s",
+      "sub": "Pro tier, global edge",
+      "glowColor": "rgba(0, 212, 255, 0.05)",
+      "textColor": "from-brand-cyan to-white",
+      "accentColor": "#00D4FF",
+      "pct": 95
+    },
+    {
+      "id": "stat-3",
+      "label": "Creators & studios",
+      "value": "5K+",
+      "sub": "in 12+ countries",
+      "glowColor": "rgba(255, 46, 154, 0.05)",
+      "textColor": "from-brand-pink to-white",
+      "accentColor": "#FF2E9A",
+      "pct": 74
+    },
+    {
+      "id": "stat-4",
+      "label": "Peak output resolution",
+      "value": "8K",
+      "sub": "HDR-ready exports",
+      "glowColor": "rgba(123, 97, 255, 0.05)",
+      "textColor": "from-brand-purple via-white to-brand-cyan",
+      "accentColor": "#7B61FF",
+      "pct": 99
+    }
+  ],
+  "testimonials": [
+    {
+      "id": "test-1",
+      "body": "We replaced a week of mood-board iteration with one RUHGEN session. The team finally stopped fighting over references and started shipping.",
+      "name": "Asgr",
+      "role": "CTO",
+      "avatarColor": "from-brand-purple to-indigo-950/40",
+      "hoverColor": "group-hover:text-brand-purple/70",
+      "initials": "2F"
+    },
+    {
+      "id": "test-2",
+      "body": "Latency is honestly wild. I can iterate on a shot while the director is still in the room—feels like a realtime renderer for ideas.",
+      "name": "Ruh",
+      "role": "CEO & Co-Founder",
+      "avatarColor": "from-brand-cyan to-teal-950/40",
+      "hoverColor": "group-hover:text-brand-cyan/70",
+      "initials": "R"
+    },
+    {
+      "id": "test-3",
+      "body": "The API slots straight into our asset pipeline. Webhooks fire when renders finish; our DAM ingests frames without anyone touching FTP.",
+      "name": "Lilu Singh",
+      "role": "Head of Home",
+      "avatarColor": "from-brand-pink to-rose-950/40",
+      "hoverColor": "group-hover:text-brand-pink/70",
+      "initials": "LS"
+    }
+  ]
 }

@@ -187,7 +187,7 @@ app.get("/api/admin/content", (_req, res) => {
   }
 });
 
-app.put("/api/admin/content", requireAdmin, (req, res) => {
+app.put("/api/admin/content", requireAdmin, async (req, res) => {
   try {
     const nextBody = req.body;
     if (!nextBody || typeof nextBody !== "object") {
@@ -195,7 +195,22 @@ app.put("/api/admin/content", requireAdmin, (req, res) => {
     }
     const json = JSON.stringify(nextBody);
     JSON.parse(json);
+    
+    // Save in SQLite DB
     db.prepare("INSERT OR REPLACE INTO site_content (id, json) VALUES (1, ?)").run(json);
+
+    // Sync to disk files so changes are tracked in repository/production deployments
+    try {
+      const prettyJson = JSON.stringify(nextBody, null, 2);
+      const primaryPath = path.join(dataDir, "site-content.json");
+      const fallbackPath = path.join(projectRoot, "data", "site-content.json");
+      await fs.writeFile(primaryPath, prettyJson, "utf8");
+      await fs.writeFile(fallbackPath, prettyJson, "utf8");
+      console.log("[cms] Successfully synced content updates to disk JSON files.");
+    } catch (diskErr) {
+      console.error("[cms] Disk sync failed:", diskErr.message);
+    }
+
     return res.json({ ok: true });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Unknown error";
