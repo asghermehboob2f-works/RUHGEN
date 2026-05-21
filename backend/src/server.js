@@ -12,6 +12,7 @@ const { hashPassword, signAdminToken, verifyAdminToken } = require("./auth");
 const { mountStudioRoutes } = require("./studio-routes");
 const { mountUserAuthRoutes } = require("./user-auth-routes");
 const { mountCommunityRoutes } = require("./community-routes");
+const { mountAcademyRoutes } = require("./academy-routes");
 
 const PORT = Number(process.env.BACKEND_PORT || process.env.PORT || 4000, 10);
 const projectRoot = path.resolve(__dirname, "..", "..");
@@ -54,7 +55,7 @@ function requireAdmin(req, res, next) {
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 25 * 1024 * 1024 },
+  limits: { fileSize: 50 * 1024 * 1024 },
 });
 
 const app = express();
@@ -304,7 +305,7 @@ app.post("/api/admin/upload", requireAdmin, upload.single("file"), async (req, r
     if (!file) {
       return res.status(400).json({ ok: false, error: "Missing file." });
     }
-    if (folder !== "hero" && folder !== "gallery" && folder !== "img" && folder !== "showcase" && folder !== "homepage") {
+    if (folder !== "hero" && folder !== "gallery" && folder !== "img" && folder !== "showcase" && folder !== "homepage" && folder !== "academy") {
       return res.status(400).json({ ok: false, error: "Invalid folder." });
     }
 
@@ -312,13 +313,14 @@ app.post("/api/admin/upload", requireAdmin, upload.single("file"), async (req, r
     const imageOk = ext === ".png" || ext === ".jpg" || ext === ".jpeg" || ext === ".webp";
     const videoOk = ext === ".mp4" || ext === ".webm";
 
-    if (folder === "showcase" || folder === "hero" || folder === "homepage") {
-      // Both showcase, hero and homepage now support videos/images
+    if (folder === "showcase" || folder === "hero" || folder === "homepage" || folder === "academy") {
+      // Both showcase, hero, homepage, and academy now support videos/images
       if (!imageOk && !videoOk) {
         return res.status(400).json({ ok: false, error: "Only images (.png, .jpg, .webp) or videos (.mp4, .webm) allowed." });
       }
-      if (videoOk && file.size > MAX_SHOWCASE_VIDEO_BYTES) {
-        return res.status(400).json({ ok: false, error: "Video file too large (max ~22MB)." });
+      const maxBytes = folder === "academy" ? 50 * 1024 * 1024 : MAX_SHOWCASE_VIDEO_BYTES;
+      if (videoOk && file.size > maxBytes) {
+        return res.status(400).json({ ok: false, error: `Video file too large (max ~${folder === "academy" ? 50 : 22}MB).` });
       }
     } else if (!imageOk) {
       return res.status(400).json({ ok: false, error: "Only .png, .jpg, .jpeg, .webp allowed." });
@@ -351,6 +353,7 @@ app.get("/api/health", (_req, res) => {
 mountUserAuthRoutes(app, { db });
 mountStudioRoutes(app, { upload });
 mountCommunityRoutes(app, { db });
+mountAcademyRoutes(app, { db });
 
 app.listen(PORT, "0.0.0.0", () => {
   // eslint-disable-next-line no-console

@@ -15,6 +15,7 @@ import {
   Sun,
   Video,
   X,
+  BookOpen,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -26,6 +27,7 @@ import { useTheme } from "@/components/ThemeProvider";
 const workspaceNav = [
   { href: "/dashboard", label: "Overview", icon: Home, end: true as const },
   { href: "/community", label: "Community", icon: Sparkles },
+  { href: "/academy", label: "Academy", icon: BookOpen },
   { href: "/dashboard/billing", label: "Billing", icon: CreditCard },
   { href: "/dashboard/settings", label: "Preferences", icon: Settings },
 ] as const;

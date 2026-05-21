@@ -167,10 +167,27 @@ function openDb(projectRoot) {
       created_at TEXT NOT NULL,
       PRIMARY KEY (post_id, viewer_key)
     );
+
+    CREATE TABLE IF NOT EXISTS academy_tutorials (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      description TEXT NOT NULL,
+      video_url TEXT NOT NULL DEFAULT '',
+      thumbnail_url TEXT NOT NULL DEFAULT '',
+      category TEXT NOT NULL,
+      duration TEXT NOT NULL,
+      difficulty TEXT NOT NULL,
+      views INTEGER NOT NULL DEFAULT 0,
+      likes INTEGER NOT NULL DEFAULT 0,
+      premium INTEGER NOT NULL DEFAULT 0,
+      instructor TEXT NOT NULL DEFAULT 'RUHGEN Masterclass',
+      created_at TEXT NOT NULL
+    );
   `);
   seedSiteContentIfEmpty(db, dataDir, projectRoot);
   migrateLegacyJsonIfEmpty(db, dataDir, projectRoot);
   syncSiteContentFromSeedFile(db, dataDir, projectRoot);
+  seedAcademyTutorialsIfEmpty(db);
   upgradeExistingSiteContent(db);
   ensureAdminFromEnv(db);
   return { db, dataDir };
@@ -648,6 +665,99 @@ function upgradeExistingSiteContent(db) {
     db.prepare("UPDATE site_content SET json = ? WHERE id = 1").run(JSON.stringify(data));
     console.log("[db] upgraded site content table in SQLite database to include pillars, stats, and testimonials.");
   }
+}
+
+function seedAcademyTutorialsIfEmpty(db) {
+  const count = db.prepare("SELECT COUNT(*) AS c FROM academy_tutorials").get().c;
+  if (count > 0) {
+    try {
+      // Migrate existing records from 'premium' to 'workflows'
+      db.prepare("UPDATE academy_tutorials SET category = 'workflows' WHERE category = 'premium'").run();
+      db.prepare("UPDATE academy_tutorials SET title = 'Cinematic Film Composition & Rendering' WHERE title LIKE 'Premium Course%'").run();
+    } catch (err) {
+      console.error("[db] error migrating old academy categories:", err.message);
+    }
+    return;
+  }
+
+  const crypto = require("node:crypto");
+  const baseDate = new Date();
+  
+  const tutorials = [
+    {
+      id: crypto.randomUUID(),
+      title: "Understanding Spatial Rendering & Lighting",
+      description: "Deep dive into the platform's spatial rendering capabilities. Learn how to map lighting vectors for cinematic realism.",
+      video_url: "https://www.w3schools.com/html/mov_bbb.mp4",
+      thumbnail_url: "",
+      category: "features",
+      duration: "12 min",
+      difficulty: "Beginner",
+      views: 0,
+      likes: 0,
+      premium: 0,
+      instructor: "Elena Voss (Creative Director)",
+      created_at: new Date(baseDate.getTime() - 4 * 24 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      id: crypto.randomUUID(),
+      title: "Mastering Character Consistency",
+      description: "Learn how to maintain perfect character traits across multiple scenes using reference plates and seed locking.",
+      video_url: "https://www.w3schools.com/html/movie.mp4",
+      thumbnail_url: "",
+      category: "courses",
+      duration: "25 min",
+      difficulty: "Intermediate",
+      views: 0,
+      likes: 0,
+      premium: 0,
+      instructor: "Marcus Chen (VFX Lead)",
+      created_at: new Date(baseDate.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      id: crypto.randomUUID(),
+      title: "Advanced Workflow Integration",
+      description: "A complete masterclass on stringing together image generation, upscale nodes, and custom aspect ratio controls.",
+      video_url: "https://www.w3schools.com/html/mov_bbb.mp4",
+      thumbnail_url: "",
+      category: "masterclasses",
+      duration: "42 min",
+      difficulty: "Advanced",
+      views: 0,
+      likes: 0,
+      premium: 1,
+      instructor: "Priya Nair (Platform Head)",
+      created_at: new Date(baseDate.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      id: crypto.randomUUID(),
+      title: "Cinematic Film Composition & Rendering",
+      description: "End-to-end blueprint for developing a fully animated, high-fidelity short film entirely within the studio suite.",
+      video_url: "https://www.w3schools.com/html/movie.mp4",
+      thumbnail_url: "",
+      category: "workflows",
+      duration: "3.5 hours",
+      difficulty: "Advanced",
+      views: 0,
+      likes: 0,
+      premium: 1,
+      instructor: "RUHGEN Founders",
+      created_at: new Date(baseDate.getTime() - 1 * 24 * 60 * 60 * 1000).toISOString()
+    }
+  ];
+
+  const stmt = db.prepare(`
+    INSERT INTO academy_tutorials (
+      id, title, description, video_url, thumbnail_url, category, duration, difficulty, views, likes, premium, instructor, created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  for (const t of tutorials) {
+    stmt.run(
+      t.id, t.title, t.description, t.video_url, t.thumbnail_url, t.category, t.duration, t.difficulty, t.views, t.likes, t.premium, t.instructor, t.created_at
+    );
+  }
+  console.log(`[db] Seeded ${tutorials.length} default tutorials into academy_tutorials.`);
 }
 
 module.exports = { openDb };

@@ -4,6 +4,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   ExternalLink,
   FileStack,
+  GraduationCap,
   Inbox,
   LayoutDashboard,
   LogOut,
@@ -29,6 +30,7 @@ const nav = [
   { href: "/admindashboard", label: "Overview", icon: LayoutDashboard, end: true },
   { href: "/admindashboard/users", label: "Users", icon: Users },
   { href: "/admindashboard/content", label: "Content studio", icon: FileStack },
+  { href: "/admindashboard/academy", label: "Academy CMS", icon: GraduationCap },
   { href: "/admindashboard/subscribers", label: "Newsletter", icon: Mail },
   { href: "/admindashboard/messages", label: "Contact inbox", icon: Inbox },
   { href: "/admindashboard/settings", label: "Settings", icon: UserCircle },

@@ -25,6 +25,7 @@ const links = [
   { href: "/community", label: "Community", id: "community" },
   { href: "/workflow", label: "Workflow", id: "workflow" },
   { href: "/pricing", label: "Pricing", id: "pricing" },
+  { href: "/academy", label: "Academy", id: "academy" },
   { href: "/faq", label: "FAQ", id: "faq" },
 ] as const;
 
