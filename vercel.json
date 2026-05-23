@@ -1,0 +1,8 @@
+{
+  "experimentalServices": {
+    "your-service-name": {
+      "build": "npm run build",
+      "dev": "npm run dev"
+    }
+  }
+}
