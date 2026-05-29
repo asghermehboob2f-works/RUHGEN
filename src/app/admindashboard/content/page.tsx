@@ -16,7 +16,7 @@ export default function DashboardContentPage() {
   const [content, setContent] = useState<SiteContent | null>(null);
   const [status, setStatus] = useState<string>("");
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"hero" | "homepage">("hero");
+  const [activeTab, setActiveTab] = useState<"hero" | "homepage" | "visualizer">("hero");
 
   useEffect(() => {
     let ok = true;
@@ -38,6 +38,9 @@ export default function DashboardContentPage() {
         }
         if (!data.upcomingFeatures) {
           data.upcomingFeatures = PUBLIC_DEFAULT_SITE_CONTENT.upcomingFeatures || [];
+        }
+        if (!data.visualizerPresets) {
+          data.visualizerPresets = PUBLIC_DEFAULT_SITE_CONTENT.visualizerPresets || [];
         }
         
         setContent(data);
@@ -206,6 +209,17 @@ export default function DashboardContentPage() {
               >
                 Homepage Layout
                 {activeTab === "homepage" && (
+                  <motion.div layoutId="adminActiveTabLine" className="absolute bottom-0 inset-x-0 h-0.5 bg-gradient-to-r from-[var(--primary-purple)] to-[var(--primary-cyan)]" />
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("visualizer")}
+                className="pb-3.5 text-sm font-bold uppercase tracking-wider transition-all relative outline-none shrink-0"
+                style={{ color: activeTab === "visualizer" ? "var(--text-primary)" : "var(--text-subtle)" }}
+              >
+                Features Visualizer
+                {activeTab === "visualizer" && (
                   <motion.div layoutId="adminActiveTabLine" className="absolute bottom-0 inset-x-0 h-0.5 bg-gradient-to-r from-[var(--primary-purple)] to-[var(--primary-cyan)]" />
                 )}
               </button>
@@ -719,6 +733,239 @@ export default function DashboardContentPage() {
                         placeholder="EV"
                       />
                     </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Features Visualizer Presets Editor */}
+          {activeTab === "visualizer" && (
+            <section className="rounded-2xl border p-5 sm:p-7" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
+              <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+                <div>
+                  <h2 className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>Features Visualizer Presets</h2>
+                  <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>Customize the interactive visual cards displayed in the Features page hero visualizer.</p>
+                </div>
+                <motion.button
+                  type="button"
+                  whileTap={reduce ? undefined : { scale: 0.98 }}
+                  onClick={() => {
+                    const next = structuredClone(content);
+                    if (!next.visualizerPresets) {
+                      next.visualizerPresets = [];
+                    }
+                    next.visualizerPresets.push({
+                      id: `preset-${Date.now()}`,
+                      name: "New Custom Preset",
+                      lens: "50mm",
+                      gap: "f/1.4",
+                      iso: "ISO 400",
+                      prompt: "Describe the custom latent generation details...",
+                      image: "/media/features-monolith.png",
+                      resolution: "3.5s"
+                    });
+                    setContent(next);
+                    setStatus("");
+                  }}
+                  className="rounded-xl border px-4 py-2.5 text-sm font-semibold"
+                  style={{
+                    borderColor: "var(--border-subtle)",
+                    background: "var(--deep-black)",
+                    color: "var(--text-primary)",
+                  }}
+                >
+                  Add preset card
+                </motion.button>
+              </div>
+
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {content.visualizerPresets?.map((p, idx) => (
+                  <div key={p.id} className="editor-card p-4 flex flex-col gap-4 rounded-xl border border-white/5 bg-[#0a0a0d]">
+                    <div className="flex items-center justify-between border-b border-white/[0.04] pb-2">
+                      <span className="text-xs font-mono text-[#00D4FF]">Preset {idx + 1}</span>
+                      <div className="flex gap-2.5">
+                        <button
+                          type="button"
+                          disabled={idx === 0}
+                          onClick={() => {
+                            const next = structuredClone(content);
+                            if (!next.visualizerPresets) return;
+                            const tmp = next.visualizerPresets[idx - 1];
+                            next.visualizerPresets[idx - 1] = next.visualizerPresets[idx];
+                            next.visualizerPresets[idx] = tmp;
+                            setContent(next);
+                          }}
+                          className="text-xs text-neutral-400 hover:text-white disabled:opacity-30"
+                        >
+                          ↑
+                        </button>
+                        <button
+                          type="button"
+                          disabled={idx === (content.visualizerPresets?.length || 0) - 1}
+                          onClick={() => {
+                            const next = structuredClone(content);
+                            if (!next.visualizerPresets) return;
+                            const tmp = next.visualizerPresets[idx + 1];
+                            next.visualizerPresets[idx + 1] = next.visualizerPresets[idx];
+                            next.visualizerPresets[idx] = tmp;
+                            setContent(next);
+                          }}
+                          className="text-xs text-neutral-400 hover:text-white disabled:opacity-30"
+                        >
+                          ↓
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const next = structuredClone(content);
+                            if (!next.visualizerPresets) return;
+                            if (next.visualizerPresets.length <= 1) {
+                              setStatus("You must keep at least one preset.");
+                              return;
+                            }
+                            next.visualizerPresets.splice(idx, 1);
+                            setContent(next);
+                            setStatus("");
+                          }}
+                          className="text-xs font-semibold text-[#FF2E9A] hover:underline"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="relative aspect-video overflow-hidden rounded-lg border" style={{ borderColor: "var(--border-subtle)" }}>
+                      {p.image ? (
+                        <Image src={p.image} alt={p.name} fill className="object-cover" sizes="(max-width: 1024px) 50vw, 33vw" />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-xs text-neutral-500">
+                          No background image
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="grid gap-3">
+                      <div>
+                        <label className="text-[9px] font-semibold uppercase tracking-wider text-white/40">Preset Name</label>
+                        <input
+                          value={p.name}
+                          onChange={(e) => {
+                            const next = structuredClone(content);
+                            if (!next.visualizerPresets) return;
+                            next.visualizerPresets[idx].name = e.target.value;
+                            setContent(next);
+                          }}
+                          className="min-h-[38px] w-full rounded-lg border px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-[#7B61FF]/40"
+                          style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
+                          placeholder="e.g. Sci-Fi Monolith"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-[9px] font-semibold uppercase tracking-wider text-white/40">Lens Info</label>
+                          <input
+                            value={p.lens}
+                            onChange={(e) => {
+                              const next = structuredClone(content);
+                              if (!next.visualizerPresets) return;
+                              next.visualizerPresets[idx].lens = e.target.value;
+                              setContent(next);
+                            }}
+                            className="min-h-[36px] w-full rounded-lg border px-2.5 py-1.5 text-xs outline-none"
+                            style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
+                            placeholder="35mm"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[9px] font-semibold uppercase tracking-wider text-white/40">Aperture / Gap</label>
+                          <input
+                            value={p.gap}
+                            onChange={(e) => {
+                              const next = structuredClone(content);
+                              if (!next.visualizerPresets) return;
+                              next.visualizerPresets[idx].gap = e.target.value;
+                              setContent(next);
+                            }}
+                            className="min-h-[36px] w-full rounded-lg border px-2.5 py-1.5 text-xs outline-none"
+                            style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
+                            placeholder="f/1.8"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-[9px] font-semibold uppercase tracking-wider text-white/40">ISO Rating</label>
+                          <input
+                            value={p.iso}
+                            onChange={(e) => {
+                              const next = structuredClone(content);
+                              if (!next.visualizerPresets) return;
+                              next.visualizerPresets[idx].iso = e.target.value;
+                              setContent(next);
+                            }}
+                            className="min-h-[36px] w-full rounded-lg border px-2.5 py-1.5 text-xs outline-none"
+                            style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
+                            placeholder="ISO 200"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[9px] font-semibold uppercase tracking-wider text-white/40">Render Time</label>
+                          <input
+                            value={p.resolution}
+                            onChange={(e) => {
+                              const next = structuredClone(content);
+                              if (!next.visualizerPresets) return;
+                              next.visualizerPresets[idx].resolution = e.target.value;
+                              setContent(next);
+                            }}
+                            className="min-h-[36px] w-full rounded-lg border px-2.5 py-1.5 text-xs outline-none"
+                            style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
+                            placeholder="4.2s"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-[9px] font-semibold uppercase tracking-wider text-white/40">Prompt Quote Text</label>
+                        <textarea
+                          value={p.prompt}
+                          onChange={(e) => {
+                            const next = structuredClone(content);
+                            if (!next.visualizerPresets) return;
+                            next.visualizerPresets[idx].prompt = e.target.value;
+                            setContent(next);
+                          }}
+                          rows={3}
+                          className="w-full rounded-lg border px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-[#7B61FF]/40"
+                          style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
+                          placeholder="cinematic prompt details..."
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-[9px] font-semibold uppercase tracking-wider text-white/40">Change Image</label>
+                        <input
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp"
+                          onChange={async (e) => {
+                            const f = e.target.files?.[0];
+                            if (!f) return;
+                            const src = await upload("gallery", f);
+                            if (!src) return;
+                            const next = structuredClone(content);
+                            if (!next.visualizerPresets) return;
+                            next.visualizerPresets[idx].image = src;
+                            setContent(next);
+                            e.target.value = "";
+                          }}
+                          className="block w-full text-xs mt-1"
+                        />
+                      </div>
+                    </div>
+
                   </div>
                 ))}
               </div>

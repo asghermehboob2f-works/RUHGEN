@@ -294,4 +294,37 @@ export const PUBLIC_DEFAULT_SITE_CONTENT: SiteContent = {
       status: "released",
     },
   ],
+  visualizerPresets: [
+    {
+      id: "vp-1",
+      name: "Sci-Fi Monolith",
+      lens: "35mm",
+      gap: "f/1.8",
+      iso: "ISO 200",
+      prompt: "cinematic moody sci-fi explorer discovering a glowing neon monolith on an alien world, volumetric lighting, 8k",
+      image: "/media/features-monolith.png",
+      resolution: "4.2s"
+    },
+    {
+      id: "vp-2",
+      name: "Cyberpunk Hacker",
+      lens: "50mm",
+      gap: "f/1.2",
+      iso: "ISO 800",
+      prompt: "cyberpunk terminal operator in a high-density server rack room, holographic neon interfaces, dense vapor haze",
+      image: "/media/features-editorial.png",
+      resolution: "3.8s"
+    },
+    {
+      id: "vp-3",
+      name: "Vaporwave Sea",
+      lens: "85mm",
+      gap: "f/2.0",
+      iso: "ISO 100",
+      prompt: "surreal vaporwave ocean landscape under a low-fidelity pastel sunset, wireframe grid vector reflections, 8k",
+      image: "/media/features-sculpture.png",
+      resolution: "2.9s"
+    }
+  ]
 };
+

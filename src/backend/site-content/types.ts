@@ -88,6 +88,17 @@ export type UpcomingFeatureItem = {
   status: "planned" | "in-progress" | "released";
 };
 
+export type VisualizerPreset = {
+  id: string;
+  name: string;
+  lens: string;
+  gap: string;
+  iso: string;
+  prompt: string;
+  image: string;
+  resolution: string;
+};
+
 export type SiteContent = {
   hero: {};
   heroBackground: HeroBackgroundConfig;
@@ -99,4 +110,6 @@ export type SiteContent = {
   spotlightFeatures?: SpotlightFeatureItem[];
   spotlightTemplates?: SpotlightTemplateItem[];
   upcomingFeatures?: UpcomingFeatureItem[];
+  visualizerPresets?: VisualizerPreset[];
 };
+
