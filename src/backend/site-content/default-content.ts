@@ -234,4 +234,64 @@ export const PUBLIC_DEFAULT_SITE_CONTENT: SiteContent = {
       initials: "PN",
     },
   ],
+  spotlightFeatures: [
+    {
+      id: "sf-1",
+      title: "Real-time Orchestration",
+      description: "Direct camera grids and dynamic light behaviors live.",
+      badge: "New",
+      glowColor: "#7B61FF",
+    },
+    {
+      id: "sf-2",
+      title: "Ultra-precise Inpainting",
+      description: "Surgically edit elements with zero artifacts.",
+      badge: "Beta",
+      glowColor: "#00D4FF",
+    },
+    {
+      id: "sf-3",
+      title: "Fluid Hand-offs",
+      description: "Transition seamlessly from prompt concept to full motion timeline.",
+      badge: "Pro",
+      glowColor: "#FF2E9A",
+    },
+  ],
+  spotlightTemplates: [
+    {
+      id: "st-1",
+      title: "Cinematic Mood Board",
+      description: "A high-fidelity starter preset optimized for narrative drama and moody contrast.",
+      category: "Cinematic",
+    },
+    {
+      id: "st-2",
+      title: "Cyberpunk Streetscape",
+      description: "Vibrant neon-flooded grids and glassmorphic reflection maps.",
+      category: "Sci-Fi",
+    },
+  ],
+  upcomingFeatures: [
+    {
+      id: "uf-1",
+      title: "Multi-modal Sync Pipelines",
+      description: "Synchronize audio spikes with micro-frame visual behaviors dynamically.",
+      timeline: "Q3 2026",
+      status: "in-progress",
+    },
+    {
+      id: "uf-2",
+      title: "Edge Acceleration Node",
+      description: "Deploy local frame buffer instances for zero-delay workspace previewing.",
+      timeline: "Q4 2026",
+      status: "planned",
+    },
+    {
+      id: "uf-3",
+      title: "Infinite Outpainting Canvas",
+      description: "Unbound visual panning across active generation layers.",
+      timeline: "Released",
+      status: "released",
+    },
+  ],
 };

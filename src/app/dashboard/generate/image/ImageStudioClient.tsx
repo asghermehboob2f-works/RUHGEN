@@ -37,10 +37,13 @@ const MODELS = [
 ] as const;
 
 const SIZES = [
-  { w: 1024, h: 1024, label: "1:1", sub: "1024²" },
-  { w: 1280, h: 720, label: "16:9", sub: "1280×720" },
-  { w: 768, h: 1024, label: "3:4", sub: "768×1024" },
-  { w: 1024, h: 768, label: "4:3", sub: "1024×768" },
+  { w: 1024, h: 1024, label: "Square", sub: "1:1" },
+  { w: 1280, h: 720, label: "Landscape", sub: "16:9" },
+  { w: 720, h: 1280, label: "Portrait", sub: "9:16" },
+  { w: 896, h: 1152, label: "Tall", sub: "4:5" },
+  { w: 1152, h: 896, label: "Wide", sub: "5:4" },
+  { w: 1216, h: 832, label: "Classic", sub: "3:2" },
+  { w: 832, h: 1216, label: "Poster", sub: "2:3" },
 ] as const;
 
 const CHAT_STORAGE_PREFIX = "ruhgen-image-studio-chat-v1:";
@@ -536,20 +539,13 @@ export default function ImageStudioClient() {
                   <div>
                     <div className="mb-2 flex items-end justify-between gap-2">
                       <div>
-                        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--text-subtle)]">Output size</p>
-                        <p className="mt-0.5 text-[10px] text-[var(--text-subtle)]/80">Pick an aspect ratio · {SIZES[sizeIdx]?.sub}</p>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--text-subtle)]">Frame</p>
                       </div>
-                      <span
-                        className="rounded-full border border-violet-400/25 bg-violet-500/10 px-2 py-0.5 text-[10px] font-bold tabular-nums text-violet-100"
-                        aria-live="polite"
-                      >
-                        {SIZES[sizeIdx]?.label}
-                      </span>
                     </div>
                     <div
-                      className="grid grid-cols-2 gap-1.5 rounded-2xl border border-white/[0.07] bg-black/35 p-1.5 sm:grid-cols-4"
+                      className="flex flex-wrap gap-1.5"
                       role="radiogroup"
-                      aria-label="Output size"
+                      aria-label="Frame"
                     >
                       {SIZES.map((s, i) => {
                         const on = sizeIdx === i;
@@ -563,53 +559,18 @@ export default function ImageStudioClient() {
                             aria-label={`${s.label} ${s.sub}`}
                             disabled={disabled}
                             onClick={() => setSizeIdx(i)}
-                            className="group relative flex min-h-[92px] flex-col items-center justify-between gap-2 overflow-hidden rounded-xl px-2 py-2.5 text-center transition-all duration-200 enabled:hover:-translate-y-[1px] disabled:opacity-45"
+                            className="group flex min-h-[46px] flex-col items-start justify-center rounded-xl border px-2.5 py-1.5 text-left transition-all duration-200 enabled:hover:bg-white/[0.04] disabled:opacity-45"
                             style={{
-                              border: on
-                                ? "1px solid color-mix(in srgb, var(--primary-purple) 55%, transparent)"
-                                : "1px solid color-mix(in srgb, white 7%, transparent)",
-                              background: on
-                                ? "linear-gradient(180deg, color-mix(in srgb, var(--primary-purple) 18%, transparent) 0%, color-mix(in srgb, var(--primary-purple) 6%, rgba(0,0,0,0.45)) 100%)"
-                                : "rgba(0,0,0,0.28)",
-                              boxShadow: on
-                                ? "0 10px 28px -14px color-mix(in srgb, var(--primary-purple) 75%, transparent), inset 0 1px 0 rgba(255,255,255,0.06)"
-                                : "inset 0 1px 0 rgba(255,255,255,0.03)",
-                              color: "var(--text-primary)",
+                              borderColor: on ? "var(--primary-purple)" : "rgba(255,255,255,0.08)",
+                              background: on ? "color-mix(in srgb, var(--primary-purple) 15%, transparent)" : "transparent",
                             }}
                           >
-                            {on ? (
-                              <span
-                                aria-hidden
-                                className="pointer-events-none absolute inset-x-3 top-0 h-px"
-                                style={{
-                                  background:
-                                    "linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--primary-purple) 80%, transparent) 50%, transparent 100%)",
-                                }}
-                              />
-                            ) : null}
-                            <div className="flex h-10 w-full items-center justify-center">
-                              <div
-                                className="rounded-[4px] transition-all duration-200"
-                                style={{
-                                  aspectRatio: `${s.w} / ${s.h}`,
-                                  height: s.w >= s.h ? "26px" : "34px",
-                                  maxWidth: "82%",
-                                  border: on
-                                    ? "1px solid color-mix(in srgb, var(--primary-purple) 70%, transparent)"
-                                    : "1px solid rgba(255,255,255,0.16)",
-                                  background: on
-                                    ? "linear-gradient(135deg, color-mix(in srgb, var(--primary-purple) 55%, transparent) 0%, color-mix(in srgb, var(--primary-purple) 12%, transparent) 100%)"
-                                    : "rgba(255,255,255,0.04)",
-                                  boxShadow: on
-                                    ? "0 0 18px color-mix(in srgb, var(--primary-purple) 45%, transparent), inset 0 0 12px color-mix(in srgb, var(--primary-purple) 18%, transparent)"
-                                    : "none",
-                                }}
-                              />
-                            </div>
-                            <div className="flex flex-col items-center gap-0.5">
-                              <span className="font-display text-[13px] font-bold leading-none tabular-nums">{s.label}</span>
-                              <span className="text-[9px] font-medium tracking-wide text-[var(--text-subtle)]">{s.sub}</span>
-                            </div>
+                            <span className="font-display text-[12px] font-bold leading-tight" style={{ color: on ? "white" : "var(--text-primary)" }}>
+                              {s.label}
+                            </span>
+                            <span className="text-[10px] mt-0.5 font-medium" style={{ color: on ? "color-mix(in srgb, var(--primary-purple) 80%, white)" : "var(--text-muted)" }}>
+                              {s.sub}
+                            </span>
                           </button>
                         );
                       })}

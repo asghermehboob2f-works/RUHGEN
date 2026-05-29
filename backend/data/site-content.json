@@ -99,6 +99,12 @@
         "title": "Background genius v2",
         "caption": "Replace environments in one pass—studio cyclorama, matte painting, or full CG—with depth-aware separation. and many more",
         "videoSrc": "/media/showcase/dcd4f376-4861-4205-bed7-a5763ba2f2c8.mp4"
+      },
+      {
+        "id": "show-1779953232011",
+        "title": "Flux Temporal Render",
+        "caption": "Hyper-realistic rendering pipelines powered by neural models.",
+        "videoSrc": "/media/showcase/772da59a-6fb2-4af5-ae49-b58d1ce107b3.mp4"
       }
     ]
   },
@@ -348,5 +354,8 @@
       "hoverColor": "group-hover:text-brand-pink/70",
       "initials": "LS"
     }
-  ]
+  ],
+  "spotlightFeatures": [],
+  "spotlightTemplates": [],
+  "upcomingFeatures": []
 }

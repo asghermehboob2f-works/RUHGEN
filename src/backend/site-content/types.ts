@@ -63,6 +63,31 @@ export type TestimonialItem = {
   initials: string;
 };
 
+export type SpotlightFeatureItem = {
+  id: string;
+  title: string;
+  description: string;
+  badge?: string;
+  glowColor: string;
+};
+
+export type SpotlightTemplateItem = {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  demoUrl?: string;
+  imageUrl?: string;
+};
+
+export type UpcomingFeatureItem = {
+  id: string;
+  title: string;
+  description: string;
+  timeline: string;
+  status: "planned" | "in-progress" | "released";
+};
+
 export type SiteContent = {
   hero: {};
   heroBackground: HeroBackgroundConfig;
@@ -71,4 +96,7 @@ export type SiteContent = {
   pillars?: PillarItem[];
   stats?: StatItem[];
   testimonials?: TestimonialItem[];
+  spotlightFeatures?: SpotlightFeatureItem[];
+  spotlightTemplates?: SpotlightTemplateItem[];
+  upcomingFeatures?: UpcomingFeatureItem[];
 };

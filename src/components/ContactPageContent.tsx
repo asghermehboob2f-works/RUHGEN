@@ -2,7 +2,7 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
-import { Clock, CreditCard, Headphones, HelpCircle, MessageCircle, Sparkles } from "lucide-react";
+import { Clock, CreditCard, Headphones, HelpCircle, MessageCircle, Sparkles, ArrowRight } from "lucide-react";
 import { ContactForm } from "@/components/ContactForm";
 import { SITE_CONTAINER } from "@/lib/site-layout";
 
@@ -10,7 +10,7 @@ const assurances = [
   {
     icon: Clock,
     title: "Studio onboarding",
-    body: "Typically 2–3 business days for workspace provisioning and SSO.",
+    body: "Typically 2\u20133 business days for workspace provisioning and SSO.",
     glow: "#7B61FF",
   },
   {
@@ -22,7 +22,7 @@ const assurances = [
   {
     icon: MessageCircle,
     title: "We read every note",
-    body: "Sales, partnerships, or a stubborn bug—mention your team size for faster routing.",
+    body: "Sales, partnerships, or a stubborn bug\u2014mention your team size for faster routing.",
     glow: "#FF2E9A",
   },
 ];
@@ -31,15 +31,16 @@ export function ContactPageContent() {
   const reduce = useReducedMotion();
 
   return (
-    <main className="mesh-section-muted relative flex-1 overflow-hidden pt-24 sm:pt-28">
-      <div
-        className="pointer-events-none absolute inset-0 opacity-50"
-        style={{
-          background:
-            "radial-gradient(ellipse 65% 50% at 90% 5%, rgba(123,97,255,0.18), transparent 50%), radial-gradient(ellipse 55% 45% at 10% 90%, rgba(0,212,255,0.12), transparent 52%)",
-        }}
-      />
+    <main className="relative flex-1 overflow-hidden pt-24 sm:pt-28" style={{ background: "var(--deep-black)" }}>
+      {/* Premium ambient background */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute top-0 right-1/4 w-[600px] h-[600px] rounded-full blur-[160px] opacity-35" style={{ background: "radial-gradient(circle, rgba(123,97,255,0.35), transparent 70%)" }} />
+        <div className="absolute bottom-1/4 left-1/4 w-[500px] h-[500px] rounded-full blur-[140px] opacity-25" style={{ background: "radial-gradient(circle, rgba(0,212,255,0.3), transparent 70%)" }} />
+        <div className="absolute inset-0 app-grain" />
+      </div>
+
       <div className={`relative ${SITE_CONTAINER} pb-24`}>
+        {/* Quick-nav cards */}
         <div className="mb-10 grid gap-3 sm:grid-cols-3 lg:gap-4">
           {[
             { href: "/faq", label: "Help center", sub: "Searchable answers", Icon: HelpCircle },
@@ -49,10 +50,10 @@ export function ContactPageContent() {
             <Link
               key={x.href}
               href={x.href}
-              className="premium-ring flex items-start gap-3 rounded-2xl border p-4 transition-colors hover:border-[#7B61FF]/35"
-              style={{ borderColor: "var(--border-subtle)", background: "var(--glass)" }}
+              className="premium-ring flex items-start gap-3 rounded-2xl border p-4 transition-all duration-300 hover:border-[#7B61FF]/35 hover:-translate-y-0.5"
+              style={{ borderColor: "var(--border-subtle)", background: "var(--glass)", backdropFilter: "blur(20px)" }}
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border" style={{ borderColor: "var(--border-subtle)" }}>
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border" style={{ borderColor: "var(--border-subtle)", background: "linear-gradient(135deg, rgba(123,97,255,0.15), transparent)" }}>
                 <x.Icon className="h-[18px] w-[18px] text-[#7B61FF]" strokeWidth={1.75} />
               </div>
               <div>
@@ -74,12 +75,20 @@ export function ContactPageContent() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45 }}
             >
-              <div className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.2em] sm:text-xs" style={{ borderColor: "var(--border-subtle)", color: "var(--text-subtle)", background: "var(--glass)" }}>
+              <div
+                className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.2em] sm:text-xs"
+                style={{
+                  borderColor: "color-mix(in srgb, var(--border-subtle) 80%, rgba(123,97,255,0.3))",
+                  color: "var(--text-subtle)",
+                  background: "var(--glass)",
+                  boxShadow: "0 0 16px rgba(123,97,255,0.08)"
+                }}
+              >
                 <Sparkles className="h-3.5 w-3.5" style={{ color: "#7B61FF" }} />
                 Contact
               </div>
               <h1 className="font-display mt-5 text-[clamp(2rem,4.5vw,3.25rem)] font-extrabold leading-[1.08] tracking-tight">
-                <span style={{ color: "var(--text-primary)" }}>Let’s build something </span>
+                <span style={{ color: "var(--text-primary)" }}>Let&apos;s build something </span>
                 <span className="text-gradient-hero">unreal.</span>
               </h1>
               <p className="mt-5 max-w-lg text-base leading-relaxed sm:text-lg" style={{ color: "var(--text-muted)" }}>
@@ -101,11 +110,11 @@ export function ContactPageContent() {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true, margin: "-20px" }}
                   transition={{ delay: reduce ? 0 : i * 0.05, duration: 0.35 }}
-                  className="premium-ring flex gap-4 rounded-2xl border p-4 sm:p-5"
+                  className="premium-ring flex gap-4 rounded-2xl border p-4 sm:p-5 transition-all duration-300 hover:-translate-y-0.5"
                   style={{
                     borderColor: "var(--border-subtle)",
                     background: "var(--glass)",
-                    backdropFilter: "blur(18px)",
+                    backdropFilter: "blur(18px) saturate(180%)",
                   }}
                 >
                   <div
@@ -138,7 +147,7 @@ export function ContactPageContent() {
               viewport={{ once: true }}
             >
               Prefer async? Use the form—no account required. For security-sensitive topics, say so in your message and
-              we’ll route you appropriately.
+              we&apos;ll route you appropriately.
             </motion.p>
           </div>
 
@@ -154,19 +163,22 @@ export function ContactPageContent() {
           </div>
         </div>
 
+        {/* Studio quote CTA — enhanced */}
         <motion.section
-          className="mt-14 grid gap-6 overflow-hidden rounded-[1.5rem] border px-6 py-8 sm:mt-16 sm:px-10 sm:py-10 lg:grid-cols-[1fr_1.2fr] lg:items-center lg:gap-10"
+          className="relative mt-14 overflow-hidden rounded-[1.5rem] border px-6 py-8 sm:mt-16 sm:px-10 sm:py-10 lg:grid-cols-[1fr_1.2fr] lg:items-center lg:gap-10 grid gap-6"
           style={{
             borderColor: "var(--border-subtle)",
             background: "linear-gradient(135deg, rgba(123,97,255,0.10), rgba(0,212,255,0.08), rgba(255,46,154,0.06))",
-            backdropFilter: "blur(24px)",
+            backdropFilter: "blur(24px) saturate(180%)",
+            boxShadow: "0 32px 80px -24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)"
           }}
           initial={reduce ? false : { opacity: 0, y: 14 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-40px" }}
           transition={{ duration: 0.45 }}
         >
-          <div className="text-center lg:text-left">
+          <div className="absolute inset-0 pointer-events-none opacity-30" style={{ background: "radial-gradient(ellipse 70% 60% at 100% 0%, rgba(123,97,255,0.3), transparent 55%), radial-gradient(ellipse 50% 50% at 0% 100%, rgba(0,212,255,0.2), transparent 50%)" }} />
+          <div className="relative text-center lg:text-left">
             <p className="text-[10px] font-bold uppercase tracking-[0.28em] sm:text-xs" style={{ color: "var(--text-subtle)" }}>
               Fast routing
             </p>
@@ -174,8 +186,8 @@ export function ContactPageContent() {
               Want a Studio quote?
             </p>
           </div>
-          <p className="text-center text-sm leading-relaxed sm:text-base lg:text-left" style={{ color: "var(--text-muted)" }}>
-            Include team size, target launch date, and whether you need SSO. We’ll reply with the right plan and a clear path to production.
+          <p className="relative text-center text-sm leading-relaxed sm:text-base lg:text-left" style={{ color: "var(--text-muted)" }}>
+            Include team size, target launch date, and whether you need SSO. We&apos;ll reply with the right plan and a clear path to production.
           </p>
         </motion.section>
       </div>

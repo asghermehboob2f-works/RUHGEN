@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { motion, useReducedMotion } from "framer-motion";
 import {
@@ -795,24 +795,33 @@ export default function VideoStudioClient() {
               </StudioCollapsible>
 
               <StudioCollapsible title="Frame geometry" subtitle="Aspect ratio for delivery" defaultOpen>
-                <div className="grid grid-cols-3 gap-1.5">
-                  {aspectButtons.map(({ key, label, icon: Icon }) => {
+                <div className="mb-2 flex items-end justify-between gap-2">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--text-subtle)]">Frame</p>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Frame">
+                  {aspectButtons.map(({ key, label }) => {
                     const on = aspect === key;
+                    const name = key === "1:1" ? "Square" : key === "16:9" ? "Landscape" : "Portrait";
                     return (
                       <button
                         key={key}
                         type="button"
                         disabled={busy}
                         onClick={() => setAspect(key)}
-                        className="flex min-h-[48px] flex-col items-center justify-center gap-1 rounded-xl border px-1 py-2 text-center text-[11px] font-bold transition-all enabled:hover:bg-white/[0.05] disabled:opacity-50"
+                        className="group flex min-h-[46px] flex-col items-start justify-center rounded-xl border px-2.5 py-1.5 text-left transition-all duration-200 enabled:hover:bg-white/[0.04] disabled:opacity-45"
                         style={{
-                          borderColor: on ? "color-mix(in srgb, var(--primary-cyan) 50%, transparent)" : "color-mix(in srgb, white 10%, transparent)",
-                          background: on ? "color-mix(in srgb, var(--primary-cyan) 18%, transparent)" : "rgba(0,0,0,0.35)",
-                          color: "var(--text-primary)",
+                          borderColor: on ? "var(--primary-cyan)" : "rgba(255,255,255,0.08)",
+                          background: on ? "color-mix(in srgb, var(--primary-cyan) 15%, transparent)" : "transparent",
                         }}
                       >
-                        <Icon className="h-4 w-4 opacity-90" strokeWidth={1.75} style={{ color: on ? "var(--primary-cyan)" : "var(--text-muted)" }} />
-                        {label}
+                        <span className="font-display text-[12px] font-bold leading-tight" style={{ color: on ? "white" : "var(--text-primary)" }}>
+                          {name}
+                        </span>
+                        <span className="text-[10px] mt-0.5 font-medium" style={{ color: on ? "color-mix(in srgb, var(--primary-cyan) 80%, white)" : "var(--text-muted)" }}>
+                          {label}
+                        </span>
                       </button>
                     );
                   })}

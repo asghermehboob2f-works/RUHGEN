@@ -67,44 +67,6 @@ export function Features({ hideHeading = false }: { hideHeading?: boolean }) {
       />
 
       <div className={`relative ${SITE_CONTAINER}`}>
-        {!hideHeading && (
-          <motion.div
-            className="mb-10 grid gap-8 md:mb-14 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-end lg:gap-12"
-            initial={reduce ? false : { opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.5 }}
-          >
-            <div className="text-center lg:text-left">
-              <p
-                className="mb-2 text-[10px] font-bold uppercase tracking-[0.28em] sm:text-xs"
-                style={{ color: "var(--text-subtle)" }}
-              >
-                Capabilities
-              </p>
-              <h2
-                className="font-display text-section-title font-bold leading-[1.2] tracking-tight"
-                style={{ color: "var(--text-primary)" }}
-              >
-                Limitless creativity
-              </h2>
-            </div>
-            <div className="text-center lg:text-left">
-              <p
-                className="text-sm leading-relaxed sm:text-base"
-                style={{ color: "var(--text-muted)" }}
-              >
-                Powered by cutting-edge AI technology — tuned for prod pipelines, not toy demos.
-              </p>
-              <div
-                className="mx-auto mt-5 h-px w-20 rounded-full sm:mt-6 lg:mx-0"
-                style={{
-                  background: "linear-gradient(90deg, transparent, #7B61FF, #00D4FF, transparent)",
-                }}
-              />
-            </div>
-          </motion.div>
-        )}
 
         <motion.div
           className="grid gap-2 sm:grid-cols-2 sm:gap-2.5 lg:grid-cols-3 lg:gap-3"

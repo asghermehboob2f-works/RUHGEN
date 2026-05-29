@@ -16,6 +16,7 @@ export default function DashboardContentPage() {
   const [content, setContent] = useState<SiteContent | null>(null);
   const [status, setStatus] = useState<string>("");
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<"hero" | "homepage">("hero");
 
   useEffect(() => {
     let ok = true;
@@ -25,9 +26,18 @@ export default function DashboardContentPage() {
         const data = (await res.json()) as SiteContent;
         if (!ok) return;
         
-        // Ensure heroBackground exists for older DB records
+        // Ensure properties exist for older DB records
         if (!data.heroBackground) {
           data.heroBackground = PUBLIC_DEFAULT_SITE_CONTENT.heroBackground;
+        }
+        if (!data.spotlightFeatures) {
+          data.spotlightFeatures = PUBLIC_DEFAULT_SITE_CONTENT.spotlightFeatures || [];
+        }
+        if (!data.spotlightTemplates) {
+          data.spotlightTemplates = PUBLIC_DEFAULT_SITE_CONTENT.spotlightTemplates || [];
+        }
+        if (!data.upcomingFeatures) {
+          data.upcomingFeatures = PUBLIC_DEFAULT_SITE_CONTENT.upcomingFeatures || [];
         }
         
         setContent(data);
@@ -174,11 +184,38 @@ export default function DashboardContentPage() {
             Loading content…
           </div>
         ) : (
-          <div className="mt-10 grid gap-10">
+          <div className="mt-10 flex flex-col gap-8">
+            {/* Premium Editorial Tab Controller */}
+            <div className="flex border-b border-white/5 pb-2 overflow-x-auto select-none no-scrollbar gap-6 sm:gap-10">
+              <button
+                type="button"
+                onClick={() => setActiveTab("hero")}
+                className="pb-3.5 text-sm font-bold uppercase tracking-wider transition-all relative outline-none shrink-0"
+                style={{ color: activeTab === "hero" ? "var(--text-primary)" : "var(--text-subtle)" }}
+              >
+                Hero & Gallery
+                {activeTab === "hero" && (
+                  <motion.div layoutId="adminActiveTabLine" className="absolute bottom-0 inset-x-0 h-0.5 bg-gradient-to-r from-[var(--primary-purple)] to-[var(--primary-cyan)]" />
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("homepage")}
+                className="pb-3.5 text-sm font-bold uppercase tracking-wider transition-all relative outline-none shrink-0"
+                style={{ color: activeTab === "homepage" ? "var(--text-primary)" : "var(--text-subtle)" }}
+              >
+                Homepage Layout
+                {activeTab === "homepage" && (
+                  <motion.div layoutId="adminActiveTabLine" className="absolute bottom-0 inset-x-0 h-0.5 bg-gradient-to-r from-[var(--primary-purple)] to-[var(--primary-cyan)]" />
+                )}
+              </button>
+            </div>
 
-            {/* Hero Background Management */}
-            <section className="rounded-2xl border p-5 sm:p-7" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
-              <h2 className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>Hero Background</h2>
+            <div className="grid gap-10">
+              {/* Hero Background Management */}
+              {activeTab === "hero" && (
+                <section className="rounded-2xl border p-5 sm:p-7" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
+                  <h2 className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>Hero Background</h2>
               <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>Manage background media and visual settings for the hero section.</p>
 
               {/* Media Manager */}
@@ -315,7 +352,10 @@ export default function DashboardContentPage() {
                 </div>
               </div>
             </section>
+          )}
 
+          {/* Showcase gallery */}
+          {activeTab === "homepage" && (
             <section className="rounded-2xl border p-5 sm:p-7" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
               <h2 className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>Showcase gallery</h2>
               <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
@@ -434,122 +474,13 @@ export default function DashboardContentPage() {
                 ))}
               </div>
             </section>
+          )}
 
-            <section className="rounded-2xl border p-5 sm:p-7" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h2 className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>
-                    Spotlight slides
-                  </h2>
-                  <p className="mt-1 max-w-2xl text-sm" style={{ color: "var(--text-muted)" }}>
-                    Homepage carousel (#showcase). Upload a short .mp4 or .webm (~3 seconds) plus a title and one-line description per card.
-                  </p>
-                </div>
-                <motion.button
-                  type="button"
-                  whileTap={reduce ? undefined : { scale: 0.98 }}
-                  onClick={() => {
-                    if (!content) return;
-                    const next = structuredClone(content);
-                    next.showcase.slides.push({
-                      id: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `show-${Date.now()}`,
-                      title: "New capability",
-                      caption: "Describe what users will see in this trial clip.",
-                      videoSrc: "",
-                    });
-                    setContent(next);
-                  }}
-                  className="shrink-0 rounded-xl border px-4 py-2.5 text-sm font-semibold"
-                  style={{
-                    borderColor: "var(--border-subtle)",
-                    background: "var(--soft-black)",
-                    color: "var(--text-primary)",
-                  }}
-                >
-                  Add slide
-                </motion.button>
-              </div>
 
-              <div className="mt-6 grid gap-4 lg:grid-cols-2">
-                {content.showcase.slides.map((slide, idx) => (
-                  <div key={slide.id} className="editor-card p-4">
-                    <div className="mb-3 flex items-start justify-between gap-2">
-                      <p className="text-xs font-mono" style={{ color: "var(--text-subtle)" }}>{slide.id}</p>
-                      <button
-                        type="button"
-                        className="shrink-0 text-xs font-semibold text-[#FF2E9A] hover:underline"
-                        onClick={() => {
-                          const next = structuredClone(content);
-                          if (next.showcase.slides.length <= 1) {
-                            setStatus("Keep at least one spotlight slide.");
-                            return;
-                          }
-                          next.showcase.slides.splice(idx, 1);
-                          setContent(next);
-                          setStatus("");
-                        }}
-                      >
-                        Remove
-                      </button>
-                    </div>
-                    <div className="relative mb-3 aspect-video overflow-hidden rounded-lg border" style={{ borderColor: "var(--border-subtle)" }}>
-                      {slide.videoSrc ? (
-                        <video className="h-full w-full object-cover" src={slide.videoSrc} controls muted playsInline preload="metadata" />
-                      ) : (
-                        <div className="flex h-full min-h-[120px] items-center justify-center text-xs" style={{ color: "var(--text-muted)" }}>
-                          No video yet
-                        </div>
-                      )}
-                    </div>
-                    <div className="grid gap-2">
-                      <input
-                        value={slide.title}
-                        onChange={(e) => {
-                          const next = structuredClone(content);
-                          next.showcase.slides[idx].title = e.target.value;
-                          setContent(next);
-                        }}
-                        className="min-h-[40px] w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#7B61FF]/40"
-                        style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
-                        placeholder="Title (e.g. Face swap)"
-                      />
-                      <textarea
-                        value={slide.caption}
-                        onChange={(e) => {
-                          const next = structuredClone(content);
-                          next.showcase.slides[idx].caption = e.target.value;
-                          setContent(next);
-                        }}
-                        rows={3}
-                        className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#7B61FF]/40"
-                        style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
-                        placeholder="One line under the card…"
-                      />
-                      <label className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--text-subtle)" }}>
-                        Trial video (.mp4 / .webm, ~3s)
-                      </label>
-                      <input
-                        type="file"
-                        accept="video/mp4,video/webm"
-                        onChange={async (e) => {
-                          const f = e.target.files?.[0];
-                          if (!f) return;
-                          const src = await upload("showcase", f);
-                          if (!src) return;
-                          const next = structuredClone(content);
-                          next.showcase.slides[idx].videoSrc = src;
-                          setContent(next);
-                          e.target.value = "";
-                        }}
-                        className="block w-full text-xs"
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
+          
 
-            {/* Value Proposition Editor */}
+          {/* Value Proposition Editor */}
+          {activeTab === "homepage" && (
             <section className="rounded-2xl border p-5 sm:p-7" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
               <h2 className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>Value Proposition Pillars</h2>
               <p className="mt-1 text-sm mb-6" style={{ color: "var(--text-muted)" }}>Customize the three core value feature pillars displayed on the homepage.</p>
@@ -650,8 +581,10 @@ export default function DashboardContentPage() {
                 ))}
               </div>
             </section>
+          )}
 
-            {/* Metrics/Stats Editor */}
+          {/* Metrics/Stats Editor */}
+          {activeTab === "homepage" && (
             <section className="rounded-2xl border p-5 sm:p-7" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
               <h2 className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>Homepage Metrics</h2>
               <p className="mt-1 text-sm mb-6" style={{ color: "var(--text-muted)" }}>Manage numeric statistics and progress values shown in the live stats bar.</p>
@@ -719,8 +652,10 @@ export default function DashboardContentPage() {
                 ))}
               </div>
             </section>
+          )}
 
-            {/* Testimonials Editor */}
+          {/* Testimonials Editor */}
+          {activeTab === "homepage" && (
             <section className="rounded-2xl border p-5 sm:p-7" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
               <h2 className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>Verified Testimonials</h2>
               <p className="mt-1 text-sm mb-6" style={{ color: "var(--text-muted)" }}>Edit the verified customer endorsements and quotes shown on the homepage.</p>
@@ -788,8 +723,11 @@ export default function DashboardContentPage() {
                 ))}
               </div>
             </section>
+          )}
+
           </div>
-        )}
+        </div>
+      )}
 
       </div>
 {/* Preview Modal */}

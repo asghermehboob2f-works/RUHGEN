@@ -27,6 +27,12 @@ const tiles = [
     icon: "sparkles" as const,
   },
   {
+    title: "FAQ",
+    desc: "Update frequently asked questions and categories.",
+    href: "/admindashboard/faq",
+    icon: "sparkles" as const,
+  },
+  {
     title: "Contact inbox",
     desc: "Read and reply to messages sent from the public contact page.",
     href: "/admindashboard/messages",

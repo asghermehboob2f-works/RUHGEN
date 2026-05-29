@@ -21,7 +21,6 @@ const links = [
   { href: "/spotlight", label: "Spotlight", id: "spotlight" },
   { href: "/features", label: "Features", id: "features" },
   { href: "/platform", label: "Platform", id: "platform" },
-  { href: "/gallery", label: "Gallery", id: "gallery" },
   { href: "/community", label: "Community", id: "community" },
   { href: "/workflow", label: "Workflow", id: "workflow" },
   { href: "/pricing", label: "Pricing", id: "pricing" },

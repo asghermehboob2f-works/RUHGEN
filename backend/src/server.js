@@ -13,6 +13,8 @@ const { mountStudioRoutes } = require("./studio-routes");
 const { mountUserAuthRoutes } = require("./user-auth-routes");
 const { mountCommunityRoutes } = require("./community-routes");
 const { mountAcademyRoutes } = require("./academy-routes");
+const { mountFaqRoutes } = require("./faq-routes");
+const { mountAdminUsersRoutes } = require("./admin-users-routes");
 
 const PORT = Number(process.env.BACKEND_PORT || process.env.PORT || 4000, 10);
 const projectRoot = path.resolve(__dirname, "..", "..");
@@ -354,6 +356,8 @@ mountUserAuthRoutes(app, { db });
 mountStudioRoutes(app, { upload });
 mountCommunityRoutes(app, { db });
 mountAcademyRoutes(app, { db });
+mountFaqRoutes(app, { db });
+mountAdminUsersRoutes(app, { db });
 
 app.listen(PORT, "0.0.0.0", () => {
   // eslint-disable-next-line no-console

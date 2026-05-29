@@ -2,21 +2,41 @@
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
-import { useState } from "react";
-import { MARKETING_FAQS, type MarketingFaq } from "@/lib/marketing-faqs";
+import { useEffect, useState } from "react";
+import { type MarketingFaq } from "@/lib/marketing-faqs";
 import { SITE_CONTAINER } from "@/lib/site-layout";
+
+interface Faq {
+  id: string;
+  category: string;
+  question: string;
+  answer: string;
+}
 
 export function FAQ({
   hideHeading = false,
   items,
 }: {
   hideHeading?: boolean;
-  /** Defaults to first five entries — pricing embed. */
-  items?: MarketingFaq[];
+  /** Optional pre-loaded items */
+  items?: Faq[];
 }) {
-  const list = items ?? MARKETING_FAQS.slice(0, 5);
+  const [list, setList] = useState<Faq[]>(items ?? []);
   const [open, setOpen] = useState<number | null>(0);
   const reduce = useReducedMotion();
+
+  useEffect(() => {
+    if (!items) {
+      fetch("/api/faqs")
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.ok) {
+            setList(data.faqs.slice(0, 5));
+          }
+        })
+        .catch(console.error);
+    }
+  }, [items]);
 
   return (
     <section id="faq" className="mesh-section scroll-mt-24 py-12 md:py-24">
@@ -74,7 +94,7 @@ export function FAQ({
                     className="font-display pr-2 text-base font-semibold sm:text-lg"
                     style={{ color: "var(--text-primary)" }}
                   >
-                    {item.q}
+                    {item.question}
                   </span>
                   <ChevronDown
                     className="h-5 w-5 shrink-0 transition-transform duration-300"
@@ -99,7 +119,7 @@ export function FAQ({
                           color: "var(--text-muted)",
                         }}
                       >
-                        {item.a}
+                        {item.answer}
                       </p>
                     </motion.div>
                   )}

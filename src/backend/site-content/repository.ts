@@ -10,10 +10,12 @@ import type {
   HeroBackgroundMedia,
   ShowcaseSlide,
   SiteContent,
+  SpotlightFeatureItem,
+  SpotlightTemplateItem,
+  UpcomingFeatureItem,
 } from "@/backend/site-content/types";
 
-const CONTENT_PATH = path.join(/*turbopackIgnore: true*/ process.cwd(), "backend", "data", "site-content.json");
-const CONTENT_FALLBACK_PATH = path.join(/*turbopackIgnore: true*/ process.cwd(), "data", "site-content.json");
+
 
 const DEFAULT_SHOWCASE_SLIDES: ShowcaseSlide[] = [
   {
@@ -86,6 +88,44 @@ function parseHeroBackgroundConfig(x: unknown): HeroBackgroundConfig | null {
   };
 }
 
+function parseSpotlightFeature(x: unknown): SpotlightFeatureItem | null {
+  if (!isRecord(x)) return null;
+  if (!isString(x.id) || !isString(x.title) || !isString(x.description) || !isString(x.glowColor)) return null;
+  return {
+    id: x.id,
+    title: x.title,
+    description: x.description,
+    badge: isString(x.badge) ? x.badge : undefined,
+    glowColor: x.glowColor,
+  };
+}
+
+function parseSpotlightTemplate(x: unknown): SpotlightTemplateItem | null {
+  if (!isRecord(x)) return null;
+  if (!isString(x.id) || !isString(x.title) || !isString(x.description) || !isString(x.category)) return null;
+  return {
+    id: x.id,
+    title: x.title,
+    description: x.description,
+    category: x.category,
+    demoUrl: isString(x.demoUrl) ? x.demoUrl : undefined,
+    imageUrl: isString(x.imageUrl) ? x.imageUrl : undefined,
+  };
+}
+
+function parseUpcomingFeature(x: unknown): UpcomingFeatureItem | null {
+  if (!isRecord(x)) return null;
+  if (!isString(x.id) || !isString(x.title) || !isString(x.description) || !isString(x.timeline)) return null;
+  const status = x.status === "planned" || x.status === "in-progress" || x.status === "released" ? x.status : "planned";
+  return {
+    id: x.id,
+    title: x.title,
+    description: x.description,
+    timeline: x.timeline,
+    status,
+  };
+}
+
 function parseShowcaseSlide(x: unknown): ShowcaseSlide | null {
   if (!isRecord(x)) return null;
   if (!isString(x.id) || !isString(x.title) || !isString(x.caption)) return null;
@@ -118,7 +158,11 @@ export function parseSiteContentPayload(data: unknown): SiteContent {
   const stats = Array.isArray(data.stats) ? data.stats : PUBLIC_DEFAULT_SITE_CONTENT.stats;
   const testimonials = Array.isArray(data.testimonials) ? data.testimonials : PUBLIC_DEFAULT_SITE_CONTENT.testimonials;
 
-  return { hero, heroBackground, gallery: { items }, showcase: { slides }, pillars, stats, testimonials };
+  const spotlightFeatures = Array.isArray(data.spotlightFeatures) ? (data.spotlightFeatures.map(parseSpotlightFeature).filter(Boolean) as SpotlightFeatureItem[]) : undefined;
+  const spotlightTemplates = Array.isArray(data.spotlightTemplates) ? (data.spotlightTemplates.map(parseSpotlightTemplate).filter(Boolean) as SpotlightTemplateItem[]) : undefined;
+  const upcomingFeatures = Array.isArray(data.upcomingFeatures) ? (data.upcomingFeatures.map(parseUpcomingFeature).filter(Boolean) as UpcomingFeatureItem[]) : undefined;
+
+  return { hero, heroBackground, gallery: { items }, showcase: { slides }, pillars, stats, testimonials, spotlightFeatures, spotlightTemplates, upcomingFeatures };
 }
 
 /** True when the CMS payload has no real gallery media (common after empty DB seed). */
@@ -128,15 +172,17 @@ function isSparseContent(c: SiteContent): boolean {
 }
 
 async function loadSiteContentFromDisk(): Promise<SiteContent | null> {
-  for (const p of [CONTENT_PATH, CONTENT_FALLBACK_PATH]) {
+  try {
+    const raw = await fs.readFile(path.join(process.cwd(), "backend/data/site-content.json"), "utf8");
+    return parseSiteContentPayload(JSON.parse(raw) as unknown);
+  } catch {
     try {
-      const raw = await fs.readFile(p, "utf8");
-      return parseSiteContentPayload(JSON.parse(raw) as unknown);
+      const rawFallback = await fs.readFile(path.join(process.cwd(), "data/site-content.json"), "utf8");
+      return parseSiteContentPayload(JSON.parse(rawFallback) as unknown);
     } catch {
-      /* try next */
+      return null;
     }
   }
-  return null;
 }
 
 /**
@@ -168,6 +214,10 @@ export function applyPublicSiteDefaults(c: SiteContent): SiteContent {
   const stats = c.stats && c.stats.length > 0 ? c.stats : def.stats;
   const testimonials = c.testimonials && c.testimonials.length > 0 ? c.testimonials : def.testimonials;
 
+  const spotlightFeatures = c.spotlightFeatures && c.spotlightFeatures.length > 0 ? c.spotlightFeatures : def.spotlightFeatures;
+  const spotlightTemplates = c.spotlightTemplates && c.spotlightTemplates.length > 0 ? c.spotlightTemplates : def.spotlightTemplates;
+  const upcomingFeatures = c.upcomingFeatures && c.upcomingFeatures.length > 0 ? c.upcomingFeatures : def.upcomingFeatures;
+
   return {
     hero: c.hero,
     heroBackground,
@@ -176,6 +226,9 @@ export function applyPublicSiteDefaults(c: SiteContent): SiteContent {
     pillars,
     stats,
     testimonials,
+    spotlightFeatures,
+    spotlightTemplates,
+    upcomingFeatures,
   };
 }
 

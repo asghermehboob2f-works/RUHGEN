@@ -183,11 +183,21 @@ function openDb(projectRoot) {
       instructor TEXT NOT NULL DEFAULT 'RUHGEN Masterclass',
       created_at TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS faqs (
+      id TEXT PRIMARY KEY,
+      category TEXT NOT NULL,
+      question TEXT NOT NULL,
+      answer TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
   `);
   seedSiteContentIfEmpty(db, dataDir, projectRoot);
   migrateLegacyJsonIfEmpty(db, dataDir, projectRoot);
   syncSiteContentFromSeedFile(db, dataDir, projectRoot);
   seedAcademyTutorialsIfEmpty(db);
+  seedFaqsIfEmpty(db);
   upgradeExistingSiteContent(db);
   ensureAdminFromEnv(db);
   return { db, dataDir };
@@ -660,10 +670,22 @@ function upgradeExistingSiteContent(db) {
     data.testimonials = DEFAULT_TESTIMONIALS;
     changed = true;
   }
+  if (!data.spotlightFeatures) {
+    data.spotlightFeatures = [];
+    changed = true;
+  }
+  if (!data.spotlightTemplates) {
+    data.spotlightTemplates = [];
+    changed = true;
+  }
+  if (!data.upcomingFeatures) {
+    data.upcomingFeatures = [];
+    changed = true;
+  }
 
   if (changed) {
     db.prepare("UPDATE site_content SET json = ? WHERE id = 1").run(JSON.stringify(data));
-    console.log("[db] upgraded site content table in SQLite database to include pillars, stats, and testimonials.");
+    console.log("[db] upgraded site content table in SQLite database to include pillars, stats, testimonials, and spotlight fields.");
   }
 }
 
@@ -758,6 +780,74 @@ function seedAcademyTutorialsIfEmpty(db) {
     );
   }
   console.log(`[db] Seeded ${tutorials.length} default tutorials into academy_tutorials.`);
+}
+
+function seedFaqsIfEmpty(db) {
+  const count = db.prepare("SELECT COUNT(*) AS c FROM faqs").get().c;
+  if (count > 0) return;
+
+  const crypto = require("node:crypto");
+  const now = new Date().toISOString();
+
+  const faqs = [
+    {
+      id: "create",
+      category: "product",
+      question: "What can I create with RUHGEN?",
+      answer: "Still images, image sequences, and short-form cinematic clips from text—or combine reference frames and style prompts. Pro and Studio add higher resolutions, longer outputs, and batch workflows.",
+    },
+    {
+      id: "pricing-teams",
+      category: "billing",
+      question: "How does pricing scale for teams?",
+      answer: "Free is for experimentation. Pro fits solo creators and small squads with pooled monthly generations. Studio adds seats, shared prompt libraries, audit logs, and priority infrastructure.",
+    },
+    {
+      id: "commercial",
+      category: "billing",
+      question: "Can I use outputs commercially?",
+      answer: "Yes on Pro and Studio within the license terms in your agreement. Free tier is for personal exploration—upgrade before client or broadcast work.",
+    },
+    {
+      id: "api",
+      category: "teams",
+      question: "Do you offer an API?",
+      answer: "Studio includes REST hooks, webhooks on job completion, and signed URLs for assets so you can automate ingest into DAMs, MAMs, or custom render farms.",
+    },
+    {
+      id: "privacy",
+      category: "security",
+      question: "How do you handle data privacy?",
+      answer: "Prompts and uploads are encrypted in transit. Retention defaults are configurable on Studio; we never sell your data or train on private Studio content without a contract addendum.",
+    },
+    {
+      id: "seats",
+      category: "teams",
+      question: "How do seats and shared libraries work?",
+      answer: "Studio workspaces can add seats with role-based access. Shared prompt libraries and brand-safe style presets stay in sync so art direction doesn’t drift between contributors.",
+    },
+    {
+      id: "credits",
+      category: "billing",
+      question: "What happens when I run out of credits?",
+      answer: "You’ll see a clear notice before jobs start. Upgrade your plan, purchase a top-up where available, or wait for your monthly reset—your drafts and prompts are never deleted.",
+    },
+    {
+      id: "exports",
+      category: "product",
+      question: "Which export formats are supported?",
+      answer: "Common image formats plus sequence-friendly options for pipelines. Video exports target review-friendly codecs; Studio can expose additional formats and passes depending on your plan.",
+    }
+  ];
+
+  const stmt = db.prepare(
+    "INSERT INTO faqs (id, category, question, answer, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
+  );
+
+  for (const faq of faqs) {
+    stmt.run(faq.id, faq.category, faq.question, faq.answer, now, now);
+  }
+  console.log(`[db] Seeded ${faqs.length} default FAQs.`);
 }
 
 module.exports = { openDb };
