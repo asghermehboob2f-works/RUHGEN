@@ -80,6 +80,18 @@ const bungeeHairline = localFont({
   display: "swap",
 });
 
+const ningetan = localFont({
+  src: "../../public/fonts/Ningetan.ttf",
+  variable: "--font-ningetan",
+  display: "swap",
+});
+
+const signatie = localFont({
+  src: "../../public/fonts/Signatie.otf",
+  variable: "--font-signatie",
+  display: "swap",
+});
+
 export const viewport = {
   width: "device-width",
   initialScale: 1,
@@ -114,7 +126,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${jetbrains.variable} ${syne.variable} ${bricolage.variable} ${orithDisplay.variable} ${grooteRegular.variable} ${shootingStar.variable} ${audiowide.variable} ${calsans.variable} ${zendots.variable} ${elmsSans.variable} ${bungeeHairline.variable} h-full scroll-smooth antialiased`}
+      className={`${inter.variable} ${jetbrains.variable} ${syne.variable} ${bricolage.variable} ${orithDisplay.variable} ${grooteRegular.variable} ${shootingStar.variable} ${audiowide.variable} ${calsans.variable} ${zendots.variable} ${elmsSans.variable} ${bungeeHairline.variable} ${ningetan.variable} ${signatie.variable} h-full scroll-smooth antialiased`}
       suppressHydrationWarning
     >
       <body
