@@ -818,3 +818,19 @@ html.light .luxury-glass-panel {
   background-clip: padding-box;
 }
 
+/* Animated SVG Sine Wave for Latent Calibration Rig */
+.animate-wave {
+  stroke-dasharray: 20, 20;
+  animation: wave-flow 4s linear infinite;
+}
+
+@keyframes wave-flow {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -40;
+  }
+}
+
+

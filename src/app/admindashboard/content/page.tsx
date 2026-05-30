@@ -862,71 +862,7 @@ export default function DashboardContentPage() {
                         />
                       </div>
 
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="text-[9px] font-semibold uppercase tracking-wider text-white/40">Lens Info</label>
-                          <input
-                            value={p.lens}
-                            onChange={(e) => {
-                              const next = structuredClone(content);
-                              if (!next.visualizerPresets) return;
-                              next.visualizerPresets[idx].lens = e.target.value;
-                              setContent(next);
-                            }}
-                            className="min-h-[36px] w-full rounded-lg border px-2.5 py-1.5 text-xs outline-none"
-                            style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
-                            placeholder="35mm"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-[9px] font-semibold uppercase tracking-wider text-white/40">Aperture / Gap</label>
-                          <input
-                            value={p.gap}
-                            onChange={(e) => {
-                              const next = structuredClone(content);
-                              if (!next.visualizerPresets) return;
-                              next.visualizerPresets[idx].gap = e.target.value;
-                              setContent(next);
-                            }}
-                            className="min-h-[36px] w-full rounded-lg border px-2.5 py-1.5 text-xs outline-none"
-                            style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
-                            placeholder="f/1.8"
-                          />
-                        </div>
-                      </div>
 
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="text-[9px] font-semibold uppercase tracking-wider text-white/40">ISO Rating</label>
-                          <input
-                            value={p.iso}
-                            onChange={(e) => {
-                              const next = structuredClone(content);
-                              if (!next.visualizerPresets) return;
-                              next.visualizerPresets[idx].iso = e.target.value;
-                              setContent(next);
-                            }}
-                            className="min-h-[36px] w-full rounded-lg border px-2.5 py-1.5 text-xs outline-none"
-                            style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
-                            placeholder="ISO 200"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-[9px] font-semibold uppercase tracking-wider text-white/40">Render Time</label>
-                          <input
-                            value={p.resolution}
-                            onChange={(e) => {
-                              const next = structuredClone(content);
-                              if (!next.visualizerPresets) return;
-                              next.visualizerPresets[idx].resolution = e.target.value;
-                              setContent(next);
-                            }}
-                            className="min-h-[36px] w-full rounded-lg border px-2.5 py-1.5 text-xs outline-none"
-                            style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
-                            placeholder="4.2s"
-                          />
-                        </div>
-                      </div>
 
                       <div>
                         <label className="text-[9px] font-semibold uppercase tracking-wider text-white/40">Prompt Quote Text</label>

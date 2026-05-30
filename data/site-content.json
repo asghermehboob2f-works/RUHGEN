@@ -343,7 +343,7 @@
       "role": "CEO & Co-Founder",
       "avatarColor": "from-brand-cyan to-teal-950/40",
       "hoverColor": "group-hover:text-brand-cyan/70",
-      "initials": "R"
+      "initials": "RL"
     },
     {
       "id": "test-3",
@@ -357,5 +357,66 @@
   ],
   "spotlightFeatures": [],
   "spotlightTemplates": [],
-  "upcomingFeatures": []
+  "upcomingFeatures": [],
+  "featurePresets": [
+    {
+      "id": "scifi",
+      "label": "Last Breath of Glory",
+      "prompt": "Hyper-realistic fallen medieval knight in bloodstained armor lying among wildflowers, dramatic cinematic angle, golden-hour lighting, ultra detailed steel textures, emotional dark fantasy atmosphere, shallow depth of field, volumetric light, premium cinematic color grading, HDR, 8K masterpiece.",
+      "image": "/media/homepage/2149b4bc-e7d0-4a20-ad89-40ecfee96cf3.png",
+      "model": "RUHGEN Standard",
+      "time": "4.1s",
+      "steps": "28/28"
+    },
+    {
+      "id": "cyberpunk",
+      "label": "Will You Meow-ry Me?",
+      "prompt": "Hyper-realistic gentleman cat holding a rose and engagement ring, cute romantic pose, tiny bow tie, cinematic lighting, ultra detailed fur, shallow depth of field, wholesome luxury meme aesthetic, HDR, 8K masterpiece.",
+      "image": "/media/homepage/4160d414-5cf0-47f4-b1c0-bc2a8dc60642.png",
+      "model": "RUHGEN Premium",
+      "time": "5.4s",
+      "steps": "40/40"
+    },
+    {
+      "id": "vaporwave",
+      "label": "Zero Venom Given",
+      "prompt": "Hyper-realistic cobra with snake-skin humanoid arms and reptilian hands raised upward, realistic eyebrows, cinematic wildlife photography, ultra detailed scales, surreal meme aesthetic, shallow depth of field, HDR, premium 4K masterpiece.",
+      "image": "/media/homepage/3061645e-03df-4cdf-b2b8-d766624d6835.png",
+      "model": "RUHGEN Standard",
+      "time": "3.8s",
+      "steps": "20/20"
+    }
+  ],
+  "visualizerPresets": [
+    {
+      "id": "vp-1",
+      "name": "Ashes of Honor",
+      "lens": "35mm",
+      "gap": "f/1.8",
+      "iso": "ISO 200",
+      "prompt": "Hyper-realistic fallen medieval knight in bloodstained armor lying among wildflowers, dramatic cinematic angle, golden-hour lighting, ultra detailed steel textures, emotional dark fantasy atmosphere, shallow depth of field, volumetric light, premium cinematic color grading, HDR, 8K masterpiece.",
+      "image": "/media/gallery/43f9b98b-b27f-4b56-928c-9b6b8622aba5.jpg",
+      "resolution": "4.2s"
+    },
+    {
+      "id": "vp-2",
+      "name": "Will You Meow-ry Me?",
+      "lens": "50mm",
+      "gap": "f/1.2",
+      "iso": "ISO 800",
+      "prompt": "A dapper gentleman cat in a soft romantic pose, holding a single rose and a small velvet ring box. Wearing a tiny black bow tie. Warm cinematic lighting, fur rendered in rich detail, blurred elegant background. Wholesome, slightly luxurious meme style. High contrast, sharp focus on the cat's face and paws. 8K.",
+      "image": "/media/gallery/e72a7560-f457-4be2-888a-b91f0db3411e.jpg",
+      "resolution": "3.8s"
+    },
+    {
+      "id": "vp-3",
+      "name": "The Unbothered Cobra",
+      "lens": "85mm",
+      "gap": "f/2.0",
+      "iso": "ISO 100",
+      "prompt": "Hyper-realistic cobra with snake-skin humanoid arms and reptilian hands raised upward, realistic eyebrows, cinematic wildlife photography, ultra detailed scales, surreal meme aesthetic, shallow depth of field, HDR, premium 4K masterpiece.",
+      "image": "/media/gallery/431534ad-4153-4af8-a44f-36a5754218ce.jpg",
+      "resolution": "2.9s"
+    }
+  ]
 }

@@ -6,6 +6,7 @@ import { Download, ImageIcon, Sparkles, Wand2 } from "lucide-react";
 import { LivePreview } from "@/components/LivePreview";
 import { DemoHeroGraphic } from "@/components/marketing/DemoHeroGraphic";
 import { SITE_CONTAINER } from "@/lib/site-layout";
+import type { SiteContent } from "@/backend/site-content/types";
 
 const sessionPoints = [
   {
@@ -28,7 +29,7 @@ const sessionPoints = [
   },
 ];
 
-export function DemoPageContent() {
+export function DemoPageContent({ content }: { content?: SiteContent | null }) {
   const reduce = useReducedMotion() === true;
 
   return (
@@ -77,8 +78,11 @@ export function DemoPageContent() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.55, delay: 0.06 }}
           >
-            <div className="relative w-full max-w-[440px]">
-              <DemoHeroGraphic className="h-auto w-full drop-shadow-[0_28px_80px_rgba(123,97,255,0.22)]" />
+            <div className="relative w-full max-w-[560px]">
+              <DemoHeroGraphic 
+                presets={content?.visualizerPresets}
+                className="h-auto w-full drop-shadow-[0_28px_80px_rgba(123,97,255,0.22)]" 
+              />
             </div>
           </motion.div>
         </div>

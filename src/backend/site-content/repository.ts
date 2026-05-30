@@ -13,6 +13,7 @@ import type {
   SpotlightFeatureItem,
   SpotlightTemplateItem,
   UpcomingFeatureItem,
+  VisualizerPreset,
 } from "@/backend/site-content/types";
 
 
@@ -126,6 +127,21 @@ function parseUpcomingFeature(x: unknown): UpcomingFeatureItem | null {
   };
 }
 
+function parseVisualizerPreset(x: unknown): VisualizerPreset | null {
+  if (!isRecord(x)) return null;
+  if (!isString(x.id) || !isString(x.name)) return null;
+  return {
+    id: x.id,
+    name: x.name,
+    lens: isString(x.lens) ? x.lens : "",
+    gap: isString(x.gap) ? x.gap : "",
+    iso: isString(x.iso) ? x.iso : "",
+    prompt: isString(x.prompt) ? x.prompt : "",
+    image: isString(x.image) ? x.image : "",
+    resolution: isString(x.resolution) ? x.resolution : "",
+  };
+}
+
 function parseShowcaseSlide(x: unknown): ShowcaseSlide | null {
   if (!isRecord(x)) return null;
   if (!isString(x.id) || !isString(x.title) || !isString(x.caption)) return null;
@@ -161,8 +177,9 @@ export function parseSiteContentPayload(data: unknown): SiteContent {
   const spotlightFeatures = Array.isArray(data.spotlightFeatures) ? (data.spotlightFeatures.map(parseSpotlightFeature).filter(Boolean) as SpotlightFeatureItem[]) : undefined;
   const spotlightTemplates = Array.isArray(data.spotlightTemplates) ? (data.spotlightTemplates.map(parseSpotlightTemplate).filter(Boolean) as SpotlightTemplateItem[]) : undefined;
   const upcomingFeatures = Array.isArray(data.upcomingFeatures) ? (data.upcomingFeatures.map(parseUpcomingFeature).filter(Boolean) as UpcomingFeatureItem[]) : undefined;
+  const visualizerPresets = Array.isArray(data.visualizerPresets) ? (data.visualizerPresets.map(parseVisualizerPreset).filter(Boolean) as VisualizerPreset[]) : undefined;
 
-  return { hero, heroBackground, gallery: { items }, showcase: { slides }, pillars, stats, testimonials, spotlightFeatures, spotlightTemplates, upcomingFeatures };
+  return { hero, heroBackground, gallery: { items }, showcase: { slides }, pillars, stats, testimonials, spotlightFeatures, spotlightTemplates, upcomingFeatures, visualizerPresets };
 }
 
 /** True when the CMS payload has no real gallery media (common after empty DB seed). */
@@ -217,6 +234,7 @@ export function applyPublicSiteDefaults(c: SiteContent): SiteContent {
   const spotlightFeatures = c.spotlightFeatures && c.spotlightFeatures.length > 0 ? c.spotlightFeatures : def.spotlightFeatures;
   const spotlightTemplates = c.spotlightTemplates && c.spotlightTemplates.length > 0 ? c.spotlightTemplates : def.spotlightTemplates;
   const upcomingFeatures = c.upcomingFeatures && c.upcomingFeatures.length > 0 ? c.upcomingFeatures : def.upcomingFeatures;
+  const visualizerPresets = c.visualizerPresets && c.visualizerPresets.length > 0 ? c.visualizerPresets : def.visualizerPresets;
 
   return {
     hero: c.hero,
@@ -229,6 +247,7 @@ export function applyPublicSiteDefaults(c: SiteContent): SiteContent {
     spotlightFeatures,
     spotlightTemplates,
     upcomingFeatures,
+    visualizerPresets,
   };
 }
 

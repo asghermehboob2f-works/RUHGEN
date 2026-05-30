@@ -10,10 +10,12 @@ import {
   Check,
   Sliders,
   Bookmark,
-  ChevronRight
+  ChevronRight,
+  ImageIcon
 } from "lucide-react";
 import { SITE_CONTAINER } from "@/lib/site-layout";
 import type { SiteContent } from "@/backend/site-content/types";
+import { LatentCalibrationRig } from "@/components/marketing/LatentCalibrationRig";
 
 // Active engine presets from user screenshot
 interface EnginePreset {
@@ -103,7 +105,7 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
               initial={reduce ? false : { opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-              className="lg:col-span-7 flex flex-col text-left"
+              className="lg:col-span-6 flex flex-col text-left"
             >
               
               <div className="inline-flex self-start items-center gap-2 rounded-full border border-[#00d4ff]/20 bg-[#00d4ff]/5 px-4 py-1.5 text-[9px] font-bold uppercase tracking-[0.25em] mb-7 text-[#00d4ff] shadow-[0_0_15px_rgba(0,212,255,0.05)]">
@@ -143,116 +145,14 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
 
             </motion.div>
 
-            {/* Right: The Mac Window "RUHGEN CORE VISUALIZER" */}
+            {/* Right: Interactive Camera Telemetry & Latent Calibration Rig */}
             <motion.div
-              initial={reduce ? false : { opacity: 0, scale: 0.95 }}
+              initial={reduce ? false : { opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-              className="lg:col-span-5 relative rounded-2xl border overflow-hidden luxury-glass-panel flex flex-col max-w-lg mx-auto lg:max-w-none"
-              style={{
-                borderColor: "rgba(255, 255, 255, 0.08)",
-                boxShadow: "0 40px 90px rgba(0,0,0,0.85)"
-              }}
+              className="lg:col-span-6 relative w-full max-w-[620px] lg:max-w-none mx-auto"
             >
-              
-              {/* Traffic Lights / macOS bar */}
-              <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.04]" style={{ background: "rgba(10,10,12,0.8)" }}>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f56]" />
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]" />
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#27c93f]" />
-                </div>
-                <span className="text-[9px] font-mono font-bold tracking-[0.25em] text-neutral-400 uppercase">
-                  RUHGEN CORE VISUALIZER
-                </span>
-                <div className="flex items-center gap-1.5 font-mono text-[8px] text-[#00d4ff] px-2 py-0.5 rounded border border-[#00d4ff]/25 bg-[#00d4ff]/5 font-bold uppercase">
-                  <span className="w-1 h-1 rounded-full bg-[#00d4ff] animate-pulse" />
-                  ACTIVE
-                </div>
-              </div>
-
-              {/* Main Image Display Box */}
-              <div className="relative aspect-[16/10] w-full bg-black overflow-hidden flex items-center justify-center">
-                
-                {/* Image Transition mapping */}
-                <AnimatePresence mode="wait">
-                  <motion.img
-                    key={activePreset.id}
-                    src={activePreset.image}
-                    alt={activePreset.name}
-                    className="absolute inset-0 w-full h-full object-cover opacity-85 select-none pointer-events-none"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 0.85 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.4 }}
-                  />
-                </AnimatePresence>
-
-                {/* Left Top: Dynamic Telemetry Pill */}
-                <div className="absolute top-4 left-4 z-10">
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-black/75 backdrop-blur-md px-3.5 py-1.5 border border-white/10 text-[9px] font-mono font-bold tracking-wider text-white shadow-md">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#7b61ff]" />
-                    RUHGEN STANDARD
-                  </span>
-                </div>
-
-                {/* Right Top: Render timing spec */}
-                <div className="absolute top-4 right-4 z-10">
-                  <span className="inline-flex items-center gap-1 rounded bg-[#00d4ff]/10 border border-[#00d4ff]/30 px-2 py-1 text-[8.5px] font-mono font-black text-[#00d4ff]">
-                    RENDER: {activePreset.resolution}
-                  </span>
-                </div>
-
-                {/* Camera Prompt Overlay Panel */}
-                <div className="absolute bottom-4 left-4 right-4 z-10 border border-white/10 bg-black/80 backdrop-blur-md rounded-xl p-4 text-left shadow-[0_8px_32px_rgba(0,0,0,0.6)] animate-fade-in">
-                  
-                  {/* Prompt Text block */}
-                  <p className="text-[10px] font-mono text-neutral-200 leading-relaxed italic block">
-                    &ldquo;{activePreset.prompt}&rdquo;
-                  </p>
-
-                </div>
-
-              </div>
-
-              {/* Bottom Dock: ACTIVE ENGINE PRESETS */}
-              <div className="p-5 border-t border-white/[0.04]" style={{ background: "rgba(8,8,10,0.9)" }}>
-                
-                <div className="text-[8px] font-mono font-bold tracking-widest text-neutral-500 uppercase mb-3.5 text-left">
-                  ACTIVE ENGINE PRESETS
-                </div>
-
-                <div className="grid grid-cols-3 gap-3">
-                  {presetsList.map((preset) => {
-                    const isActive = activePreset.id === preset.id;
-                    return (
-                      <button
-                        key={preset.id}
-                        onClick={() => setSelectedPresetId(preset.id)}
-                        className={`flex flex-col text-left p-3.5 rounded-xl border transition-all duration-300 outline-none relative overflow-hidden select-none group ${
-                          isActive ? 
-                          "border-[#7b61ff] bg-[#7b61ff]/5 shadow-[0_0_15px_rgba(123,97,255,0.15)]" : 
-                          "border-white/5 bg-white/[0.01] hover:bg-white/[0.03] hover:border-white/10"
-                        }`}
-                      >
-                        {isActive && (
-                          <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[#00d4ff]" />
-                        )}
-                        <span className={`font-display text-[11px] font-bold transition-colors ${
-                          isActive ? "text-white" : "text-neutral-300 group-hover:text-white"
-                        }`}>
-                          {preset.name}
-                        </span>
-                        <span className="font-mono text-[7px] text-neutral-500 mt-1 uppercase tracking-wider block">
-                          ACTIVE LATENT
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-
-              </div>
-
+              <LatentCalibrationRig />
             </motion.div>
 
           </div>
