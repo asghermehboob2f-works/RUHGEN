@@ -28,7 +28,7 @@ export default function DashboardSpotlightCMS() {
   const [content, setContent] = useState<SiteContent | null>(null);
   const [status, setStatus] = useState<string>("");
   const [saveSuccess, setSaveSuccess] = useState<boolean | null>(null);
-  const [activeTab, setActiveTab] = useState<"reels" | "features" | "templates" | "roadmap">("reels");
+  const [activeTab, setActiveTab] = useState<"reels" | "templates" | "roadmap">("reels");
 
   useEffect(() => {
     let ok = true;
@@ -311,18 +311,6 @@ export default function DashboardSpotlightCMS() {
                 )}
               </button>
 
-              <button
-                type="button"
-                onClick={() => { setActiveTab("features"); setStatus(""); }}
-                className="pb-3.5 text-sm font-bold uppercase tracking-wider transition-all relative outline-none shrink-0 flex items-center gap-2"
-                style={{ color: activeTab === "features" ? "var(--text-primary)" : "var(--text-subtle)" }}
-              >
-                <Layers className="h-4 w-4 shrink-0" />
-                Spotlight Features
-                {activeTab === "features" && (
-                  <motion.div layoutId="spotlightActiveTabLine" className="absolute bottom-0 inset-x-0 h-0.5 bg-gradient-to-r from-[var(--primary-purple)] to-[var(--primary-cyan)]" />
-                )}
-              </button>
 
               <button
                 type="button"
@@ -558,194 +546,7 @@ export default function DashboardSpotlightCMS() {
                 </section>
               )}
 
-              {/* SECTION A: SPOTLIGHT FEATURES CARD DESIGN EDITOR */}
-              {activeTab === "features" && (
-                <section className="rounded-2xl border p-5 sm:p-7" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-8">
-                    <div>
-                      <h2 className="font-display text-xl font-bold flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
-                        <Layers className="h-5 w-5 text-[#7B61FF]" />
-                        Spotlight Feature Cards
-                      </h2>
-                      <p className="mt-1 text-sm text-[var(--text-muted)]">
-                        Manage those premium, cyber-glassmorphic status features loaded with grid backgrounds.
-                      </p>
-                    </div>
-                    <motion.button
-                      type="button"
-                      whileTap={reduce ? undefined : { scale: 0.98 }}
-                      onClick={() => {
-                        const next = structuredClone(content);
-                        if (!next.spotlightFeatures) next.spotlightFeatures = [];
-                        next.spotlightFeatures.push({
-                          id: `sf-${Date.now()}`,
-                          title: "Next-gen Node Rendering",
-                          description: "Leverage state of the art GPU synthesis cluster instances seamlessly.",
-                          badge: "240 FPS",
-                          glowColor: "#00D4FF",
-                        });
-                        setContent(next);
-                        setStatus("New feature card added to local workspace state.");
-                      }}
-                      className="inline-flex items-center gap-1.5 shrink-0 rounded-xl border px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-white/5"
-                      style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)" }}
-                    >
-                      <Plus className="h-4 w-4" />
-                      Add Feature Card
-                    </motion.button>
-                  </div>
 
-                  <div className="grid gap-6 md:grid-cols-2">
-                    {content.spotlightFeatures && content.spotlightFeatures.length > 0 ? (
-                      content.spotlightFeatures.map((feat, idx) => (
-                        <div 
-                          key={feat.id || idx} 
-                          className="editor-card p-5 flex flex-col gap-4 rounded-xl border border-white/5 bg-[#070709] transition-all hover:border-[#7B61FF]/20"
-                        >
-                          <div className="flex items-center justify-between border-b border-white/5 pb-3">
-                            <div className="flex items-center gap-2">
-                              <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded border border-white/5 bg-white/5 text-[var(--text-subtle)]">
-                                CTRL // 0{idx + 1}
-                              </span>
-                              <span className="font-mono text-[10px] text-white/35">ID: {feat.id}</span>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                              {/* Reorder Buttons */}
-                              <button
-                                type="button"
-                                title="Move Up"
-                                disabled={idx === 0}
-                                onClick={() => {
-                                  if (!content.spotlightFeatures) return;
-                                  const next = structuredClone(content);
-                                  next.spotlightFeatures = moveItem(next.spotlightFeatures!, idx, "up");
-                                  setContent(next);
-                                }}
-                                className="h-7 w-7 flex items-center justify-center rounded border border-white/5 bg-[#0d0d12] hover:bg-white/5 disabled:opacity-30 text-white"
-                              >
-                                <ArrowUp className="h-3.5 w-3.5" />
-                              </button>
-                              <button
-                                type="button"
-                                title="Move Down"
-                                disabled={idx === (content.spotlightFeatures?.length ?? 0) - 1}
-                                onClick={() => {
-                                  if (!content.spotlightFeatures) return;
-                                  const next = structuredClone(content);
-                                  next.spotlightFeatures = moveItem(next.spotlightFeatures!, idx, "down");
-                                  setContent(next);
-                                }}
-                                className="h-7 w-7 flex items-center justify-center rounded border border-white/5 bg-[#0d0d12] hover:bg-white/5 disabled:opacity-30 text-white"
-                              >
-                                <ArrowDown className="h-3.5 w-3.5" />
-                              </button>
-
-                              <button
-                                type="button"
-                                title="Delete Feature"
-                                className="h-7 w-7 flex items-center justify-center rounded border border-white/5 bg-[#0d0d12] hover:bg-red-500/10 text-[#FF2E9A] transition-colors"
-                                onClick={() => {
-                                  const next = structuredClone(content);
-                                  if (next.spotlightFeatures) {
-                                    next.spotlightFeatures.splice(idx, 1);
-                                    setContent(next);
-                                    setStatus("Removed feature item.");
-                                  }
-                                }}
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </button>
-                            </div>
-                          </div>
-
-                          <div className="grid gap-3.5">
-                            <div>
-                              <label className="text-[10px] font-bold uppercase tracking-wider text-white/40">Card Title</label>
-                              <input
-                                value={feat.title}
-                                onChange={(e) => {
-                                  const next = structuredClone(content);
-                                  if (next.spotlightFeatures) {
-                                    next.spotlightFeatures[idx].title = e.target.value;
-                                    setContent(next);
-                                  }
-                                }}
-                                className="min-h-[40px] w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#7B61FF]/40 mt-1"
-                                style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
-                                placeholder="Feature Title"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="text-[10px] font-bold uppercase tracking-wider text-white/40">Card Description</label>
-                              <textarea
-                                value={feat.description}
-                                onChange={(e) => {
-                                  const next = structuredClone(content);
-                                  if (next.spotlightFeatures) {
-                                    next.spotlightFeatures[idx].description = e.target.value;
-                                    setContent(next);
-                                  }
-                                }}
-                                rows={3}
-                                className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#7B61FF]/40 mt-1 leading-relaxed"
-                                style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
-                                placeholder="Feature Description"
-                              />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-3">
-                              <div>
-                                <label className="text-[10px] font-bold uppercase tracking-wider text-white/40">Status Badge</label>
-                                <input
-                                  value={feat.badge || ""}
-                                  onChange={(e) => {
-                                    const next = structuredClone(content);
-                                    if (next.spotlightFeatures) {
-                                      next.spotlightFeatures[idx].badge = e.target.value;
-                                      setContent(next);
-                                    }
-                                  }}
-                                  className="min-h-[40px] w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#7B61FF]/40 mt-1"
-                                  style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
-                                  placeholder="e.g. SYSTEM_NODE // active"
-                                />
-                              </div>
-
-                              <div>
-                                <label className="text-[10px] font-bold uppercase tracking-wider text-white/40">Interactive Radial Glow</label>
-                                <select
-                                  value={feat.glowColor}
-                                  onChange={(e) => {
-                                    const next = structuredClone(content);
-                                    if (next.spotlightFeatures) {
-                                      next.spotlightFeatures[idx].glowColor = e.target.value;
-                                      setContent(next);
-                                    }
-                                  }}
-                                  className="min-h-[40px] w-full rounded-lg border px-3 py-1.5 text-xs outline-none mt-1"
-                                  style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
-                                >
-                                  <option value="#7B61FF">Brand Velvet Purple (#7B61FF)</option>
-                                  <option value="#00D4FF">Brand Aurora Cyan (#00D4FF)</option>
-                                  <option value="#FF2E9A">Brand Hyper Pink (#FF2E9A)</option>
-                                  <option value="#10B981">System Emerald Green (#10B981)</option>
-                                  <option value="#F59E0B">System Warm Amber (#F59E0B)</option>
-                                </select>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="md:col-span-2 py-8 text-center text-xs text-[var(--text-muted)]">
-                        No spotlight feature cards configured. Click &quot;Add Feature Card&quot; to begin.
-                      </div>
-                    )}
-                  </div>
-                </section>
-              )}
 
               {/* SECTION B: STYLE PRESETS & TEMPLATES GRID DESIGN EDITOR */}
               {activeTab === "templates" && (

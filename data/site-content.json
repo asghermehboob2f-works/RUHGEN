@@ -355,8 +355,84 @@
       "initials": "LS"
     }
   ],
-  "spotlightFeatures": [],
-  "spotlightTemplates": [],
+  "spotlightFeatures": [
+    {
+      "id": "sf-1780128420845",
+      "title": "Next-gen Node Rendering",
+      "description": "Leverage state of the art GPU synthesis cluster instances seamlessly.",
+      "badge": "240 FPS",
+      "glowColor": "#00D4FF"
+    },
+    {
+      "id": "sf-1780128424293",
+      "title": "Next-gen Node Rendering",
+      "description": "Leverage state of the art GPU synthesis cluster instances seamlessly.",
+      "badge": "240 FPS",
+      "glowColor": "#00D4FF"
+    },
+    {
+      "id": "sf-1780128444061",
+      "title": "Next-gen Node Rendering",
+      "description": "Leverage state of the art GPU synthesis cluster instances seamlessly.",
+      "badge": "240 FPS",
+      "glowColor": "#00D4FF"
+    },
+    {
+      "id": "sf-1780128444245",
+      "title": "Next-gen Node Rendering",
+      "description": "Leverage state of the art GPU synthesis cluster instances seamlessly.",
+      "badge": "240 FPS",
+      "glowColor": "#00D4FF"
+    },
+    {
+      "id": "sf-1780128508631",
+      "title": "Next-gen Node Rendering",
+      "description": "Leverage state of the art GPU synthesis cluster instances seamlessly.",
+      "badge": "240 FPS",
+      "glowColor": "#00D4FF"
+    },
+    {
+      "id": "sf-1780128508790",
+      "title": "Next-gen Node Rendering",
+      "description": "Leverage state of the art GPU synthesis cluster instances seamlessly.",
+      "badge": "240 FPS",
+      "glowColor": "#00D4FF"
+    }
+  ],
+  "spotlightTemplates": [
+    {
+      "id": "st-1780128471790",
+      "title": "Sci-Fi Cyberpunk Presets",
+      "description": "Immersive dark environments loaded with high contrast elements.",
+      "category": "Sci-Fi",
+      "demoUrl": "/demo",
+      "imageUrl": ""
+    },
+    {
+      "id": "st-1780128477918",
+      "title": "Sci-Fi Cyberpunk Presets",
+      "description": "Immersive dark environments loaded with high contrast elements.",
+      "category": "Sci-Fi",
+      "demoUrl": "/demo",
+      "imageUrl": ""
+    },
+    {
+      "id": "st-1780128494950",
+      "title": "Sci-Fi Cyberpunk Presets",
+      "description": "Immersive dark environments loaded with high contrast elements.",
+      "category": "Sci-Fi",
+      "demoUrl": "/demo",
+      "imageUrl": ""
+    },
+    {
+      "id": "st-1780128495110",
+      "title": "Sci-Fi Cyberpunk Presets",
+      "description": "Immersive dark environments loaded with high contrast elements.",
+      "category": "Sci-Fi",
+      "demoUrl": "/demo",
+      "imageUrl": ""
+    }
+  ],
   "upcomingFeatures": [],
   "featurePresets": [
     {
