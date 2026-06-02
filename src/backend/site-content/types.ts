@@ -99,6 +99,13 @@ export type VisualizerPreset = {
   resolution: string;
 };
 
+export type FeaturesCalibrationConfig = {
+  cinema: string;
+  landscape: string;
+  square: string;
+  portrait: string;
+};
+
 export type SiteContent = {
   hero: {};
   heroBackground: HeroBackgroundConfig;
@@ -111,5 +118,6 @@ export type SiteContent = {
   spotlightTemplates?: SpotlightTemplateItem[];
   upcomingFeatures?: UpcomingFeatureItem[];
   visualizerPresets?: VisualizerPreset[];
+  featuresCalibration?: FeaturesCalibrationConfig;
 };
 

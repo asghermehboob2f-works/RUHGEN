@@ -30,13 +30,6 @@
   "gallery": {
     "items": [
       {
-        "id": "04961352-c28d-4e7d-8a6e-ed067d012069",
-        "src": "/media/gallery/f578e102-a5d4-4f8e-99ae-e8d09069a542.png",
-        "alt": "tanjiro-kamado-3840x2160-9323.png",
-        "prompt": "A faceless high-quality anime characterr",
-        "category": "art"
-      },
-      {
         "id": "g-1",
         "src": "/media/gallery/f4576312-9ac7-4bbd-801e-2144694743e3.jpg",
         "alt": "hennessey-dodge-challenger-srt-demon-7680x4320-20754.jpg",
@@ -494,5 +487,11 @@
       "image": "/media/gallery/431534ad-4153-4af8-a44f-36a5754218ce.jpg",
       "resolution": "2.9s"
     }
-  ]
+  ],
+  "featuresCalibration": {
+    "cinema": "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&q=80&w=1200",
+    "landscape": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=1200",
+    "square": "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&q=80&w=800",
+    "portrait": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=800"
+  }
 }

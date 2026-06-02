@@ -11,8 +11,6 @@ import {
   Sliders,
   Bookmark,
   ChevronRight,
-  ImageIcon,
-  Play,
   Sparkles,
   Server,
   Zap,
@@ -23,231 +21,55 @@ import {
   ArrowRight,
   Maximize2,
   Activity,
-  Compass
+  Compass,
+  FileText,
+  SlidersHorizontal,
+  Settings,
+  Tv,
+  EyeOff,
+  Disc,
+  Radio,
+  FileCode,
+  Gauge
 } from "lucide-react";
 import { SITE_CONTAINER } from "@/lib/site-layout";
 import type { SiteContent } from "@/backend/site-content/types";
 
 // ==========================================
-// SUB-COMPONENT: HERO VISUALIZER (HUD SIMULATION)
+// UTILITY: LATTICE NOISE GRADIENT OVERLAY
 // ==========================================
-type RenderState = "IDLE" | "PARSING" | "GENERATING" | "FINISHING" | "COMPLETE";
-
-function HeroVisualizer() {
-  const [renderState, setRenderState] = useState<RenderState>("IDLE");
-  const [progress, setProgress] = useState(0);
-  const [activePrompt, setActivePrompt] = useState(
-    "cinematic moody sci-fi explorer discovering a glowing neon monolith, 8k, volumetric rays"
-  );
-  
-  const cycleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  const startSimulation = () => {
-    if (cycleTimeoutRef.current) clearTimeout(cycleTimeoutRef.current);
-    if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
-
-    setRenderState("PARSING");
-    setProgress(0);
-
-    // Timeline of simulated render passes
-    cycleTimeoutRef.current = setTimeout(() => {
-      setRenderState("GENERATING");
-      
-      let currentProgress = 0;
-      progressIntervalRef.current = setInterval(() => {
-        currentProgress += 4;
-        if (currentProgress >= 100) {
-          setProgress(100);
-          if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
-          
-          setRenderState("FINISHING");
-          cycleTimeoutRef.current = setTimeout(() => {
-            setRenderState("COMPLETE");
-          }, 800);
-        } else {
-          setProgress(currentProgress);
-        }
-      }, 80);
-
-    }, 1000);
-  };
-
-  useEffect(() => {
-    // Initial run
-    startSimulation();
-
-    return () => {
-      if (cycleTimeoutRef.current) clearTimeout(cycleTimeoutRef.current);
-      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
-    };
-  }, []);
-
-  const getTerminalText = () => {
-    switch (renderState) {
-      case "IDLE":
-        return "AWAITING INGESTION PARAMETERS...";
-      case "PARSING":
-        return "PARSING CLIP/T5 VECTOR COORDINATES... [OK]";
-      case "GENERATING":
-        return `SAMPLING LATENT CHANNELS (STEP ${Math.round(progress / 3.3)}/30)...`;
-      case "FINISHING":
-        return "DECODING VAE SENSOR PLATES... [OK]";
-      case "COMPLETE":
-        return "RENDER SEQUENCE COMPLETE. HIGH-FIDELITY PACKAGING SUCCESSFUL.";
-    }
-  };
-
+function PremiumBackgroundLattice() {
   return (
-    <div className="relative w-full max-w-[620px] mx-auto select-none">
-      {/* Ambient background glow linked to engine status */}
-      <div 
-        className="absolute -inset-6 opacity-20 blur-3xl rounded-[3rem] transition-all duration-1000 pointer-events-none" 
-        style={{
-          background: renderState === "COMPLETE" 
-            ? "radial-gradient(circle, var(--primary-purple) 0%, var(--primary-cyan) 60%, transparent 100%)"
-            : "radial-gradient(circle, var(--primary-cyan) 0%, rgba(123, 97, 255, 0.4) 50%, transparent 100%)"
-        }}
-      />
-
-      {/* High-End Bezel Chassis */}
-      <div className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#07070a]/90 shadow-[0_32px_80px_rgba(0,0,0,0.85)]">
-        
-        {/* macOS Title Bar style */}
-        <div className="relative z-20 flex items-center justify-between px-4 py-3 border-b border-white/[0.04] bg-black/45 backdrop-blur-md">
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f56]/70" />
-            <span className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]/70" />
-            <span className="w-2.5 h-2.5 rounded-full bg-[#27c93f]/70" />
-          </div>
-          <span className="text-[8px] font-mono font-bold tracking-[0.25em] text-neutral-400 uppercase">
-            RUHGEN // DYNAMIC_CALIBRATION_Rig
-          </span>
-          <button 
-            onClick={startSimulation}
-            className="flex items-center gap-1 font-mono text-[7.5px] text-[#00d4ff] px-2 py-0.5 rounded border border-[#00d4ff]/25 bg-[#00d4ff]/5 font-bold uppercase hover:bg-[#00d4ff]/10 active:scale-95 transition-all cursor-pointer"
-          >
-            <RefreshCcw className="w-2 h-2 animate-spin-slow" />
-            Re-run
-          </button>
-        </div>
-
-        {/* Viewport Frame (Cinematic 16:10 aspect ratio) */}
-        <div className="relative aspect-[16/10] bg-[#030305] overflow-hidden flex items-center justify-center border-b border-white/[0.04]">
-          {/* Subtle grid pattern background */}
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:16px_16px] pointer-events-none" />
-
-          {/* Render States Visualizer */}
-          <AnimatePresence mode="wait">
-            {renderState === "COMPLETE" ? (
-              <motion.div 
-                key="img"
-                className="absolute inset-0 w-full h-full"
-                initial={{ opacity: 0, scale: 1.03 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-              >
-                <img 
-                  src="/media/features-monolith.png" 
-                  alt="Simulated Generation" 
-                  className="w-full h-full object-cover opacity-85 saturate-[1.05]"
-                />
-                {/* Neon digital scan line sweep */}
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#00d4ff]/10 to-transparent w-full h-[30%] -translate-y-full animate-scanline pointer-events-none" />
-              </motion.div>
-            ) : (
-              <motion.div 
-                key="loader"
-                className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center z-10"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                {/* Dynamic circular radar loader */}
-                <div className="relative w-20 h-20 mb-4 flex items-center justify-center">
-                  <div className="absolute inset-0 rounded-full border border-dashed border-[#7b61ff]/20 animate-spin-slow" />
-                  <div className="absolute inset-2 rounded-full border border-[#00d4ff]/10" />
-                  
-                  {/* Concentric rotating arcs */}
-                  <svg className="w-full h-full absolute inset-0 animate-spin" viewBox="0 0 80 80">
-                    <circle 
-                      cx="40" 
-                      cy="40" 
-                      r="36" 
-                      stroke="url(#radial-loader-grad)" 
-                      strokeWidth="1.5" 
-                      fill="none" 
-                      strokeDasharray="40 180"
-                    />
-                    <defs>
-                      <linearGradient id="radial-loader-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#00d4ff" />
-                        <stop offset="100%" stopColor="#7b61ff" />
-                      </linearGradient>
-                    </defs>
-                  </svg>
-                  <Cpu className="w-6 h-6 text-[#00d4ff] animate-pulse" />
-                </div>
-
-                <span className="font-mono text-[9px] font-bold text-neutral-400 tracking-widest uppercase">
-                  {renderState === "PARSING" ? "Analyzing Prompts..." : `Denoising Latents: ${progress}%`}
-                </span>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Floating UI HUD elements */}
-          <div className="absolute top-3 left-3 z-20 flex flex-col gap-1.5">
-            <span className="inline-flex items-center gap-1 rounded bg-black/60 border border-white/10 px-2 py-0.5 text-[7px] font-mono font-bold tracking-wider text-white backdrop-blur-sm">
-              <span className={`w-1 h-1 rounded-full ${renderState === "COMPLETE" ? "bg-emerald-400 animate-pulse" : "bg-[#00d4ff] animate-ping"}`} />
-              {renderState}
-            </span>
-          </div>
-
-          <div className="absolute top-3 right-3 z-20 font-mono">
-            <span className="inline-flex items-center gap-1 rounded bg-[#7b61ff]/10 border border-[#7b61ff]/30 px-2 py-0.5 text-[7px] font-black text-[#7b61ff] backdrop-blur-sm shadow-md">
-              FLUX.1 DEV MODEL
-            </span>
-          </div>
-
-          {/* Bottom Floating prompt overlay */}
-          <div className="absolute bottom-3 left-3 right-3 z-20 border border-white/5 bg-black/65 backdrop-blur-md rounded-lg p-2.5 text-left shadow-[0_6px_16px_rgba(0,0,0,0.6)]">
-            <div className="flex items-center justify-between font-mono text-[6.5px] text-neutral-500 mb-1">
-              <span>LATENT COORDINATES Locking</span>
-              <span className="text-neutral-400 font-bold">Guidance: 3.5</span>
-            </div>
-            <p className="text-[9px] font-mono text-neutral-300 leading-relaxed truncate">
-              &ldquo;{activePrompt}&rdquo;
-            </p>
-          </div>
-        </div>
-
-        {/* Console / Terminal readout bar */}
-        <div className="p-3 bg-[#050507] border-t border-white/[0.04] flex items-center justify-between font-mono text-[8px]">
-          <div className="flex items-center gap-2 text-neutral-400 truncate max-w-[80%]">
-            <Terminal className="w-3.5 h-3.5 text-[#7b61ff] shrink-0" />
-            <span className="text-neutral-400 select-none">&gt;&gt;</span>
-            <span className="text-neutral-300 font-medium truncate">{getTerminalText()}</span>
-          </div>
-          <span className="text-neutral-500 text-[7px] shrink-0 tracking-wider">
-            {renderState === "COMPLETE" ? "TIME: 3.8s" : `PROG: ${progress}%`}
-          </span>
-        </div>
-
-      </div>
+    <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+      {/* Dynamic Radial Mesh Glows */}
+      <div className="absolute top-0 left-1/4 w-[1000px] h-[1000px] rounded-full blur-[240px] opacity-[0.15]" style={{ background: "radial-gradient(circle, var(--mesh-1) 0%, transparent 80%)" }} />
+      <div className="absolute top-[35%] right-[-10%] w-[900px] h-[900px] rounded-full blur-[200px] opacity-[0.12]" style={{ background: "radial-gradient(circle, var(--mesh-2) 0%, transparent 80%)" }} />
+      <div className="absolute bottom-[5%] left-[-15%] w-[900px] h-[900px] rounded-full blur-[260px] opacity-[0.1]" style={{ background: "radial-gradient(circle, var(--mesh-3) 0%, transparent 80%)" }} />
+      {/* High-End Technical Crosshair Grid overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.012)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.012)_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_40%,transparent_100%)]" />
     </div>
   );
 }
 
+
+
 // ==========================================
-// SUB-COMPONENT: ASPECT FRAMING RIG (SECTION A)
+// SUB-COMPONENT: CALIBRATION VIEWPORT (SECTION A WITH DYNAMIC TILTING 3D VECTOR CUBE & DYNAMIC PHOTO CALIBRATION)
 // ==========================================
 type AspectRatioKey = "cinema" | "landscape" | "square" | "portrait";
 
-function AspectFramingRig() {
+function AspectCalibrationRig({ featuresCalibration }: { featuresCalibration?: any }) {
   const [activeAspect, setActiveAspect] = useState<AspectRatioKey>("landscape");
-  const [resizing, setResizing] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const viewportRef = useRef<HTMLDivElement | null>(null);
+
+  // Elite, high-end photographic presets from Unsplash for realistic camera calibrating
+  const defaultImages = {
+    cinema: featuresCalibration?.cinema || "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&q=80&w=1200", // Anamorphic cyberpunk street
+    landscape: featuresCalibration?.landscape || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=1200", // Luxury minimal architecture
+    square: featuresCalibration?.square || "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&q=80&w=800", // Chiascuro marble sculpture
+    portrait: featuresCalibration?.portrait || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=800" // Premium studio editorial fashion
+  };
 
   const aspects = {
     cinema: { label: "Cinema 21:9", widthClass: "w-full", aspectStyle: "aspect-[21/9]", res: "3840 × 1646 px" },
@@ -256,23 +78,30 @@ function AspectFramingRig() {
     portrait: { label: "Portrait 9:16", widthClass: "w-[50%] sm:w-[42%]", aspectStyle: "aspect-[9/16]", res: "2160 × 3840 px" }
   };
 
-  const handleAspectChange = (key: AspectRatioKey) => {
-    if (key === activeAspect) return;
-    setResizing(true);
-    setActiveAspect(key);
-    setTimeout(() => setResizing(false), 600);
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!viewportRef.current) return;
+    const rect = viewportRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    setMousePos({ x, y });
   };
 
+  const handleMouseLeave = () => {
+    setMousePos({ x: 0, y: 0 });
+  };
+
+  const activeImage = defaultImages[activeAspect];
+
   return (
-    <div className="w-full flex flex-col gap-6 select-none">
+    <div className="w-full flex flex-col gap-6 select-none text-left">
       {/* Aspect selection pills */}
-      <div className="flex flex-wrap gap-2.5 border-b border-white/[0.04] pb-4">
+      <div className="flex flex-wrap gap-2 border-b border-white/[0.04] pb-4">
         {(Object.keys(aspects) as AspectRatioKey[]).map((key) => {
           const isActive = activeAspect === key;
           return (
             <button
               key={key}
-              onClick={() => handleAspectChange(key)}
+              onClick={() => setActiveAspect(key)}
               className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer ${
                 isActive
                   ? "bg-[#7b61ff] text-white shadow-[0_0_15px_rgba(123,97,255,0.3)] border border-[#7b61ff]/40"
@@ -285,72 +114,60 @@ function AspectFramingRig() {
         })}
       </div>
 
-      {/* Interactive morphing bounding box viewport */}
-      <div className="relative min-h-[360px] flex items-center justify-center bg-black/65 border border-white/5 rounded-2xl p-6 overflow-hidden shadow-inner">
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:10px_10px]" />
-        
-        {/* Aspect Frame */}
+      {/* Viewing chassis containing the 3D-tilting image */}
+      <div 
+        ref={viewportRef}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        className="relative min-h-[380px] flex items-center justify-center bg-[#050508]/40 border border-white/5 rounded-2xl p-8 overflow-hidden shadow-inner cursor-crosshair"
+      >
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.012)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.012)_1px,transparent_1px)] bg-[size:12px_12px]" />
+
+        {/* Morphing Aspect Frame Chassis */}
         <div
-          className={`relative transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] mx-auto overflow-hidden rounded-xl border border-white/10 shadow-2xl bg-black ${aspects[activeAspect].widthClass} ${aspects[activeAspect].aspectStyle}`}
+          className={`relative transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] mx-auto overflow-hidden rounded-xl border border-white/10 shadow-2xl bg-black flex items-center justify-center ${aspects[activeAspect].widthClass} ${aspects[activeAspect].aspectStyle}`}
+          style={{
+            perspective: "800px"
+          }}
         >
-          {/* Interactive Visual Overlay Grid (Rule of Thirds) */}
-          <div className="absolute inset-0 z-10 pointer-events-none transition-opacity duration-300">
-            {/* Horizontal gridlines */}
-            <div className="absolute top-1/3 left-0 right-0 h-[0.5px] border-t border-dashed border-white/15" />
-            <div className="absolute top-2/3 left-0 right-0 h-[0.5px] border-t border-dashed border-white/15" />
-            {/* Vertical gridlines */}
-            <div className="absolute left-1/3 top-0 bottom-0 w-[0.5px] border-l border-dashed border-white/15" />
-            <div className="absolute left-2/3 top-0 bottom-0 w-[0.5px] border-l border-dashed border-white/15" />
-            
+          {/* Dynamic Tilting Core - pure responsive Image that tilts in 3D */}
+          <div 
+            className="w-full h-full absolute inset-0 flex items-center justify-center transition-transform duration-300 ease-out"
+            style={{
+              transform: `rotateX(${mousePos.y * -20}deg) rotateY(${mousePos.x * 20}deg) translateZ(10px)`
+            }}
+          >
+            {/* Dynamic calibration photo background */}
+            <img 
+              src={activeImage}
+              alt="Calibrating Viewport"
+              className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none transition-all duration-500"
+            />
+
+            {/* Dynamic Glass Reflection overlay for hyper-luxury sheen */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-white/5 via-transparent to-white/[0.08] pointer-events-none mix-blend-overlay" />
+            <div className="absolute inset-0 bg-black/10 pointer-events-none mix-blend-multiply" />
+
+            {/* Rule of Thirds camera grid lines */}
+            <div className="absolute inset-0 z-10 pointer-events-none opacity-25">
+              <div className="absolute top-1/3 left-0 right-0 h-[0.5px] border-t border-dashed border-white/30" />
+              <div className="absolute top-2/3 left-0 right-0 h-[0.5px] border-t border-dashed border-white/30" />
+              <div className="absolute left-1/3 top-0 bottom-0 w-[0.5px] border-l border-dashed border-white/30" />
+              <div className="absolute left-2/3 top-0 bottom-0 w-[0.5px] border-l border-dashed border-white/30" />
+            </div>
+
             {/* Corner Crop Marks */}
-            <div className="absolute top-2 left-2 w-3.5 h-3.5 border-t-2 border-l-2 border-white/50" />
-            <div className="absolute top-2 right-2 w-3.5 h-3.5 border-t-2 border-r-2 border-white/50" />
-            <div className="absolute bottom-2 left-2 w-3.5 h-3.5 border-b-2 border-l-2 border-white/50" />
-            <div className="absolute bottom-2 right-2 w-3.5 h-3.5 border-b-2 border-r-2 border-white/50" />
-          </div>
-
-          {/* High-Fidelity Editorial Visual Asset inside bounding box */}
-          <img
-            src="/media/features-editorial.png"
-            alt="Layout Framing Preview"
-            className="w-full h-full object-cover opacity-80"
-          />
-
-          {/* Render Stats Badge overlay (fades in) */}
-          <div className="absolute bottom-2.5 left-2.5 z-20 font-mono flex flex-col gap-0.5 bg-black/60 border border-white/10 rounded-md p-1.5 backdrop-blur-sm">
-            <span className="text-[6.5px] uppercase font-bold text-neutral-400">Layout Bounds</span>
-            <span className="text-[9px] font-bold text-white tracking-wide">{aspects[activeAspect].res}</span>
-          </div>
-
-          <div className="absolute top-2.5 right-2.5 z-20 font-mono bg-[#00d4ff]/10 border border-[#00d4ff]/30 px-1.5 py-0.5 rounded text-[6.5px] font-bold text-[#00d4ff] backdrop-blur-sm">
-            LOCKED
+            <div className="absolute top-4 left-4 w-4 h-4 border-t border-l border-white/30 z-10" />
+            <div className="absolute top-4 right-4 w-4 h-4 border-t border-r border-white/30 z-10" />
+            <div className="absolute bottom-4 left-4 w-4 h-4 border-b border-l border-white/30 z-10" />
+            <div className="absolute bottom-4 right-4 w-4 h-4 border-b border-r border-white/30 z-10" />
           </div>
         </div>
-
-        {/* Resizing flash state overlay */}
-        <AnimatePresence>
-          {resizing && (
-            <motion.div
-              className="absolute inset-0 bg-white/[0.02] border border-[#7b61ff]/15 z-25 pointer-events-none rounded-2xl"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-            />
-          )}
-        </AnimatePresence>
-      </div>
-
-      <div className="font-mono text-[9px] text-neutral-500 flex justify-between px-1">
-        <span>Focal Field Constraint: Fixed</span>
-        <span>Resolution Scheduler: Active</span>
       </div>
     </div>
   );
 }
 
-// ==========================================
-// SUB-COMPONENT: WORKFLOW TIMELINE (SECTION B)
 // ==========================================
 interface TimelineStep {
   title: string;
@@ -360,117 +177,116 @@ interface TimelineStep {
   metric: string;
 }
 
-const TIMELINE_STEPS: TimelineStep[] = [
+const HIGHEND_TIMELINE: TimelineStep[] = [
   {
     title: "Latent Ingestion",
-    focus: "Prompt Embeddings & Conditioning",
-    desc: "RUHGEN processes dual prompt parameters by mapping positive text vectors through T5-XXL and CLIP models to capture absolute semantics, avoiding consumer-level randomness.",
+    focus: "CLIP Text Conditioning",
+    desc: "RUHGEN bypasses global prompt noise. Positive strings translate through CLIP-ViT and T5-XXL token encoders, ensuring semantic mapping matches target layouts with 99.4% precision.",
     logs: [
-      "[OK] INGESTING NATURAL TEXT COGNITIVE STRING...",
-      "[OK] TOKENIZING WITH T5-XXL EMBEDDING ALGORITHMS",
-      "[OK] MAPPING CLIP-L LATENT REASONING MATRIX",
-      "[OK] GAUSSIAN COVARIANCE NOISE FIELD CONSTRUCTED"
+      "[SYS] CONSTRUCTING SEMANTIC TOKEN PARSING PIPELINE",
+      "[SYS] PARSING ENCODERS: T5-XXL MULTI-CHANNEL VECTORS",
+      "[OK] STOCHASTIC CONDITIONING PROFILE LOCKED",
+      "[OK] HIGH-FIDELITY LATENT TENSOR INITIALIZED"
     ],
-    metric: "CLIP Text Similarity: 98.4%"
+    metric: "CLIP Alignment: 99.4%"
   },
   {
-    title: "Neural Denoising",
-    focus: "Multi-Pass Flow Matching",
-    desc: "Utilize advanced flux1 engines with deep flow matching schedules. Negative prompt coordinates act as physical vectors to repress unwanted distortion, blur, or chroma artifacts.",
+    title: "Neural Sampling",
+    focus: "Flow Matching Schedule",
+    desc: "Execute customized multi-pass schedules leveraging state-of-the-art flow matching architectures. Guide latent arrays through advanced steps across all premium generative models, stabilizing visual clarity and removing artifact degradation.",
     logs: [
-      "[RUN] EXECUTING FLUX.1 HIGH-FIDELITY DEEP DENOISING",
-      "[RUN] STEP CALIBRATION: DPM-SOLVER MULTIPASS V3 ACTIVE",
-      "[OK] NEGATIVE VECTOR DISPLACEMENT FACTOR LOCKED",
-      "[OK] CLAMPING DYNAMIC GUIDANCE PROFILE AT 3.5"
+      "[RUN] INITIALIZING STOCHASTIC DENOISING CONVOLUTION",
+      "[RUN] SAMPLER STATE: FLOW-MATCHING DPM MULTIPASS V4",
+      "[OK] VECTOR EXCURSION COMPENSATOR ENGAGED",
+      "[OK] STABILIZING CHROMA DISTRIBUTION MATRIX"
     ],
-    metric: "30-Step Precision Sampling"
+    metric: "Flow Match Precision V4"
   },
   {
     title: "Fidelity Calibration",
-    focus: "Optical Simulation & Depth",
-    desc: "Simulate true optical physics within the mathematical engine. Calibrate customized lens properties, focal distances, and virtual apertures to render absolute depth-of-field.",
+    focus: "Optical Depth Synthesis",
+    desc: "Breathe life into mathematical environments. The engine runs focal blur vectors, virtual depth algorithms, and physical lens refraction mapping directly into generative steps.",
     logs: [
-      "[RUN] CALCULATING APERTURE DEPTH BLUR SCALES (f/1.8)",
-      "[RUN] FOCAL COEFFICIENT DEPTH-OF-FIELD CALCULATOR ACTIVE",
-      "[OK] GENERATED DEPTH VALUE COEFFICIENT MAPS",
-      "[OK] OPTICAL CORRECTION CHROMATIC DISPERSION STABILIZED"
+      "[RUN] INJECTING DEPTH COVARIANCE BLUR COEFFICIENT",
+      "[RUN] SIMULATING LENS REFRACTION SCALE f/1.4",
+      "[OK] CHROMATIC DISPERSION CALIBRATION COMPLETE",
+      "[OK] OPTICAL APERTURE DEPTH COMPOSITED SUCCESSFULLY"
     ],
-    metric: "32-Bit Linear HDR Output"
+    metric: "32-Bit Linear RGB Render"
   },
   {
-    title: "Studio Handoff",
-    focus: "isolated Multi-Pass Pipeline",
-    desc: "Export generations with advanced packaging. Deliver isolated multi-pass layouts (RGB, Depth maps, and Normal maps) directly to private storage environments.",
+    title: "Layered Handoff",
+    focus: "Multi-Pass EXR Packages",
+    desc: "Prepare assets for professional post-production. Generations pack automatically into multi-channel files containing separate RGB plates, depth passes, and normal coordinates.",
     logs: [
-      "[OK] COMPILED MASTER RGB CHROMINANCE PLATE",
-      "[OK] PACKAGING COMPLEMENTARY DEPTH & NORMAL CHANNELS",
-      "[OK] ISOLATING WORKSPACE DATA; ZERO CLOUD RETENTION POLICY",
-      "[OK] ASSET CONSOLE HANDOFF PREPARED: EXR LAYER SUITE"
+      "[OK] PACKAGING COMPLEMENTARY DEPTH ENCODINGS",
+      "[OK] GENERATING ISOLATED SHADING NORMAL MAPS",
+      "[OK] DATA RETENTION ZERO POLICY EXECUTION",
+      "[OK] READY TO TRANSFER SECURED STUDIO EXR BUNDLE"
     ],
     metric: "EXR Layered Package (16-bit)"
   }
 ];
 
-function WorkflowTimeline() {
-  const [activeStepIndex, setActiveStepIndex] = useState(0);
-
-  const activeStep = TIMELINE_STEPS[activeStepIndex];
+function InteractivePipelineTimeline() {
+  const [activeStep, setActiveStep] = useState(0);
+  const step = HIGHEND_TIMELINE[activeStep];
 
   return (
     <div className="relative w-full text-left select-none">
-      {/* Node Path Headers */}
+      {/* Node Path Header Buttons */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-        {TIMELINE_STEPS.map((step, idx) => {
-          const isActive = idx === activeStepIndex;
+        {HIGHEND_TIMELINE.map((node, idx) => {
+          const isActive = idx === activeStep;
           return (
             <button
-              key={step.title}
-              onClick={() => setActiveStepIndex(idx)}
-              className={`p-4 rounded-2xl border text-left transition-all duration-300 relative overflow-hidden cursor-pointer ${
+              key={node.title}
+              onClick={() => setActiveStep(idx)}
+              className={`p-4 rounded-xl border text-left transition-all duration-300 relative overflow-hidden cursor-pointer ${
                 isActive
                   ? "border-[#7b61ff]/40 bg-white/[0.02] shadow-xl shadow-[#7b61ff]/5"
                   : "border-white/5 bg-white/[0.01] hover:border-white/10 hover:bg-white/[0.02]"
               }`}
             >
               {isActive && (
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-[#7b61ff] to-[#00d4ff]" />
+                <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-[#7b61ff] to-[#ff2e9a]" />
               )}
               
-              <div className="font-mono text-[9px] text-[#00d4ff] uppercase tracking-wider mb-1">
+              <div className="font-mono text-[8px] text-[#00d4ff] uppercase tracking-wider mb-1">
                 STAGE 0{idx + 1}
               </div>
-              <h4 className="font-display text-xs sm:text-sm font-bold text-white leading-tight">
-                {step.title}
+              <h4 className="font-display text-xs font-bold text-white tracking-tight leading-tight">
+                {node.title}
               </h4>
             </button>
           );
         })}
       </div>
 
-      {/* Main stage contents */}
+      {/* Details Box */}
       <div className="grid gap-6 lg:grid-cols-12 items-stretch">
         
-        {/* Copy descriptions */}
-        <div className="lg:col-span-7 flex flex-col justify-between p-6 sm:p-8 rounded-2xl border border-white/5 bg-[#09090c]/40">
+        {/* Left Copy Panel */}
+        <div className="lg:col-span-7 flex flex-col justify-between p-6 sm:p-8 rounded-2xl border border-white/5 bg-[#07070a]/40">
           <div>
-            <div className="inline-block font-mono text-[8px] font-bold text-[#7b61ff] uppercase tracking-[0.2em] mb-3">
-              {activeStep.focus}
+            <div className="inline-block font-mono text-[8px] font-bold text-[#ff2e9a] uppercase tracking-[0.2em] mb-3">
+              {step.focus}
             </div>
             <h3 className="font-display text-xl sm:text-2xl font-extrabold text-white tracking-tight mb-4">
-              {activeStep.title} System
+              {step.title} System
             </h3>
             <p className="text-neutral-400 text-xs sm:text-sm leading-relaxed font-light mb-8">
-              {activeStep.desc}
+              {step.desc}
             </p>
           </div>
 
           <div className="border-t border-white/[0.04] pt-4 flex items-center justify-between font-mono text-[9px]">
-            <span className="text-neutral-500">Pipeline Metric:</span>
-            <span className="text-white font-bold">{activeStep.metric}</span>
+            <span className="text-neutral-500">Telemetry Rating:</span>
+            <span className="text-white font-bold">{step.metric}</span>
           </div>
         </div>
 
-        {/* Live Terminal logs simulation */}
+        {/* Right Live Console log reader */}
         <div className="lg:col-span-5 rounded-2xl border border-white/5 bg-black p-5 flex flex-col justify-between font-mono text-[9.5px]">
           <div>
             <div className="flex items-center justify-between pb-3 mb-3 border-b border-white/[0.04] text-[8px] text-neutral-500 uppercase tracking-widest">
@@ -482,7 +298,7 @@ function WorkflowTimeline() {
             </div>
 
             <div className="space-y-2.5">
-              {activeStep.logs.map((log, index) => {
+              {step.logs.map((log, index) => {
                 const isHighlight = log.startsWith("[RUN]");
                 return (
                   <div key={index} className="flex gap-2">
@@ -496,9 +312,9 @@ function WorkflowTimeline() {
             </div>
           </div>
 
-          <div className="mt-6 border-t border-white/[0.03] pt-3 text-[7.5px] text-neutral-500 flex justify-between">
-            <span>BUFFER_DUMP: CLEAR</span>
-            <span>SECURE_HANDOFF: ON</span>
+          <div className="mt-6 border-t border-white/[0.03] pt-3 text-[7px] text-neutral-500 flex justify-between">
+            <span>BUFFER_DUMP: CLASSIFIED</span>
+            <span>ENCRYPTED_FLOW: ACTIVE</span>
           </div>
         </div>
 
@@ -508,144 +324,308 @@ function WorkflowTimeline() {
 }
 
 // ==========================================
-// SUB-COMPONENT: RENDERING COMPARISON RIG (SECTION C)
+// SUB-COMPONENT: DUAL RENDER COMPARISON (INTERACTIVE SPLIT-SCREEN SCANNING CANVAS)
 // ==========================================
-type ModelType = "schnell" | "dev";
+function InteractiveSplitScanRig() {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [sliderX, setSliderX] = useState(250);
+  const [isHovered, setIsHovered] = useState(false);
 
-function RenderingComparisonRig() {
-  const [activeModel, setActiveModel] = useState<ModelType>("dev");
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let animId: number;
+    let rotation = 0;
+
+    const resize = () => {
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * 2;
+      canvas.height = rect.height * 2;
+      ctx.scale(2, 2);
+    };
+
+    resize();
+    const timeout = setTimeout(resize, 100);
+
+    const draw = () => {
+      const w = canvas.width / 2;
+      const h = canvas.height / 2;
+      ctx.clearRect(0, 0, w, h);
+
+      rotation += 0.003; // Ultra slow, classic, aesthetic rotation sweep
+
+      // Draw aesthetic background linear gradient glows
+      const glowOpacityMultiplier = isHovered ? 1.8 : 1.0;
+      
+      // Left side glow (Schnell Cyan)
+      const leftBg = ctx.createLinearGradient(0, 0, sliderX, 0);
+      leftBg.addColorStop(0, `rgba(0, 212, 255, ${0.03 * glowOpacityMultiplier})`);
+      leftBg.addColorStop(1, "rgba(0, 212, 255, 0)");
+      ctx.fillStyle = leftBg;
+      ctx.fillRect(0, 0, sliderX, h);
+
+      // Right side glow (Cinematic Purple)
+      const rightBg = ctx.createLinearGradient(sliderX, 0, w, 0);
+      rightBg.addColorStop(0, "rgba(123, 97, 255, 0)");
+      rightBg.addColorStop(1, `rgba(123, 97, 255, ${0.05 * glowOpacityMultiplier})`);
+      ctx.fillStyle = rightBg;
+      ctx.fillRect(sliderX, 0, w - sliderX, h);
+
+      // Draw Draft Wireframe Mesh on the LEFT side of the cursor
+      // Draw High-Fidelity Poly Mesh on the RIGHT side of the cursor
+      
+      const drawMesh = (cols: number, rows: number, color: string, isDraft: boolean, minX: number, maxX: number) => {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(minX, 0, maxX - minX, h);
+        ctx.clip();
+
+        const spacingX = w / (cols + 1);
+        const spacingY = h / (rows + 1);
+
+        ctx.lineWidth = isDraft ? 0.75 : 0.45;
+        ctx.strokeStyle = color;
+
+        // Smooth infinite coordinate drift offset
+        const driftSpeed = isDraft ? 12 : 18;
+        const offsetX = (rotation * driftSpeed) % spacingX;
+        const offsetY = (rotation * (driftSpeed * 0.6)) % spacingY;
+
+        // Draw perfect straight column lines with seamless drifting
+        for (let c = -1; c <= cols + 2; c++) {
+          const xPos = spacingX * c + offsetX;
+          ctx.beginPath();
+          ctx.moveTo(xPos, 0);
+          ctx.lineTo(xPos, h);
+          ctx.stroke();
+        }
+
+        // Draw perfect straight row lines with seamless drifting
+        for (let r = -1; r <= rows + 2; r++) {
+          const yPos = spacingY * r + offsetY;
+          ctx.beginPath();
+          ctx.moveTo(0, yPos);
+          ctx.lineTo(w, yPos);
+          ctx.stroke();
+        }
+
+        ctx.restore();
+      };
+
+      // Draw Left: Stochastic Draft Grid (coarser spacing)
+      drawMesh(14, 14, "rgba(0, 212, 255, 0.22)", true, 0, sliderX);
+
+      // Draw Right: Cinematic Master Grid (high-density fine matrix)
+      drawMesh(34, 34, "rgba(123, 97, 255, 0.45)", false, sliderX, w);
+
+      // Draw splitting slider line
+      ctx.strokeStyle = "rgba(255,255,255,0.15)";
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      ctx.moveTo(sliderX, 0);
+      ctx.lineTo(sliderX, h);
+      ctx.stroke();
+
+      // Laser glowing handle dots
+      ctx.fillStyle = "#ff2e9a";
+      ctx.beginPath();
+      ctx.arc(sliderX, h / 2, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(sliderX, h / 2, 7, 0, Math.PI * 2);
+      ctx.stroke();
+
+      animId = requestAnimationFrame(draw);
+    };
+
+    draw();
+
+    return () => {
+      clearTimeout(timeout);
+      cancelAnimationFrame(animId);
+    };
+  }, [sliderX]);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    setSliderX(x);
+  };
 
   return (
     <div className="grid gap-8 lg:grid-cols-12 lg:items-center select-none text-left">
-      
-      {/* Visual compare screen (left side) */}
+      {/* Visual compare split screen canvas */}
       <div className="lg:col-span-6 relative flex flex-col gap-4">
         
-        {/* Toggle model switcher pills */}
-        <div className="flex gap-2 p-1.5 rounded-xl border border-white/5 bg-[#09090c] self-start">
-          <button
-            onClick={() => setActiveModel("schnell")}
-            className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer ${
-              activeModel === "schnell"
-                ? "bg-white/10 text-white font-black"
-                : "text-neutral-500 hover:text-white"
-            }`}
-          >
-            FLUX.1 Schnell (Draft)
-          </button>
-          <button
-            onClick={() => setActiveModel("dev")}
-            className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer ${
-              activeModel === "dev"
-                ? "bg-[#7b61ff] text-white font-black shadow-[0_0_12px_rgba(123,97,255,0.25)]"
-                : "text-neutral-500 hover:text-white"
-            }`}
-          >
-            FLUX.1 Dev (Cinematic Master)
-          </button>
+        {/* Toggle details indicators */}
+        <div className="flex justify-between items-center text-[7.5px] font-mono text-neutral-400 px-1">
+          <span className="text-[#00d4ff] font-bold">◂ STOCHASTIC DRAFT ENGINE (8-BIT)</span>
+          <span className="text-[#7b61ff] font-bold">CINEMATIC MASTER MATRIX (EXR) ▸</span>
         </div>
 
         {/* Viewport Box */}
-        <div className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-black shadow-2xl aspect-[4/3] flex items-center justify-center">
-          {/* Subtle grid */}
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:12px_12px]" />
+        <div 
+          onMouseMove={handleMouseMove}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#020204] shadow-2xl aspect-[16/10] flex items-center justify-center cursor-ew-resize"
+        >
+          <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
           
-          <AnimatePresence mode="wait">
-            {activeModel === "schnell" ? (
-              <motion.img
-                key="schnell-img"
-                src="/media/features-sculpture-raw.png"
-                alt="Schnell Draft"
-                className="absolute inset-0 w-full h-full object-cover opacity-75 filter saturate-[0.8]"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.75 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.4 }}
-              />
-            ) : (
-              <motion.img
-                key="dev-img"
-                src="/media/features-sculpture.png"
-                alt="Dev Master"
-                className="absolute inset-0 w-full h-full object-cover opacity-85 saturate-[1.1]"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.85 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.4 }}
-              />
-            )}
-          </AnimatePresence>
-
-          {/* Zoom scope crosshair overlay */}
           <div className="absolute inset-4 border border-dashed border-white/5 pointer-events-none rounded-xl" />
+
+          {/* Interactive instruction tooltip */}
+          {!isHovered && (
+            <div className="absolute bg-black/80 border border-white/10 rounded-xl px-4 py-2 text-center z-20 backdrop-blur-md animate-pulse">
+              <span className="font-mono text-[9px] font-bold text-white tracking-widest uppercase">
+                Drag Mouse To Compare Renders
+              </span>
+            </div>
+          )}
           
-          <div className="absolute top-3.5 left-3.5 z-20">
-            <span className="inline-flex items-center gap-1 rounded bg-black/60 border border-white/10 px-2 py-0.5 text-[7px] font-mono tracking-widest text-neutral-300 uppercase">
-              {activeModel === "schnell" ? "DRAFT RENDER" : "CINEMATIC MASTER"}
+          <div className="absolute top-4 left-4 z-20 font-mono">
+            <span className="inline-flex items-center gap-1 rounded bg-black/60 border border-white/10 px-2 py-0.5 text-[6.5px] font-black text-[#00d4ff] backdrop-blur-sm shadow-md">
+              DRAFT: STEP 4
             </span>
           </div>
 
-          <div className="absolute bottom-3.5 right-3.5 z-20 font-mono text-[7px] text-neutral-400 bg-black/60 px-2 py-0.5 rounded border border-white/5">
-            {activeModel === "schnell" ? "SAMPLER: STEP 4" : "SAMPLER: STEP 30"}
+          <div className="absolute top-4 right-4 z-20 font-mono">
+            <span className="inline-flex items-center gap-1 rounded bg-black/60 border border-white/10 px-2 py-0.5 text-[6.5px] font-black text-[#7b61ff] backdrop-blur-sm shadow-md">
+              MASTER: STEP 30
+            </span>
           </div>
         </div>
 
       </div>
 
-      {/* Narrative & Specification list (right side) */}
+      {/* Narrative & Specification list */}
       <div className="lg:col-span-6 flex flex-col justify-center text-left">
         <h3 className="font-display text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight mb-4">
-          Dual-Engine Adaptive Rendering
+          Adaptive Synthesis Engines
         </h3>
         <p className="text-neutral-400 text-xs sm:text-sm font-light leading-relaxed mb-6">
-          Toggle dynamically between visual models based on your creative stage. Deliver ultra-immediate layout iterations in sub-second draft outputs, then transition instantly to massive master renders optimized for publication.
+          Connect your workspace directly to dual-stage engines. Execute lightning-fast visual drafting using the 4-step draft compiler, then wipe seamlessly to cinematic-level mathematical modeling sweeps for absolute professional delivery.
         </p>
 
         {/* Spec comparison cards */}
-        <div className="space-y-3 font-mono text-[10px]">
+        <div className="space-y-3 font-mono text-[9.5px]">
           
-          {/* Row 1: Render latency */}
-          <div className="p-3.5 rounded-xl border border-white/5 bg-[#09090c]/40 flex justify-between items-center">
-            <span className="text-neutral-500 uppercase tracking-wider">Rendering Speed</span>
+          <div className="p-3.5 rounded-xl border border-white/5 bg-[#07070a]/40 flex justify-between items-center">
+            <span className="text-neutral-500 uppercase tracking-wider">Engine Processing Time</span>
             <div className="flex gap-2">
-              <span className={`text-[9px] px-2 py-0.5 rounded font-bold ${activeModel === "schnell" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "text-neutral-500 bg-white/[0.02]"}`}>
-                Schnell: 0.8s
+              <span className="text-[9px] px-2 py-0.5 rounded font-bold bg-[#00d4ff]/10 text-[#00d4ff] border border-[#00d4ff]/20">
+                Draft: 0.8s
               </span>
-              <span className={`text-[9px] px-2 py-0.5 rounded font-bold ${activeModel === "dev" ? "bg-[#7b61ff]/10 text-[#7b61ff] border border-[#7b61ff]/20" : "text-neutral-500 bg-white/[0.02]"}`}>
-                Dev Dev: 3.8s
+              <span className="text-[9px] px-2 py-0.5 rounded font-bold bg-[#7b61ff]/10 text-[#7b61ff] border border-[#7b61ff]/20">
+                Master: 2.1s
               </span>
             </div>
           </div>
 
-          {/* Row 2: Sampling Pass Steps */}
-          <div className="p-3.5 rounded-xl border border-white/5 bg-[#09090c]/40 flex justify-between items-center">
-            <span className="text-neutral-500 uppercase tracking-wider">Sampling Iterations</span>
+          <div className="p-3.5 rounded-xl border border-white/5 bg-[#07070a]/40 flex justify-between items-center">
+            <span className="text-neutral-500 uppercase tracking-wider">Lattice Nodes Density</span>
             <div className="flex gap-2">
-              <span className={`text-[9px] px-2 py-0.5 rounded font-bold ${activeModel === "schnell" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "text-neutral-500 bg-white/[0.02]"}`}>
-                Schnell: 4 Steps
+              <span className="text-[9px] px-2 py-0.5 rounded font-bold text-neutral-500 bg-white/[0.02]">
+                12 × 12 Grid
               </span>
-              <span className={`text-[9px] px-2 py-0.5 rounded font-bold ${activeModel === "dev" ? "bg-[#7b61ff]/10 text-[#7b61ff] border border-[#7b61ff]/20" : "text-neutral-500 bg-white/[0.02]"}`}>
-                Dev: 30-150 Steps
+              <span className="text-[9px] px-2 py-0.5 rounded font-bold text-white bg-white/10">
+                36 × 36 Dense Grid
               </span>
             </div>
           </div>
 
-          {/* Row 3: Handoff Dynamic range */}
-          <div className="p-3.5 rounded-xl border border-white/5 bg-[#09090c]/40 flex justify-between items-center">
+          <div className="p-3.5 rounded-xl border border-white/5 bg-[#07070a]/40 flex justify-between items-center">
             <span className="text-neutral-500 uppercase tracking-wider">Dynamic Handoff Depth</span>
             <div className="flex gap-2">
-              <span className={`text-[9px] px-2 py-0.5 rounded font-bold ${activeModel === "schnell" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "text-neutral-500 bg-white/[0.02]"}`}>
+              <span className="text-[9px] px-2 py-0.5 rounded font-bold text-neutral-500 bg-white/[0.02]">
                 Standard Web 8-Bit
               </span>
-              <span className={`text-[9px] px-2 py-0.5 rounded font-bold ${activeModel === "dev" ? "bg-[#7b61ff]/10 text-[#7b61ff] border border-[#7b61ff]/20" : "text-neutral-500 bg-white/[0.02]"}`}>
-                Cinematic HDR EXR
+              <span className="text-[9px] px-2 py-0.5 rounded font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                16-Bit EXR Bundle
               </span>
             </div>
           </div>
 
         </div>
       </div>
+    </div>
+  );
+}
 
+// ==========================================
+// SUB-COMPONENT: 3D FLOATING LAYER STACK (BENTO EXPORTS)
+// ==========================================
+function IsometricLayerStack() {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <div 
+      className="relative w-full h-36 flex items-center justify-center overflow-visible cursor-pointer"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <div 
+        className="relative w-[180px] h-[80px] transition-transform duration-700 ease-out"
+        style={{
+          transform: hovered 
+            ? "rotateX(50deg) rotateZ(-36deg) translateY(-4px)" 
+            : "rotateX(40deg) rotateZ(-28deg)",
+          transformStyle: "preserve-3d"
+        }}
+      >
+        {/* Layer 3: Normal Map */}
+        <div 
+          className="absolute inset-0 border border-[#ff2e9a]/50 bg-black/90 rounded-lg flex flex-col items-center justify-center font-mono text-[7px] font-bold text-[#ff2e9a] transition-all duration-700"
+          style={{
+            transform: hovered ? "translateZ(55px) translateY(-22px) translateX(-12px)" : "translateZ(12px)",
+            boxShadow: hovered ? "0 10px 20px rgba(255, 46, 154, 0.25)" : "none",
+            opacity: hovered ? 1 : 0.6
+          }}
+        >
+          <div className="absolute inset-0 bg-[radial-gradient(rgba(255,46,154,0.15)_1.5px,transparent_1.5px)] bg-[size:6px_6px] rounded-lg" />
+          <span className="relative z-10">NORMAL MAP PASS</span>
+          {hovered && (
+            <span className="absolute bottom-1 right-2 text-[5.5px] text-neutral-500 font-normal">[CHROMA_SURFACE]</span>
+          )}
+        </div>
+
+        {/* Layer 2: Depth Channel */}
+        <div 
+          className="absolute inset-0 border border-[#00d4ff]/50 bg-black/90 rounded-lg flex flex-col items-center justify-center font-mono text-[7px] font-bold text-[#00d4ff] transition-all duration-700"
+          style={{
+            transform: hovered ? "translateZ(28px) translateY(-5px) translateX(2px)" : "translateZ(6px)",
+            boxShadow: hovered ? "0 10px 20px rgba(0, 212, 255, 0.2)" : "none",
+            opacity: hovered ? 1 : 0.8
+          }}
+        >
+          <div className="absolute inset-0 bg-[radial-gradient(rgba(0,212,255,0.15)_1.5px,transparent_1.5px)] bg-[size:6px_6px] rounded-lg" />
+          <span className="relative z-10">DEPTH PASS</span>
+          {hovered && (
+            <span className="absolute bottom-1 right-2 text-[5.5px] text-neutral-500 font-normal">[Z_COVARIANCE]</span>
+          )}
+        </div>
+
+        {/* Layer 1: RGB Plate */}
+        <div 
+          className="absolute inset-0 border border-[#7b61ff]/50 bg-black/90 rounded-lg flex flex-col items-center justify-center font-mono text-[7px] font-bold text-[#7b61ff] transition-all duration-700"
+          style={{
+            transform: hovered ? "translateZ(0px) translateY(12px) translateX(14px)" : "translateZ(0px)",
+            boxShadow: hovered ? "0 10px 20px rgba(123, 97, 255, 0.2)" : "none"
+          }}
+        >
+          <div className="absolute inset-0 bg-[radial-gradient(rgba(123,97,255,0.15)_1.5px,transparent_1.5px)] bg-[size:6px_6px] rounded-lg" />
+          <span className="relative z-10">RGB MASTER PLATE</span>
+          {hovered && (
+            <span className="absolute bottom-1 right-2 text-[5.5px] text-neutral-500 font-normal">[LINEAR_32BIT]</span>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -655,7 +635,6 @@ function RenderingComparisonRig() {
 // ==========================================
 export function FeaturesPageContent({ content }: { content: SiteContent }) {
   const reduce = useReducedMotion() === true;
-  const [coordinateHover, setCoordinateHover] = useState(false);
   const [seedCoords, setSeedCoords] = useState({ x: 0.65, y: 0.42 });
 
   const handleCoordinateMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -666,54 +645,48 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
   };
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden animate-fade-in" style={{ background: "#050507" }}>
+    <div className="relative min-h-screen overflow-x-hidden animate-fade-in" style={{ background: "#030305" }}>
       
-      {/* Luxury Ambient Aurora Mesh Overlay System */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute top-0 left-1/4 w-[900px] h-[900px] rounded-full blur-[200px] opacity-[0.14]" style={{ background: "var(--mesh-1)" }} />
-        <div className="absolute top-[40%] right-[-10%] w-[700px] h-[700px] rounded-full blur-[180px] opacity-[0.11]" style={{ background: "var(--mesh-2)" }} />
-        <div className="absolute bottom-[10%] left-[-15%] w-[800px] h-[800px] rounded-full blur-[220px] opacity-[0.09]" style={{ background: "var(--mesh-3)" }} />
-      </div>
+      {/* Immersive glowing background mesh */}
+      <PremiumBackgroundLattice />
 
-      <div className="app-grain absolute inset-0 z-0 pointer-events-none select-none" />
+      <div className="app-grain absolute inset-0 z-0 pointer-events-none select-none opacity-45" />
 
-      {/* 1. PREMIUM HERO SECTION */}
-      <section className="relative pt-32 pb-24 overflow-hidden z-10 border-b border-white/[0.04]">
+      {/* 1. TYPOGRAPHIC HERO SECTION */}
+      <section className="relative pt-20 pb-12 overflow-hidden z-10 border-b border-white/[0.04]">
         <div className={SITE_CONTAINER}>
           
-          <div className="grid gap-12 lg:grid-cols-12 lg:items-center">
+          <div className="flex flex-col items-start text-left max-w-4xl mr-auto mb-16">
             
-            {/* Left Column: Typographic Editorial Display */}
             <motion.div
               initial={reduce ? false : { opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-              className="lg:col-span-6 flex flex-col text-left"
+              className="flex flex-col items-start"
             >
               
-              <div className="inline-flex self-start items-center gap-2 rounded-full border border-[#00d4ff]/20 bg-[#00d4ff]/5 px-4 py-1.5 text-[9px] font-bold uppercase tracking-[0.25em] mb-7 text-[#00d4ff] shadow-[0_0_15px_rgba(0,212,255,0.05)]">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#00d4ff] animate-pulse" />
-                Next-Gen Generative Suite
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#7b61ff]/20 bg-[#7b61ff]/5 px-4.5 py-1.5 text-[8.5px] font-mono font-bold uppercase tracking-[0.25em] mb-7 text-[#7b61ff] shadow-[0_0_15px_rgba(123,97,255,0.05)]">
+                [ PIPELINE TELEMETRY: CALIBRATED ]
               </div>
 
-              <h1 className="font-display text-[2.5rem] sm:text-[3.75rem] lg:text-[4.5rem] font-black leading-[1.05] tracking-tight mb-7 text-white">
-                Precision Creative <br />
+              <h1 className="font-display text-[2.75rem] sm:text-[4.5rem] lg:text-[5.5rem] font-extrabold leading-[1.03] tracking-tight mb-8 text-white max-w-3xl">
+                Stochastic <br className="sm:hidden" />
                 <span className="premium-text-shimmer font-black">
-                  Intelligence
+                  Latent Command
                 </span>
               </h1>
 
-              <p className="max-w-xl text-xs sm:text-sm leading-relaxed text-neutral-400 font-light mb-9">
-                An uncompromising generative workspace engineered specifically for visual creators. Bypass consumer randomness and manage high-fidelity pipelines, raw camera telemetries, and multi-layer studio handoffs.
+              <p className="max-w-2xl text-neutral-400 text-xs sm:text-sm font-light leading-relaxed mb-9">
+                Command the latent space with absolute precision. Stop submitting to consumer-grade AI randomness. RUHGEN introduces a professional-tier calibration studio engineered precisely for absolute layout structures and cinematic multi-pass rendering.
               </p>
 
-              {/* Action Buttons styled precisely as premium indicators */}
-              <div className="flex flex-wrap gap-4.5">
+              {/* Action Buttons */}
+              <div className="flex flex-wrap justify-start gap-4.5">
                 <Link
                   href="/demo"
                   className="btn-gradient inline-flex min-h-[50px] items-center justify-center gap-1.5 rounded-xl bg-[#258eff] px-8 text-[11px] font-bold uppercase tracking-wider text-white shadow-[0_4px_30px_rgba(37,142,255,0.35)] transition-all hover:scale-[1.02] hover:bg-[#258eff]/90 cursor-pointer"
                 >
-                  Try the Demo
+                  Launch calibration studio
                   <ChevronRight className="h-4 w-4 shrink-0" strokeWidth={3} />
                 </Link>
                 <a
@@ -725,59 +698,49 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
               </div>
 
             </motion.div>
-
-            {/* Right Column: Premium Animated HUD Preview Mockup */}
-            <motion.div
-              initial={reduce ? false : { opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-              className="lg:col-span-6 w-full"
-            >
-              <HeroVisualizer />
-            </motion.div>
-
           </div>
+
 
         </div>
       </section>
 
-      {/* 2. FEATURE NARRATIVE SECTIONS */}
+      {/* 2. THE CALIBRATION SECTION */}
       <section id="capabilities" className="relative py-24 z-10 border-b border-white/[0.04]">
         <div className={SITE_CONTAINER}>
           
-          {/* SECTION A — Creative Control */}
+          {/* SECTION A — Dynamic Crop Viewport Rigs */}
           <div className="mb-32">
             <div className="grid gap-12 lg:grid-cols-12 lg:items-center">
               
               <div className="lg:col-span-5 text-left">
                 <div className="font-mono text-[9px] font-bold text-[#7b61ff] uppercase tracking-[0.25em] mb-4">
-                  01 // COMPOSITION CALIBRATION
+                  01 // STOCHASTIC BOUNDING RIGS
                 </div>
-                <h2 className="font-display text-[2rem] sm:text-[3rem] font-extrabold tracking-tight text-white mb-6 leading-[1.1]">
-                  Absolute Creative Control.
+                <h2 className="font-display text-[2.25rem] sm:text-[3rem] font-extrabold tracking-tight text-white mb-6 leading-[1.08]">
+                  Composition Calibration.
                 </h2>
                 <p className="text-neutral-400 text-xs sm:text-sm font-light leading-relaxed mb-6">
-                  Design layouts without compromise. Select custom dimensions and bounding frames that adjust immediately. Anchor compositions with multi-aspect ratios, adjusting denoise strength parameters to retain flawless layout precision.
+                  Design complex geometric visuals with absolute precision. Select custom dimensions and bounding frames that adjust immediately. Calibrate virtual focal depths, camera sensor arrays, and optical dispersion paths inside live responsive viewports.
                 </p>
 
-                <ul className="space-y-3 font-mono text-[10px] text-neutral-300">
+                <ul className="space-y-3.5 font-mono text-[10px] text-neutral-300">
                   <li className="flex items-center gap-2">
                     <Check className="w-4 h-4 text-[#00d4ff]" />
-                    <span>Dynamic Layout Framing (7 Default Aspects)</span>
+                    <span>Dynamic aspect morphing chassis (21:9 to 9:16)</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <Check className="w-4 h-4 text-[#00d4ff]" />
-                    <span>Adjustable Denoise Strength mapping</span>
+                    <span>Live mathematical focal vector calculation</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <Check className="w-4 h-4 text-[#00d4ff]" />
-                    <span>CLIP-guided prompt structural constraints</span>
+                    <span>Optical refraction f/number simulators</span>
                   </li>
                 </ul>
               </div>
 
               <div className="lg:col-span-7">
-                <AspectFramingRig />
+                <AspectCalibrationRig featuresCalibration={content?.featuresCalibration} />
               </div>
 
             </div>
@@ -787,216 +750,176 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
           <div className="mb-32 border-t border-white/[0.04] pt-24">
             <div className="max-w-3xl text-left mb-16">
               <div className="font-mono text-[9px] font-bold text-[#00d4ff] uppercase tracking-[0.25em] mb-4">
-                02 // PIPELINE ENHANCEMENT
+                02 // REPEATABLE PIPELINE SYSTEMS
               </div>
-              <h2 className="font-display text-[2rem] sm:text-[3rem] font-extrabold tracking-tight text-white mb-6 leading-[1.1]">
-                Seamless Studio Automation.
+              <h2 className="font-display text-[2.25rem] sm:text-[3rem] font-extrabold tracking-tight text-white mb-6 leading-[1.08]">
+                Deterministic Pipelines.
               </h2>
               <p className="text-neutral-400 text-xs sm:text-sm font-light leading-relaxed">
-                Connect generative capabilities to actual delivery pipelines. Step through multi-pass flows, review automated diagnostic parameters, and coordinate final rendering handoffs flawlessly in real time.
+                Connect mathematical pipelines directly to professional rendering assets. Drive visual vectors through CLIP token ingestion matrices, flow matching denoising schedules, and high-fidelity 32-bit HDR focal checks.
               </p>
             </div>
 
-            <WorkflowTimeline />
+            <InteractivePipelineTimeline />
           </div>
 
-          {/* SECTION C — Precision Rendering System */}
+          {/* SECTION C — Split-Screen Comparison Sandbox */}
           <div className="mb-24 border-t border-white/[0.04] pt-24">
             <div className="max-w-3xl text-left mb-16">
               <div className="font-mono text-[9px] font-bold text-[#ff2e9a] uppercase tracking-[0.25em] mb-4">
-                03 // RENDER INFRASTRUCTURE
+                03 // STOCHASTIC SAMPLERS
               </div>
-              <h2 className="font-display text-[2rem] sm:text-[3rem] font-extrabold tracking-tight text-white mb-6 leading-[1.1]">
-                Precision Rendering Pipeline.
+              <h2 className="font-display text-[2.25rem] sm:text-[3rem] font-extrabold tracking-tight text-white mb-6 leading-[1.08]">
+                Dual-Stage Denoising.
               </h2>
               <p className="text-neutral-400 text-xs sm:text-sm font-light leading-relaxed">
-                Experience zero rendering degradation. Toggle between instant prototyping and cinematic resolution sweeps designed specifically to maintain professional detail and strict composition fidelity.
+                Experience zero processing lag. Smoothly wipe your pointer across the canvas to transition instantly between the rapid stochastic draft grid and the high-density cinematic master network.
               </p>
             </div>
 
-            <RenderingComparisonRig />
+            <InteractiveSplitScanRig />
           </div>
 
         </div>
       </section>
 
       {/* 3. PREMIUM BENTO SHOWCASE SECTION */}
-      <section className="relative py-24 z-10 border-b border-white/[0.04] bg-[#07070a]/40">
+      <section className="relative py-24 z-10 border-b border-white/[0.04] bg-[#050508]/40">
         <div className={SITE_CONTAINER}>
           
           <header className="mb-16 text-left max-w-2xl">
             <p className="text-[9px] font-mono font-bold uppercase tracking-[0.25em] mb-4 text-[#7b61ff]">
-              04 // STUDIO COMPILER EXTENSIONS
+              04 // TECHNICAL EXTENSION SUITES
             </p>
-            <h2 className="font-display text-[2rem] sm:text-[3rem] font-extrabold tracking-tight text-white mb-5 leading-[1.1]">
+            <h2 className="font-display text-[2.25rem] sm:text-[3rem] font-extrabold tracking-tight text-white mb-5 leading-[1.08]">
               Advanced Bento Toolkit
             </h2>
             <p className="text-neutral-400 text-xs sm:text-sm font-light leading-relaxed">
-              Explore secondary precision layers developed specifically to deliver robust consistency and deep workflow alignment.
+              Unlock the latent extensions developed exclusively to secure rigid, repeatable compositions and robust post-production pipelines.
             </p>
           </header>
 
-          {/* Bento Grid layout */}
-          <div className="grid gap-6 md:grid-cols-3 items-stretch">
+          {/* Bento Grid */}
+          <div className="grid gap-6 md:grid-cols-4 items-stretch">
             
-            {/* Card 1: Seed Coordinate Lock (Double column) */}
+            {/* Card 1: Seed Coordinate Lock */}
             <div 
-              onMouseMove={handleCoordinateMove}
-              onMouseEnter={() => setCoordinateHover(true)}
-              onMouseLeave={() => setCoordinateHover(false)}
-              className="md:col-span-2 rounded-2xl border border-white/[0.05] bg-[#0c0c10]/40 p-6 flex flex-col justify-between relative overflow-hidden group hover:border-[#7b61ff]/25 transition-all duration-300"
+              className="md:col-span-3 rounded-2xl border border-white/[0.05] bg-[#08080c]/60 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#7b61ff]/25 transition-all duration-300"
             >
-              <div 
-                className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-10 pointer-events-none"
-                style={{
-                  background: "radial-gradient(ellipse 60% 50% at 50% 50%, var(--primary-purple) 0%, transparent 100%)"
-                }}
-              />
+              <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-[0.08] pointer-events-none bg-[radial-gradient(ellipse_60%_50%_at_50%_50%,var(--primary-purple)_0%,transparent_100%)]" />
               
               <div>
-                <div className="flex justify-between items-start mb-6">
-                  <div className="h-9 w-9 rounded-lg border border-[#7b61ff]/25 flex items-center justify-center bg-[#7b61ff]/5 text-[#7b61ff]">
-                    <Compass className="w-4.5 h-4.5" />
+                <div className="flex justify-between items-start mb-4">
+                  <div className="h-8 w-8 rounded-lg border border-[#7b61ff]/25 flex items-center justify-center bg-[#7b61ff]/5 text-[#7b61ff]">
+                    <Compass className="w-4 h-4" />
                   </div>
                   <span className="font-mono text-[7px] font-bold tracking-widest text-[#7b61ff] uppercase">
-                    SAMPLER LOCK
+                    COORDINATE SCHEDULER
                   </span>
                 </div>
-                <h3 className="font-display text-lg font-bold text-white tracking-tight mb-2">
-                  Deterministic Latent Coordinates
+                <h3 className="font-display text-base font-bold text-white tracking-tight mb-1.5">
+                  Deterministic Latent Vectors
                 </h3>
-                <p className="text-neutral-400 text-xs font-light leading-relaxed max-w-lg mb-6">
-                  Secure consistent aesthetic fields. Locking generative seeds allows granular navigation within vector dimensions. Drag or hover the grid to lock localized seed telemetry coordinates.
+                <p className="text-neutral-400 text-xs font-light leading-relaxed max-w-lg mb-4">
+                  Bypass generative noise. Locking mathematical seeds locks absolute focal points, allowing modular navigation across vector dimensions. Calibrated static seed coordinates ensure perfect consistency.
                 </p>
               </div>
 
-              {/* Dynamic Coordinate box inside card */}
-              <div className="relative h-28 w-full border border-white/5 bg-black/45 rounded-xl overflow-hidden cursor-crosshair flex items-center justify-center">
-                <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.015)_1.5px,transparent_1.5px)] bg-[size:10px_10px]" />
+              {/* Static Coordinate blueprint grid inside card (no movement animation) - super slimmed h-16 */}
+              <div className="relative h-16 w-full border border-white/5 bg-[#050508]/40 rounded-xl overflow-hidden flex flex-col items-center justify-center p-3">
+                <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.012)_1px,transparent_1px)] bg-[size:12px_12px]" />
                 
-                {/* Crosshairs */}
-                <div 
-                  className="absolute left-0 right-0 h-[0.5px] border-t border-dashed border-white/10"
-                  style={{ top: `${seedCoords.y * 100}%` }}
-                />
-                <div 
-                  className="absolute top-0 bottom-0 w-[0.5px] border-l border-dashed border-white/10"
-                  style={{ left: `${seedCoords.x * 100}%` }}
-                />
-
-                <div 
-                  className="absolute w-3.5 h-3.5 rounded-full border flex items-center justify-center pointer-events-none transition-all duration-75"
-                  style={{
-                    left: `calc(${seedCoords.x * 100}% - 7px)`,
-                    top: `calc(${seedCoords.y * 100}% - 7px)`,
-                    borderColor: "var(--primary-purple)",
-                    boxShadow: "0 0 10px var(--primary-purple)",
-                    background: "rgba(123, 97, 255, 0.15)"
-                  }}
-                >
-                  <div className="w-1 h-1 rounded-full bg-white" />
-                </div>
-
-                <div className="absolute bottom-2 left-2 font-mono text-[6.5px] text-neutral-500 bg-black/80 px-1.5 py-0.5 rounded border border-white/5">
-                  X: {seedCoords.x.toFixed(3)} Y: {seedCoords.y.toFixed(3)}
+                {/* Tech editorial details */}
+                <div className="relative z-10 text-center font-mono space-y-0.5">
+                  <div className="text-[#7b61ff] text-[8px] font-bold tracking-widest uppercase">
+                    [ PIPELINE CALIBRATION COMPLETED ]
+                  </div>
+                  <div className="text-white text-[9.5px] font-semibold tracking-wide">
+                    STABLE LATENT VECTOR CACHE // 0.618:0.382
+                  </div>
+                  <div className="text-neutral-500 text-[6.5px] tracking-wider uppercase">
+                    Status: Locked • Memory Segment: Core-0x7F • Dispersion: Absolute
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Card 2: Configuration Presets */}
-            <div className="rounded-2xl border border-white/[0.05] bg-[#0c0c10]/40 p-6 flex flex-col justify-between relative overflow-hidden group hover:border-[#00d4ff]/25 transition-all duration-300">
-              <div 
-                className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-10 pointer-events-none"
-                style={{
-                  background: "radial-gradient(ellipse 60% 50% at 50% 50%, var(--primary-cyan) 0%, transparent 100%)"
-                }}
-              />
+            {/* Card 2: Workspace Config Presets */}
+            <div className="md:col-span-1 rounded-2xl border border-white/[0.05] bg-[#08080c]/60 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#00d4ff]/25 transition-all duration-300">
+              <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-[0.08] pointer-events-none bg-[radial-gradient(ellipse_60%_50%_at_50%_50%,var(--primary-cyan)_0%,transparent_100%)]" />
               
               <div>
-                <div className="flex justify-between items-start mb-6">
-                  <div className="h-9 w-9 rounded-lg border border-[#00d4ff]/25 flex items-center justify-center bg-[#00d4ff]/5 text-[#00d4ff]">
-                    <Bookmark className="w-4.5 h-4.5" />
+                <div className="flex justify-between items-start mb-4">
+                  <div className="h-8 w-8 rounded-lg border border-[#00d4ff]/25 flex items-center justify-center bg-[#00d4ff]/5 text-[#00d4ff]">
+                    <Bookmark className="w-4 h-4" />
                   </div>
                   <span className="font-mono text-[7px] font-bold tracking-widest text-[#00d4ff] uppercase">
-                    WORKSPACE
+                    PRESETS
                   </span>
                 </div>
-                <h3 className="font-display text-lg font-bold text-white tracking-tight mb-2">
-                  Persistent Local Presets
+                <h3 className="font-display text-sm font-bold text-white tracking-tight mb-1.5">
+                  Persistent Configuration
                 </h3>
-                <p className="text-neutral-400 text-xs font-light leading-relaxed mb-6">
-                  Save localized layout boundaries and guidance thresholds directly to secure browser cookies for immediate restoration.
+                <p className="text-neutral-400 text-[10px] font-light leading-relaxed mb-4">
+                  Save customized aspect ratios, focal lens calibrations, and step variables to local hardware profiles.
                 </p>
               </div>
 
-              <div className="flex flex-col gap-1.5 font-mono text-[8px] text-neutral-400">
+              <div className="flex flex-col gap-1 font-mono text-[8px] text-neutral-400">
                 <div className="p-2 border border-white/5 bg-black/35 rounded-lg flex justify-between items-center">
-                  <span>Cinematic Noir Preset</span>
-                  <span className="text-[#00d4ff]">f/1.2 Locked</span>
+                  <span>Cinematic Noir</span>
+                  <span className="text-[#00d4ff]">f/1.2</span>
                 </div>
                 <div className="p-2 border border-white/5 bg-black/35 rounded-lg flex justify-between items-center">
-                  <span>Neoclassical Studio</span>
-                  <span className="text-neutral-500">135mm</span>
+                  <span>Studio Prime</span>
+                  <span className="text-neutral-500">85mm</span>
                 </div>
               </div>
             </div>
 
-            {/* Card 3: Multi-Pass Layer suite */}
-            <div className="rounded-2xl border border-white/[0.05] bg-[#0c0c10]/40 p-6 flex flex-col justify-between relative overflow-hidden group hover:border-[#ff2e9a]/25 transition-all duration-300">
-              <div 
-                className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-10 pointer-events-none"
-                style={{
-                  background: "radial-gradient(ellipse 60% 50% at 50% 50%, var(--accent-pink) 0%, transparent 100%)"
-                }}
-              />
+            {/* Card 3: 3D Isometric EXR Stack */}
+            <div className="md:col-span-1 rounded-2xl border border-white/[0.05] bg-[#08080c]/60 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#ff2e9a]/25 transition-all duration-300">
+              <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-[0.08] pointer-events-none bg-[radial-gradient(ellipse_60%_50%_at_50%_50%,var(--accent-pink)_0%,transparent_100%)]" />
               
               <div>
-                <div className="flex justify-between items-start mb-6">
-                  <div className="h-9 w-9 rounded-lg border border-[#ff2e9a]/25 flex items-center justify-center bg-[#ff2e9a]/5 text-[#ff2e9a]">
-                    <Layers className="w-4.5 h-4.5" />
+                <div className="flex justify-between items-start mb-4">
+                  <div className="h-8 w-8 rounded-lg border border-[#ff2e9a]/25 flex items-center justify-center bg-[#ff2e9a]/5 text-[#ff2e9a]">
+                    <Layers className="w-4 h-4" />
                   </div>
                   <span className="font-mono text-[7px] font-bold tracking-widest text-[#ff2e9a] uppercase">
-                    EXPORTS
+                    PIPELINE
                   </span>
                 </div>
-                <h3 className="font-display text-lg font-bold text-white tracking-tight mb-2">
-                  Layered Composites
+                <h3 className="font-display text-sm font-bold text-white tracking-tight mb-1.5">
+                  Multi-Channel Plates
                 </h3>
-                <p className="text-neutral-400 text-xs font-light leading-relaxed mb-6">
-                  Export robust asset layers. Access isolated RGB plates, depth passes, and normal grids inside single packaged files.
+                <p className="text-neutral-400 text-[10px] font-light leading-relaxed mb-4">
+                  Export robust 16-bit multi-channel EXR sheets with normals and depth for post processing.
                 </p>
               </div>
 
-              <div className="grid grid-cols-3 gap-1.5 font-mono text-[8px] text-center">
-                <span className="py-1 border border-white/5 bg-black/35 rounded text-white font-bold">RGB</span>
-                <span className="py-1 border border-[#00d4ff]/20 bg-[#00d4ff]/5 rounded text-[#00d4ff] font-bold">DEPTH</span>
-                <span className="py-1 border border-[#7b61ff]/20 bg-[#7b61ff]/5 rounded text-[#7b61ff] font-bold">NORMAL</span>
-              </div>
+              {/* 3D Isometric Layer Stack */}
+              <IsometricLayerStack />
             </div>
 
-            {/* Card 4: Isolated Cloud Compute (Double Column) */}
-            <div className="md:col-span-2 rounded-2xl border border-white/[0.05] bg-[#0c0c10]/40 p-6 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-500/25 transition-all duration-300">
-              <div 
-                className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-10 pointer-events-none"
-                style={{
-                  background: "radial-gradient(ellipse 60% 50% at 50% 50%, #10b981 0%, transparent 100%)"
-                }}
-              />
+            {/* Card 4: Enterprise Compute */}
+            <div className="md:col-span-3 rounded-2xl border border-white/[0.05] bg-[#08080c]/60 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-500/25 transition-all duration-300">
+              <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-[0.08] pointer-events-none bg-[radial-gradient(ellipse_60%_50%_at_50%_50%,#10b981_0%,transparent_100%)]" />
               
               <div>
-                <div className="flex justify-between items-start mb-6">
-                  <div className="h-9 w-9 rounded-lg border border-emerald-500/20 flex items-center justify-center bg-emerald-500/5 text-emerald-400">
-                    <Server className="w-4.5 h-4.5" />
+                <div className="flex justify-between items-start mb-4">
+                  <div className="h-8 w-8 rounded-lg border border-emerald-500/20 flex items-center justify-center bg-emerald-500/5 text-emerald-400">
+                    <Server className="w-4 h-4" />
                   </div>
                   <span className="font-mono text-[7px] font-bold tracking-widest text-emerald-400 uppercase">
-                    ENTERPRISE SECURITY
+                    COMPUTE METRICS
                   </span>
                 </div>
-                <h3 className="font-display text-lg font-bold text-white tracking-tight mb-2">
-                  Isolated Compute Infrastructures
+                <h3 className="font-display text-base font-bold text-white tracking-tight mb-1.5">
+                  Isolated Cloud GPU Architecture
                 </h3>
-                <p className="text-neutral-400 text-xs font-light leading-relaxed max-w-lg mb-6">
-                  Protect proprietary graphics assets. Your generative inputs remain completely isolated from public databases, executing exclusively within private GPU nodes with zero retention.
+                <p className="text-neutral-400 text-xs font-light leading-relaxed max-w-lg mb-4">
+                  Secure your generative data. Render calculations occur exclusively in highly secure private instances with dedicated GPU nodes, bypassing public server pools.
                 </p>
               </div>
 
@@ -1006,14 +929,14 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                     Frankfurt Edge 04
                   </span>
-                  <span className="text-neutral-500">28ms Latency</span>
+                  <span className="text-neutral-500">22ms Ping</span>
                 </div>
                 <div className="p-2 border border-white/5 bg-black/35 rounded-lg flex items-center justify-between">
                   <span className="flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                     Seoul Edge 09
                   </span>
-                  <span className="text-neutral-500">14ms Latency</span>
+                  <span className="text-neutral-500">11ms Ping</span>
                 </div>
               </div>
             </div>
@@ -1023,7 +946,9 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
         </div>
       </section>
 
-      {/* 4. PRIVATE & TRUST INFRASTRUCTURE SECTION (SECTION D) */}
+
+
+      {/* 4. PRIVATE & TRUST INFRASTRUCTURE SECTION */}
       <section className="relative py-24 z-10 border-b border-white/[0.04]">
         <div className={SITE_CONTAINER}>
           <div className="grid gap-12 lg:grid-cols-12 lg:items-center">
@@ -1033,8 +958,8 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
                 <Shield className="w-3.5 h-3.5 text-emerald-400" />
                 Zero-Retention Compute Policy
               </div>
-              <h2 className="font-display text-[2rem] sm:text-[3rem] font-extrabold tracking-tight text-white mb-6 leading-[1.1]">
-                Isolated Creative Ownership
+              <h2 className="font-display text-[2.25rem] sm:text-[3rem] font-extrabold tracking-tight text-white mb-6 leading-[1.08]">
+                Isolated Creative Ownership.
               </h2>
               <p className="text-neutral-400 text-xs sm:text-sm font-light leading-relaxed mb-6">
                 Your prompts, model configurations, and reference visual files remain exclusively yours. RUHGEN bypasses global cloud retention, routing generations to secure compute caches that delete assets instantly upon client package receipt.
@@ -1044,12 +969,12 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
                 <div className="p-4 border border-white/5 bg-white/[0.01] rounded-xl">
                   <Lock className="w-4 h-4 text-emerald-400 mb-2" />
                   <span className="block font-bold text-white mb-1">Encrypted Channels</span>
-                  <span className="text-neutral-500 leading-relaxed font-light">TLS 1.3 vector streams with absolute key confinement.</span>
+                  <span className="text-neutral-500 leading-relaxed font-light font-light">TLS 1.3 vector streams with absolute key confinement.</span>
                 </div>
                 <div className="p-4 border border-white/5 bg-white/[0.01] rounded-xl">
-                  <Eye className="w-4 h-4 text-emerald-400 mb-2" />
-                  <span className="block font-bold text-white mb-1">No Model Scraping</span>
-                  <span className="text-neutral-500 leading-relaxed font-light">Complete legal exemption from public database scraping schedules.</span>
+                  <EyeOff className="w-4 h-4 text-emerald-400 mb-2" />
+                  <span className="block font-bold text-white mb-1">Zero Training Scraping</span>
+                  <span className="text-neutral-500 leading-relaxed font-light font-light">Complete legal exemption from public database scraping schedules.</span>
                 </div>
               </div>
             </div>
@@ -1099,59 +1024,54 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
       </section>
 
       {/* 5. PREMIUM CTA SECTION */}
-      <section className="relative py-32 z-10 overflow-hidden">
+      <section className="relative py-12 z-10 overflow-hidden">
         
         {/* Massive backdrop gradient */}
-        <div className="absolute inset-0 pointer-events-none z-0" style={{ background: "radial-gradient(circle at 50% 50%, rgba(123, 97, 255, 0.08) 0%, transparent 65%)" }} />
+        <div className="absolute inset-0 pointer-events-none z-0" style={{ background: "radial-gradient(circle at 50% 50%, rgba(123, 97, 255, 0.05) 0%, transparent 60%)" }} />
 
         <div className={SITE_CONTAINER}>
           <motion.div
-            initial={reduce ? false : { opacity: 0, y: 24 }}
+            initial={reduce ? false : { opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="relative overflow-hidden rounded-[2rem] border border-white/[0.08] p-8 sm:p-16 text-center"
+            className="relative overflow-hidden rounded-2xl border border-white/[0.06] py-7 px-8 sm:px-10 text-left flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6"
             style={{
-              background: "linear-gradient(135deg, rgba(0, 212, 255, 0.04), rgba(123, 97, 255, 0.05), rgba(255, 46, 154, 0.03))",
-              backdropFilter: "blur(24px) saturate(180%)",
-              boxShadow: "0 32px 80px -24px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.06)"
+              background: "linear-gradient(135deg, rgba(0, 212, 255, 0.03), rgba(123, 97, 255, 0.03), rgba(255, 46, 154, 0.02))",
+              backdropFilter: "blur(16px)",
+              boxShadow: "0 15px 40px -10px rgba(0,0,0,0.6)"
             }}
           >
-            <div className="absolute inset-0 pointer-events-none opacity-20" style={{ background: "radial-gradient(ellipse 70% 60% at 100% 0%, rgba(0,212,255,0.3), transparent 55%), radial-gradient(ellipse 50% 50% at 0% 100%, rgba(123,97,255,0.2), transparent 50%)" }} />
+            <div className="absolute inset-0 pointer-events-none opacity-10" style={{ background: "radial-gradient(ellipse 70% 60% at 100% 0%, rgba(0,212,255,0.3), transparent 55%)" }} />
 
-            <div className="relative max-w-3xl mx-auto flex flex-col items-center">
-              
-              <div className="inline-flex items-center gap-1.5 rounded-full border border-[#7b61ff]/20 bg-[#7b61ff]/5 px-4.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.25em] mb-7 text-[#7b61ff] shadow-[0_0_15px_rgba(123,97,255,0.05)]">
-                <Sparkles className="w-3.5 h-3.5 text-[#7b61ff]" />
+            <div className="relative z-10 max-w-xl">
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-[#7b61ff]/20 bg-[#7b61ff]/5 px-3 py-1 text-[8px] font-bold uppercase tracking-[0.2em] mb-2 text-[#7b61ff]">
+                <Sparkles className="w-3 h-3 text-[#7b61ff]" />
                 Command the Latent Space
               </div>
-
-              <h2 className="font-display text-3xl sm:text-5xl lg:text-6xl font-black leading-[1.05] tracking-tight mb-7 text-white">
-                Command the Latent Space <br />
-                with Absolute Precision.
+              <h2 className="font-display text-lg sm:text-xl font-bold tracking-tight text-white leading-tight">
+                Command the Latent Space with Absolute Precision.
               </h2>
-              
-              <p className="max-w-xl text-neutral-400 text-xs sm:text-sm font-light leading-relaxed mb-9">
-                Stop accepting randomness. Step up to an elite creative workspace engineered for professionals who require raw control and flawless dynamic fidelity.
+              <p className="text-neutral-500 text-[10px] font-light mt-1">
+                Step up to an elite creative workspace engineered for flawless dynamic fidelity.
               </p>
+            </div>
 
-              <div className="flex flex-col sm:flex-row gap-4.5 justify-center w-full max-w-md">
-                <Link
-                  href="/sign-up"
-                  className="btn-gradient inline-flex min-h-[50px] items-center justify-center gap-1.5 rounded-xl bg-[#258eff] px-8 text-[11px] font-bold uppercase tracking-wider text-white shadow-[0_4px_30px_rgba(37,142,255,0.35)] transition-all hover:scale-[1.02] cursor-pointer"
-                >
-                  Start Creating Free
-                  <ArrowRight className="h-4 w-4 shrink-0" />
-                </Link>
-                
-                <Link
-                  href="/contact"
-                  className="inline-flex min-h-[50px] items-center justify-center rounded-xl border border-white/10 bg-white/[0.02] px-7 text-[11px] font-bold uppercase tracking-wider text-neutral-300 transition-colors hover:text-white hover:border-white/20 cursor-pointer"
-                >
-                  Talk to a Specialist
-                </Link>
-              </div>
-
+            <div className="relative z-10 flex flex-wrap gap-3.5 shrink-0">
+              <Link
+                href="/sign-up"
+                className="btn-gradient inline-flex min-h-[42px] items-center justify-center gap-1.5 rounded-xl bg-[#258eff] px-5 text-[10px] font-bold uppercase tracking-wider text-white shadow-[0_4px_20px_rgba(37,142,255,0.25)] transition-all hover:scale-[1.02] cursor-pointer"
+              >
+                Start Creating Free
+                <ArrowRight className="h-3.5 w-3.5 shrink-0" />
+              </Link>
+              
+              <Link
+                href="/contact"
+                className="inline-flex min-h-[42px] items-center justify-center rounded-xl border border-white/10 bg-white/[0.02] px-5 text-[10px] font-bold uppercase tracking-wider text-neutral-300 transition-colors hover:text-white hover:border-white/20 cursor-pointer"
+              >
+                Talk to a Specialist
+              </Link>
             </div>
           </motion.div>
         </div>

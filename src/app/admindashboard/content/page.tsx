@@ -9,6 +9,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { useAdminAuth } from "@/components/AdminAuthProvider";
 import type { GalleryCategory, SiteContent } from "@/backend/site-content/types";
 import { PUBLIC_DEFAULT_SITE_CONTENT } from "@/backend/site-content/default-content";
+import { UploadCloud, Plus } from "lucide-react";
 
 export default function DashboardContentPage() {
   const { admin, ready, authHeaders } = useAdminAuth();
@@ -16,7 +17,7 @@ export default function DashboardContentPage() {
   const [content, setContent] = useState<SiteContent | null>(null);
   const [status, setStatus] = useState<string>("");
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"hero" | "homepage" | "visualizer">("hero");
+  const [activeTab, setActiveTab] = useState<"hero" | "homepage" | "visualizer" | "features">("hero");
 
   useEffect(() => {
     let ok = true;
@@ -41,6 +42,9 @@ export default function DashboardContentPage() {
         }
         if (!data.visualizerPresets) {
           data.visualizerPresets = PUBLIC_DEFAULT_SITE_CONTENT.visualizerPresets || [];
+        }
+        if (!data.featuresCalibration) {
+          data.featuresCalibration = PUBLIC_DEFAULT_SITE_CONTENT.featuresCalibration;
         }
         
         setContent(data);
@@ -218,8 +222,19 @@ export default function DashboardContentPage() {
                 className="pb-3.5 text-sm font-bold uppercase tracking-wider transition-all relative outline-none shrink-0"
                 style={{ color: activeTab === "visualizer" ? "var(--text-primary)" : "var(--text-subtle)" }}
               >
-                Features Visualizer
+                Demo Page
                 {activeTab === "visualizer" && (
+                  <motion.div layoutId="adminActiveTabLine" className="absolute bottom-0 inset-x-0 h-0.5 bg-gradient-to-r from-[var(--primary-purple)] to-[var(--primary-cyan)]" />
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("features")}
+                className="pb-3.5 text-sm font-bold uppercase tracking-wider transition-all relative outline-none shrink-0"
+                style={{ color: activeTab === "features" ? "var(--text-primary)" : "var(--text-subtle)" }}
+              >
+                Features Page
+                {activeTab === "features" && (
                   <motion.div layoutId="adminActiveTabLine" className="absolute bottom-0 inset-x-0 h-0.5 bg-gradient-to-r from-[var(--primary-purple)] to-[var(--primary-cyan)]" />
                 )}
               </button>
@@ -369,7 +384,7 @@ export default function DashboardContentPage() {
           )}
 
           {/* Showcase gallery */}
-          {activeTab === "homepage" && (
+          {activeTab === "hero" && (
             <section className="rounded-2xl border p-5 sm:p-7" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
               <h2 className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>Showcase gallery</h2>
               <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
@@ -467,22 +482,26 @@ export default function DashboardContentPage() {
                         style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
                         placeholder="Prompt"
                       />
-                      <input
-                        type="file"
-                        accept="image/png,image/jpeg,image/webp"
-                        onChange={async (e) => {
-                          const f = e.target.files?.[0];
-                          if (!f) return;
-                          const src = await upload("gallery", f);
-                          if (!src) return;
-                          const next = structuredClone(content);
-                          next.gallery.items[idx].src = src;
-                          next.gallery.items[idx].alt = f.name;
-                          setContent(next);
-                          e.target.value = "";
-                        }}
-                        className="block w-full text-xs"
-                      />
+                      <label className="mt-1 flex min-h-[38px] cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-white/5 bg-white/5 text-[11px] font-bold text-white transition-colors hover:bg-white/10">
+                        <UploadCloud className="h-4 w-4 text-[#00D4FF]" />
+                        Upload Image
+                        <input
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp"
+                          onChange={async (e) => {
+                            const f = e.target.files?.[0];
+                            if (!f) return;
+                            const src = await upload("gallery", f);
+                            if (!src) return;
+                            const next = structuredClone(content);
+                            next.gallery.items[idx].src = src;
+                            next.gallery.items[idx].alt = f.name;
+                            setContent(next);
+                            e.target.value = "";
+                          }}
+                          className="hidden"
+                        />
+                      </label>
                     </div>
                   </div>
                 ))}
@@ -739,13 +758,13 @@ export default function DashboardContentPage() {
             </section>
           )}
 
-          {/* Features Visualizer Presets Editor */}
+          {/* Demo Page Presets Editor */}
           {activeTab === "visualizer" && (
             <section className="rounded-2xl border p-5 sm:p-7" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
               <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                 <div>
-                  <h2 className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>Features Visualizer Presets</h2>
-                  <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>Customize the interactive visual cards displayed in the Features page hero visualizer.</p>
+                  <h2 className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>Demo Page Photos</h2>
+                  <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>Customize the interactive visual cards displayed in the Demo page hero sandbox.</p>
                 </div>
                 <motion.button
                   type="button"
@@ -883,27 +902,112 @@ export default function DashboardContentPage() {
 
                       <div>
                         <label className="text-[9px] font-semibold uppercase tracking-wider text-white/40">Change Image</label>
-                        <input
-                          type="file"
-                          accept="image/png,image/jpeg,image/webp"
-                          onChange={async (e) => {
-                            const f = e.target.files?.[0];
-                            if (!f) return;
-                            const src = await upload("gallery", f);
-                            if (!src) return;
-                            const next = structuredClone(content);
-                            if (!next.visualizerPresets) return;
-                            next.visualizerPresets[idx].image = src;
-                            setContent(next);
-                            e.target.value = "";
-                          }}
-                          className="block w-full text-xs mt-1"
-                        />
+                        <label className="mt-1 flex min-h-[38px] cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-white/5 bg-white/5 text-[11px] font-bold text-white transition-colors hover:bg-white/10">
+                          <UploadCloud className="h-4 w-4 text-[#00D4FF]" />
+                          Upload Image
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp"
+                            onChange={async (e) => {
+                              const f = e.target.files?.[0];
+                              if (!f) return;
+                              const src = await upload("gallery", f);
+                              if (!src) return;
+                              const next = structuredClone(content);
+                              if (!next.visualizerPresets) return;
+                              next.visualizerPresets[idx].image = src;
+                              setContent(next);
+                              e.target.value = "";
+                            }}
+                            className="hidden"
+                          />
+                        </label>
                       </div>
                     </div>
 
                   </div>
                 ))}
+              </div>
+            </section>
+          )}
+
+          {/* Features Page Calibration Photos Editor */}
+          {activeTab === "features" && (
+            <section className="rounded-2xl border p-5 sm:p-7" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
+              <div className="mb-6">
+                <h2 className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>Features Page Photos</h2>
+                <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>Customize the high-fidelity photographic presets used in the Features page Aspect Calibration Rig.</p>
+              </div>
+
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                {(["cinema", "landscape", "square", "portrait"] as const).map((key) => {
+                  const currentImage = content.featuresCalibration?.[key] || "";
+                  const label = key.charAt(0).toUpperCase() + key.slice(1);
+                  return (
+                    <div key={key} className="editor-card p-4 flex flex-col gap-4 rounded-xl border border-white/5 bg-[#0a0a0d]">
+                      <div className="flex items-center justify-between border-b border-white/[0.04] pb-2">
+                        <span className="text-xs font-mono text-[#7B61FF] uppercase">{label} Preset</span>
+                      </div>
+
+                      <div className="relative aspect-[4/3] overflow-hidden rounded-lg border" style={{ borderColor: "var(--border-subtle)" }}>
+                        {currentImage ? (
+                          <Image src={currentImage} alt={label} fill className="object-cover" sizes="(max-width: 1024px) 50vw, 25vw" />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-xs text-neutral-500">
+                            No background image
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="grid gap-3">
+                        <div>
+                          <label className="text-[9px] font-semibold uppercase tracking-wider text-white/40">Aspect Ratio Preset URL</label>
+                          <input
+                            value={currentImage}
+                            onChange={(e) => {
+                              const next = structuredClone(content);
+                              if (!next.featuresCalibration) {
+                                next.featuresCalibration = { cinema: "", landscape: "", square: "", portrait: "" };
+                              }
+                              next.featuresCalibration[key] = e.target.value;
+                              setContent(next);
+                            }}
+                            className="min-h-[38px] w-full rounded-lg border px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-[#7B61FF]/40"
+                            style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
+                            placeholder="https://..."
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-[9px] font-semibold uppercase tracking-wider text-white/40">Change Image</label>
+                          <label className="mt-1 flex min-h-[38px] cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-white/5 bg-white/5 text-[11px] font-bold text-white transition-colors hover:bg-white/10">
+                            <UploadCloud className="h-4 w-4 text-[#00D4FF]" />
+                            Upload Image
+                            <input
+                              type="file"
+                              accept="image/png,image/jpeg,image/webp"
+                              onChange={async (e) => {
+                                const f = e.target.files?.[0];
+                                if (!f) return;
+                                const src = await upload("homepage", f);
+                                if (!src) return;
+                                const next = structuredClone(content);
+                                if (!next.featuresCalibration) {
+                                  next.featuresCalibration = { cinema: "", landscape: "", square: "", portrait: "" };
+                                }
+                                next.featuresCalibration[key] = src;
+                                setContent(next);
+                                e.target.value = "";
+                              }}
+                              className="hidden"
+                            />
+                          </label>
+                        </div>
+                      </div>
+
+                    </div>
+                  );
+                })}
               </div>
             </section>
           )}

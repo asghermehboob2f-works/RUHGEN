@@ -11,7 +11,7 @@ import type { SiteContent } from "@/backend/site-content/types";
 const sessionPoints = [
   {
     title: "Image mode",
-    body: "Flux-style stills with aspect presets, look chips, and detail levels—see output beside controls.",
+    body: "Direct state-of-the-art cinematic models with aspect presets, look chips, and detail levels—see output beside controls.",
     Icon: ImageIcon,
     tint: "#7B61FF",
   },

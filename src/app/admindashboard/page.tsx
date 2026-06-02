@@ -1,12 +1,12 @@
 "use client";
-
+ 
 import { motion, useReducedMotion } from "framer-motion";
-import { Inbox, Settings, Sparkles, Users } from "lucide-react";
+import { Inbox, Settings, Sparkles, Users, BookOpen, Clapperboard } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useAdminAuth } from "@/components/AdminAuthProvider";
-
+ 
 const tiles = [
   {
     title: "Platform users",
@@ -19,6 +19,18 @@ const tiles = [
     desc: "Update homepage hero previews, gallery images, and spotlight slides.",
     href: "/admindashboard/content",
     icon: "sparkles" as const,
+  },
+  {
+    title: "Spotlight CMS",
+    desc: "Update spotlight templates, roadmap milestones, and reels.",
+    href: "/admindashboard/spotlight",
+    icon: "clapperboard" as const,
+  },
+  {
+    title: "Academy CMS",
+    desc: "Manage video tutorials, blueprints, and workflow masterclasses.",
+    href: "/admindashboard/academy",
+    icon: "bookOpen" as const,
   },
   {
     title: "Newsletter",
@@ -149,6 +161,10 @@ export default function DashboardPage() {
                     <Settings className="h-5 w-5" strokeWidth={1.75} style={{ color: "#7B61FF" }} />
                   ) : t.icon === "users" ? (
                     <Users className="h-5 w-5" strokeWidth={1.75} style={{ color: "#FF2E9A" }} />
+                  ) : t.icon === "clapperboard" ? (
+                    <Clapperboard className="h-5 w-5" strokeWidth={1.75} style={{ color: "#FFB000" }} />
+                  ) : t.icon === "bookOpen" ? (
+                    <BookOpen className="h-5 w-5" strokeWidth={1.75} style={{ color: "#00E575" }} />
                   ) : (
                     <Sparkles className="h-5 w-5" strokeWidth={1.75} style={{ color: "var(--text-muted)" }} />
                   )}

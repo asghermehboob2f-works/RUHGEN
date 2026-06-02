@@ -325,6 +325,12 @@ export const PUBLIC_DEFAULT_SITE_CONTENT: SiteContent = {
       image: "/media/features-sculpture.png",
       resolution: "2.9s"
     }
-  ]
+  ],
+  featuresCalibration: {
+    cinema: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&q=80&w=1200",
+    landscape: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=1200",
+    square: "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&q=80&w=800",
+    portrait: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=800"
+  }
 };
 

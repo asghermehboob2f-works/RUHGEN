@@ -14,6 +14,7 @@ import type {
   SpotlightTemplateItem,
   UpcomingFeatureItem,
   VisualizerPreset,
+  FeaturesCalibrationConfig,
 } from "@/backend/site-content/types";
 
 
@@ -149,6 +150,16 @@ function parseShowcaseSlide(x: unknown): ShowcaseSlide | null {
   return { id: x.id, title: x.title, caption: x.caption, videoSrc };
 }
 
+function parseFeaturesCalibrationConfig(x: unknown): FeaturesCalibrationConfig | null {
+  if (!isRecord(x)) return null;
+  return {
+    cinema: isString(x.cinema) ? x.cinema : "",
+    landscape: isString(x.landscape) ? x.landscape : "",
+    square: isString(x.square) ? x.square : "",
+    portrait: isString(x.portrait) ? x.portrait : "",
+  };
+}
+
 /** Parse JSON payload into `SiteContent` (shared by file read and API response). */
 export function parseSiteContentPayload(data: unknown): SiteContent {
   if (!isRecord(data)) throw new Error("Invalid content: root is not an object.");
@@ -178,8 +189,9 @@ export function parseSiteContentPayload(data: unknown): SiteContent {
   const spotlightTemplates = Array.isArray(data.spotlightTemplates) ? (data.spotlightTemplates.map(parseSpotlightTemplate).filter(Boolean) as SpotlightTemplateItem[]) : undefined;
   const upcomingFeatures = Array.isArray(data.upcomingFeatures) ? (data.upcomingFeatures.map(parseUpcomingFeature).filter(Boolean) as UpcomingFeatureItem[]) : undefined;
   const visualizerPresets = Array.isArray(data.visualizerPresets) ? (data.visualizerPresets.map(parseVisualizerPreset).filter(Boolean) as VisualizerPreset[]) : undefined;
+  const featuresCalibration = parseFeaturesCalibrationConfig(data.featuresCalibration) || undefined;
 
-  return { hero, heroBackground, gallery: { items }, showcase: { slides }, pillars, stats, testimonials, spotlightFeatures, spotlightTemplates, upcomingFeatures, visualizerPresets };
+  return { hero, heroBackground, gallery: { items }, showcase: { slides }, pillars, stats, testimonials, spotlightFeatures, spotlightTemplates, upcomingFeatures, visualizerPresets, featuresCalibration };
 }
 
 /** True when the CMS payload has no real gallery media (common after empty DB seed). */
@@ -235,6 +247,7 @@ export function applyPublicSiteDefaults(c: SiteContent): SiteContent {
   const spotlightTemplates = c.spotlightTemplates && c.spotlightTemplates.length > 0 ? c.spotlightTemplates : def.spotlightTemplates;
   const upcomingFeatures = c.upcomingFeatures && c.upcomingFeatures.length > 0 ? c.upcomingFeatures : def.upcomingFeatures;
   const visualizerPresets = c.visualizerPresets && c.visualizerPresets.length > 0 ? c.visualizerPresets : def.visualizerPresets;
+  const featuresCalibration = c.featuresCalibration || def.featuresCalibration;
 
   return {
     hero: c.hero,
@@ -248,6 +261,7 @@ export function applyPublicSiteDefaults(c: SiteContent): SiteContent {
     spotlightTemplates,
     upcomingFeatures,
     visualizerPresets,
+    featuresCalibration,
   };
 }
 
