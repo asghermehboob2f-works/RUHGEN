@@ -1,32 +1,5 @@
 {
-  "hero": {
-    "previews": [
-      {
-        "id": "hero-1",
-        "src": "/media/hero/38a2c7cb-84ea-434e-a333-a6c909a90060.jpg",
-        "alt": "wallpaperflare.com_wallpaper (2).jpg",
-        "prompt": "A warrior on top"
-      },
-      {
-        "id": "hero-2",
-        "src": "/media/hero/16ec4a9a-fa11-4344-8cf8-1da240ec6458.jpg",
-        "alt": "wallpaperflare.com_wallpaper.jpg",
-        "prompt": "A warrior in dark shade"
-      },
-      {
-        "id": "hero-3",
-        "src": "/media/hero/a942957a-a13b-4878-a352-007f4396a9be.jpg",
-        "alt": "wallpaperflare.com_wallpaper (1).jpg",
-        "prompt": "samurai on fire"
-      },
-      {
-        "id": "hero-4",
-        "src": "/media/hero/c21daecc-4afa-4b3d-af95-5e2d689d7c69.png",
-        "alt": "copy2.png",
-        "prompt": "Samurai in dark"
-      }
-    ]
-  },
+  "hero": {},
   "gallery": {
     "items": [
       {
@@ -185,7 +158,7 @@
         "id": "2bb015a5-10fb-48c2-8545-3f86b3a7adf5",
         "type": "image",
         "src": "/media/homepage/be57207d-0349-464b-bf4d-fd2d5e756885.png",
-        "filename": "Gemini_Generated_Image_eqz9xieqz9xieqz9.png"
+        "filename": "generated_image_eqz9xi.png"
       },
       {
         "id": "1d5c2367-99d7-4eb6-bde7-c170b72b8d01",
@@ -489,9 +462,9 @@
     }
   ],
   "featuresCalibration": {
-    "cinema": "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&q=80&w=1200",
-    "landscape": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=1200",
-    "square": "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&q=80&w=800",
-    "portrait": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=800"
+    "cinema": "/media/homepage/52809c59-5915-431c-a5dc-a63a21336444.jpg",
+    "landscape": "/media/homepage/75bee805-f1ec-4326-a96c-c93cd30a47e1.jpg",
+    "square": "/media/homepage/9f1286c3-ee2d-4a9a-a523-e2e53212fe8b.jpg",
+    "portrait": "/media/homepage/6c1ebf23-0a0a-41da-b5ce-29677eefb7b0.jpg"
   }
 }

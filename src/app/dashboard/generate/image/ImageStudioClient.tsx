@@ -238,6 +238,21 @@ export default function ImageStudioClient() {
     setHistoryLoaded(true);
   }, [user?.id]);
 
+  // Check for prompt query parameter from "Use prompt" dashboard action
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const queryPrompt = params.get("prompt");
+      if (queryPrompt) {
+        setPrompt(queryPrompt);
+        // Clean URL parameter
+        const url = new URL(window.location.href);
+        url.searchParams.delete("prompt");
+        window.history.replaceState({}, "", url.toString());
+      }
+    }
+  }, []);
+
   useEffect(() => {
     if (!user?.id || !historyLoaded) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
@@ -501,7 +516,7 @@ export default function ImageStudioClient() {
   if (!ready) return <DashboardLoading label="Loading image studio…" />;
   if (!user) return null;
   const selectCls =
-    "min-h-[36px] w-full cursor-pointer rounded-lg border px-2.5 py-1.5 text-xs font-semibold outline-none transition-colors focus:ring-2 focus:ring-[#7B61FF]/40 hover:border-[color-mix(in_srgb,var(--primary-purple)_35%,var(--border-subtle))] sm:min-h-[38px] sm:text-sm";
+    "min-h-[38px] w-full cursor-pointer rounded-xl border px-3 py-2 text-xs font-bold outline-none transition-all duration-300 bg-neutral-950/80 border-white/10 focus:border-[#7B61FF]/60 focus:ring-2 focus:ring-[#7B61FF]/15 hover:border-white/15 sm:min-h-[40px] sm:text-[13px]";
   const isEdit = Boolean(referenceImageUrl);
 
   const leftPanel = (
@@ -510,30 +525,30 @@ export default function ImageStudioClient() {
       <div className="studio-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain p-2.5 sm:p-3">
         <div className="border-gradient-premium rounded-[1.15rem] p-[1px] shadow-[0_20px_60px_-40px_rgba(123,97,255,0.55)]">
           <div
-            className="rounded-[1.1rem] p-3 sm:p-3.5"
+            className="rounded-[1.1rem] p-3.5 sm:p-4"
             style={{
               background:
-                "linear-gradient(180deg, color-mix(in srgb, var(--primary-purple) 10%, var(--deep-black)) 0%, color-mix(in srgb, var(--rich-black) 96%, transparent) 100%)",
+                "linear-gradient(180deg, color-mix(in srgb, var(--primary-purple) 8%, var(--deep-black)) 0%, color-mix(in srgb, var(--rich-black) 96%, transparent) 100%)",
             }}
           >
-            <div className="mb-3 flex items-center justify-between gap-2 border-b border-white/[0.07] pb-3">
+            <div className="mb-3.5 flex items-center justify-between gap-2 border-b border-white/[0.07] pb-3.5">
               <div className="flex min-w-0 items-center gap-2">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-400/30 to-[var(--primary-purple)]/40 ring-1 ring-white/15">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-400/30 to-[var(--primary-purple)]/40 ring-1 ring-white/15 shadow-[0_4px_12px_-4px_rgba(123,97,255,0.5)]">
                   <Wand2 className="h-4 w-4 text-violet-100" strokeWidth={2} />
                 </span>
                 <div className="min-w-0">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--text-subtle)]">Control deck</p>
+                  <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[var(--text-subtle)]">Control deck</p>
                   <p className="truncate font-display text-sm font-bold text-[var(--text-primary)]">Diffusion pipeline</p>
                 </div>
               </div>
               {isEdit ? (
-                <span className="shrink-0 rounded-full border border-violet-400/25 bg-violet-500/10 px-2 py-0.5 text-[10px] font-semibold text-violet-100">
+                <span className="shrink-0 rounded-full border border-violet-400/25 bg-violet-500/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-violet-200">
                   Edit
                 </span>
               ) : null}
             </div>
 
-            <div className="space-y-2.5">
+            <div className="space-y-3">
               <StudioCollapsible title="Canvas & model" subtitle="Aspect, resolution, and render engine" defaultOpen>
                 <div className="space-y-3.5">
                   <div>
@@ -543,7 +558,7 @@ export default function ImageStudioClient() {
                       </div>
                     </div>
                     <div
-                      className="flex flex-wrap gap-1.5"
+                      className="grid grid-cols-2 gap-1.5"
                       role="radiogroup"
                       aria-label="Frame"
                     >
@@ -559,16 +574,29 @@ export default function ImageStudioClient() {
                             aria-label={`${s.label} ${s.sub}`}
                             disabled={disabled}
                             onClick={() => setSizeIdx(i)}
-                            className="group flex min-h-[46px] flex-col items-start justify-center rounded-xl border px-2.5 py-1.5 text-left transition-all duration-200 enabled:hover:bg-white/[0.04] disabled:opacity-45"
+                            className="group relative flex min-h-[36px] flex-col items-center justify-center rounded-xl border px-3 py-1 text-center transition-all duration-300 enabled:hover:-translate-y-[1px] disabled:opacity-45 cursor-pointer overflow-hidden"
                             style={{
-                              borderColor: on ? "var(--primary-purple)" : "rgba(255,255,255,0.08)",
-                              background: on ? "color-mix(in srgb, var(--primary-purple) 15%, transparent)" : "transparent",
+                              borderColor: on ? "var(--primary-purple)" : "rgba(255,255,255,0.07)",
+                              background: on 
+                                ? "linear-gradient(180deg, color-mix(in srgb, var(--primary-purple) 15%, transparent) 0%, color-mix(in srgb, var(--primary-purple) 4%, rgba(0,0,0,0.5)) 100%)" 
+                                : "rgba(255,255,255,0.02)",
+                              boxShadow: on 
+                                ? "0 6px 16px -8px color-mix(in srgb, var(--primary-purple) 50%, transparent), inset 0 1px 0 rgba(255,255,255,0.06)" 
+                                : "inset 0 1px 0 rgba(255,255,255,0.02)",
                             }}
                           >
-                            <span className="font-display text-[12px] font-bold leading-tight" style={{ color: on ? "white" : "var(--text-primary)" }}>
+                            {on && (
+                              <div 
+                                className="absolute inset-x-0 top-0 h-[1.5px] opacity-85"
+                                style={{
+                                  background: "linear-gradient(90deg, transparent, var(--primary-purple), transparent)"
+                                }}
+                              />
+                            )}
+                            <span className="font-display text-[11px] font-bold tracking-wide transition-colors" style={{ color: on ? "white" : "var(--text-primary)" }}>
                               {s.label}
                             </span>
-                            <span className="text-[10px] mt-0.5 font-medium" style={{ color: on ? "color-mix(in srgb, var(--primary-purple) 80%, white)" : "var(--text-muted)" }}>
+                            <span className="text-[9px] mt-0.5 font-medium transition-colors" style={{ color: on ? "color-mix(in srgb, var(--primary-purple) 90%, white)" : "var(--text-muted)" }}>
                               {s.sub}
                             </span>
                           </button>
@@ -589,8 +617,8 @@ export default function ImageStudioClient() {
                         value={model}
                         onChange={(e) => setModel(e.target.value)}
                         disabled={busy}
-                        className={`${selectCls} rounded-xl border-white/10 bg-black/40 pl-8 pr-8`}
-                        style={{ borderColor: "var(--border-subtle)", color: "var(--text-primary)" }}
+                        className={`${selectCls} rounded-xl pl-8.5 pr-8`}
+                        style={{ color: "var(--text-primary)" }}
                       >
                         {MODELS.map((m) => (
                           <option key={m.id} value={m.id}>
@@ -601,16 +629,16 @@ export default function ImageStudioClient() {
                     </div>
                   </div>
                 </div>
-                <div className="mt-3 space-y-1.5">
+                <div className="mt-3.5 space-y-2 border-t border-white/[0.05] pt-3.5">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--text-subtle)]">Presets</span>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">Presets</span>
                     <button
                       type="button"
                       disabled={busy}
                       onClick={saveCurrentPreset}
-                      className="inline-flex items-center gap-1 rounded-full border border-[#7B61FF]/35 bg-[#7B61FF]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-violet-100 transition-colors hover:bg-[#7B61FF]/20 disabled:opacity-40"
+                      className="inline-flex items-center gap-1 rounded-lg border border-[#7B61FF]/30 bg-[#7B61FF]/10 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-violet-100 transition-all duration-300 hover:bg-[#7B61FF]/20 hover:border-[#7B61FF]/50 disabled:opacity-40 cursor-pointer"
                     >
-                      <BookmarkPlus className="h-3 w-3" strokeWidth={2} />
+                      <BookmarkPlus className="h-2.5 w-2.5" strokeWidth={2.5} />
                       Save
                     </button>
                   </div>
@@ -622,7 +650,7 @@ export default function ImageStudioClient() {
                           type="button"
                           disabled={busy}
                           onClick={() => applyPreset(pr)}
-                          className="max-w-[160px] truncate rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] font-semibold text-[var(--text-muted)] transition-colors hover:border-[#7B61FF]/40 hover:text-[var(--text-primary)] disabled:opacity-40"
+                          className="max-w-[160px] truncate rounded-lg border border-white/[0.06] bg-white/[0.02] px-2.5 py-1 text-[10px] font-bold text-[var(--text-muted)] transition-all duration-300 hover:border-[#7B61FF]/50 hover:bg-[#7B61FF]/5 hover:text-white disabled:opacity-40 cursor-pointer"
                         >
                           {pr.name}
                         </button>
@@ -643,7 +671,7 @@ export default function ImageStudioClient() {
 
               {!isEdit ? (
                 <StudioCollapsible title="Negative & reference" subtitle="Constraints and optional image conditioning" defaultOpen={false}>
-                  <div className="space-y-3">
+                  <div className="space-y-3.5">
                     <div>
                       <label htmlFor="img-neg-create" className="mb-1.5 flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
                         <span>Negative prompt <span className="font-normal opacity-70 normal-case">(optional)</span></span>
@@ -656,13 +684,13 @@ export default function ImageStudioClient() {
                         disabled={busy}
                         placeholder="Elements to suppress…"
                         rows={2}
-                        className="w-full resize-none rounded-xl border border-white/10 bg-black/35 px-3 py-2 text-xs outline-none transition-shadow focus:ring-2 focus:ring-[#7B61FF]/35 sm:text-[13px]"
-                        style={{ color: "var(--text-primary)", minHeight: "3rem" }}
+                        className="w-full resize-none rounded-xl border border-white/10 bg-neutral-950/60 px-3.5 py-2.5 text-xs outline-none transition-all duration-300 focus:border-[#7B61FF]/50 focus:ring-2 focus:ring-[#7B61FF]/15 sm:text-[13px]"
+                        style={{ color: "var(--text-primary)", minHeight: "3.5rem" }}
                       />
                     </div>
-                    <div className="rounded-xl border border-violet-400/20 bg-violet-500/[0.06] p-2.5">
-                      <div className="mb-1.5 flex items-center justify-between">
-                        <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">Reference image</span>
+                    <div className="rounded-2xl border border-violet-500/15 bg-violet-500/[0.03] p-3 shadow-inner">
+                      <div className="mb-2 flex items-center justify-between">
+                        <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--text-subtle)]">Reference image</span>
                         {referenceImageUrl ? (
                           <button
                             type="button"
@@ -671,9 +699,9 @@ export default function ImageStudioClient() {
                               setReferenceImageUrl(null);
                               setRefUploadError(null);
                             }}
-                            className="inline-flex h-6 items-center gap-1 rounded-md border border-white/10 px-1.5 text-[10px] font-semibold text-[var(--text-muted)] transition-colors hover:bg-white/[0.06] hover:text-[var(--text-primary)]"
+                            className="inline-flex h-6 items-center gap-1 rounded-lg border border-white/10 px-2 text-[9px] font-bold uppercase tracking-wider text-[var(--text-muted)] transition-all duration-200 hover:bg-white/[0.06] hover:text-white cursor-pointer"
                           >
-                            <X className="h-3 w-3" />
+                            <X className="h-2.5 w-2.5" />
                             Clear
                           </button>
                         ) : null}
@@ -697,9 +725,9 @@ export default function ImageStudioClient() {
                             .finally(() => setRefUploading(false));
                         }}
                       />
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3">
                         {referenceImageUrl ? (
-                          <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-white/10">
+                          <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-neutral-950">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={referenceImageUrl} alt="" className="h-full w-full object-cover" />
                           </div>
@@ -708,10 +736,10 @@ export default function ImageStudioClient() {
                           type="button"
                           disabled={busy || refUploading}
                           onClick={() => refFileInput.current?.click()}
-                          className="inline-flex min-h-[40px] flex-1 items-center justify-center gap-1.5 rounded-lg border border-white/10 bg-black/30 px-2 text-[12px] font-semibold text-[var(--text-primary)] transition-colors hover:bg-white/[0.06] disabled:opacity-40"
+                          className="inline-flex min-h-[42px] flex-1 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-neutral-950/40 px-3 text-[12px] font-bold text-[var(--text-primary)] shadow-sm transition-all duration-300 hover:bg-white/[0.04] hover:border-[#7B61FF]/45 disabled:opacity-40 cursor-pointer"
                         >
-                          {refUploading ? <Loader2 className="h-4 w-4 animate-spin text-[#7B61FF]" /> : <ImagePlus className="h-4 w-4" strokeWidth={2} />}
-                          {refUploading ? "Uploading…" : referenceImageUrl ? "Replace" : "Upload reference"}
+                          {refUploading ? <Loader2 className="h-4 w-4 animate-spin text-[#7B61FF]" /> : <ImagePlus className="h-4 w-4 text-[#a78bfa]" strokeWidth={2} />}
+                          {refUploading ? "Uploading…" : referenceImageUrl ? "Replace image" : "Upload reference"}
                         </button>
                       </div>
                       {refUploadError ? <p className="mt-1.5 text-[11px] text-rose-200">{refUploadError}</p> : null}
@@ -764,13 +792,13 @@ export default function ImageStudioClient() {
                         onChange={(e) => setEditNegative(e.target.value.slice(0, 2000))}
                         disabled={busy}
                         placeholder="What to avoid…"
-                        className="min-h-[40px] w-full rounded-xl border border-white/10 bg-black/35 px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-[#7B61FF]/35"
+                        className="min-h-[40px] w-full rounded-xl border border-white/10 bg-neutral-950/60 px-3.5 py-2.5 text-xs outline-none transition-all duration-300 focus:border-[#7B61FF]/50 focus:ring-2 focus:ring-[#7B61FF]/15"
                         style={{ color: "var(--text-primary)" }}
                       />
                     </div>
                     {referenceImageUrl ? (
                       <div className="flex items-center gap-3 sm:col-span-2">
-                        <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-white/10">
+                        <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-neutral-950">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={referenceImageUrl} alt="" className="h-full w-full object-cover" />
                         </div>
@@ -1059,7 +1087,13 @@ export default function ImageStudioClient() {
                     if (!showAssistantRow(msg)) return null;
                     return (
                       <motion.div key={msg.id} initial={reduce ? false : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-start">
-                        <div className="max-w-[min(100%,760px)] rounded-2xl rounded-bl-md border border-white/10 bg-black/35 px-4 py-3.5 shadow-xl ring-1 ring-white/[0.05] backdrop-blur-md">
+                        <div
+                          className={
+                            msg.urls.length > 0 && !msg.loading
+                              ? "w-full max-w-[min(100%,760px)]"
+                              : "max-w-[min(100%,760px)] rounded-2xl rounded-bl-md border border-white/10 bg-black/35 px-4 py-3.5 shadow-xl ring-1 ring-white/[0.05] backdrop-blur-md"
+                          }
+                        >
                           {msg.loading ? (
                             <div className="space-y-3">
                               <p className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
@@ -1077,51 +1111,60 @@ export default function ImageStudioClient() {
                           ) : null}
                           {msg.error ? <p className="text-sm text-rose-100">{msg.error}</p> : null}
                           {msg.urls.length > 0 ? (
-                            <div className="mt-3 grid gap-4 sm:grid-cols-2">
+                            <div className={msg.urls.length === 1 ? "max-w-[580px]" : "grid gap-6 grid-cols-1 sm:grid-cols-2"}>
                               {msg.urls.map((src, idx) => (
                                 <div
                                   key={`${msg.id}-${src}`}
-                                  className="overflow-hidden rounded-2xl border border-white/10 bg-[var(--soft-black)] shadow-2xl ring-1 ring-white/[0.06]"
+                                  className="group relative overflow-hidden rounded-xl bg-transparent"
                                 >
-                                  <div className="group relative">
+                                  {/* The Image itself with high-end hover zoom */}
+                                  <div className="relative overflow-hidden rounded-xl bg-neutral-950">
                                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img src={src} alt="Generated" className="aspect-square w-full bg-black/50 object-contain" />
-                                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 transition-opacity group-hover:opacity-95" />
-                                    <div className="absolute inset-x-0 bottom-0 flex translate-y-1 flex-wrap items-center justify-center gap-2 p-3 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+                                    <img
+                                      src={src}
+                                      alt="Generated Still"
+                                      className="w-full h-auto block transition-transform duration-700 ease-out group-hover:scale-105"
+                                    />
+                                    
+                                    {/* Soft overlay gradient on hover */}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 pointer-events-none" />
+
+                                    {/* Top Right Action Overlay (Fullscreen/Maximize) */}
+                                    <div className="absolute top-3 right-3 flex gap-1.5 opacity-0 transition-all duration-300 translate-y-[-4px] group-hover:translate-y-0 group-hover:opacity-100">
                                       <button
                                         type="button"
                                         onClick={() => setLightbox({ src })}
-                                        className="pointer-events-auto inline-flex min-h-[38px] items-center gap-1.5 rounded-xl border border-white/20 bg-black/55 px-3 text-xs font-semibold text-white backdrop-blur-md hover:bg-black/70"
+                                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/15 bg-black/60 text-white backdrop-blur-md transition-colors hover:bg-black/80"
+                                        title="Maximize"
                                       >
                                         <Maximize2 className="h-3.5 w-3.5" />
-                                        Full
                                       </button>
                                       <a
                                         href={src}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="pointer-events-auto inline-flex min-h-[38px] items-center gap-1.5 rounded-xl border border-white/20 bg-black/55 px-3 text-xs font-semibold text-white backdrop-blur-md hover:bg-black/70"
+                                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/15 bg-black/60 text-white backdrop-blur-md transition-colors hover:bg-black/80"
+                                        title="Open in new tab"
                                       >
                                         <ExternalLink className="h-3.5 w-3.5" />
-                                        Open
                                       </a>
                                     </div>
-                                  </div>
-                                  <div className="flex flex-col gap-2 border-t border-white/10 p-2.5">
-                                    <button
-                                      type="button"
-                                      disabled={busy}
-                                      onClick={() => {
-                                        setReferenceImageUrl(src);
-                                        setPrompt("");
-                                        document.getElementById("img-prompt")?.focus();
-                                      }}
-                                      className="inline-flex min-h-[40px] w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-2.5 text-xs font-semibold text-[var(--text-primary)] transition-colors hover:border-[#7B61FF]/45 hover:bg-[#7B61FF]/10 disabled:opacity-60 sm:text-sm"
-                                    >
-                                      <Wand2 className="h-3.5 w-3.5 shrink-0 opacity-90" strokeWidth={2} />
-                                      Refine
-                                    </button>
-                                    <div className="grid grid-cols-2 gap-2">
+
+                                    {/* Bottom Action Bar Overlay (floating glassmorphism) */}
+                                    <div className="absolute inset-x-3 bottom-3 flex gap-1.5 opacity-0 transition-all duration-300 translate-y-[4px] group-hover:translate-y-0 group-hover:opacity-100">
+                                      <button
+                                        type="button"
+                                        disabled={busy}
+                                        onClick={() => {
+                                          setReferenceImageUrl(src);
+                                          setPrompt("");
+                                          document.getElementById("img-prompt")?.focus();
+                                        }}
+                                        className="flex h-8.5 flex-1 items-center justify-center gap-1.5 rounded-lg border border-white/15 bg-black/60 text-[11px] font-bold uppercase tracking-wider text-white backdrop-blur-md transition-colors hover:bg-[var(--primary-purple)]/80 hover:border-[var(--primary-purple)]/40 disabled:opacity-50"
+                                      >
+                                        <Wand2 className="h-3 w-3" />
+                                        Refine
+                                      </button>
                                       <button
                                         type="button"
                                         disabled={downloadingIdx !== null}
@@ -1134,26 +1177,70 @@ export default function ImageStudioClient() {
                                             })
                                             .finally(() => setDownloadingIdx(null));
                                         }}
-                                        className="inline-flex min-h-[40px] w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-2 text-xs font-semibold transition-colors hover:border-[#7B61FF]/45 disabled:opacity-60 sm:text-sm"
-                                        style={{ color: "var(--text-primary)" }}
+                                        className="flex h-8.5 px-3 items-center justify-center gap-1.5 rounded-lg border border-white/15 bg-black/60 text-[11px] font-bold uppercase tracking-wider text-white backdrop-blur-md transition-colors hover:bg-black/80 disabled:opacity-50"
                                       >
                                         {downloadingIdx?.key === msg.id && downloadingIdx.idx === idx ? (
-                                          <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-[#7B61FF]" strokeWidth={2} />
+                                          <Loader2 className="h-3 w-3 animate-spin text-[var(--primary-cyan)]" />
                                         ) : (
-                                          <Download className="h-3.5 w-3.5 shrink-0 opacity-90" strokeWidth={2} />
+                                          <Download className="h-3 w-3" />
                                         )}
                                         Save
                                       </button>
                                       <button
                                         type="button"
                                         onClick={() => void copyText(src, "Link copied")}
-                                        className="inline-flex min-h-[40px] w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-2 text-xs font-semibold transition-colors hover:border-[#7B61FF]/45 sm:text-sm"
-                                        style={{ color: "var(--text-primary)" }}
+                                        className="flex h-8.5 px-3 items-center justify-center gap-1.5 rounded-lg border border-white/15 bg-black/60 text-[11px] font-bold uppercase tracking-wider text-white backdrop-blur-md transition-colors hover:bg-black/80"
                                       >
-                                        <Copy className="h-3.5 w-3.5" />
+                                        <Copy className="h-3 w-3" />
                                         Link
                                       </button>
                                     </div>
+                                  </div>
+
+                                  {/* Mobile-only visible quick buttons underneath */}
+                                  <div className="flex gap-2.5 mt-2 lg:hidden">
+                                    <button
+                                      type="button"
+                                      disabled={busy}
+                                      onClick={() => {
+                                        setReferenceImageUrl(src);
+                                        setPrompt("");
+                                        document.getElementById("img-prompt")?.focus();
+                                      }}
+                                      className="flex h-8 flex-1 items-center justify-center gap-1 rounded-lg border border-white/10 bg-white/[0.04] text-[10px] font-bold uppercase tracking-wider text-white"
+                                    >
+                                      <Wand2 className="h-3 w-3" />
+                                      Refine
+                                    </button>
+                                    <button
+                                      type="button"
+                                      disabled={downloadingIdx !== null}
+                                      onClick={() => {
+                                        setDownloadError(null);
+                                        setDownloadingIdx({ key: msg.id, idx });
+                                        void downloadImageViaProxy(src, idx)
+                                          .catch((e: unknown) => {
+                                            setDownloadError(e instanceof Error ? e.message : "Download failed.");
+                                          })
+                                          .finally(() => setDownloadingIdx(null));
+                                      }}
+                                      className="flex h-8 px-2.5 items-center justify-center gap-1 rounded-lg border border-white/10 bg-white/[0.04] text-[10px] font-bold uppercase tracking-wider text-white"
+                                    >
+                                      {downloadingIdx?.key === msg.id && downloadingIdx.idx === idx ? (
+                                        <Loader2 className="h-3 w-3 animate-spin" />
+                                      ) : (
+                                        <Download className="h-3 w-3" />
+                                      )}
+                                      Save
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => void copyText(src, "Link copied")}
+                                      className="flex h-8 px-2.5 items-center justify-center gap-1 rounded-lg border border-white/10 bg-white/[0.04] text-[10px] font-bold uppercase tracking-wider text-white"
+                                    >
+                                      <Copy className="h-3 w-3" />
+                                      Link
+                                    </button>
                                   </div>
                                 </div>
                               ))}

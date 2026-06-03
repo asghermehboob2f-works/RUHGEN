@@ -42,7 +42,7 @@ export function WorkflowPageContent() {
   const [activeStep, setActiveStep] = useState(0);
 
   return (
-    <div className="relative min-h-screen text-white" style={{ background: "var(--deep-black)" }}>
+    <div className="relative min-h-screen" style={{ background: "var(--deep-black)" }}>
       {/* Cinematic Background Mesh — unified with site theme */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute top-0 right-1/4 w-[600px] h-[600px] rounded-full blur-[140px]" style={{ background: "var(--mesh-1)" }} />

@@ -57,7 +57,7 @@ export function StatsStrip({ stats }: { stats?: StatItem[] }) {
       className="relative border-y overflow-hidden py-10 md:py-12"
       style={{
         borderColor: "var(--border-subtle)",
-        background: "#050505",
+        background: "var(--deep-black)",
       }}
     >
       {/* Premium background design guidelines */}

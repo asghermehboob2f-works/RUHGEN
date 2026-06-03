@@ -168,7 +168,7 @@ export function SpotlightPageContent({ content }: { content: SiteContent }) {
               <Compass className="h-4 w-4 text-[#00D4FF] animate-pulse" />
               Workspace Templates
             </div>
-            <h2 className="font-display text-3xl font-extrabold tracking-tight sm:text-4xl text-white">
+            <h2 className="font-display text-3xl font-extrabold tracking-tight sm:text-4xl text-[var(--text-primary)]">
               Ignite your timeline with <span className="text-gradient-primary">Cinematic Presets</span>
             </h2>
             <p className="mt-4 text-sm max-w-xl mx-auto leading-relaxed text-[var(--text-muted)]">
@@ -222,7 +222,7 @@ export function SpotlightPageContent({ content }: { content: SiteContent }) {
                 {/* Content */}
                 <div className="flex-1 p-4 flex flex-col justify-between">
                   <div>
-                    <h3 className="font-display text-sm font-bold text-white tracking-tight group-hover:text-[#00D4FF] transition-colors">
+                    <h3 className="font-display text-sm font-bold text-[var(--text-primary)] tracking-tight group-hover:text-[#00D4FF] transition-colors">
                       {tmpl.title}
                     </h3>
                     <p className="mt-2 text-[11px] leading-relaxed text-[var(--text-muted)] line-clamp-3">
@@ -231,7 +231,7 @@ export function SpotlightPageContent({ content }: { content: SiteContent }) {
                   </div>
 
                   <div className="mt-4 pt-3 border-t border-white/[0.04] flex items-center justify-between">
-                    <span className="text-[9px] font-mono text-white/30 uppercase tracking-widest">
+                    <span className="text-[9px] font-mono text-[var(--text-subtle)] uppercase tracking-widest">
                       Ready
                     </span>
                     <Link
@@ -308,7 +308,7 @@ export function SpotlightPageContent({ content }: { content: SiteContent }) {
                               {item.status}
                             </span>
                           </div>
-                          <h3 className="font-display mt-2 text-xl font-bold text-white tracking-tight">
+                          <h3 className="font-display mt-2 text-xl font-bold text-[var(--text-primary)] tracking-tight">
                             {item.title}
                           </h3>
                           <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
@@ -329,7 +329,7 @@ export function SpotlightPageContent({ content }: { content: SiteContent }) {
                               {item.status}
                             </span>
                           </div>
-                          <h3 className="font-display mt-2 text-xl font-bold text-white tracking-tight">
+                          <h3 className="font-display mt-2 text-xl font-bold text-[var(--text-primary)] tracking-tight">
                             {item.title}
                           </h3>
                           <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>

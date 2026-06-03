@@ -40,7 +40,7 @@ export function Testimonials({ quotes }: { quotes?: TestimonialItem[] }) {
   return (
     <section
       id="stories"
-      className="mesh-section-muted scroll-mt-24 py-16 sm:py-20 md:py-28 relative overflow-hidden"
+      className="mesh-section scroll-mt-24 py-16 sm:py-20 md:py-28 relative overflow-hidden"
     >
       <div className="mx-auto max-w-full px-6 sm:px-12 lg:px-20 xl:px-32 relative z-10">
         <div className="mb-14 text-center">

@@ -8,7 +8,7 @@ export function FinalCta() {
       id="cta"
       className="relative scroll-mt-24 overflow-hidden py-28 sm:py-36 md:py-40"
       style={{
-        background: "radial-gradient(ellipse 60% 40% at 50% 100%, rgba(123, 97, 255, 0.04), transparent 70%), #050505",
+        background: "radial-gradient(ellipse 60% 40% at 50% 100%, rgba(123, 97, 255, 0.04), transparent 70%), var(--deep-black)",
       }}
     >
       {/* Absolute Brand-Integrated Glowing Top Border Line */}

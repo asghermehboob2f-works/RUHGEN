@@ -14,7 +14,7 @@ const categories: (FaqCategory | "all")[] = ["all", "product", "billing", "teams
 
 // Color mappings for premium category badges
 const categoryColors: Record<string, { bg: string; border: string; text: string }> = {
-  all: { bg: "rgba(255,255,255,0.04)", border: "rgba(255,255,255,0.08)", text: "rgba(255,255,255,0.8)" },
+  all: { bg: "var(--glass)", border: "var(--border-subtle)", text: "var(--text-primary)" },
   product: { bg: "rgba(123,97,255,0.06)", border: "rgba(123,97,255,0.25)", text: "#7B61FF" },
   billing: { bg: "rgba(0,212,255,0.06)", border: "rgba(0,212,255,0.25)", text: "#00D4FF" },
   teams: { bg: "rgba(255,46,154,0.06)", border: "rgba(255,46,154,0.25)", text: "#FF2E9A" },
@@ -63,7 +63,7 @@ export function FaqHubContent() {
   }, [q, cat, faqs]);
 
   return (
-    <div className="relative min-h-screen bg-[#030303] text-white">
+    <div className="relative min-h-screen font-sans" style={{ background: "var(--deep-black)" }}>
       {/* Decorative Cinematic Background Mesh */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute top-0 left-1/3 w-[500px] h-[500px] rounded-full bg-[#7B61FF]/10 blur-[130px]" />
@@ -84,14 +84,14 @@ export function FaqHubContent() {
               RUHGEN Help Center
             </div>
 
-            <h1 className="font-display text-4xl sm:text-6xl font-extrabold leading-[1.05] tracking-tight text-white mb-6">
+            <h1 className="font-display text-4xl sm:text-6xl font-extrabold leading-[1.05] tracking-tight text-[var(--text-primary)] mb-6">
               Answers, <br className="hidden sm:inline" />
               <span className="bg-gradient-to-r from-[#00D4FF] via-[#7B61FF] to-[#FF2E9A] bg-clip-text text-transparent">
                 searchable.
               </span>
             </h1>
 
-            <p className="max-w-xl mx-auto text-sm sm:text-base text-neutral-400 font-light leading-relaxed mb-10">
+            <p className="max-w-xl mx-auto text-sm sm:text-base text-[var(--text-muted)] font-light leading-relaxed mb-10">
               Filter by category or query—straightforward architectural guidelines, billing rules, and security answers.
             </p>
 
@@ -105,7 +105,7 @@ export function FaqHubContent() {
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
                   placeholder="Search visual pipeline, models, SSO..."
-                  className="w-full rounded-2xl border border-white/10 py-4 pl-12 pr-5 text-sm outline-none bg-black/85 text-white transition-all focus:border-[#00D4FF]/40 focus:ring-1 focus:ring-[#00D4FF]/20"
+                  className="w-full rounded-2xl border border-[color-mix(in_oklab,var(--border-subtle)_60%,transparent)] py-4 pl-12 pr-5 text-sm outline-none bg-[color-mix(in_oklab,var(--glass)_95%,transparent)] text-[var(--text-primary)] transition-all focus:border-[#00D4FF]/40 focus:ring-1 focus:ring-[#00D4FF]/20"
                 />
               </div>
             </div>
@@ -123,9 +123,9 @@ export function FaqHubContent() {
                     onClick={() => setCat(c)}
                     className="min-h-[38px] rounded-full border px-4 py-1.5 text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98]"
                     style={{
-                      borderColor: active ? colors.border : "rgba(255,255,255,0.06)",
-                      background: active ? colors.bg : "rgba(255,255,255,0.02)",
-                      color: active ? colors.text : "rgba(255,255,255,0.5)",
+                      borderColor: active ? colors.border : "var(--border-subtle)",
+                      background: active ? colors.bg : "var(--glass)",
+                      color: active ? colors.text : "var(--text-muted)",
                       boxShadow: active ? `0 0 15px -3px ${colors.border}` : undefined
                     }}
                   >
@@ -145,12 +145,12 @@ export function FaqHubContent() {
             
             {/* Left Info Column */}
             <div className="hidden w-full max-w-xs shrink-0 lg:block">
-              <div className="rounded-2xl border border-white/5 bg-[#0a0a0f]/80 p-5">
+              <div className="rounded-2xl border border-[color-mix(in_oklab,var(--border-subtle)_60%,transparent)] p-5 animate-pulse-slow" style={{ background: "var(--glass)" }}>
                 <HelpIcon className="w-6 h-6 text-[#7B61FF] mb-3.5" />
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400">
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)]">
                   Topic Navigation
                 </p>
-                <p className="mt-2 text-xs leading-relaxed text-neutral-500 font-light">
+                <p className="mt-2 text-xs leading-relaxed text-[var(--text-subtle)] font-light">
                   Select a category above or run searches to instantly filter the operational ledger. Hover to explore deep content maps.
                 </p>
               </div>
@@ -163,8 +163,8 @@ export function FaqHubContent() {
                   <span className="loading-orbit h-8 w-8 rounded-full border-2 border-[#7B61FF] border-t-transparent animate-spin" />
                 </div>
               ) : filtered.length === 0 ? (
-                <div className="text-center py-12 rounded-3xl border border-dashed border-white/5 bg-white/[0.01] p-6">
-                  <p className="text-neutral-500 text-sm font-light">
+                <div className="text-center py-12 rounded-3xl border border-dashed border-[color-mix(in_oklab,var(--border-subtle)_60%,transparent)] bg-[color-mix(in_oklab,var(--glass)_30%,transparent)] p-6">
+                  <p className="text-[var(--text-muted)] text-sm font-light">
                     No results found matching your search. Try adjusting the query or switching category filters.
                   </p>
                 </div>
@@ -178,8 +178,8 @@ export function FaqHubContent() {
                         key={item.id}
                         className="overflow-hidden rounded-2xl border transition-all duration-300 relative group"
                         style={{
-                          borderColor: isOpen ? colors.border : "rgba(255,255,255,0.05)",
-                          background: isOpen ? "rgba(10,10,15,0.85)" : "rgba(10,10,15,0.4)",
+                          borderColor: isOpen ? colors.border : "var(--border-subtle)",
+                          background: isOpen ? "var(--glass-elevated)" : "var(--glass)",
                           boxShadow: isOpen ? `0 0 30px -12px ${colors.border}` : undefined
                         }}
                       >
@@ -209,7 +209,7 @@ export function FaqHubContent() {
                             >
                               {FAQ_CATEGORY_LABELS[item.category]}
                             </span>
-                            <span className="font-display text-sm sm:text-base font-bold text-white transition-colors group-hover:text-white">
+                            <span className="font-display text-sm sm:text-base font-bold text-[var(--text-primary)] transition-colors group-hover:text-[var(--text-primary)]">
                               {item.question}
                             </span>
                           </span>
@@ -229,7 +229,7 @@ export function FaqHubContent() {
                               exit={reduce ? undefined : { opacity: 0, height: 0 }}
                               transition={{ duration: 0.25, ease: "easeOut" }}
                             >
-                              <p className="border-t border-white/5 px-5 pb-5 pt-4 text-xs sm:text-sm leading-relaxed text-neutral-400 font-light sm:px-6">
+                              <p className="border-t border-white/5 px-5 pb-5 pt-4 text-xs sm:text-sm leading-relaxed text-[var(--text-muted)] font-light sm:px-6">
                                 {item.answer}
                               </p>
                             </motion.div>
@@ -242,12 +242,12 @@ export function FaqHubContent() {
               )}
 
               {/* Still have questions CTA panel */}
-              <div className="mt-12 grid gap-6 rounded-3xl border border-white/5 bg-[#0a0a0f]/80 p-6 sm:p-8 lg:grid-cols-[1fr_auto] lg:items-center">
+              <div className="mt-12 grid gap-6 rounded-3xl border p-6 sm:p-8 lg:grid-cols-[1fr_auto] lg:items-center" style={{ borderColor: "var(--border-subtle)", background: "var(--glass)" }}>
                 <div>
-                  <h3 className="font-display text-base font-bold text-white">
+                  <h3 className="font-display text-base font-bold text-[var(--text-primary)]">
                     Need something that isn&apos;t listed here?
                   </h3>
-                  <p className="mt-2 text-xs sm:text-sm text-neutral-400 font-light">
+                  <p className="mt-2 text-xs sm:text-sm text-[var(--text-muted)] font-light">
                     Custom security compliance sheets, enterprise procurement paths, or dedicated node access—send details to our engineering desks.
                   </p>
                 </div>

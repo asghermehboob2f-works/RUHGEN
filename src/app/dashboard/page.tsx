@@ -67,156 +67,154 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8 sm:space-y-10">
+      {/* Banner / Studio Overview Section */}
       <motion.section
         initial={reduce ? false : { opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="relative overflow-hidden rounded-3xl border p-6 sm:p-8 lg:p-10"
+        className="relative overflow-hidden rounded-2xl border p-4 sm:p-5 lg:p-6"
         style={{
           borderColor: "transparent",
           background:
-            "linear-gradient(var(--soft-black), var(--soft-black)) padding-box, linear-gradient(135deg, rgba(123,97,255,0.45), rgba(0,212,255,0.25), rgba(255,46,154,0.15)) border-box",
-          boxShadow: "0 0 80px -20px rgba(123,97,255,0.35), inset 0 1px 0 rgba(255,255,255,0.06)",
+            "linear-gradient(var(--soft-black), var(--soft-black)) padding-box, linear-gradient(135deg, rgba(123,97,255,0.4), rgba(0,212,255,0.25), rgba(255,46,154,0.15)) border-box",
+          boxShadow: "0 0 50px -15px rgba(123,97,255,0.25), inset 0 1px 0 rgba(255,255,255,0.08)",
         }}
       >
+        {/* Subtle grid pattern background */}
         <div
-          className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full opacity-50 blur-3xl"
+          className="absolute inset-0 opacity-[0.06] mix-blend-overlay pointer-events-none"
+          style={{
+            backgroundImage: "radial-gradient(var(--primary-purple) 1px, transparent 0)",
+            backgroundSize: "24px 24px",
+          }}
+        />
+
+        {/* Subtle decorative glow points */}
+        <div
+          className="pointer-events-none absolute -right-24 -top-24 h-44 w-44 rounded-full opacity-30 blur-3xl"
           style={{ background: "var(--primary-purple)" }}
           aria-hidden
         />
         <div
-          className="pointer-events-none absolute -bottom-20 left-1/4 h-56 w-56 rounded-full opacity-35 blur-3xl"
+          className="pointer-events-none absolute -bottom-20 left-1/3 h-36 w-36 rounded-full opacity-20 blur-3xl"
           style={{ background: "var(--primary-cyan)" }}
           aria-hidden
         />
 
-        <div className="relative flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.22em]" style={{ color: "var(--text-subtle)" }}>
+        <div className="relative grid gap-5 lg:grid-cols-12 lg:items-center">
+          {/* Left Column: Greeting & Actions */}
+          <div className="lg:col-span-7 flex flex-col justify-center">
+            <div className="inline-flex w-fit items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em] text-[var(--primary-cyan)]">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--primary-cyan)] opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[var(--primary-cyan)]"></span>
+              </span>
               Studio overview
-            </p>
-            <h1 className="font-display mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-[2.75rem] lg:leading-[1.08]">
-              <span className="text-gradient-primary">Hello, {firstName}</span>
+            </div>
+            
+            <h1 className="font-display mt-2.5 text-xl font-extrabold tracking-tight sm:text-2xl lg:text-3xl">
+              Hello, <span className="text-gradient-primary">{firstName}</span>
             </h1>
-            <p className="mt-3 max-w-xl text-sm leading-relaxed sm:text-base" style={{ color: "var(--text-muted)" }}>
+            
+            <p className="mt-1.5 max-w-xl text-xs sm:text-sm leading-relaxed text-[var(--text-muted)]">
               Your workspace is ready. Jump into image or video generation, track credits, and tune preferences anytime.
             </p>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href="/dashboard/generate/image"
-              className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-2xl px-6 text-sm font-semibold text-white shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.99]"
-              style={{
-                background: "linear-gradient(135deg, var(--primary-purple) 0%, var(--primary-cyan) 100%)",
-                boxShadow: "0 12px 40px -8px rgba(123,97,255,0.55)",
-              }}
-            >
-              New generation
-              <ArrowRight className="h-4 w-4" strokeWidth={2} />
-            </Link>
-            <Link
-              href="/dashboard/settings"
-              className="inline-flex min-h-[48px] items-center justify-center rounded-2xl border px-5 text-sm font-semibold transition-colors"
-              style={{
-                borderColor: "var(--border-subtle)",
-                background: "var(--glass)",
-                color: "var(--text-primary)",
-              }}
-            >
-              Preferences
-            </Link>
-          </div>
-        </div>
-
-        <div className="relative mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            { label: "Credits", value: String(credits), hint: "Available now", icon: Coins },
-            { label: "This month", value: "24", hint: "Generations", icon: TrendingUp },
-            { label: "Queue", value: "Idle", hint: "No jobs waiting", icon: Zap },
-            { label: "Plan", value: "Creator", hint: "Upgrade anytime", icon: Sparkles },
-          ].map((stat, i) => (
-            <motion.div
-              key={stat.label}
-              initial={reduce ? false : { opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: reduce ? 0 : 0.08 + i * 0.05, duration: 0.35 }}
-              className="rounded-2xl border p-4 backdrop-blur-sm"
-              style={{
-                borderColor: "var(--border-subtle)",
-                background: "color-mix(in srgb, var(--deep-black) 65%, transparent)",
-              }}
-            >
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--text-subtle)" }}>
-                  {stat.label}
-                </p>
-                <stat.icon className="h-4 w-4 opacity-70" style={{ color: "var(--primary-cyan)" }} strokeWidth={1.75} />
-              </div>
-              <p className="font-display mt-2 text-2xl font-extrabold tabular-nums" style={{ color: "var(--text-primary)" }}>
-                {stat.value}
-              </p>
-              <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
-                {stat.hint}
-              </p>
-            </motion.div>
-          ))}
-        </div>
-      </motion.section>
-
-      <section aria-labelledby="dash-shortcuts-heading">
-        <div className="mb-4 flex items-end justify-between gap-4">
-          <div>
-            <h2 id="dash-shortcuts-heading" className="font-display text-lg font-bold sm:text-xl" style={{ color: "var(--text-primary)" }}>
-              Shortcuts
-            </h2>
-            <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
-              Billing, preferences, and help in one tap.
-            </p>
-          </div>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-3">
-          {quickLinks.map((q, i) => (
-            <motion.div
-              key={q.href}
-              initial={reduce ? false : { opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: reduce ? 0 : 0.15 + i * 0.05 }}
-            >
+            
+            <div className="flex flex-wrap gap-2.5 mt-4">
               <Link
-                href={q.href}
-                className="group flex min-h-[88px] flex-col justify-center gap-1 rounded-2xl border px-4 py-3.5 transition-all hover:border-[color-mix(in_srgb,var(--primary-purple)_40%,var(--border-subtle))] sm:min-h-[92px] sm:flex-row sm:items-center sm:gap-3"
+                href="/dashboard/generate/image"
+                className="inline-flex min-h-[36px] items-center justify-center gap-1.5 rounded-lg px-4 text-xs font-bold text-white shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.99]"
+                style={{
+                  background: "linear-gradient(135deg, var(--primary-purple) 0%, var(--primary-cyan) 100%)",
+                  boxShadow: "0 6px 20px -6px rgba(123,97,255,0.45)",
+                }}
+              >
+                New generation
+                <ArrowRight className="h-3 w-3" strokeWidth={2.5} />
+              </Link>
+              <Link
+                href="/dashboard/settings"
+                className="inline-flex min-h-[36px] items-center justify-center rounded-lg border px-4 text-xs font-bold transition-all duration-300 hover:bg-white/5"
                 style={{
                   borderColor: "var(--border-subtle)",
-                  background: "var(--soft-black)",
+                  background: "var(--glass)",
                   color: "var(--text-primary)",
                 }}
               >
-                <span
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
-                  style={{ background: "var(--glass)" }}
-                >
-                  <q.icon className="h-5 w-5 text-[var(--primary-cyan)]" strokeWidth={1.75} />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-semibold">{q.label}</span>
-                  <span className="mt-0.5 block text-xs leading-snug" style={{ color: "var(--text-muted)" }}>
-                    {q.hint}
-                  </span>
-                </span>
-                <ArrowRight className="hidden h-4 w-4 shrink-0 opacity-0 transition-opacity group-hover:opacity-100 sm:ml-auto sm:block" />
+                Preferences
               </Link>
-            </motion.div>
-          ))}
-        </div>
-      </section>
+            </div>
+          </div>
 
-      <section>
+          {/* Right Column: Statistics Grid */}
+          <div className="lg:col-span-5 grid grid-cols-2 gap-2">
+            {[
+              { label: "Credits", value: String(credits), hint: "Available now", icon: Coins, color: "var(--primary-cyan)" },
+              { label: "This month", value: "24", hint: "Generations", icon: TrendingUp, color: "var(--primary-purple)" },
+              { label: "Queue", value: "Idle", hint: "No jobs waiting", icon: Zap, color: "var(--accent-pink)" },
+              { label: "Plan", value: "Creator", hint: "Upgrade anytime", icon: Sparkles, color: "var(--primary-cyan)" },
+            ].map((stat, i) => (
+              <motion.div
+                key={stat.label}
+                initial={reduce ? false : { opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: reduce ? 0 : 0.08 + i * 0.04, duration: 0.3 }}
+                whileHover={{ y: -2 }}
+                className="group relative overflow-hidden rounded-xl border p-3.5 transition-all duration-300"
+                style={{
+                  borderColor: "rgba(255, 255, 255, 0.08)",
+                  background: "linear-gradient(135deg, color-mix(in srgb, var(--deep-black) 92%, transparent) 0%, color-mix(in srgb, var(--soft-black) 60%, transparent) 100%)",
+                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03), 0 4px 20px -12px rgba(0,0,0,0.5)",
+                }}
+              >
+                {/* Subtle border glow on hover */}
+                <div 
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                  style={{
+                    border: `1px solid color-mix(in srgb, ${stat.color} 25%, transparent)`,
+                    borderRadius: "11px",
+                  }}
+                />
+                {/* Ambient glow behind icon on hover */}
+                <div
+                  className="absolute -right-8 -top-8 h-16 w-16 rounded-full opacity-0 group-hover:opacity-10 transition-all duration-500 blur-xl pointer-events-none"
+                  style={{ background: stat.color }}
+                />
+
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)] group-hover:text-[var(--text-muted)] transition-colors">
+                    {stat.label}
+                  </p>
+                  <div 
+                    className="flex h-6.5 w-6.5 items-center justify-center rounded-lg border border-white/5 bg-white/[0.02] transition-all duration-300 group-hover:scale-105 group-hover:border-white/10 group-hover:bg-white/[0.06]"
+                  >
+                    <stat.icon 
+                      className="h-3.5 w-3.5 transition-transform duration-300" 
+                      style={{ color: stat.color }} 
+                      strokeWidth={2} 
+                    />
+                  </div>
+                </div>
+                <p className="font-display mt-1 text-lg font-extrabold tracking-tight tabular-nums text-[var(--text-primary)]">
+                  {stat.value}
+                </p>
+                <p className="text-[9px] text-[var(--text-muted)] mt-0.5">
+                  {stat.hint}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.section>
+
+      {/* Create Section */}
+      <section aria-labelledby="dash-create-heading">
         <div className="mb-4 flex items-end justify-between gap-4">
           <div>
-            <h2 className="font-display text-xl font-bold sm:text-2xl" style={{ color: "var(--text-primary)" }}>
+            <h2 id="dash-create-heading" className="font-display text-lg font-bold sm:text-xl text-[var(--text-primary)]">
               Create
             </h2>
-            <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
+            <p className="mt-1 text-xs sm:text-sm text-[var(--text-muted)]">
               Choose a pipeline — each opens your dedicated studio.
             </p>
           </div>
@@ -227,41 +225,65 @@ export default function DashboardPage() {
               key={t.title}
               initial={reduce ? false : { opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: reduce ? 0 : 0.2 + i * 0.06 }}
+              transition={{ delay: reduce ? 0 : 0.15 + i * 0.05 }}
+              whileHover={{ y: -4 }}
             >
               <Link
                 href={t.href}
-                className="group relative flex min-h-[180px] flex-col overflow-hidden rounded-3xl border p-6 transition-transform hover:-translate-y-0.5 sm:min-h-[200px] sm:p-8"
+                className="group relative flex min-h-[170px] flex-col overflow-hidden rounded-2xl border p-5.5 transition-all duration-500 sm:min-h-[190px] sm:p-6.5"
                 style={{
-                  borderColor: "var(--border-subtle)",
-                  background: "var(--soft-black)",
-                  boxShadow: "0 24px 60px -28px rgba(0,0,0,0.45)",
+                  borderColor: "rgba(255, 255, 255, 0.08)",
+                  background: "linear-gradient(180deg, color-mix(in srgb, var(--soft-black) 85%, transparent) 0%, color-mix(in srgb, var(--deep-black) 98%, transparent) 100%)",
+                  boxShadow: "0 16px 36px -20px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05)",
                 }}
               >
+                {/* Visual Glow Layer */}
                 <div
-                  className="pointer-events-none absolute inset-0 opacity-40 transition-opacity group-hover:opacity-55"
+                  className="pointer-events-none absolute inset-0 opacity-[0.08] transition-all duration-700 ease-out group-hover:opacity-[0.18] group-hover:scale-105"
                   style={{ background: t.gradient }}
                   aria-hidden
                 />
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[var(--soft-black)] via-transparent to-transparent" aria-hidden />
-                <span
-                  className="relative flex h-14 w-14 items-center justify-center rounded-2xl border backdrop-blur-md"
+
+                {/* Cyber-mesh grid inside card */}
+                <div 
+                  className="absolute inset-0 opacity-[0.02] group-hover:opacity-[0.04] transition-opacity duration-500 pointer-events-none"
                   style={{
-                    borderColor: "var(--border-subtle)",
-                    background: "color-mix(in srgb, var(--glass) 80%, transparent)",
+                    backgroundImage: "radial-gradient(white 1px, transparent 0)",
+                    backgroundSize: "16px 16px",
+                  }}
+                />
+
+                {/* Border glow on hover */}
+                <div
+                  className="absolute inset-0 border border-transparent group-hover:border-white/15 transition-all duration-500 rounded-2xl pointer-events-none"
+                  style={{
+                    boxShadow: "inset 0 0 15px rgba(255,255,255,0.02)",
+                  }}
+                />
+
+                <span
+                  className="relative flex h-11 w-11 items-center justify-center rounded-xl border backdrop-blur-md transition-all duration-300 group-hover:scale-105"
+                  style={{
+                    borderColor: "rgba(255,255,255,0.08)",
+                    background: "rgba(255,255,255,0.03)",
+                    boxShadow: "inset 0 1px 1px rgba(255,255,255,0.05)",
                   }}
                 >
-                  <t.icon className="h-7 w-7" strokeWidth={1.5} style={{ color: "var(--text-primary)" }} />
+                  <t.icon className="h-4.5 w-4.5 text-[var(--text-muted)] group-hover:text-white transition-colors duration-300" strokeWidth={1.75} />
                 </span>
+
                 <div className="relative mt-4">
-                  <p className="font-display text-xl font-bold sm:text-2xl">{t.title}</p>
-                  <p className="mt-2 max-w-sm text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                  <p className="font-display text-base font-bold sm:text-lg text-[var(--text-primary)] group-hover:text-white transition-colors duration-300">
+                    {t.title}
+                  </p>
+                  <p className="mt-1 max-w-sm text-xs leading-relaxed text-[var(--text-muted)] group-hover:text-[var(--text-primary)]/90 transition-colors duration-300">
                     {t.desc}
                   </p>
                 </div>
-                <span className="relative mt-auto inline-flex items-center gap-1 pt-6 text-sm font-semibold text-[var(--primary-cyan)]">
+
+                <span className="relative mt-auto inline-flex items-center gap-1.5 pt-4 text-[10px] font-bold uppercase tracking-wider text-[var(--primary-cyan)] group-hover:text-white transition-colors duration-300">
                   Open studio
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" strokeWidth={2} />
+                  <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" strokeWidth={2.5} />
                 </span>
               </Link>
             </motion.div>
@@ -269,6 +291,65 @@ export default function DashboardPage() {
         </div>
       </section>
 
+      {/* Shortcuts Section */}
+      <section aria-labelledby="dash-shortcuts-heading">
+        <div className="mb-4 flex items-end justify-between gap-4">
+          <div>
+            <h2 id="dash-shortcuts-heading" className="font-display text-lg font-bold sm:text-xl text-[var(--text-primary)]">
+              Shortcuts
+            </h2>
+            <p className="mt-1 text-xs sm:text-sm text-[var(--text-muted)]">
+              Billing, preferences, and help in one tap.
+            </p>
+          </div>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          {quickLinks.map((q, i) => (
+            <motion.div
+              key={q.href}
+              initial={reduce ? false : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: reduce ? 0 : 0.2 + i * 0.04 }}
+              whileHover={{ y: -3 }}
+            >
+              <Link
+                href={q.href}
+                className="group relative overflow-hidden flex items-center gap-4 rounded-xl border p-4 transition-all duration-350"
+                style={{
+                  borderColor: "rgba(255, 255, 255, 0.07)",
+                  background: "linear-gradient(135deg, color-mix(in srgb, var(--soft-black) 92%, transparent) 0%, color-mix(in srgb, var(--deep-black) 98%, transparent) 100%)",
+                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03)",
+                  color: "var(--text-primary)",
+                }}
+              >
+                {/* Subtle light pulse background */}
+                <div className="absolute inset-0 bg-white/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl" />
+                
+                <div
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border transition-all duration-300 group-hover:scale-105"
+                  style={{
+                    borderColor: "rgba(255, 255, 255, 0.08)",
+                    background: "rgba(255, 255, 255, 0.03)",
+                  }}
+                >
+                  <q.icon className="h-4.5 w-4.5 text-[var(--primary-cyan)] group-hover:text-white transition-colors duration-300" strokeWidth={1.75} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <span className="block text-sm font-bold tracking-tight text-[var(--text-primary)] group-hover:text-white transition-colors">
+                    {q.label}
+                  </span>
+                  <span className="mt-0.5 block text-xs text-[var(--text-muted)] group-hover:text-[var(--text-subtle)] transition-colors">
+                    {q.hint}
+                  </span>
+                </div>
+                <ArrowRight className="h-4 w-4 shrink-0 text-[var(--text-subtle)] opacity-0 -translate-x-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0" />
+              </Link>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* Recent Activity */}
       <DashboardRecentActivity userId={user.id} />
     </div>
   );

@@ -104,30 +104,14 @@ html.light .nav-scroll-x {
 }
 
 .nav-scroll-y {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(123, 97, 255, 0.5) transparent;
-}
-
-html.light .nav-scroll-y {
-  scrollbar-color: rgba(103, 80, 220, 0.42) rgba(0, 0, 0, 0.06);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .nav-scroll-y::-webkit-scrollbar {
-  width: 4px;
-}
-
-.nav-scroll-y::-webkit-scrollbar-track {
-  margin-block: 8px;
-  margin-inline-end: 3px;
-  border-radius: 9999px;
-  background: color-mix(in srgb, var(--border-subtle) 60%, transparent);
-}
-
-.nav-scroll-y::-webkit-scrollbar-thumb {
-  border-radius: 9999px;
-  border: 1px solid transparent;
-  background: linear-gradient(180deg, var(--primary-purple), var(--primary-cyan));
-  background-clip: padding-box;
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 ::selection {

@@ -23,12 +23,14 @@ function requireAdmin(req, res, next) {
   }
 }
 
+const { deleteMediaUrl } = require("./media-cleanup");
+
 /**
  * Academy backend routes: fetch lessons, update views/likes, and secure admin management.
  * @param {import("express").Express} app
- * @param {{ db: import("better-sqlite3").Database }} ctx
+ * @param {{ db: import("better-sqlite3").Database, projectRoot: string }} ctx
  */
-function mountAcademyRoutes(app, { db }) {
+function mountAcademyRoutes(app, { db, projectRoot }) {
   // Public: Get all tutorials
   app.get("/api/academy/tutorials", (req, res) => {
     try {
@@ -133,7 +135,7 @@ function mountAcademyRoutes(app, { db }) {
         return res.status(400).json({ ok: false, error: "Missing required fields." });
       }
 
-      const existing = db.prepare("SELECT views, likes FROM academy_tutorials WHERE id = ?").get(id);
+      const existing = db.prepare("SELECT views, likes, video_url, thumbnail_url FROM academy_tutorials WHERE id = ?").get(id);
       if (!existing) {
         return res.status(404).json({ ok: false, error: "Tutorial not found." });
       }
@@ -161,6 +163,18 @@ function mountAcademyRoutes(app, { db }) {
         return res.status(404).json({ ok: false, error: "Tutorial not found." });
       }
 
+      // Delete old media files if they were replaced
+      if (existing.video_url && existing.video_url !== (video_url || "").trim()) {
+        deleteMediaUrl(projectRoot, existing.video_url).catch(err => {
+          console.error("[academy] Failed to delete old video:", err.message);
+        });
+      }
+      if (existing.thumbnail_url && existing.thumbnail_url !== (thumbnail_url || "").trim()) {
+        deleteMediaUrl(projectRoot, existing.thumbnail_url).catch(err => {
+          console.error("[academy] Failed to delete old thumbnail:", err.message);
+        });
+      }
+
       const updated = db.prepare("SELECT * FROM academy_tutorials WHERE id = ?").get(id);
       return res.json({ ok: true, tutorial: updated });
     } catch (e) {
@@ -173,11 +187,29 @@ function mountAcademyRoutes(app, { db }) {
   app.delete("/api/admin/academy/tutorials/:id", requireAdmin, (req, res) => {
     try {
       const id = req.params.id;
+      const existing = db.prepare("SELECT video_url, thumbnail_url FROM academy_tutorials WHERE id = ?").get(id);
+      if (!existing) {
+        return res.status(404).json({ ok: false, error: "Tutorial not found." });
+      }
+
       const result = db.prepare("DELETE FROM academy_tutorials WHERE id = ?").run(id);
       
       if (result.changes === 0) {
         return res.status(404).json({ ok: false, error: "Tutorial not found." });
       }
+
+      // Delete associated media files on successful deletion
+      if (existing.video_url) {
+        deleteMediaUrl(projectRoot, existing.video_url).catch(err => {
+          console.error("[academy] Failed to delete video on tutorial removal:", err.message);
+        });
+      }
+      if (existing.thumbnail_url) {
+        deleteMediaUrl(projectRoot, existing.thumbnail_url).catch(err => {
+          console.error("[academy] Failed to delete thumbnail on tutorial removal:", err.message);
+        });
+      }
+
       return res.json({ ok: true });
     } catch (e) {
       return res.status(500).json({ ok: false, error: "Database error." });

@@ -67,7 +67,7 @@ function SidebarNavLink({
       style={{
         borderColor: on ? "color-mix(in srgb, var(--primary-purple) 38%, var(--border-subtle))" : "var(--border-subtle)",
         background: on ? "color-mix(in srgb, var(--primary-purple) 8%, var(--deep-black))" : "var(--soft-black)",
-        color: on ? "var(--text-primary)" : "rgba(255, 255, 255, 0.65)",
+        color: on ? "var(--text-primary)" : "var(--text-muted)",
         boxShadow: on ? "0 0 0 1px color-mix(in srgb, var(--primary-purple) 22%, transparent)" : undefined,
       }}
     >
@@ -223,7 +223,7 @@ export function UserDashboardShell({ children }: { children: React.ReactNode }) 
               style={{
                 borderColor: "var(--border-subtle)",
                 background: "var(--glass)",
-                color: "rgba(255, 255, 255, 0.65)",
+                color: "var(--text-muted)",
               }}
               aria-label="Sign out"
             >
@@ -236,7 +236,7 @@ export function UserDashboardShell({ children }: { children: React.ReactNode }) 
             style={{
               borderColor: "var(--border-subtle)",
               background: "var(--soft-black)",
-              color: "rgba(255, 255, 255, 0.65)",
+              color: "var(--text-muted)",
             }}
           >
             <LayoutDashboard className="h-4 w-4 opacity-80" strokeWidth={1.75} />
@@ -320,7 +320,7 @@ export function UserDashboardShell({ children }: { children: React.ReactNode }) 
                 style={{
                   borderColor: "var(--border-subtle)",
                   background: "var(--glass)",
-                  color: "rgba(255, 255, 255, 0.65)",
+                  color: "var(--text-muted)",
                 }}
               >
                 <LogOut className="h-4 w-4 shrink-0" strokeWidth={1.75} />
@@ -414,7 +414,7 @@ export function UserDashboardShell({ children }: { children: React.ReactNode }) 
                   style={{
                     borderColor: "var(--border-subtle)",
                     background: "var(--soft-black)",
-                    color: "rgba(255, 255, 255, 0.65)",
+                    color: "var(--text-muted)",
                   }}
                 >
                   <LayoutDashboard className="h-4 w-4" strokeWidth={1.75} />

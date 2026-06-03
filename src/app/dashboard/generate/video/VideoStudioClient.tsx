@@ -239,6 +239,21 @@ export default function VideoStudioClient() {
     }
   }, [user?.id]);
 
+  // Check for prompt query parameter from "Use prompt" dashboard action
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const queryPrompt = params.get("prompt");
+      if (queryPrompt) {
+        setPrompt(queryPrompt);
+        // Clean URL parameter
+        const url = new URL(window.location.href);
+        url.searchParams.delete("prompt");
+        window.history.replaceState({}, "", url.toString());
+      }
+    }
+  }, []);
+
   useEffect(() => {
     if (!user?.id || typeof window === "undefined") return;
     try {
@@ -553,7 +568,7 @@ export default function VideoStudioClient() {
               </div>
             </div>
 
-            <div className="space-y-2.5">
+            <div className="space-y-3">
               <StudioCollapsible title="Timeline & engine" subtitle="Duration, quality mode, and model version" defaultOpen>
                 <div className="space-y-4">
                   <div>
@@ -587,7 +602,7 @@ export default function VideoStudioClient() {
                             aria-checked={on}
                             disabled={busy}
                             onClick={() => setDuration(d)}
-                            className="group relative flex min-h-[56px] items-center justify-between gap-2 overflow-hidden rounded-xl px-3 py-2 transition-all duration-200 enabled:hover:-translate-y-[1px] disabled:opacity-45"
+                            className="group relative flex min-h-[56px] items-center justify-between gap-2 overflow-hidden rounded-xl px-3 py-2 transition-all duration-300 enabled:hover:-translate-y-[1px] disabled:opacity-45 cursor-pointer"
                             style={{
                               border: on
                                 ? "1px solid color-mix(in srgb, var(--primary-cyan) 55%, transparent)"
@@ -654,7 +669,7 @@ export default function VideoStudioClient() {
                             aria-checked={on}
                             disabled={busy}
                             onClick={() => setMode(opt.value)}
-                            className="group relative flex min-h-[52px] items-center gap-2.5 overflow-hidden rounded-xl px-3 py-2 text-left transition-all duration-200 enabled:hover:-translate-y-[1px] disabled:opacity-45"
+                            className="group relative flex min-h-[52px] items-center gap-2.5 overflow-hidden rounded-xl px-3 py-2 text-left transition-all duration-300 enabled:hover:-translate-y-[1px] disabled:opacity-45 cursor-pointer"
                             style={{
                               border: on
                                 ? "1px solid color-mix(in srgb, var(--primary-cyan) 55%, transparent)"
@@ -727,7 +742,7 @@ export default function VideoStudioClient() {
                             aria-checked={on}
                             disabled={busy}
                             onClick={() => setVersion(v)}
-                            className="relative inline-flex min-h-[34px] items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide transition-all duration-200 enabled:hover:-translate-y-[1px] disabled:opacity-45"
+                            className="relative inline-flex min-h-[34px] items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide transition-all duration-300 enabled:hover:-translate-y-[1px] disabled:opacity-45 cursor-pointer"
                             style={{
                               border: on
                                 ? "1px solid color-mix(in srgb, var(--primary-cyan) 60%, transparent)"
@@ -738,17 +753,17 @@ export default function VideoStudioClient() {
                               boxShadow: on
                                 ? "0 8px 22px -12px color-mix(in srgb, var(--primary-cyan) 70%, transparent)"
                                 : "none",
-                              color: on ? "var(--text-primary)" : "var(--text-muted)",
+                              color: on ? "white" : "var(--text-muted)",
                             }}
                           >
                             <span className="tabular-nums">v{v.replace("-master", "")}</span>
                             {isMaster ? (
-                              <span className="rounded-sm bg-cyan-400/25 px-1 py-[1px] text-[8.5px] font-bold tracking-[0.1em] text-cyan-50">
+                              <span className="rounded-md bg-cyan-400/20 px-1.5 py-[2px] text-[8px] font-bold tracking-[0.12em] text-cyan-100 ring-1 ring-cyan-400/20">
                                 MASTER
                               </span>
                             ) : null}
                             {isLatest ? (
-                              <span className="rounded-sm bg-emerald-400/20 px-1 py-[1px] text-[8.5px] font-bold tracking-[0.1em] text-emerald-100">
+                              <span className="rounded-md bg-emerald-400/15 px-1.5 py-[2px] text-[8px] font-bold tracking-[0.12em] text-emerald-200 ring-1 ring-emerald-400/20">
                                 NEW
                               </span>
                             ) : null}
@@ -758,16 +773,16 @@ export default function VideoStudioClient() {
                     </div>
                   </div>
                 </div>
-                <div className="mt-3 space-y-1.5">
+                <div className="mt-3.5 space-y-2 border-t border-white/[0.05] pt-3.5">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--text-subtle)]">Presets</span>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">Presets</span>
                     <button
                       type="button"
                       disabled={busy}
                       onClick={saveCurrentPreset}
-                      className="inline-flex items-center gap-1 rounded-full border border-cyan-400/35 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-cyan-100 transition-colors hover:bg-cyan-500/20 disabled:opacity-40"
+                      className="inline-flex items-center gap-1 rounded-lg border border-cyan-400/35 bg-cyan-500/10 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-cyan-100 transition-all duration-300 hover:bg-cyan-500/20 hover:border-cyan-400/50 disabled:opacity-40 cursor-pointer"
                     >
-                      <BookmarkPlus className="h-3 w-3" strokeWidth={2} />
+                      <BookmarkPlus className="h-2.5 w-2.5" strokeWidth={2.5} />
                       Save
                     </button>
                   </div>
@@ -779,7 +794,7 @@ export default function VideoStudioClient() {
                           type="button"
                           disabled={busy}
                           onClick={() => applyPreset(pr)}
-                          className="max-w-[160px] truncate rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] font-semibold text-[var(--text-muted)] transition-colors hover:border-cyan-400/40 hover:text-[var(--text-primary)] disabled:opacity-40"
+                          className="max-w-[160px] truncate rounded-lg border border-white/[0.06] bg-white/[0.02] px-2.5 py-1 text-[10px] font-bold text-[var(--text-muted)] transition-all duration-300 hover:border-cyan-400/50 hover:bg-cyan-500/5 hover:text-white disabled:opacity-40 cursor-pointer"
                         >
                           {pr.name}
                         </button>
@@ -800,7 +815,7 @@ export default function VideoStudioClient() {
                     <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--text-subtle)]">Frame</p>
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Frame">
+                <div className="grid grid-cols-3 gap-1.5" role="radiogroup" aria-label="Frame">
                   {aspectButtons.map(({ key, label }) => {
                     const on = aspect === key;
                     const name = key === "1:1" ? "Square" : key === "16:9" ? "Landscape" : "Portrait";
@@ -810,16 +825,29 @@ export default function VideoStudioClient() {
                         type="button"
                         disabled={busy}
                         onClick={() => setAspect(key)}
-                        className="group flex min-h-[46px] flex-col items-start justify-center rounded-xl border px-2.5 py-1.5 text-left transition-all duration-200 enabled:hover:bg-white/[0.04] disabled:opacity-45"
+                        className="group relative flex min-h-[36px] flex-col items-center justify-center rounded-xl border px-3 py-1 text-center transition-all duration-300 enabled:hover:-translate-y-[1px] disabled:opacity-45 cursor-pointer overflow-hidden"
                         style={{
-                          borderColor: on ? "var(--primary-cyan)" : "rgba(255,255,255,0.08)",
-                          background: on ? "color-mix(in srgb, var(--primary-cyan) 15%, transparent)" : "transparent",
+                          borderColor: on ? "var(--primary-cyan)" : "rgba(255,255,255,0.07)",
+                          background: on 
+                            ? "linear-gradient(180deg, color-mix(in srgb, var(--primary-cyan) 15%, transparent) 0%, color-mix(in srgb, var(--primary-cyan) 4%, rgba(0,0,0,0.5)) 100%)" 
+                            : "rgba(255,255,255,0.02)",
+                          boxShadow: on 
+                            ? "0 6px 16px -8px color-mix(in srgb, var(--primary-cyan) 50%, transparent), inset 0 1px 0 rgba(255,255,255,0.06)" 
+                            : "inset 0 1px 0 rgba(255,255,255,0.02)",
                         }}
                       >
-                        <span className="font-display text-[12px] font-bold leading-tight" style={{ color: on ? "white" : "var(--text-primary)" }}>
+                        {on && (
+                          <div 
+                            className="absolute inset-x-0 top-0 h-[1.5px] opacity-85"
+                            style={{
+                              background: "linear-gradient(90deg, transparent, var(--primary-cyan), transparent)"
+                            }}
+                          />
+                        )}
+                        <span className="font-display text-[11px] font-bold tracking-wide transition-colors" style={{ color: on ? "white" : "var(--text-primary)" }}>
                           {name}
                         </span>
-                        <span className="text-[10px] mt-0.5 font-medium" style={{ color: on ? "color-mix(in srgb, var(--primary-cyan) 80%, white)" : "var(--text-muted)" }}>
+                        <span className="text-[9px] mt-0.5 font-medium transition-colors" style={{ color: on ? "color-mix(in srgb, var(--primary-cyan) 90%, white)" : "var(--text-muted)" }}>
                           {label}
                         </span>
                       </button>
@@ -829,7 +857,7 @@ export default function VideoStudioClient() {
               </StudioCollapsible>
 
               <StudioCollapsible title="Negative & start frame" subtitle="Optional constraints and conditioning still" defaultOpen={false}>
-                <div className="space-y-3">
+                <div className="space-y-3.5">
                   <div>
                     <label htmlFor="vid-negative" className="mb-1.5 flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
                       <span>Negative <span className="font-normal opacity-70 normal-case">(optional)</span></span>
@@ -842,13 +870,13 @@ export default function VideoStudioClient() {
                       disabled={busy}
                       placeholder="Elements to suppress…"
                       rows={2}
-                      className="w-full resize-none rounded-xl border border-white/10 bg-black/35 px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-[#00D4FF]/35 sm:text-[13px]"
-                      style={{ color: "var(--text-primary)", minHeight: "3rem" }}
+                      className="w-full resize-none rounded-xl border border-white/10 bg-neutral-950/60 px-3.5 py-2.5 text-xs outline-none transition-all duration-300 focus:border-[#00D4FF]/50 focus:ring-2 focus:ring-[#00D4FF]/15 sm:text-[13px]"
+                      style={{ color: "var(--text-primary)", minHeight: "3.5rem" }}
                     />
                   </div>
-                  <div className="rounded-xl border border-cyan-400/20 bg-cyan-500/[0.06] p-2.5">
-                    <div className="mb-1.5 flex items-center justify-between">
-                      <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">Start frame <span className="font-normal opacity-70 normal-case">(optional)</span></span>
+                  <div className="rounded-2xl border border-cyan-500/15 bg-cyan-500/[0.03] p-3 shadow-inner">
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--text-subtle)]">Start frame <span className="font-normal opacity-70 normal-case">(optional)</span></span>
                       {imageUrl.trim() ? (
                         <button
                           type="button"
@@ -857,9 +885,9 @@ export default function VideoStudioClient() {
                             setImageUrl("");
                             setRefUploadError(null);
                           }}
-                          className="inline-flex h-6 items-center gap-1 rounded-md border border-white/10 px-1.5 text-[10px] font-semibold text-[var(--text-muted)] transition-colors hover:bg-white/[0.06] hover:text-[var(--text-primary)]"
+                          className="inline-flex h-6 items-center gap-1 rounded-lg border border-white/10 px-2 text-[9px] font-bold uppercase tracking-wider text-[var(--text-muted)] transition-all duration-200 hover:bg-white/[0.06] hover:text-white cursor-pointer"
                         >
-                          <X className="h-3 w-3" />
+                          <X className="h-2.5 w-2.5" />
                           Clear
                         </button>
                       ) : null}
@@ -883,9 +911,9 @@ export default function VideoStudioClient() {
                           .finally(() => setRefUploading(false));
                       }}
                     />
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
                       {imageUrl.trim() ? (
-                        <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-white/10">
+                        <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-neutral-950">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={imageUrl.trim()} alt="" className="h-full w-full object-cover" />
                         </div>
@@ -894,10 +922,10 @@ export default function VideoStudioClient() {
                         type="button"
                         disabled={busy || refUploading}
                         onClick={() => refFileInput.current?.click()}
-                        className="inline-flex min-h-[40px] flex-1 items-center justify-center gap-1.5 rounded-lg border border-white/10 bg-black/30 px-2 text-[12px] font-semibold text-[var(--text-primary)] transition-colors hover:bg-white/[0.06] disabled:opacity-40"
+                        className="inline-flex min-h-[42px] flex-1 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-neutral-950/40 px-3 text-[12px] font-bold text-[var(--text-primary)] shadow-sm transition-all duration-300 hover:bg-white/[0.04] hover:border-[#00D4FF]/45 disabled:opacity-40 cursor-pointer"
                       >
-                        {refUploading ? <Loader2 className="h-4 w-4 animate-spin text-[#00D4FF]" /> : <ImagePlus className="h-4 w-4" strokeWidth={2} />}
-                        {refUploading ? "Uploading…" : imageUrl.trim() ? "Replace" : "Upload start frame"}
+                        {refUploading ? <Loader2 className="h-4 w-4 animate-spin text-[#00D4FF]" /> : <ImagePlus className="h-4 w-4 text-[#67e8f9]" strokeWidth={2} />}
+                        {refUploading ? "Uploading…" : imageUrl.trim() ? "Replace image" : "Upload start frame"}
                       </button>
                     </div>
                     <input
@@ -909,8 +937,8 @@ export default function VideoStudioClient() {
                       }}
                       disabled={busy}
                       placeholder="…or paste image URL"
-                      className="mt-2 min-h-[34px] w-full rounded-lg border border-white/10 bg-black/35 px-2 py-1.5 font-mono text-[10px] outline-none focus:ring-1 focus:ring-[#00D4FF]/40"
-                      style={{ color: "var(--text-muted)" }}
+                      className="mt-2 min-h-[36px] w-full rounded-xl border border-white/10 bg-neutral-950/50 px-3 py-1.5 font-mono text-[10px] outline-none transition-all duration-300 focus:border-[#00D4FF]/50 focus:ring-1 focus:ring-[#00D4FF]/15"
+                      style={{ color: "var(--text-primary)" }}
                     />
                     {refUploadError ? <p className="mt-1.5 text-[11px] text-rose-200">{refUploadError}</p> : null}
                   </div>
@@ -1183,7 +1211,13 @@ export default function VideoStudioClient() {
                     if (!showAssistantRow(msg)) return null;
                     return (
                       <motion.div key={msg.id} initial={reduce ? false : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-start">
-                        <div className="w-full max-w-[min(100%,760px)] rounded-2xl rounded-bl-md border border-white/10 bg-black/35 px-4 py-3.5 shadow-xl ring-1 ring-white/[0.05] backdrop-blur-md">
+                        <div
+                          className={
+                            msg.urls.length > 0 && !msg.loading
+                              ? "w-full max-w-[min(100%,760px)]"
+                              : "w-full max-w-[min(100%,760px)] rounded-2xl rounded-bl-md border border-white/10 bg-black/35 px-4 py-3.5 shadow-xl ring-1 ring-white/[0.05] backdrop-blur-md"
+                          }
+                        >
                           {msg.loading ? (
                             <div className="space-y-3">
                               <p className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
@@ -1201,26 +1235,74 @@ export default function VideoStudioClient() {
                           ) : null}
                           {msg.error ? <p className="text-sm text-rose-100">{msg.error}</p> : null}
                           {msg.urls.length > 0 ? (
-                            <div className="mt-3 space-y-4">
+                            <div className="space-y-6">
                               {msg.urls.map((src, vidx) => (
-                                <div key={src} className="space-y-2">
-                                  <div className="group relative overflow-hidden rounded-2xl border border-white/10 bg-black shadow-2xl ring-1 ring-white/[0.06]">
+                                <div key={src} className="group relative overflow-hidden rounded-xl bg-transparent">
+                                  {/* The Video player container */}
+                                  <div className="relative overflow-hidden rounded-xl bg-black w-full max-h-[min(70vh,560px)] lg:max-h-[520px]">
                                     <video
                                       src={src}
                                       controls
                                       playsInline
-                                      className="max-h-[min(70vh,560px)] w-full bg-black object-contain lg:max-h-[520px]"
+                                      className="w-full h-auto max-h-[min(70vh,560px)] lg:max-h-[520px] block object-contain"
                                     />
-                                    <button
-                                      type="button"
-                                      onClick={() => setLightbox({ src })}
-                                      className="absolute right-3 top-3 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 bg-black/60 text-white opacity-0 backdrop-blur-md transition-opacity hover:bg-black/75 group-hover:opacity-100"
-                                      aria-label="Fullscreen"
-                                    >
-                                      <Maximize2 className="h-4 w-4" strokeWidth={2} />
-                                    </button>
+                                    
+                                    {/* Top Right Action Overlay (Fullscreen/Maximize) */}
+                                    <div className="absolute top-3 right-3 flex gap-1.5 opacity-0 transition-all duration-300 translate-y-[-4px] group-hover:translate-y-0 group-hover:opacity-100 z-10">
+                                      <button
+                                        type="button"
+                                        onClick={() => setLightbox({ src })}
+                                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/15 bg-black/60 text-white backdrop-blur-md transition-colors hover:bg-black/80"
+                                        title="Fullscreen"
+                                      >
+                                        <Maximize2 className="h-3.5 w-3.5" />
+                                      </button>
+                                      <a
+                                        href={src}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/15 bg-black/60 text-white backdrop-blur-md transition-colors hover:bg-black/80"
+                                        title="Open in new tab"
+                                      >
+                                        <ExternalLink className="h-3.5 w-3.5 text-[var(--primary-cyan)]" />
+                                      </a>
+                                    </div>
+
+                                    {/* Floating bottom overlay action triggers */}
+                                    <div className="absolute inset-x-3 bottom-3 flex gap-1.5 opacity-0 transition-all duration-300 translate-y-[4px] group-hover:translate-y-0 group-hover:opacity-100 z-10">
+                                      <button
+                                        type="button"
+                                        disabled={downloadingKey !== null}
+                                        onClick={() => {
+                                          setDownloadError(null);
+                                          const key = `${msg.id}-${vidx}`;
+                                          setDownloadingKey(key);
+                                          void downloadVideoViaProxy(src, vidx)
+                                            .catch((e: unknown) => setDownloadError(e instanceof Error ? e.message : "Download failed."))
+                                            .finally(() => setDownloadingKey(null));
+                                        }}
+                                        className="flex h-8.5 flex-1 items-center justify-center gap-1.5 rounded-lg border border-white/15 bg-black/60 text-[11px] font-bold uppercase tracking-wider text-white backdrop-blur-md transition-colors hover:bg-[var(--primary-cyan)]/80 hover:border-[var(--primary-cyan)]/45 disabled:opacity-50"
+                                      >
+                                        {downloadingKey === `${msg.id}-${vidx}` ? (
+                                          <Loader2 className="h-3 w-3 animate-spin text-[var(--primary-cyan)]" />
+                                        ) : (
+                                          <Download className="h-3 w-3" />
+                                        )}
+                                        {downloadingKey === `${msg.id}-${vidx}` ? "Saving…" : "Download"}
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => void copyText(src, "Video URL copied")}
+                                        className="flex h-8.5 px-3 items-center justify-center gap-1.5 rounded-lg border border-white/15 bg-black/60 text-[11px] font-bold uppercase tracking-wider text-white backdrop-blur-md transition-colors hover:bg-black/80"
+                                      >
+                                        <Copy className="h-3 w-3" />
+                                        Copy URL
+                                      </button>
+                                    </div>
                                   </div>
-                                  <div className="flex flex-wrap gap-2">
+
+                                  {/* Mobile-only visible quick buttons underneath */}
+                                  <div className="flex gap-2.5 mt-2 lg:hidden">
                                     <button
                                       type="button"
                                       disabled={downloadingKey !== null}
@@ -1232,33 +1314,21 @@ export default function VideoStudioClient() {
                                           .catch((e: unknown) => setDownloadError(e instanceof Error ? e.message : "Download failed."))
                                           .finally(() => setDownloadingKey(null));
                                       }}
-                                      className="inline-flex min-h-[42px] flex-1 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm font-semibold transition-colors hover:border-cyan-400/45 disabled:opacity-60 sm:flex-none sm:px-4"
-                                      style={{ color: "var(--text-primary)" }}
+                                      className="flex h-8 flex-1 items-center justify-center gap-1 rounded-lg border border-white/10 bg-white/[0.04] text-[10px] font-bold uppercase tracking-wider text-white"
                                     >
                                       {downloadingKey === `${msg.id}-${vidx}` ? (
-                                        <Loader2 className="h-4 w-4 shrink-0 animate-spin text-[#00D4FF]" strokeWidth={2} />
+                                        <Loader2 className="h-3 w-3 animate-spin" />
                                       ) : (
-                                        <Download className="h-4 w-4 shrink-0 opacity-90" strokeWidth={2} />
+                                        <Download className="h-3 w-3" />
                                       )}
-                                      {downloadingKey === `${msg.id}-${vidx}` ? "Saving…" : "Download"}
+                                      Download
                                     </button>
-                                    <a
-                                      href={src}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="inline-flex min-h-[42px] items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm font-semibold transition-colors hover:border-cyan-400/45"
-                                      style={{ color: "var(--text-primary)" }}
-                                    >
-                                      <ExternalLink className="h-4 w-4 text-[#00D4FF]" />
-                                      Open
-                                    </a>
                                     <button
                                       type="button"
                                       onClick={() => void copyText(src, "Video URL copied")}
-                                      className="inline-flex min-h-[42px] items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm font-semibold transition-colors hover:border-cyan-400/45"
-                                      style={{ color: "var(--text-primary)" }}
+                                      className="flex h-8 px-2.5 items-center justify-center gap-1 rounded-lg border border-white/10 bg-white/[0.04] text-[10px] font-bold uppercase tracking-wider text-white"
                                     >
-                                      <Copy className="h-4 w-4" />
+                                      <Copy className="h-3 w-3" />
                                       Copy URL
                                     </button>
                                   </div>

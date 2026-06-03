@@ -15,6 +15,7 @@ const { mountCommunityRoutes } = require("./community-routes");
 const { mountAcademyRoutes } = require("./academy-routes");
 const { mountFaqRoutes } = require("./faq-routes");
 const { mountAdminUsersRoutes } = require("./admin-users-routes");
+const { deleteMediaUrl, extractMediaPaths } = require("./media-cleanup");
 
 const PORT = Number(process.env.BACKEND_PORT || process.env.PORT || 4000, 10);
 const projectRoot = path.resolve(__dirname, "..", "..");
@@ -199,8 +200,32 @@ app.put("/api/admin/content", requireAdmin, async (req, res) => {
     const json = JSON.stringify(nextBody);
     JSON.parse(json);
     
+    // Read current content first to find any removed media files
+    let oldContent = null;
+    try {
+      const oldRow = db.prepare("SELECT json FROM site_content WHERE id = 1").get();
+      if (oldRow && oldRow.json) {
+        oldContent = JSON.parse(oldRow.json);
+      }
+    } catch (e) {
+      console.error("[cms] Could not read old site content:", e);
+    }
+
     // Save in SQLite DB
     db.prepare("INSERT OR REPLACE INTO site_content (id, json) VALUES (1, ?)").run(json);
+
+    // If we have old content, delete media files that are no longer referenced
+    if (oldContent) {
+      const oldPaths = extractMediaPaths(oldContent);
+      const newPaths = extractMediaPaths(nextBody);
+      for (const p of oldPaths) {
+        if (!newPaths.has(p)) {
+          deleteMediaUrl(projectRoot, p).catch(err => {
+            console.error(`[cms] Failed to delete unused media ${p}:`, err.message);
+          });
+        }
+      }
+    }
 
     // Sync to disk files so changes are tracked in repository/production deployments
     try {
@@ -355,7 +380,7 @@ app.get("/api/health", (_req, res) => {
 mountUserAuthRoutes(app, { db });
 mountStudioRoutes(app, { upload });
 mountCommunityRoutes(app, { db });
-mountAcademyRoutes(app, { db });
+mountAcademyRoutes(app, { db, projectRoot });
 mountFaqRoutes(app, { db });
 mountAdminUsersRoutes(app, { db });
 

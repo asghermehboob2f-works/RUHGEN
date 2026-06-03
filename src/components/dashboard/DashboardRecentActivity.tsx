@@ -3,6 +3,8 @@
 import { motion, useReducedMotion } from "framer-motion";
 import {
   ArrowRight,
+  Check,
+  Copy,
   History,
   Image as ImageIcon,
   Loader2,
@@ -46,6 +48,11 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
   const [postsLoading, setPostsLoading] = useState(true);
   const [postsError, setPostsError] = useState<string | null>(null);
 
+  // States for prompt viewing, copying, and paginated load more
+  const [visibleCount, setVisibleCount] = useState(4);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [copiedAll, setCopiedAll] = useState(false);
+
   useEffect(() => {
     const onFocus = () => setFocusBump((n) => n + 1);
     window.addEventListener("focus", onFocus);
@@ -82,6 +89,31 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
     void loadMyPosts();
   }, [loadMyPosts, focusBump]);
 
+  const copyPrompt = useCallback(async (prompt: string, id: string) => {
+    try {
+      await navigator.clipboard.writeText(prompt);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const copyAllPrompts = useCallback(async () => {
+    try {
+      const allText = recent.map((item) => item.prompt).join("\n\n");
+      await navigator.clipboard.writeText(allText);
+      setCopiedAll(true);
+      setTimeout(() => setCopiedAll(false), 2000);
+    } catch {
+      // ignore
+    }
+  }, [recent]);
+
+  const loadMore = useCallback(() => {
+    setVisibleCount((prev) => prev + 4);
+  }, []);
+
   function shareGeneration(g: RecentGeneration) {
     setShare({ mediaUrl: g.previewUrl, kind: g.kind, prompt: g.prompt });
   }
@@ -100,245 +132,270 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
         initial={reduce ? false : { opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: reduce ? 0 : 0.25 }}
-        className="rounded-3xl border p-6 sm:p-8"
+        className="rounded-2xl border p-5 sm:p-6 lg:p-7"
         style={{
           borderColor: "var(--border-subtle)",
           background:
-            "linear-gradient(180deg, color-mix(in srgb, var(--soft-black) 100%, transparent) 0%, color-mix(in srgb, var(--deep-black) 100%, transparent) 100%)",
+            "linear-gradient(180deg, var(--soft-black) 0%, rgba(255,255,255,0.01) 100%)",
         }}
       >
-        <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <span
-              className="flex h-11 w-11 items-center justify-center rounded-xl"
-              style={{ background: "var(--glass)" }}
+              className="flex h-10 w-10 items-center justify-center rounded-lg border"
+              style={{
+                borderColor: "var(--border-subtle)",
+                background: "var(--glass)",
+              }}
             >
-              <History className="h-5 w-5" style={{ color: "var(--text-muted)" }} strokeWidth={1.75} />
+              <History className="h-4.5 w-4.5 text-[var(--primary-cyan)]" strokeWidth={1.75} />
             </span>
             <div>
-              <h3 className="font-display text-lg font-bold" style={{ color: "var(--text-primary)" }}>
-                Recent activity
+              <h3 className="font-display text-base font-bold text-[var(--text-primary)]">
+                Recent prompts
               </h3>
-              <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+              <p className="text-xs text-[var(--text-muted)]">
                 {recent.length > 0
-                  ? "Pick a generation to share it with the community."
-                  : "Your generations will appear here once you start creating."}
+                  ? "Quickly copy, reuse, or share your recent workspace prompts."
+                  : "Your prompts will appear here once you start generating."}
               </p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={shareBlank}
-            className="inline-flex min-h-[40px] items-center gap-1.5 rounded-xl px-4 text-xs font-semibold text-white"
-            style={{
-              background: "linear-gradient(135deg, var(--primary-purple) 0%, var(--primary-cyan) 100%)",
-              boxShadow: "0 12px 32px -10px rgba(123,97,255,0.55)",
-            }}
-          >
-            <Plus className="h-3.5 w-3.5" strokeWidth={2.25} />
-            Share to community
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            {recent.length > 0 && (
+              <button
+                type="button"
+                onClick={copyAllPrompts}
+                className="inline-flex min-h-[38px] items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-4.5 text-xs font-semibold text-white transition-all hover:bg-white/[0.08]"
+              >
+                {copiedAll ? (
+                  <>
+                    <Check className="h-3.5 w-3.5 text-emerald-400" />
+                    <span className="text-emerald-400">Copied all prompts!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-3.5 w-3.5 text-[var(--primary-cyan)]" />
+                    <span>Copy all</span>
+                  </>
+                )}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={shareBlank}
+              className="inline-flex min-h-[38px] items-center gap-1.5 rounded-xl px-4 text-xs font-semibold text-white shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.99]"
+              style={{
+                background: "linear-gradient(135deg, var(--primary-purple) 0%, var(--primary-cyan) 100%)",
+                boxShadow: "0 8px 24px -8px rgba(123,97,255,0.45)",
+              }}
+            >
+              <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
+              Share to community
+            </button>
+          </div>
         </div>
 
         {recent.length === 0 ? (
           <div
-            className="mt-6 flex min-h-[140px] flex-col items-center justify-center rounded-2xl border border-dashed px-4 py-10 text-center"
+            className="mt-6 flex min-h-[140px] flex-col items-center justify-center rounded-xl border border-dashed px-4 py-8 text-center"
             style={{
               borderColor: "var(--border-subtle)",
               background: "color-mix(in srgb, var(--deep-black) 40%, transparent)",
             }}
           >
             <span
-              className="flex h-14 w-14 items-center justify-center rounded-2xl border"
+              className="flex h-12 w-12 items-center justify-center rounded-xl border"
               style={{ borderColor: "var(--border-subtle)", background: "var(--glass)" }}
             >
-              <Wand2 className="h-7 w-7 opacity-50" style={{ color: "var(--primary-purple)" }} strokeWidth={1.5} />
+              <Wand2 className="h-6 w-6 opacity-60 text-[var(--primary-purple)]" strokeWidth={1.75} />
             </span>
-            <p className="mt-4 max-w-sm text-sm font-medium leading-relaxed" style={{ color: "var(--text-muted)" }}>
-              No generations yet. Open a studio and your recent work will show up here.
+            <p className="mt-3.5 max-w-sm text-xs leading-relaxed text-[var(--text-muted)]">
+              No generations yet. Open a studio and your recent prompts will show up here.
             </p>
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+            <div className="mt-4 flex items-center justify-center gap-3">
               <Link
                 href="/dashboard/generate/image"
-                className="inline-flex min-h-[40px] items-center justify-center rounded-xl px-4 text-sm font-semibold text-[var(--primary-cyan)] underline-offset-4 hover:underline"
+                className="text-xs font-bold uppercase tracking-wider text-[var(--primary-cyan)] transition-colors hover:text-white"
               >
                 Image studio
               </Link>
-              <span className="text-xs" style={{ color: "var(--text-subtle)" }}>
-                ·
-              </span>
+              <span className="text-[10px] text-[var(--text-subtle)]">·</span>
               <Link
                 href="/dashboard/generate/video"
-                className="inline-flex min-h-[40px] items-center justify-center rounded-xl px-4 text-sm font-semibold text-[var(--primary-cyan)] underline-offset-4 hover:underline"
+                className="text-xs font-bold uppercase tracking-wider text-[var(--primary-cyan)] transition-colors hover:text-white"
               >
                 Video studio
               </Link>
             </div>
           </div>
         ) : (
-          <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {recent.map((item, idx) => {
+          <div className="mt-6 space-y-3">
+            {recent.slice(0, visibleCount).map((item, idx) => {
               const alreadyShared = sharedUrlSet.has(item.previewUrl);
+              const isCopied = copiedId === item.id;
               return (
-                <motion.li
+                <motion.div
                   key={item.id}
                   initial={reduce ? false : { opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: reduce ? 0 : 0.04 * idx }}
-                  className="flex flex-col overflow-hidden rounded-2xl border transition-colors hover:border-[color-mix(in_srgb,var(--primary-cyan)_35%,var(--border-subtle))]"
+                  className="group flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-xl border p-4 transition-all duration-300 hover:border-white/15"
                   style={{
                     borderColor: "var(--border-subtle)",
                     background: "color-mix(in srgb, var(--deep-black) 55%, transparent)",
                   }}
                 >
-                  <Link
-                    href={item.href}
-                    className="group block"
-                    aria-label={`Open ${item.kind} studio`}
-                  >
-                    <div className="relative aspect-video w-full overflow-hidden bg-black/40">
-                      {item.kind === "image" ? (
-                        // eslint-disable-next-line @next/next/no-img-element -- remote generation URLs; not in next/image config
-                        <img
-                          src={item.previewUrl}
-                          alt=""
-                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                      ) : (
-                        <video
-                          src={item.previewUrl}
-                          muted
-                          playsInline
-                          preload="metadata"
-                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-                        />
-                      )}
-                      <span
-                        className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider"
-                        style={{
-                          background: "color-mix(in srgb, var(--soft-black) 88%, transparent)",
-                          color: "var(--text-primary)",
-                          border: "1px solid var(--border-subtle)",
-                        }}
-                      >
-                        {item.kind === "image" ? (
-                          <ImageIcon className="h-3 w-3" strokeWidth={2} />
-                        ) : (
-                          <Video className="h-3 w-3" strokeWidth={2} />
-                        )}
-                        {item.kind === "image" ? "Image" : "Video"}
-                      </span>
-                      {alreadyShared && (
-                        <span
-                          className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white"
-                          style={{
-                            background:
-                              "linear-gradient(135deg, var(--primary-purple) 0%, var(--primary-cyan) 100%)",
-                          }}
-                          title="Already shared to community"
-                        >
-                          <Sparkles className="h-3 w-3" strokeWidth={2} />
-                          Shared
-                        </span>
-                      )}
-                    </div>
-                  </Link>
-                  <div className="flex flex-1 flex-col gap-1 p-3">
-                    <p
-                      className="line-clamp-2 text-left text-xs leading-snug"
-                      style={{ color: "var(--text-muted)" }}
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                    <span
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/5 bg-white/5"
+                      title={item.kind === "image" ? "Image Prompt" : "Video Prompt"}
                     >
-                      {item.prompt}
-                    </p>
-                    <div className="mt-auto flex items-center justify-between gap-2 pt-1">
-                      <Link
-                        href={item.href}
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--primary-cyan)]"
-                      >
-                        Open
-                        <ArrowRight className="h-3 w-3" strokeWidth={2} />
-                      </Link>
-                      <button
-                        type="button"
-                        onClick={() => shareGeneration(item)}
-                        className="inline-flex min-h-[28px] items-center gap-1 rounded-lg border px-2 text-[11px] font-semibold transition-colors"
-                        style={{
-                          borderColor: alreadyShared
-                            ? "color-mix(in srgb, var(--primary-cyan) 35%, var(--border-subtle))"
-                            : "var(--border-subtle)",
-                          background: alreadyShared
-                            ? "color-mix(in srgb, var(--primary-cyan) 12%, var(--soft-black))"
-                            : "var(--glass)",
-                          color: "var(--text-primary)",
-                        }}
-                        aria-label={alreadyShared ? "Share again" : "Share to community"}
-                      >
-                        <Send className="h-3 w-3" strokeWidth={2} />
-                        {alreadyShared ? "Share again" : "Share"}
-                      </button>
+                      {item.kind === "image" ? (
+                        <ImageIcon className="h-4 w-4 text-[var(--primary-purple)]" />
+                      ) : (
+                        <Video className="h-4 w-4 text-[var(--primary-cyan)]" />
+                      )}
+                    </span>
+                    
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium leading-relaxed text-[var(--text-primary)] select-all whitespace-pre-wrap">
+                        {item.prompt}
+                      </p>
+                      <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[10px] text-[var(--text-subtle)] font-medium">
+                        <span className="uppercase tracking-wider text-[var(--primary-cyan)]">{item.kind} workspace</span>
+                        {alreadyShared && (
+                          <>
+                            <span>·</span>
+                            <span className="text-emerald-400 font-semibold">Shared</span>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </motion.li>
-              );
+
+                  <div className="flex items-center gap-2 self-end md:self-center shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => copyPrompt(item.prompt, item.id)}
+                      className="inline-flex min-h-[32px] items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.03] px-3 text-xs font-semibold text-white transition-all hover:bg-white/[0.08]"
+                      title="Copy prompt"
+                    >
+                      {isCopied ? (
+                        <>
+                          <Check className="h-3.5 w-3.5 text-emerald-400 animate-in fade-in zoom-in-75 duration-200" />
+                          <span className="text-emerald-400">Copied</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-3.5 w-3.5 text-cyan-200/90" />
+                          <span>Copy</span>
+                        </>
+                      )}
+                    </button>
+                    
+                    <Link
+                      href={`${item.href}?prompt=${encodeURIComponent(item.prompt)}`}
+                      className="inline-flex min-h-[32px] items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.03] px-3 text-xs font-semibold text-white transition-all hover:bg-white/[0.08]"
+                    >
+                      <Wand2 className="h-3.5 w-3.5 text-[var(--primary-purple)]" />
+                      <span>Use</span>
+                    </Link>
+
+                    <button
+                      type="button"
+                      onClick={() => shareGeneration(item)}
+                      className="inline-flex min-h-[32px] items-center gap-1.5 rounded-lg border px-3 text-xs font-semibold transition-all duration-300"
+                      style={{
+                        borderColor: alreadyShared
+                          ? "color-mix(in srgb, var(--primary-cyan) 35%, var(--border-subtle))"
+                          : "var(--border-subtle)",
+                        background: alreadyShared
+                          ? "color-mix(in srgb, var(--primary-cyan) 12%, var(--soft-black))"
+                          : "var(--glass)",
+                        color: "var(--text-primary)",
+                      }}
+                    >
+                      <Send className="h-3 w-3" strokeWidth={2.5} />
+                      <span>{alreadyShared ? "Shared" : "Share"}</span>
+                    </button>
+                  </div>
+                </motion.div>
+              )
             })}
-          </ul>
+
+            <div className="flex justify-center gap-3 pt-4">
+              {visibleCount > 4 && (
+                <button
+                  type="button"
+                  onClick={() => setVisibleCount(4)}
+                  className="inline-flex min-h-[36px] items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-6 text-xs font-semibold text-white transition-all hover:bg-white/[0.06] active:scale-[0.98]"
+                >
+                  Show less
+                </button>
+              )}
+              {recent.length > visibleCount && (
+                <button
+                  type="button"
+                  onClick={loadMore}
+                  className="inline-flex min-h-[36px] items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-6 text-xs font-semibold text-white transition-all hover:bg-white/[0.06] active:scale-[0.98]"
+                >
+                  Load more
+                </button>
+              )}
+            </div>
+          </div>
         )}
 
         <div className="mt-8 border-t pt-6" style={{ borderColor: "var(--border-subtle)" }}>
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h4
-                className="font-display text-base font-bold"
-                style={{ color: "var(--text-primary)" }}
-              >
+              <h4 className="font-display text-sm font-bold text-[var(--text-primary)]">
                 Your community posts
               </h4>
-              <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
+              <p className="mt-0.5 text-xs text-[var(--text-muted)]">
                 Track engagement on work you've shared with the feed.
               </p>
             </div>
             <Link
               href="/community"
-              className="text-xs font-semibold text-[var(--primary-cyan)] underline-offset-4 hover:underline"
+              className="text-xs font-bold uppercase tracking-wider text-[var(--primary-cyan)] transition-colors hover:text-white"
             >
               Open community →
             </Link>
           </div>
+          
           {postsLoading ? (
             <div
-              className="mt-4 flex items-center gap-2 rounded-2xl border border-dashed px-4 py-6 text-xs"
+              className="mt-4 flex items-center gap-2 rounded-xl border border-dashed px-4 py-6 text-xs text-[var(--text-muted)]"
               style={{
                 borderColor: "var(--border-subtle)",
                 background: "color-mix(in srgb, var(--deep-black) 40%, transparent)",
-                color: "var(--text-muted)",
               }}
             >
-              <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading your posts…
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-[var(--primary-cyan)]" /> Loading your posts…
             </div>
           ) : postsError ? (
-            <p className="mt-4 text-xs" style={{ color: "var(--text-subtle)" }}>
+            <p className="mt-4 text-xs text-[var(--text-subtle)]">
               {postsError}
             </p>
           ) : myPosts.length === 0 ? (
             <p
-              className="mt-4 rounded-2xl border border-dashed px-4 py-6 text-center text-sm"
+              className="mt-4 rounded-xl border border-dashed px-4 py-6 text-center text-xs text-[var(--text-muted)]"
               style={{
                 borderColor: "var(--border-subtle)",
                 background: "color-mix(in srgb, var(--deep-black) 40%, transparent)",
-                color: "var(--text-muted)",
               }}
             >
               You haven't shared anything yet. Pick a generation above and tap{" "}
-              <span className="font-semibold text-[var(--text-primary)]">Share</span>.
+              <span className="font-bold text-[var(--text-primary)]">Share</span>.
             </p>
           ) : (
             <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {myPosts.slice(0, 6).map((p) => (
                 <li
                   key={p.id}
-                  className="flex items-center gap-3 rounded-2xl border p-2.5"
+                  className="group flex items-center gap-3 rounded-xl border p-2.5 transition-all duration-300 hover:border-white/15"
                   style={{
                     borderColor: "var(--border-subtle)",
                     background: "color-mix(in srgb, var(--deep-black) 55%, transparent)",
@@ -346,14 +403,14 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
                 >
                   <Link
                     href={`/community#${p.id}`}
-                    className="relative h-16 w-20 shrink-0 overflow-hidden rounded-xl"
+                    className="relative h-14 w-18 shrink-0 overflow-hidden rounded-lg bg-black/40"
                   >
                     {p.kind === "image" ? (
                       // eslint-disable-next-line @next/next/no-img-element -- arbitrary remote URL
                       <img
                         src={p.mediaUrl}
                         alt={p.title || ""}
-                        className="h-full w-full object-cover"
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                         loading="lazy"
                         decoding="async"
                       />
@@ -363,27 +420,31 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
                         muted
                         playsInline
                         preload="metadata"
-                        className="h-full w-full object-cover"
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                     )}
                   </Link>
                   <div className="flex min-w-0 flex-1 flex-col">
                     <p
-                      className="line-clamp-1 text-sm font-bold"
-                      style={{ color: "var(--text-primary)" }}
+                      className="line-clamp-1 text-xs font-bold text-[var(--text-primary)] group-hover:text-white transition-colors duration-300"
                     >
                       {p.title || p.prompt || "Untitled"}
                     </p>
-                    <p className="text-[11px]" style={{ color: "var(--text-subtle)" }}>
+                    <p className="text-[10px] text-[var(--text-subtle)] mt-0.5">
                       {timeAgo(p.createdAt)}
                     </p>
                     <div
-                      className="mt-1 flex items-center gap-3 text-[11px] font-semibold tabular-nums"
-                      style={{ color: "var(--text-muted)" }}
+                      className="mt-1 flex items-center gap-2.5 text-[10px] font-bold tracking-tight tabular-nums text-[var(--text-muted)]"
                     >
-                      <span>♥ {p.likes}</span>
-                      <span>💬 {p.comments}</span>
-                      <span>👁 {p.views}</span>
+                      <span className="flex items-center gap-0.5">
+                        <span className="text-[var(--accent-pink)]">♥</span> {p.likes}
+                      </span>
+                      <span className="flex items-center gap-0.5">
+                        <span className="text-[var(--primary-cyan)]">💬</span> {p.comments}
+                      </span>
+                      <span className="flex items-center gap-0.5">
+                        <span className="text-[var(--primary-purple)]">👁</span> {p.views}
+                      </span>
                     </div>
                   </div>
                 </li>

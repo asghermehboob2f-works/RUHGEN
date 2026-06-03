@@ -182,7 +182,7 @@ export function Navbar() {
                       }}
                       onFocus={() => prefetchIfInternal(item.href)}
                       style={{
-                        color: active ? "#fff" : "rgba(255, 255, 255, 0.7)",
+                        color: active ? "#fff" : "var(--text-muted)",
                       }}
                     >
                       <NavPill active={active} layoutId="nav-active-pill" />
@@ -212,7 +212,7 @@ export function Navbar() {
                             ? "#fff"
                             : hoveredId === item.id
                               ? "var(--text-primary)"
-                              : "rgba(255, 255, 255, 0.7)",
+                              : "var(--text-muted)",
                         }}
                         transition={{ duration: 0.2 }}
                         whileTap={{ scale: 0.96 }}
@@ -387,27 +387,29 @@ export function Navbar() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.12, ease: "easeOut" }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
           >
             <button
               type="button"
-              className="absolute inset-0 bg-black/40 dark:bg-black/55"
+              className="absolute inset-0 bg-black/50 dark:bg-black/65 backdrop-blur-sm"
               aria-label="Close menu"
               onClick={closeMobile}
             />
 
             <motion.aside
-              className="absolute right-0 top-0 flex h-full min-h-0 w-[min(100%,min(100vw-2rem),340px)] max-w-full flex-col border-l shadow-2xl"
+              className="absolute right-0 top-0 flex h-full min-h-0 w-[300px] max-w-[85vw] flex-col border-l shadow-2xl"
               style={{
                 borderColor: "var(--border-subtle)",
-                background: isLight ? "#f4f4f8" : "#121214",
+                background: isLight ? "rgba(244, 244, 248, 0.95)" : "rgba(10, 10, 12, 0.95)",
+                backdropFilter: "blur(20px)",
+                WebkitBackdropFilter: "blur(20px)",
                 paddingTop: "env(safe-area-inset-top)",
                 willChange: "transform",
               }}
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
-              transition={{ type: "tween", duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+              transition={{ type: "tween", duration: 0.22, ease: "easeOut" }}
             >
               <div
                 className="flex shrink-0 items-center justify-between gap-3 border-b px-4 py-2.5 sm:px-5 sm:py-3"
@@ -436,7 +438,7 @@ export function Navbar() {
               </div>
 
               <nav
-                className="nav-scroll-y flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto overscroll-y-contain px-4 pb-[max(0.875rem,env(safe-area-inset-bottom))] pt-2.5 sm:px-5 sm:pt-3"
+                className="nav-scroll-y flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto overscroll-y-contain px-4 pt-2.5 sm:px-5 sm:pt-3"
                 aria-label="Mobile"
               >
                 <div className="flex flex-col gap-px">
@@ -451,9 +453,9 @@ export function Navbar() {
                         onFocus={() => prefetchIfInternal(l.href)}
                         className="flex min-h-10 items-center rounded-lg px-3 py-2 text-left text-[15px] font-medium leading-snug transition-colors active:opacity-90 sm:px-3.5"
                         style={{
-                          color: isActive ? "#7B61FF" : "var(--text-primary)",
+                          color: isActive ? "var(--text-primary)" : "var(--text-muted)",
                           background: isActive
-                            ? "rgba(123,97,255,0.12)"
+                            ? isLight ? "rgba(123, 97, 255, 0.1)" : "rgba(123, 97, 255, 0.12)"
                             : "transparent",
                         }}
                       >
@@ -476,9 +478,7 @@ export function Navbar() {
                   <div className="flex flex-col gap-px">
                     {[
                       { href: "/about", label: "About" },
-                      { href: "/platform", label: "Platform" },
                       { href: "/contact", label: "Contact" },
-                      { href: "/dashboard", label: "Dashboard" },
                     ].map((x) => (
                       <Link
                         key={x.href}
@@ -491,7 +491,7 @@ export function Navbar() {
                           color:
                             pathname === x.href
                               ? "#7B61FF"
-                              : "rgba(255, 255, 255, 0.65)",
+                              : "var(--text-muted)",
                         }}
                       >
                         {x.label}
@@ -514,7 +514,6 @@ export function Navbar() {
                     {[
                       { href: "/privacy", label: "Privacy" },
                       { href: "/terms", label: "Terms" },
-                      { href: "/#faq", label: "FAQ" },
                     ].map((x) => (
                       <Link
                         key={x.href + x.label}
@@ -523,107 +522,96 @@ export function Navbar() {
                         prefetch={x.href.startsWith("/")}
                         onFocus={() => prefetchIfInternal(x.href)}
                         className="flex min-h-9 items-center rounded-lg px-3 py-1.5 text-left text-sm font-medium leading-snug transition-colors active:bg-[var(--glass-elevated)] sm:px-3.5"
-                        style={{ color: "rgba(255, 255, 255, 0.65)" }}
+                        style={{ color: "var(--text-muted)" }}
                       >
                         {x.label}
                       </Link>
                     ))}
-                    {ready && user ? (
-                      <Link
-                        href="/dashboard/content"
-                        onClick={closeMobile}
-                        prefetch
-                        onFocus={() => prefetchIfInternal("/dashboard/content")}
-                        className="mt-1 flex min-h-9 items-center justify-center rounded-lg border px-3 py-1.5 text-sm font-semibold transition-colors sm:px-3.5"
-                        style={{
-                          borderColor: "var(--border-subtle)",
-                          background: "var(--glass)",
-                          color: "var(--text-primary)",
-                        }}
-                      >
-                        Site content
-                      </Link>
-                    ) : null}
                   </div>
                 </div>
+                <div className="h-6 shrink-0" />
+              </nav>
 
-                <div
-                  className="mt-4 flex flex-col gap-2 border-t pt-4"
-                  style={{ borderColor: "var(--border-subtle)" }}
-                >
-                  {ready && user ? (
-                    <>
-                      <Link
-                        href="/dashboard"
-                        onClick={closeMobile}
-                        prefetch
-                        onFocus={() => prefetchIfInternal("/dashboard")}
-                        className="flex min-h-10 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors sm:px-3.5"
-                        style={{
-                          borderColor: "var(--border-subtle)",
-                          background: "var(--glass)",
-                          color: "var(--text-primary)",
-                        }}
-                      >
-                        <LayoutDashboard className="h-4 w-4 shrink-0" />
-                        Dashboard
-                      </Link>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          signOut();
-                          closeMobile();
-                          router.push("/");
-                        }}
-                        className="min-h-10 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors sm:px-3.5"
-                        style={{
-                          borderColor: "var(--border-subtle)",
-                          color: "var(--text-muted)",
-                          background: "transparent",
-                        }}
-                      >
-                        Sign out
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <Link
-                        href="/sign-in"
-                        onClick={closeMobile}
-                        prefetch
-                        onFocus={() => prefetchIfInternal("/sign-in")}
-                        className="flex min-h-10 items-center justify-center rounded-lg border px-3 py-2 text-sm font-semibold transition-colors sm:px-3.5"
-                        style={{
-                          borderColor: "var(--border-subtle)",
-                          background: "var(--glass)",
-                          color: "var(--text-primary)",
-                        }}
-                      >
-                        Sign in
-                      </Link>
-                      <Link
-                        href="/sign-up"
-                        onClick={closeMobile}
-                        prefetch
-                        onFocus={() => prefetchIfInternal("/sign-up")}
-                        className="flex min-h-10 items-center justify-center rounded-lg px-3 py-2 text-sm font-semibold text-white btn-gradient sm:px-3.5"
-                      >
-                        Create account
-                      </Link>
-                    </>
-                  )}
-                </div>
-
-                <div className="min-h-2 flex-1 shrink-0" />
+              {/* Sticky Footer */}
+              <div
+                className="flex shrink-0 flex-col gap-2.5 border-t px-4 py-3 pb-[max(0.875rem,env(safe-area-inset-bottom))]"
+                style={{
+                  borderColor: "var(--border-subtle)",
+                  background: isLight ? "rgba(240, 240, 245, 0.6)" : "rgba(8, 8, 10, 0.6)",
+                  backdropFilter: "blur(10px)",
+                  WebkitBackdropFilter: "blur(10px)",
+                }}
+              >
+                {ready && user ? (
+                  <div className="flex gap-2">
+                    <Link
+                      href="/dashboard"
+                      onClick={closeMobile}
+                      prefetch
+                      onFocus={() => prefetchIfInternal("/dashboard")}
+                      className="flex-1 flex min-h-10 items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors"
+                      style={{
+                        borderColor: "var(--border-subtle)",
+                        background: "var(--glass-elevated)",
+                        color: "var(--text-primary)",
+                      }}
+                    >
+                      <LayoutDashboard className="h-3.5 w-3.5 shrink-0" />
+                      Dashboard
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        signOut();
+                        closeMobile();
+                        router.push("/");
+                      }}
+                      className="flex-1 min-h-10 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors"
+                      style={{
+                        borderColor: "var(--border-subtle)",
+                        color: "var(--text-muted)",
+                        background: "transparent",
+                      }}
+                    >
+                      Sign out
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <Link
+                      href="/sign-in"
+                      onClick={closeMobile}
+                      prefetch
+                      onFocus={() => prefetchIfInternal("/sign-in")}
+                      className="flex-1 flex min-h-10 items-center justify-center rounded-lg border px-3 py-2 text-xs font-semibold transition-colors"
+                      style={{
+                        borderColor: "var(--border-subtle)",
+                        background: "var(--glass-elevated)",
+                        color: "var(--text-primary)",
+                      }}
+                    >
+                      Sign in
+                    </Link>
+                    <Link
+                      href="/sign-up"
+                      onClick={closeMobile}
+                      prefetch
+                      onFocus={() => prefetchIfInternal("/sign-up")}
+                      className="flex-1 flex min-h-10 items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-white btn-gradient"
+                    >
+                      Create account
+                    </Link>
+                  </div>
+                )}
 
                 <Link
                   href="/#cta"
                   onClick={closeMobile}
-                  className="flex min-h-10 w-full items-center justify-center rounded-lg px-3 py-2 text-sm font-semibold text-white btn-gradient sm:px-3.5"
+                  className="flex min-h-10 w-full items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold text-white btn-gradient"
                 >
                   View plans
                 </Link>
-              </nav>
+              </div>
             </motion.aside>
           </motion.div>
         )}

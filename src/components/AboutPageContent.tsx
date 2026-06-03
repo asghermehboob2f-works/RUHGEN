@@ -130,7 +130,7 @@ function CalibrationEngine() {
   );
 
   return (
-    <div className="premium-ring relative flex flex-col justify-between overflow-hidden rounded-[1.25rem] border p-6 bg-[#0c0c0c]/80 backdrop-blur-2xl transition-all duration-500 hover:border-brand-purple/20">
+    <div className="premium-ring relative flex flex-col justify-between overflow-hidden rounded-[1.25rem] border p-6 backdrop-blur-2xl transition-all duration-500 hover:border-brand-purple/20" style={{ background: "var(--glass-elevated)" }}>
       {/* Blueprint background grid */}
       <div
         className="absolute inset-0 opacity-[0.02] pointer-events-none select-none"
@@ -165,7 +165,7 @@ function CalibrationEngine() {
                 <Sliders className="h-2.5 w-2.5 text-brand-purple" />
                 CALIBRATION FOCUS
               </span>
-              <span className="text-white font-bold">{calibration}%</span>
+              <span className="text-[var(--text-primary)] font-bold">{calibration}%</span>
             </div>
             <input
               type="range"
@@ -183,7 +183,7 @@ function CalibrationEngine() {
                 <Cpu className="h-2.5 w-2.5 text-brand-cyan" />
                 LATENT GRADIENT DEPTH
               </span>
-              <span className="text-white font-bold">{latentDepth}%</span>
+              <span className="text-[var(--text-primary)] font-bold">{latentDepth}%</span>
             </div>
             <input
               type="range"
@@ -201,7 +201,7 @@ function CalibrationEngine() {
                 <Activity className="h-2.5 w-2.5 text-brand-pink" />
                 ORCHESTRATION MESH
               </span>
-              <span className="text-white font-bold">{meshFocus}%</span>
+              <span className="text-[var(--text-primary)] font-bold">{meshFocus}%</span>
             </div>
             <input
               type="range"
@@ -216,7 +216,7 @@ function CalibrationEngine() {
           {/* Sovereign Switch Toggle */}
           <div className="flex items-center justify-between border-t border-white/[0.05] pt-3.5 mt-1.5">
             <div className="flex flex-col text-left">
-              <span className="text-[9px] font-mono tracking-[0.1em] text-white flex items-center gap-1 uppercase font-bold">
+              <span className="text-[9px] font-mono tracking-[0.1em] text-[var(--text-primary)] flex items-center gap-1 uppercase font-bold">
                 <Lock className="h-2.5 w-2.5 text-green-400" />
                 SOVEREIGN CHANNEL
               </span>
@@ -257,7 +257,7 @@ function CalibrationEngine() {
 
           {/* Coherence display overlay */}
           <div className="absolute top-2 right-2 font-mono text-[7px] text-neutral-400 tracking-wider text-right">
-            COHERENCE: <span className="font-bold text-white">{coherence}%</span>
+            COHERENCE: <span className="font-bold text-[var(--text-primary)]">{coherence}%</span>
           </div>
 
           {/* Waveform graphic (fully CSS-pulsed for smooth performance, no React state re-renders) */}
@@ -749,7 +749,7 @@ function EngineOrchestrationHub() {
               className="space-y-4"
             >
               <div>
-                <h3 className="font-display text-lg font-bold text-white tracking-tight flex items-center gap-2">
+                <h3 className="font-display text-lg font-bold text-[var(--text-primary)] tracking-tight flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full animate-pulse" style={{ backgroundColor: engine.color, boxShadow: `0 0 6px ${engine.color}` }} />
                   {engine.name}
                 </h3>
@@ -763,7 +763,7 @@ function EngineOrchestrationHub() {
                 {engine.metrics.map((met) => (
                   <div key={met.label} className="border border-white/[0.04] bg-neutral-950/40 rounded-lg p-2.5 text-center flex flex-col justify-center items-center backdrop-blur-md relative overflow-hidden group hover:border-white/[0.08] transition-all duration-300">
                     <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <span className="text-[11px] text-white tracking-widest block font-bungee-hairline premium-text-shimmer leading-none mb-1">
+                    <span className="text-[11px] text-[var(--text-primary)] tracking-widest block font-bungee-hairline premium-text-shimmer leading-none mb-1">
                       {met.value}
                     </span>
                     <span className="text-[7px] font-mono text-neutral-500 uppercase tracking-wider block font-bold mt-1.5">
@@ -807,7 +807,7 @@ function EngineOrchestrationHub() {
                 onClick={() => setActiveEngineIdx(idx)}
                 className={`px-2.5 py-1 rounded-md font-mono text-[8px] uppercase tracking-wider transition-all duration-300 border cursor-pointer flex items-center gap-1.5 ${
                   activeEngineIdx === idx
-                    ? "bg-white/[0.04] border-white/[0.1] text-white"
+                    ? "bg-white/[0.04] border-white/[0.1] text-[var(--text-primary)]"
                     : "bg-transparent border-transparent text-neutral-500 hover:text-neutral-300"
                 }`}
               >
@@ -833,7 +833,7 @@ export function AboutPageContent() {
   const [hoveredPillar, setHoveredPillar] = useState<number | null>(null);
 
   return (
-    <main className="relative flex-1 overflow-hidden pt-28 sm:pt-36 pb-24 bg-[#050505] text-white font-sans">
+    <main className="relative flex-1 overflow-hidden pt-28 sm:pt-36 pb-24 font-sans" style={{ background: "var(--deep-black)" }}>
       {/* Organic low-contrast film grain overlay */}
       <div className="absolute inset-0 pointer-events-none app-grain select-none z-10 opacity-[0.04]" />
 
@@ -920,12 +920,12 @@ export function AboutPageContent() {
               PROLOGUE // COHESIVE CALIBRATION
             </span>
             
-            <h2 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-white leading-tight">
+            <h2 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text-primary)] leading-tight">
               A Category of One. <br />
               Built strictly for visionary directors.
             </h2>
             
-            <div className="space-y-5 text-sm sm:text-base leading-relaxed text-neutral-400 font-light font-sans">
+            <div className="space-y-5 text-sm sm:text-base leading-relaxed text-[var(--text-muted)] font-light font-sans">
               <p>
                 We started{" "}
                 <span
@@ -937,13 +937,13 @@ export function AboutPageContent() {
                 with a singular recognition: professional creative tools shouldn't feel like toys. The gap in visual creation workflows is massive. Not every model is good at everything, yet design teams are currently forced to operate within highly fragmented pipelines.
               </p>
               
-              <p className="text-neutral-400 text-xs sm:text-sm">
+              <p className="text-[var(--text-muted)] text-xs sm:text-sm">
                 We engineered an elite, low-overhead orchestration framework to{" "}
                 <span style={{ fontFamily: "var(--font-calsans)" }} className="text-[#7B61FF] font-bold tracking-wide">
                   unify the world's most powerful AI engines
                 </span>{" "}
                 under one fluid timeline. Aligned strictly to{" "}
-                <span style={{ fontFamily: "var(--font-ningetan)" }} className="text-white italic text-base sm:text-lg">
+                <span style={{ fontFamily: "var(--font-ningetan)" }} className="text-[var(--text-primary)] italic text-base sm:text-lg">
                   cinematic grading standards
                 </span>
                 , our ecosystem provides the{" "}
@@ -978,7 +978,7 @@ export function AboutPageContent() {
             <span className="text-[9px] font-mono tracking-[0.15em] text-[#00D4FF] uppercase block font-bold">
               ORCHESTRATION PIPELINES
             </span>
-            <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight text-white leading-tight">
+            <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight text-[var(--text-primary)] leading-tight">
               Lossless Multi-Engine Orchestration Core
             </h2>
             <p className="text-xs sm:text-sm text-neutral-500 font-light font-sans leading-relaxed max-w-3xl mx-auto">
@@ -992,8 +992,8 @@ export function AboutPageContent() {
         {/* Focus Card & Highlights Row */}
         <div className="grid gap-6 lg:grid-cols-5 lg:gap-8 w-full">
           <motion.article
-            className="premium-ring relative overflow-hidden rounded-[1.25rem] border p-6 sm:p-8 lg:col-span-3 bg-gradient-to-br from-white/[0.02] to-white/[0.005]"
-            style={{ borderColor: "var(--border-subtle)" }}
+            className="premium-ring relative overflow-hidden rounded-[1.25rem] border p-6 sm:p-8 lg:col-span-3"
+            style={{ borderColor: "var(--border-subtle)", background: "var(--glass)" }}
             initial={reduce ? false : { opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true, margin: "-60px" }}
@@ -1015,14 +1015,14 @@ export function AboutPageContent() {
                 <Film className="h-4 w-4 text-white" strokeWidth={1.75} />
               </div>
               <div className="text-left space-y-3">
-                <h2 className="font-display text-lg sm:text-xl font-bold tracking-tight text-white">
+                <h2 className="font-display text-lg sm:text-xl font-bold tracking-tight text-[var(--text-primary)]">
                   Calibrated for timeline and reviews
                 </h2>
-                <p className="text-xs sm:text-sm leading-relaxed text-neutral-400">
+                <p className="text-xs sm:text-sm leading-relaxed text-[var(--text-muted)]">
                   RUHGEN focuses structurally on three requirements:{" "}
-                  <strong className="text-neutral-200">latency</strong> creators can iterate with,{" "}
-                  <strong className="text-neutral-200">fidelity</strong> visual artists can grade, and{" "}
-                  <strong className="text-neutral-200">security</strong> that respects your sovereign work. If your team operates under strict timeline deadlines, RUHGEN is engineered for your pipeline.
+                  <strong className="text-[var(--text-primary)]">latency</strong> creators can iterate with,{" "}
+                  <strong className="text-[var(--text-primary)]">fidelity</strong> visual artists can grade, and{" "}
+                  <strong className="text-[var(--text-primary)]">security</strong> that respects your sovereign work. If your team operates under strict timeline deadlines, RUHGEN is engineered for your pipeline.
                 </p>
               </div>
             </div>
@@ -1035,21 +1035,21 @@ export function AboutPageContent() {
             viewport={{ once: true, margin: "-40px" }}
             transition={{ duration: 0.5, delay: reduce ? 0 : 0.05 }}
           >
-            <div className="premium-ring flex flex-1 flex-col justify-center rounded-[1.25rem] border p-5 bg-neutral-950/40 text-left relative overflow-hidden group hover:border-[#00D4FF]/20 transition-all duration-300">
+            <div className="premium-ring flex flex-1 flex-col justify-center rounded-[1.25rem] border p-5 text-left relative overflow-hidden group hover:border-[#00D4FF]/20 transition-all duration-300" style={{ borderColor: "var(--border-subtle)", background: "var(--glass)" }}>
               <Sparkles className="h-4.5 w-4.5 text-[#00D4FF]" strokeWidth={1.75} />
-              <p className="mt-2.5 font-display text-sm sm:text-base font-semibold text-white">
+              <p className="mt-2.5 font-display text-sm sm:text-base font-semibold text-[var(--text-primary)]">
                 Opinionated where it matters
               </p>
-              <p className="mt-1.5 text-xs text-neutral-500 leading-relaxed">
+              <p className="mt-1.5 text-xs text-[var(--text-subtle)] leading-relaxed">
                 Opinionated defaults that keep design teams moving—without hiding complex parameters power users need.
               </p>
             </div>
-            <div className="premium-ring flex flex-1 flex-col justify-center rounded-[1.25rem] border p-5 bg-neutral-950/40 text-left relative overflow-hidden group hover:border-[#7B61FF]/20 transition-all duration-300">
+            <div className="premium-ring flex flex-1 flex-col justify-center rounded-[1.25rem] border p-5 text-left relative overflow-hidden group hover:border-[#7B61FF]/20 transition-all duration-300" style={{ borderColor: "var(--border-subtle)", background: "var(--glass)" }}>
               <Shield className="h-4.5 w-4.5 text-[#7B61FF]" strokeWidth={1.75} />
-              <p className="mt-2.5 font-display text-sm sm:text-base font-semibold text-white">
+              <p className="mt-2.5 font-display text-sm sm:text-base font-semibold text-[var(--text-primary)]">
                 Studio-grade guardrails
               </p>
-              <p className="mt-1.5 text-xs text-neutral-500 leading-relaxed">
+              <p className="mt-1.5 text-xs text-[var(--text-subtle)] leading-relaxed">
                 Compute isolated guardrails and export frameworks built strictly for high-value pipelines.
               </p>
             </div>
@@ -1067,13 +1067,13 @@ export function AboutPageContent() {
           {highlights.map((h) => (
             <div
               key={h.label}
-              className="premium-ring flex min-w-[200px] flex-1 flex-col rounded-xl border px-5 py-3.5 text-center sm:min-w-0 bg-[#0a0a0a]/60 backdrop-blur-sm transition-all duration-300 hover:border-brand-purple/20"
-              style={{ borderColor: "var(--border-subtle)" }}
+              className="premium-ring flex min-w-[200px] flex-1 flex-col rounded-xl border px-5 py-3.5 text-center sm:min-w-0 backdrop-blur-sm transition-all duration-300 hover:border-brand-purple/20"
+              style={{ borderColor: "var(--border-subtle)", background: "var(--glass)" }}
             >
               <span className="text-[9px] font-mono tracking-[0.15em] text-[#7B61FF] uppercase font-bold">
                 {h.label}
               </span>
-              <span className="mt-1.5 text-xs text-neutral-400 leading-normal">
+              <span className="mt-1.5 text-xs text-[var(--text-muted)] leading-normal">
                 {h.detail}
               </span>
             </div>
@@ -1094,7 +1094,7 @@ export function AboutPageContent() {
             <span className="text-[9px] font-mono tracking-[0.15em] text-[#FF2E9A] uppercase font-extrabold block">
               BRAND PHILOSOPHY
             </span>
-            <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight text-white leading-tight">
+            <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight text-[var(--text-primary)] leading-tight">
               A Legacy of Uncompromising Authorship
             </h2>
             <div className="h-[1.5px] w-16 bg-gradient-to-r from-[#7B61FF] via-[#00D4FF] to-[#FF2E9A] mx-auto mt-4" />
@@ -1125,30 +1125,30 @@ export function AboutPageContent() {
           {/* Symmetrical credentials grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-4xl mx-auto pt-4">
             <div
-              className="premium-ring rounded-xl border p-5 text-center bg-black/30 backdrop-blur-sm relative overflow-hidden group hover:border-[#00D4FF]/20 transition-all duration-300"
-              style={{ borderColor: "var(--border-subtle)" }}
+              className="premium-ring rounded-xl border p-5 text-center backdrop-blur-sm relative overflow-hidden group hover:border-[#00D4FF]/20 transition-all duration-300"
+              style={{ borderColor: "var(--border-subtle)", background: "var(--glass)" }}
             >
-              <span className="text-[9px] font-mono text-neutral-500 uppercase block tracking-wider font-bold">
+              <span className="text-[9px] font-mono text-[var(--text-subtle)] uppercase block tracking-wider font-bold">
                 AESTHETIC AUTHENTICITY
               </span>
-              <span className="font-display text-base font-bold text-white mt-1 block">
+              <span className="font-display text-base font-bold text-[var(--text-primary)] mt-1 block">
                 Prestige Grade Calibration
               </span>
-              <span className="text-xs text-neutral-500 font-sans block mt-1.5 leading-relaxed">
+              <span className="text-xs text-[var(--text-subtle)] font-sans block mt-1.5 leading-relaxed">
                 Outputs are calibrated to professional production monitors, ensuring perfect exposure.
               </span>
             </div>
             <div
-              className="premium-ring rounded-xl border p-5 text-center bg-black/30 backdrop-blur-sm relative overflow-hidden group hover:border-[#7B61FF]/20 transition-all duration-300"
-              style={{ borderColor: "var(--border-subtle)" }}
+              className="premium-ring rounded-xl border p-5 text-center backdrop-blur-sm relative overflow-hidden group hover:border-[#7B61FF]/20 transition-all duration-300"
+              style={{ borderColor: "var(--border-subtle)", background: "var(--glass)" }}
             >
-              <span className="text-[9px] font-mono text-neutral-500 uppercase block tracking-wider font-bold">
+              <span className="text-[9px] font-mono text-[var(--text-subtle)] uppercase block tracking-wider font-bold">
                 COMPUTE SECURITY
               </span>
-              <span className="font-display text-base font-bold text-white mt-1 block">
+              <span className="font-display text-base font-bold text-[var(--text-primary)] mt-1 block">
                 Sovereign Hosting
               </span>
-              <span className="text-xs text-neutral-500 font-sans block mt-1.5 leading-relaxed">
+              <span className="text-xs text-[var(--text-subtle)] font-sans block mt-1.5 leading-relaxed">
                 All routing and compute processing run via isolated, secure tunnels for client confidentiality.
               </span>
             </div>
@@ -1163,7 +1163,7 @@ export function AboutPageContent() {
             <span className="text-[9px] font-mono tracking-[0.15em] text-[#00D4FF] uppercase block font-bold">
               DESIGN SPECIFICATIONS
             </span>
-            <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight text-white leading-tight">
+            <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight text-[var(--text-primary)] leading-tight">
               Foundations of Our Architecture
             </h2>
             <p className="text-xs sm:text-sm text-neutral-500 font-light font-sans leading-relaxed max-w-3xl mx-auto">
@@ -1182,8 +1182,9 @@ export function AboutPageContent() {
                 transition={{ duration: 0.5, delay: idx * 0.08 }}
                 onMouseEnter={() => setHoveredPillar(idx)}
                 onMouseLeave={() => setHoveredPillar(null)}
-                className="premium-ring group relative flex flex-col justify-between overflow-hidden rounded-[1.25rem] border p-6 sm:p-7 min-h-[360px] transition-all duration-300 bg-[#080808]/60 backdrop-blur-2xl"
+                className="premium-ring group relative flex flex-col justify-between overflow-hidden rounded-[1.25rem] border p-6 sm:p-7 min-h-[360px] transition-all duration-300 backdrop-blur-2xl"
                 style={{
+                  background: "var(--glass)",
                   borderColor:
                     hoveredPillar === idx
                       ? idx === 0
@@ -1204,7 +1205,7 @@ export function AboutPageContent() {
 
                 <div className="relative text-left space-y-3.5">
                   <div className="flex items-center justify-between">
-                    <span className="font-mono text-3xl font-black text-white/5" style={{ fontFamily: "var(--font-calsans)" }}>
+                    <span className="font-mono text-3xl font-black text-[var(--text-primary)]/5" style={{ fontFamily: "var(--font-calsans)" }}>
                       {pillar.num}
                     </span>
                     {idx === 0 ? (
@@ -1215,23 +1216,23 @@ export function AboutPageContent() {
                       <Shield className="h-4 w-4 text-brand-pink opacity-40 group-hover:opacity-100 transition-opacity duration-300" />
                     )}
                   </div>
-                  <h3 className="font-display text-base sm:text-lg font-bold text-white tracking-tight">
+                  <h3 className="font-display text-base sm:text-lg font-bold text-[var(--text-primary)] tracking-tight">
                     {pillar.title}
                   </h3>
-                  <span className="text-[8px] font-mono tracking-wider text-neutral-500 uppercase block font-bold">
+                  <span className="text-[8px] font-mono tracking-wider text-[var(--text-subtle)] uppercase block font-bold">
                     {pillar.subtitle}
                   </span>
-                  <p className="text-neutral-400 text-xs font-light leading-relaxed font-sans">
+                  <p className="text-[var(--text-muted)] text-xs font-light leading-relaxed font-sans">
                     {pillar.description}
                   </p>
                 </div>
 
                 {/* Benefit (ESTABLISHED VALUE) with selective highlight */}
                 <div className="pt-4 border-t border-white/[0.04] space-y-1 mt-auto relative z-10">
-                  <span className="text-[8px] font-mono text-neutral-500 uppercase block tracking-wider font-bold">
+                  <span className="text-[8px] font-mono text-[var(--text-subtle)] uppercase block tracking-wider font-bold">
                     ESTABLISHED VALUE
                   </span>
-                  <p className="text-xs text-neutral-300 font-sans leading-relaxed tracking-wide text-left">
+                  <p className="text-xs text-[var(--text-primary)] font-sans leading-relaxed tracking-wide text-left">
                     &ldquo;
                     {idx === 0 && (
                       <>
@@ -1263,9 +1264,9 @@ export function AboutPageContent() {
                 </div>
 
                 {/* Stats readout inside the card */}
-                <div className="pt-3 mt-4 border-t border-white/[0.04] flex items-center justify-between text-[8px] font-mono text-neutral-500 uppercase tracking-widest font-bold">
+                <div className="pt-3 mt-4 border-t border-white/[0.04] flex items-center justify-between text-[8px] font-mono text-[var(--text-subtle)] uppercase tracking-widest font-bold">
                   <span>STAT_LOG</span>
-                  <span className="text-white font-bold" style={{ fontFamily: "var(--font-calsans)" }}>{pillar.stats}</span>
+                  <span className="text-[var(--text-primary)] font-bold" style={{ fontFamily: "var(--font-calsans)" }}>{pillar.stats}</span>
                 </div>
               </motion.div>
             ))}
@@ -1276,10 +1277,11 @@ export function AboutPageContent() {
         {/* ARCHITECTURAL MANIFESTO CENTERPIECE ( strictly using premium CalSans display ) */}
         {/* ====================================================================== */}
         <motion.section
-          className="relative overflow-hidden rounded-[1.75rem] border p-8 sm:p-14 lg:p-20 text-center max-w-5xl mx-auto w-full bg-gradient-to-b from-[#0a0a0a] to-[#050505]"
+          className="relative overflow-hidden rounded-[1.75rem] border p-8 sm:p-14 lg:p-20 text-center max-w-5xl mx-auto w-full"
           style={{
             borderColor: "var(--border-subtle)",
-            boxShadow: "0 30px 80px -20px rgba(0,0,0,0.7)",
+            background: "var(--glass-elevated)",
+            boxShadow: "0 30px 80px -20px rgba(0,0,0,0.15)",
           }}
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
@@ -1315,7 +1317,7 @@ export function AboutPageContent() {
 
             {/* strictly using premium CalSans display font inside blockquote */}
             <blockquote
-              className="text-lg sm:text-2xl lg:text-3xl text-neutral-100 leading-relaxed tracking-widest font-bold uppercase"
+              className="text-lg sm:text-2xl lg:text-3xl text-[var(--text-primary)] leading-relaxed tracking-widest font-bold uppercase"
               style={{ fontFamily: "var(--font-calsans)" }}
             >
               &ldquo;OUR CANVAS DOESN&apos;T BELONG TO THE MACHINE. WE CREATE TOOLS TO AUGMENT VISUAL AUTHORSHIP, RETURNING CONTROL TO THOSE WHO DESIGN, DIRECT, AND SHIP THE WORLD&apos;S MOST BEAUTIFUL NARRATIVES.&rdquo;
@@ -1323,7 +1325,7 @@ export function AboutPageContent() {
 
             <div className="flex items-center justify-center gap-3 pt-3">
               <span className="h-[1px] w-8 bg-neutral-800" />
-              <cite className="font-mono text-[8px] text-neutral-500 uppercase tracking-[0.2em] font-extrabold not-italic">
+              <cite className="font-mono text-[8px] text-[var(--text-subtle)] uppercase tracking-[0.2em] font-extrabold not-italic">
                 RUHGEN FOUNDING ARCHITECTS // 2026
               </cite>
               <span className="h-[1px] w-8 bg-neutral-800" />
@@ -1345,7 +1347,7 @@ export function AboutPageContent() {
             <span className="text-[9px] font-mono tracking-[0.15em] text-[#00D4FF] uppercase block font-bold">
               THE CHRONICLE OF EVOLUTION
             </span>
-            <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight text-white leading-tight">
+            <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight text-[var(--text-primary)] leading-tight">
               Archival Chronicle
             </h2>
             <p className="text-xs sm:text-sm text-neutral-500 font-light font-sans leading-relaxed max-w-2xl mx-auto">
@@ -1363,7 +1365,7 @@ export function AboutPageContent() {
                 style={{
                   fontFamily: "var(--font-calsans)",
                   background: activeEpoch === idx ? "rgba(255,255,255,0.05)" : "transparent",
-                  color: activeEpoch === idx ? "white" : "var(--text-muted)",
+                  color: activeEpoch === idx ? "var(--text-primary)" : "var(--text-muted)",
                 }}
               >
                 {epoch.year}
@@ -1377,8 +1379,8 @@ export function AboutPageContent() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4 }}
-            className="premium-ring relative w-full overflow-hidden rounded-[1.75rem] border p-6 sm:p-10 text-center bg-black/20 backdrop-blur-2xl"
-            style={{ borderColor: "var(--border-subtle)" }}
+            className="premium-ring relative w-full overflow-hidden rounded-[1.75rem] border p-6 sm:p-10 text-center"
+            style={{ borderColor: "var(--border-subtle)", background: "var(--glass)" }}
           >
             <div
               className="pointer-events-none absolute -right-20 -top-20 h-40 w-40 rounded-full opacity-[0.1] blur-3xl transition-opacity duration-500"
@@ -1392,12 +1394,12 @@ export function AboutPageContent() {
                 {EPOCHS[activeEpoch].milestone}
               </span>
 
-              <h3 className="font-display text-xl sm:text-2xl font-bold text-white leading-tight">
+              <h3 className="font-display text-xl sm:text-2xl font-bold text-[var(--text-primary)] leading-tight">
                 {EPOCHS[activeEpoch].title}
               </h3>
 
               <p
-                className="text-neutral-300 text-sm sm:text-base leading-relaxed font-light italic max-w-3xl mx-auto"
+                className="text-[var(--text-primary)] text-sm sm:text-base leading-relaxed font-light italic max-w-3xl mx-auto"
                 style={{ fontFamily: "var(--font-ningetan)" }}
               >
                 &ldquo;{EPOCHS[activeEpoch].tagline}&rdquo;
@@ -1405,7 +1407,7 @@ export function AboutPageContent() {
 
               <div className="h-[1px] w-12 bg-white/[0.06] mx-auto my-2" />
 
-              <p className="text-neutral-400 text-xs sm:text-sm leading-relaxed font-light font-sans max-w-3xl mx-auto">
+              <p className="text-[var(--text-muted)] text-xs sm:text-sm leading-relaxed font-light font-sans max-w-3xl mx-auto">
                 {EPOCHS[activeEpoch].description}
               </p>
 
@@ -1414,12 +1416,13 @@ export function AboutPageContent() {
                 {EPOCHS[activeEpoch].metrics.map((metric) => (
                   <div
                     key={metric.label}
-                    className="border border-white/[0.04] bg-neutral-950/40 rounded-lg p-3.5 flex flex-col items-center justify-center"
+                    className="border rounded-lg p-3.5 flex flex-col items-center justify-center"
+                    style={{ borderColor: "var(--border-subtle)", background: "var(--glass)" }}
                   >
-                    <span className="text-lg font-bold tracking-tight text-white premium-text-shimmer" style={{ fontFamily: "var(--font-calsans)" }}>
+                    <span className="text-lg font-bold tracking-tight text-[var(--text-primary)] premium-text-shimmer" style={{ fontFamily: "var(--font-calsans)" }}>
                       {metric.value}
                     </span>
-                    <span className="text-[8px] font-mono text-neutral-500 uppercase tracking-wider mt-0.5 font-bold">
+                    <span className="text-[8px] font-mono text-[var(--text-subtle)] uppercase tracking-wider mt-0.5 font-bold">
                       {metric.label}
                     </span>
                   </div>
@@ -1437,9 +1440,9 @@ export function AboutPageContent() {
           className="relative scroll-mt-24 overflow-hidden rounded-[1.75rem] border p-8 sm:p-14 lg:p-18 w-full text-center"
           style={{
             borderColor: "var(--border-subtle)",
-            background: "linear-gradient(135deg, rgba(123,97,255,0.04) 0%, rgba(5,5,5,0.85) 50%, rgba(255,46,154,0.03) 100%)",
+            background: "linear-gradient(135deg, rgba(123,97,255,0.04) 0%, var(--glass) 50%, rgba(255,46,154,0.03) 100%)",
             backdropFilter: "blur(24px) saturate(180%)",
-            boxShadow: "0 30px 80px -20px rgba(0,0,0,0.7)",
+            boxShadow: "0 30px 80px -20px rgba(0,0,0,0.15)",
           }}
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
@@ -1459,14 +1462,14 @@ export function AboutPageContent() {
               CAREERS // COMPUTE SYSTEMS
             </div>
 
-            <h2 className="font-display text-2xl sm:text-4xl font-bold tracking-tight text-white leading-none">
+            <h2 className="font-display text-2xl sm:text-4xl font-bold tracking-tight text-[var(--text-primary)] leading-none">
               Bring your reel and <br />
               your systems thinking
             </h2>
 
-            <p className="text-neutral-400 text-xs sm:text-sm font-light leading-relaxed font-sans max-w-xl">
+            <p className="text-[var(--text-muted)] text-xs sm:text-sm font-light leading-relaxed font-sans max-w-xl">
               We are constantly seeking{" "}
-              <span style={{ fontFamily: "var(--font-ningetan)" }} className="text-white text-base px-0.5 inline font-normal">
+              <span style={{ fontFamily: "var(--font-ningetan)" }} className="text-[var(--text-primary)] text-base px-0.5 inline font-normal">
                 visual architects
               </span>
               , software craftspeople, and{" "}
@@ -1491,7 +1494,7 @@ export function AboutPageContent() {
 
               <Link
                 href="/platform"
-                className="w-full sm:w-auto inline-flex min-h-[48px] shrink-0 items-center justify-center gap-2 rounded-xl px-8 py-3 text-sm font-semibold text-neutral-300 border border-white/[0.08] bg-white/[0.01] hover:bg-white/[0.04] hover:text-white transition-all duration-300"
+                className="w-full sm:w-auto inline-flex min-h-[48px] shrink-0 items-center justify-center gap-2 rounded-xl px-8 py-3 text-sm font-semibold text-[var(--text-muted)] border border-[color-mix(in_oklab,var(--border-subtle)_60%,transparent)] bg-[color-mix(in_oklab,var(--glass)_70%,transparent)] hover:bg-[color-mix(in_oklab,var(--glass)_100%,transparent)] hover:text-[var(--text-primary)] transition-all duration-300"
                 style={{ fontFamily: "var(--font-calsans)" }}
               >
                 Explore Platform
