@@ -6,6 +6,8 @@ export const metadata: Metadata = {
   description: "Your RUHGEN workspace.",
 };
 
+export const unstable_instant = false;
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return <UserDashboardShell>{children}</UserDashboardShell>;
 }

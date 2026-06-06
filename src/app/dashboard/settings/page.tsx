@@ -8,6 +8,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { ProSettingsCard, ProSettingsHero } from "@/components/settings/ProSettingsShell";
 import { useTheme } from "@/components/ThemeProvider";
+import { SettingsSkeleton } from "@/components/Skeletons";
 
 const NOTIFY_KEY = "ruhgen-notify-email";
 const PRODUCT_KEY = "ruhgen-notify-product";
@@ -111,11 +112,7 @@ export default function SettingsPage() {
   }, []);
 
   if (!ready) {
-    return (
-      <div className="flex min-h-[40vh] items-center justify-center text-sm" style={{ color: "var(--text-muted)" }}>
-        Loading…
-      </div>
-    );
+    return <SettingsSkeleton />;
   }
   if (!user) return null;
 

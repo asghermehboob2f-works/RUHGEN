@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useScroll, useTransform, useSpring } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring, useMotionValue } from "framer-motion";
 import { useEffect, useState, useRef, useMemo } from "react";
 import Image from "next/image";
 import type { HeroBackgroundConfig, HeroBackgroundMedia } from "@/backend/site-content/types";
@@ -9,39 +9,59 @@ interface HeroBackgroundProps {
   config: HeroBackgroundConfig;
 }
 
-// Responsive heights for tracks to maintain structure on mobile and desktop
-const TRACK_HEIGHTS = ["clamp(18vh, 25vw, 28vh)", "clamp(22vh, 30vw, 32vh)", "clamp(18vh, 25vw, 28vh)"];
-const TRACK_SPEEDS = [0.04, 0.07, 0.05]; // Slightly slower for more cinematic feel
+const TRACK_HEIGHTS = [
+  "clamp(18vh, 25vw, 28vh)",
+  "clamp(22vh, 30vw, 32vh)",
+  "clamp(18vh, 25vw, 28vh)"
+];
+const TRACK_SPEEDS = [0.05, 0.08, 0.06]; // Relative speeds for parallax
 
 export function HeroBackground({ config }: HeroBackgroundProps) {
   const [mounted, setMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   
-  // Mouse parallax state
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  // Motion values for mouse movement parallax
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  
+  // Spring configurations for smooth parallax
+  const springX = useSpring(mouseX, { damping: 60, stiffness: 80 });
+  const springY = useSpring(mouseY, { damping: 60, stiffness: 80 });
 
   useEffect(() => {
     setMounted(true);
-    if (!config.enableParallax) return;
+    
+    // Check if device is mobile to optimize tracks
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    if (!config.enableParallax) return () => window.removeEventListener("resize", checkMobile);
 
     const handleMouseMove = (e: MouseEvent) => {
+      // Skip parallax calculations on mobile screens
+      if (window.innerWidth < 768) return;
+
       const { clientX, clientY } = e;
       const { innerWidth, innerHeight } = window;
-      setMousePos({
-        x: (clientX / innerWidth - 0.5) * (config.parallaxIntensity * 3),
-        y: (clientY / innerHeight - 0.5) * (config.parallaxIntensity * 3),
-      });
+      mouseX.set((clientX / innerWidth - 0.5) * (config.parallaxIntensity * 3));
+      mouseY.set((clientY / innerHeight - 0.5) * (config.parallaxIntensity * 3));
     };
 
     window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [config.enableParallax, config.parallaxIntensity]);
+    return () => {
+      window.removeEventListener("resize", checkMobile);
+      window.removeEventListener("mousemove", handleMouseMove);
+    };
+  }, [config.enableParallax, config.parallaxIntensity, mouseX, mouseY]);
 
-  // Create 3 DIFFERENT pools of media for the 3 tracks to ensure ZERO vertical repetition.
+  // Create 3 DIFFERENT pools of media for the 3 tracks to ensure ZERO vertical repetition on desktop.
   const tracksMedia = useMemo(() => {
     if (!config.media || config.media.length === 0) return [[], [], []];
     
-    // Split the available images into 3 distinct, non-overlapping groups.
     const media = config.media;
     const third = Math.ceil(media.length / 3);
     const twoThirds = Math.ceil((media.length * 2) / 3);
@@ -53,7 +73,7 @@ export function HeroBackground({ config }: HeroBackgroundProps) {
     ];
   }, [config.media]);
 
-  if (!mounted) return <div className="absolute inset-0 bg-[#020202]" />;
+  if (!mounted || !config.media || config.media.length === 0) return <div className="absolute inset-0 bg-[#020202]" />;
 
   return (
     <div 
@@ -63,10 +83,9 @@ export function HeroBackground({ config }: HeroBackgroundProps) {
       <motion.div
         className="relative h-[130%] w-[130%] -left-[15%] -top-[15%] flex flex-col justify-center gap-6 py-8 pt-20"
         style={{
-          x: mousePos.x,
-          y: mousePos.y,
+          x: springX,
+          y: springY,
         }}
-        transition={{ type: "spring", damping: 60, stiffness: 80 }}
       >
         {tracksMedia.map((media, idx) => (
           <SlidingTrack 
@@ -76,8 +95,8 @@ export function HeroBackground({ config }: HeroBackgroundProps) {
             speed={TRACK_SPEEDS[idx]}
             reverse={idx === 1} // Middle goes opposite
             index={idx}
-            blur={idx !== 1} // Add a subtle blur to outer tracks for depth
-            scale={idx === 1 ? 1 : 0.9}
+            blur={isMobile ? false : idx !== 1} // Disable blur filter on mobile to save GPU
+            scale={isMobile ? 1 : (idx === 1 ? 1 : 0.9)} // Disable scale filter on mobile
             opacity={idx === 1 ? 0.95 : 0.7} // Maximum visibility
           />
         ))}

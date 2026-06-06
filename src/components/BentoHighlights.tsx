@@ -70,7 +70,7 @@ export function BentoHighlights({ hideTitle = false }: { hideTitle?: boolean }) 
             className="mb-10 grid gap-8 md:mb-14 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:items-end lg:gap-12"
             initial={reduce ? false : { opacity: 0, y: 14 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
+            viewport={{ once: true, margin: "-40px" }}
             transition={{ duration: 0.45 }}
           >
             <div className="text-center lg:text-left">

@@ -37,7 +37,7 @@ export function FaqHubContent() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/faqs")
+    fetch(`/api/faqs?_t=${Date.now()}`, { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => {
         if (data.ok) {

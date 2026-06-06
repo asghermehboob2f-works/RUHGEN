@@ -2,7 +2,7 @@
 
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
-import { useState, type ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import {
   MARKETING_NAV_PRIMARY,
   MARKETING_NAV_SECONDARY,
@@ -202,6 +202,11 @@ function MobileAccordion({ id, title, children }: { id: string; title: string; c
 }
 
 export function Footer() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [email, setEmail] = useState("");
   const [newsletterState, setNewsletterState] = useState<"idle" | "loading" | "success" | "error">(
     "idle"
@@ -376,7 +381,7 @@ export function Footer() {
           style={{ color: "var(--text-subtle)" }}
         >
           <p className="text-[10.5px] font-medium tabular-nums tracking-wide sm:text-[11px]">
-            © {new Date().getFullYear()} RUHGEN. All rights reserved.
+            © {mounted ? new Date().getFullYear() : 2026} RUHGEN. All rights reserved.
           </p>
           <p className="max-w-md text-[10.5px] leading-snug sm:text-right sm:text-[11px] sm:leading-snug">
             Engineered for motion, stills, and imagination.

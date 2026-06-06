@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
+import { BillingSkeleton } from "@/components/Skeletons";
 
 export default function BillingPage() {
   const { user, ready } = useAuth();
@@ -17,11 +18,7 @@ export default function BillingPage() {
   }, [ready, user, router]);
 
   if (!ready) {
-    return (
-      <div className="flex min-h-[40vh] items-center justify-center text-sm" style={{ color: "var(--text-muted)" }}>
-        Loading…
-      </div>
-    );
+    return <BillingSkeleton />;
   }
   if (!user) return null;
 

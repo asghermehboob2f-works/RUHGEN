@@ -27,7 +27,7 @@ export function FAQ({
 
   useEffect(() => {
     if (!items) {
-      fetch("/api/faqs")
+      fetch(`/api/faqs?_t=${Date.now()}`, { cache: "no-store" })
         .then((r) => r.json())
         .then((data) => {
           if (data.ok) {

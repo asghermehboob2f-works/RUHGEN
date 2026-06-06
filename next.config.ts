@@ -4,6 +4,7 @@ import type { NextConfig } from "next";
 const backend = (process.env.BACKEND_URL || "http://127.0.0.1:4000").replace(/\/$/, "");
 
 const nextConfig: NextConfig = {
+  cacheComponents: true,
   turbopack: {
     root: path.resolve(__dirname),
   },

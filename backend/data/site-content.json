@@ -77,42 +77,6 @@
   "heroBackground": {
     "media": [
       {
-        "id": "6d7f6101-fa7d-465f-b0f7-c32ec62b41ce",
-        "type": "image",
-        "src": "/media/homepage/6b044084-2a1e-4619-8beb-80bd6ab00a49.png",
-        "filename": "g.png"
-      },
-      {
-        "id": "02b05afa-78d2-49a0-862f-c940f3d26238",
-        "type": "image",
-        "src": "/media/homepage/44eb08ee-00a6-4343-9ced-b98889f2ec53.png",
-        "filename": "Screenshot 2025-08-12 213432.png"
-      },
-      {
-        "id": "27c692cb-c3d5-4d19-8a8f-11b01c7b6626",
-        "type": "image",
-        "src": "/media/homepage/e0e97232-e787-4b62-a326-1afd3250f8b5.png",
-        "filename": "Screenshot 2025-08-12 213500.png"
-      },
-      {
-        "id": "80704dd2-d904-4806-89a6-349d537ff8b3",
-        "type": "image",
-        "src": "/media/homepage/3d9f457a-b733-4c5a-87ac-23f5559c996e.png",
-        "filename": "Screenshot 2025-08-12 213447.png"
-      },
-      {
-        "id": "1ee6e5a1-f310-4695-a424-04b5e8f5b81d",
-        "type": "image",
-        "src": "/media/homepage/5fcdd742-97cb-4375-bd6d-6a7792541d15.png",
-        "filename": "Screenshot 2025-08-12 213454.png"
-      },
-      {
-        "id": "d819a4fa-67cf-4141-b2d8-bb713dc6e34d",
-        "type": "image",
-        "src": "/media/homepage/46fc8635-1247-4994-b922-1d6318524842.png",
-        "filename": "Screenshot 2025-08-12 213517.png"
-      },
-      {
         "id": "55e1e3f0-9238-44bd-8fd0-384036070045",
         "type": "image",
         "src": "/media/homepage/1af46df8-8c38-4903-ba06-5bbfe2c3b0d8.png",
@@ -129,54 +93,6 @@
         "type": "image",
         "src": "/media/homepage/f083a988-fde2-4cdf-ae92-e65af35c1779.png",
         "filename": "Screenshot 2025-08-12 213424.png"
-      },
-      {
-        "id": "db53e7bf-6907-49eb-a544-d613b7fa3519",
-        "type": "image",
-        "src": "/media/homepage/d8648ca6-d062-4071-85d0-496efa832233.png",
-        "filename": "Screenshot 2025-08-12 214622.png"
-      },
-      {
-        "id": "a9dd7c5e-ebb1-4614-97b8-287acff978ea",
-        "type": "image",
-        "src": "/media/homepage/b3f1031b-0ee9-4bb0-ad9e-ab1f737f753e.png",
-        "filename": "Screenshot 2025-08-12 214645.png"
-      },
-      {
-        "id": "0678cbd6-b923-455d-b4af-b0bdf68f1e17",
-        "type": "image",
-        "src": "/media/homepage/ed2acc38-c2a3-4f49-9694-5e0db3ef668c.png",
-        "filename": "Screenshot 2025-08-12 214414.png"
-      },
-      {
-        "id": "0a3d0d99-c873-4090-b2bf-24b62d50b059",
-        "type": "image",
-        "src": "/media/homepage/fc21b6ea-7ef0-4f8e-bf32-715e315fc342.png",
-        "filename": "Screenshot 2025-08-12 214706.png"
-      },
-      {
-        "id": "2bb015a5-10fb-48c2-8545-3f86b3a7adf5",
-        "type": "image",
-        "src": "/media/homepage/be57207d-0349-464b-bf4d-fd2d5e756885.png",
-        "filename": "generated_image_eqz9xi.png"
-      },
-      {
-        "id": "1d5c2367-99d7-4eb6-bde7-c170b72b8d01",
-        "type": "image",
-        "src": "/media/homepage/49c29523-4ef2-494f-83fa-a75d655511f9.jpg",
-        "filename": "tanjiro-kamado-5120x2880-16947.jpg"
-      },
-      {
-        "id": "fa4b9280-7c59-449b-a8c0-b28c3e0d203a",
-        "type": "image",
-        "src": "/media/homepage/23dcd8db-7ded-41e3-b744-c9574a65c12a.jpg",
-        "filename": "copy1.jpg"
-      },
-      {
-        "id": "4a22c536-688a-430b-9fd4-bfb1fe85419a",
-        "type": "image",
-        "src": "/media/homepage/5ed02cd6-5c87-4d43-baaa-3c6c0028b451.jpg",
-        "filename": "wallpaperflare.com_wallpaper (1).jpg"
       },
       {
         "id": "57984a93-0ba5-47df-83c9-80e8503aec39",
@@ -197,22 +113,148 @@
         "filename": "Feel the fear and do it anyway.Follow me (@bracket) for more.jpg"
       },
       {
-        "id": "a2aedcec-7cf3-4e76-94d3-d2b98d7f0f5e",
+        "id": "ee712d4c-7239-4f37-8ca8-fa08d0f30326",
         "type": "image",
-        "src": "/media/homepage/5c6e92de-d079-4a68-97fd-572acf076053.jpg",
-        "filename": "sanemi-shinazugawa-5120x2880-16953.jpg"
+        "src": "/media/homepage/08c6fa10-7975-4920-8f49-48708e3b10b3.jpg",
+        "filename": "df.jpg"
       },
       {
-        "id": "ddb43675-2387-489b-94c2-45de4211fd35",
+        "id": "fd7e71f9-be60-49a3-9d72-5a36dcc6b348",
         "type": "image",
-        "src": "/media/homepage/07f13d90-38c7-468e-ac18-51b323715bbe.jpg",
-        "filename": "tengen-uzui-dark-7680x4320-18405.jpg"
+        "src": "/media/homepage/44861984-cfb9-4146-835a-b86b71953607.jpg",
+        "filename": "Screenshot 2025-08-12 214706.jpg"
       },
       {
-        "id": "02e3ebb9-a791-4393-b3d1-e3e48b03bcae",
+        "id": "4ad11fb0-88ef-4c5c-938e-c3e79b362975",
         "type": "image",
-        "src": "/media/homepage/f9272ff9-de93-455a-b99b-c566f72f19ff.png",
-        "filename": "tanjiro-kamado-5120x2880-18345.png"
+        "src": "/media/homepage/182736ed-64dc-45a8-bc1f-66315616025e.jpg",
+        "filename": "a.jpg"
+      },
+      {
+        "id": "cd5fe1be-c25b-446c-b3ed-dac5feb5538b",
+        "type": "image",
+        "src": "/media/homepage/0c2d999e-e0be-4ee3-97b4-fe17d3ff7362.jpg",
+        "filename": "b.jpg"
+      },
+      {
+        "id": "4462951e-1b36-4f26-b8e5-6938ce0cf3fd",
+        "type": "image",
+        "src": "/media/homepage/073a1e44-ade3-46b3-ade3-5e088dad6ae6.jpg",
+        "filename": "c.jpg"
+      },
+      {
+        "id": "30199de1-f144-4292-bf52-c08780ec62e2",
+        "type": "image",
+        "src": "/media/homepage/7721c77f-8066-4961-9b64-c583b5ed55ec.jpg",
+        "filename": "d.jpg"
+      },
+      {
+        "id": "4c3698d3-9dfa-46a2-9aeb-d76a9e3a57ea",
+        "type": "image",
+        "src": "/media/homepage/87230c97-9bb4-40a7-aaba-3e38dc63237f.jpg",
+        "filename": "e.jpg"
+      },
+      {
+        "id": "a43753e1-81ef-48f3-a72e-dc3c845337ce",
+        "type": "image",
+        "src": "/media/homepage/a11e2f08-9289-49de-8b55-7d1de282b130.jpg",
+        "filename": "f.jpg"
+      },
+      {
+        "id": "8f918248-a038-464d-8cc2-ac8d91d0a32e",
+        "type": "image",
+        "src": "/media/homepage/6828b147-1fad-4b28-99b2-5fd26668d3ec.jpg",
+        "filename": "gg.jpg"
+      },
+      {
+        "id": "86009c3b-12f0-4d97-8d61-7951b57aec1f",
+        "type": "image",
+        "src": "/media/homepage/a38a8984-7d5f-4ec5-bf10-210c7b37821c.jpg",
+        "filename": "h.jpg"
+      },
+      {
+        "id": "762c627e-2c21-4c8a-8605-2374171bce68",
+        "type": "image",
+        "src": "/media/homepage/758d0d10-57a4-4655-8846-7cba7a93145d.jpg",
+        "filename": "j.jpg"
+      },
+      {
+        "id": "f03107f6-c6bc-4d52-8289-7924e11dd428",
+        "type": "image",
+        "src": "/media/homepage/40a8bdfb-b520-4382-8c21-3e1ed93f046a.jpg",
+        "filename": "k.jpg"
+      },
+      {
+        "id": "34ca5fd3-3dbf-4f8e-bbdd-ac07ccaec051",
+        "type": "image",
+        "src": "/media/homepage/cef8a654-1dcd-4323-ae37-1cddb7de6286.jpg",
+        "filename": "l.jpg"
+      },
+      {
+        "id": "1d6952cf-be34-46cc-a747-1eebc4bce1f5",
+        "type": "image",
+        "src": "/media/homepage/9cc7eab3-882a-4784-bf8a-c7ba9162471d.jpg",
+        "filename": "m.jpg"
+      },
+      {
+        "id": "578521a4-ff3a-4d82-97cb-1b60ebc1e33e",
+        "type": "image",
+        "src": "/media/homepage/ee1949cb-b847-4d9f-8684-35ba59d03a20.jpg",
+        "filename": "n.jpg"
+      },
+      {
+        "id": "100ce62f-e926-4fca-8566-38dbfb9e8d76",
+        "type": "image",
+        "src": "/media/homepage/829f7ae8-90d8-480e-85a7-f7c5efe35352.jpg",
+        "filename": "q.jpg"
+      },
+      {
+        "id": "1d25a3c8-3a02-4dd7-9747-574c0f19a3b3",
+        "type": "image",
+        "src": "/media/homepage/67a0865a-c7a7-4c04-b170-8111ba32bda9.jpg",
+        "filename": "r.jpg"
+      },
+      {
+        "id": "a1531267-cb4c-440e-9648-6a67d45f3391",
+        "type": "image",
+        "src": "/media/homepage/f98eaabd-e317-48a8-b44e-a9a11b8036c3.jpg",
+        "filename": "s.jpg"
+      },
+      {
+        "id": "cbd683fa-a822-4da2-90d7-73e44145b546",
+        "type": "image",
+        "src": "/media/homepage/92ac62d9-963c-4955-8d03-68f2e1e8ec51.jpg",
+        "filename": "t.jpg"
+      },
+      {
+        "id": "5a4a4447-526f-4351-9b31-b8ae8ae3bbd3",
+        "type": "image",
+        "src": "/media/homepage/3b51c0e3-bf11-4816-b1db-d0ca0c529cf2.jpg",
+        "filename": "u.jpg"
+      },
+      {
+        "id": "47746c34-3543-4aed-88bb-e7cba684d5a6",
+        "type": "image",
+        "src": "/media/homepage/8fc0f0c5-314a-4bb5-8f8e-089b79ca76cc.jpg",
+        "filename": "v.jpg"
+      },
+      {
+        "id": "ab964ec5-e888-41cf-9600-0e44beb3477b",
+        "type": "image",
+        "src": "/media/homepage/4ed7dcc7-d106-4835-8b7e-742c683a2564.jpg",
+        "filename": "x.jpg"
+      },
+      {
+        "id": "078f0ee0-e5e2-49a7-a48c-dca889898ca1",
+        "type": "image",
+        "src": "/media/homepage/cb5dea76-3e11-43bd-bc83-32684cc73361.jpg",
+        "filename": "y.jpg"
+      },
+      {
+        "id": "05108a90-651f-41d3-b1e0-b5f9fe263d58",
+        "type": "image",
+        "src": "/media/homepage/7d52c9be-bcb4-40b3-99ad-f11056c751e1.jpg",
+        "filename": "z.jpg"
       }
     ],
     "overlayOpacity": 0.36,

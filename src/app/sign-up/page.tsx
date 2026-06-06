@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { AuthChrome } from "@/components/AuthChrome";
 import { useAuth } from "@/components/AuthProvider";
+import { DashboardLoading } from "@/components/dashboard/DashboardLoading";
 
 function passwordScore(pw: string): number {
   let s = 0;
@@ -67,11 +68,7 @@ export default function SignUpPage() {
   };
 
   if (!ready) {
-    return (
-      <div className="flex min-h-[100dvh] items-center justify-center" style={{ color: "var(--text-muted)" }}>
-        Loading…
-      </div>
-    );
+    return <DashboardLoading label="Preparing registration…" className="min-h-screen" />;
   }
 
   if (user) return null;

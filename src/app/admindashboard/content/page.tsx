@@ -7,7 +7,7 @@ import HeroBackground from "@/components/HeroBackground";
 import Hero from "@/components/Hero";
 import { motion, useReducedMotion } from "framer-motion";
 import { useAdminAuth } from "@/components/AdminAuthProvider";
-import type { GalleryCategory, SiteContent } from "@/backend/site-content/types";
+import type { SiteContent } from "@/backend/site-content/types";
 import { PUBLIC_DEFAULT_SITE_CONTENT } from "@/backend/site-content/default-content";
 import { UploadCloud, Plus } from "lucide-react";
 
@@ -383,131 +383,7 @@ export default function DashboardContentPage() {
             </section>
           )}
 
-          {/* Showcase gallery */}
-          {activeTab === "hero" && (
-            <section className="rounded-2xl border p-5 sm:p-7" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
-              <h2 className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>Showcase gallery</h2>
-              <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
-                All tiles are forced to landscape for a consistent look.
-              </p>
 
-              <div className="mt-5 flex flex-wrap items-center justify-between gap-2">
-                <p className="text-xs font-medium" style={{ color: "var(--text-subtle)" }}>
-                  Add new images here — they show up on the landing page gallery.
-                </p>
-                <motion.button
-                  type="button"
-                  whileTap={reduce ? undefined : { scale: 0.98 }}
-                  onClick={() => {
-                    if (!content) return;
-                    const next = structuredClone(content);
-                    next.gallery.items.unshift({
-                      id: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `gal-${Date.now()}`,
-                      src: "",
-                      alt: "New gallery image",
-                      prompt: "New prompt",
-                      category: "cinematic",
-                    });
-                    setContent(next);
-                    setStatus("");
-                  }}
-                  className="shrink-0 rounded-xl border px-4 py-2.5 text-sm font-semibold"
-                  style={{
-                    borderColor: "var(--border-subtle)",
-                    background: "var(--soft-black)",
-                    color: "var(--text-primary)",
-                  }}
-                >
-                  Add image
-                </motion.button>
-              </div>
-
-              <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {content.gallery.items.map((it, idx) => (
-                  <div key={it.id} className="editor-card p-3">
-                    <div className="mb-2 flex items-start justify-between gap-2">
-                      <p className="text-xs font-mono" style={{ color: "var(--text-subtle)" }}>
-                        {it.id}
-                      </p>
-                      <button
-                        type="button"
-                        className="shrink-0 text-xs font-semibold text-[#FF2E9A] hover:underline"
-                        onClick={() => {
-                          const next = structuredClone(content);
-                          if (next.gallery.items.length <= 1) {
-                            setStatus("Keep at least one gallery image.");
-                            return;
-                          }
-                          next.gallery.items.splice(idx, 1);
-                          setContent(next);
-                          setStatus("");
-                        }}
-                      >
-                        Remove
-                      </button>
-                    </div>
-                    <div className="relative aspect-video overflow-hidden rounded-lg border" style={{ borderColor: "var(--border-subtle)" }}>
-                      {it.src ? (
-                        <Image src={it.src} alt={it.alt} fill className="object-cover" sizes="(max-width: 1024px) 50vw, 33vw" />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center text-xs" style={{ color: "var(--text-muted)" }}>
-                          Upload an image
-                        </div>
-                      )}
-                    </div>
-                    <div className="mt-3 grid gap-2">
-                      <select
-                        value={it.category}
-                        onChange={(e) => {
-                          const next = structuredClone(content);
-                          next.gallery.items[idx].category = e.target.value as GalleryCategory;
-                          setContent(next);
-                        }}
-                        className="min-h-[40px] w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#7B61FF]/40"
-                        style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
-                      >
-                        <option value="cinematic">Cinematic</option>
-                        <option value="sci-fi">Sci-Fi</option>
-                        <option value="art">Art</option>
-                        <option value="realistic">Realistic</option>
-                      </select>
-                      <input
-                        value={it.prompt}
-                        onChange={(e) => {
-                          const next = structuredClone(content);
-                          next.gallery.items[idx].prompt = e.target.value;
-                          setContent(next);
-                        }}
-                        className="min-h-[40px] w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#7B61FF]/40"
-                        style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
-                        placeholder="Prompt"
-                      />
-                      <label className="mt-1 flex min-h-[38px] cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-white/5 bg-white/5 text-[11px] font-bold text-white transition-colors hover:bg-white/10">
-                        <UploadCloud className="h-4 w-4 text-[#00D4FF]" />
-                        Upload Image
-                        <input
-                          type="file"
-                          accept="image/png,image/jpeg,image/webp"
-                          onChange={async (e) => {
-                            const f = e.target.files?.[0];
-                            if (!f) return;
-                            const src = await upload("gallery", f);
-                            if (!src) return;
-                            const next = structuredClone(content);
-                            next.gallery.items[idx].src = src;
-                            next.gallery.items[idx].alt = f.name;
-                            setContent(next);
-                            e.target.value = "";
-                          }}
-                          className="hidden"
-                        />
-                      </label>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
 
 
           

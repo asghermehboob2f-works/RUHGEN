@@ -44,7 +44,7 @@ function FaqCmsContent() {
 
   const fetchFaqs = async () => {
     try {
-      const res = await fetch("/api/faqs");
+      const res = await fetch(`/api/faqs?_t=${Date.now()}`, { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
         if (data.ok && Array.isArray(data.faqs)) {

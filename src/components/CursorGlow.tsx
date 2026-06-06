@@ -1,11 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
-type Point = { x: number; y: number };
+import { useEffect, useRef } from "react";
 
 export function CursorGlow({ disabled = false }: { disabled?: boolean }) {
-  const [p, setP] = useState<Point | null>(null);
+  const glowRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (disabled) return;
@@ -15,14 +13,21 @@ export function CursorGlow({ disabled = false }: { disabled?: boolean }) {
       return;
     }
 
+    const glowEl = glowRef.current;
+    if (!glowEl) return;
+
+    // Start invisible to avoid snap jump on first movement
+    glowEl.style.opacity = "0";
+
     const onMove = (e: MouseEvent) => {
-      setP({ x: e.clientX, y: e.clientY });
+      glowEl.style.transform = `translate3d(calc(${e.clientX}px - 50%), calc(${e.clientY}px - 50%), 0)`;
+      glowEl.style.opacity = "0.13";
     };
     window.addEventListener("mousemove", onMove, { passive: true });
     return () => window.removeEventListener("mousemove", onMove);
   }, [disabled]);
 
-  if (!p || disabled) return null;
+  if (disabled) return null;
 
   return (
     <div
@@ -30,10 +35,10 @@ export function CursorGlow({ disabled = false }: { disabled?: boolean }) {
       aria-hidden
     >
       <div
-        className="absolute h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-[0.13] blur-[90px] transition-[transform] duration-100 ease-out will-change-transform"
+        ref={glowRef}
+        className="absolute left-0 top-0 h-[420px] w-[420px] rounded-full blur-[90px] transition-[transform,opacity] duration-150 ease-out will-change-transform"
         style={{
-          left: p.x,
-          top: p.y,
+          opacity: 0,
           background:
             "radial-gradient(circle, rgba(123,97,255,0.9) 0%, rgba(0,212,255,0.45) 45%, transparent 70%)",
         }}
@@ -41,3 +46,4 @@ export function CursorGlow({ disabled = false }: { disabled?: boolean }) {
     </div>
   );
 }
+

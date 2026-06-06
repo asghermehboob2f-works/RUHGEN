@@ -15,6 +15,7 @@ import {
   proInputClass,
   proInputStyle,
 } from "@/components/settings/ProSettingsShell";
+import { SettingsSkeleton } from "@/components/Skeletons";
 
 function UserAccountForm({ user }: { user: SessionUser }) {
   const { updateProfile } = useAuth();
@@ -233,11 +234,7 @@ export default function UserAccountSettingsPage() {
   }, [ready, user, router]);
 
   if (!ready) {
-    return (
-      <div className="flex min-h-[40vh] items-center justify-center text-sm" style={{ color: "var(--text-muted)" }}>
-        Loading…
-      </div>
-    );
+    return <SettingsSkeleton />;
   }
   if (!user) return null;
 

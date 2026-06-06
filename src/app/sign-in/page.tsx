@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AuthChrome } from "@/components/AuthChrome";
 import { useAuth } from "@/components/AuthProvider";
+import { DashboardLoading } from "@/components/dashboard/DashboardLoading";
 
 export default function SignInPage() {
   const { user, ready, signIn } = useAuth();
@@ -58,11 +59,7 @@ export default function SignInPage() {
   };
 
   if (!ready) {
-    return (
-      <div className="flex min-h-[100dvh] items-center justify-center" style={{ color: "var(--text-muted)" }}>
-        Loading…
-      </div>
-    );
+    return <DashboardLoading label="Accessing workspace…" className="min-h-screen" />;
   }
 
   if (user) return null;

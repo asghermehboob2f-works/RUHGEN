@@ -27,6 +27,9 @@ function mountFaqRoutes(app, { db }) {
   // Public route to get all FAQs
   app.get("/api/faqs", (req, res) => {
     try {
+      res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+      res.setHeader("Pragma", "no-cache");
+      res.setHeader("Expires", "0");
       const rows = db.prepare("SELECT * FROM faqs ORDER BY created_at ASC").all();
       return res.json({ ok: true, faqs: rows });
     } catch (e) {
