@@ -193,6 +193,54 @@ function openDb(projectRoot) {
       updated_at TEXT NOT NULL
     );
   `);
+
+  // Migrate users table if credits column does not exist
+  const tableInfo = db.pragma("table_info(users)");
+  const hasCredits = tableInfo.some(col => col.name === "credits");
+  if (!hasCredits) {
+    db.exec("ALTER TABLE users ADD COLUMN credits INTEGER NOT NULL DEFAULT 120");
+    console.log("[db] Added credits column to users table");
+  }
+
+  // Create credit-related tables
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS credit_settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS credit_transactions (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      action_type TEXT NOT NULL,
+      credits_added INTEGER NOT NULL DEFAULT 0,
+      credits_deducted INTEGER NOT NULL DEFAULT 0,
+      previous_balance INTEGER NOT NULL,
+      new_balance INTEGER NOT NULL,
+      timestamp TEXT NOT NULL,
+      source TEXT NOT NULL,
+      reason TEXT NOT NULL DEFAULT '',
+      details_json TEXT NOT NULL DEFAULT '{}',
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    CREATE TABLE IF NOT EXISTS studio_tasks (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      type TEXT NOT NULL,
+      credits INTEGER NOT NULL,
+      status TEXT NOT NULL DEFAULT 'pending',
+      created_at TEXT NOT NULL,
+      details_json TEXT NOT NULL DEFAULT '{}',
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_studio_tasks_user_status_created
+      ON studio_tasks (user_id, status, created_at DESC);
+  `);
+
+  // Seed default rates if not present
+  const stmtSetting = db.prepare("INSERT OR IGNORE INTO credit_settings (key, value) VALUES (?, ?)");
+  stmtSetting.run("credits_per_image", "2");
+  stmtSetting.run("credits_per_video_second", "5");
+
   seedSiteContentIfEmpty(db, dataDir, projectRoot);
   migrateLegacyJsonIfEmpty(db, dataDir, projectRoot);
   syncSiteContentFromSeedFile(db, dataDir, projectRoot);

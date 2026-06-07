@@ -378,7 +378,7 @@ app.get("/api/health", (_req, res) => {
 });
 
 mountUserAuthRoutes(app, { db });
-mountStudioRoutes(app, { upload });
+mountStudioRoutes(app, { upload, db });
 mountCommunityRoutes(app, { db });
 mountAcademyRoutes(app, { db, projectRoot });
 mountFaqRoutes(app, { db });

@@ -63,7 +63,7 @@ export default function DashboardPage() {
   if (!user) return null;
 
   const firstName = user.name.split(" ")[0] || "creator";
-  const credits = 120;
+  const credits = user.credits ?? 0;
 
   return (
     <div className="space-y-8 sm:space-y-10">

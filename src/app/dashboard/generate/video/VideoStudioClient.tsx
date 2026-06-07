@@ -181,10 +181,36 @@ const btnCredits =
   "inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-transparent px-2.5 text-[11px] font-bold uppercase tracking-[0.08em] text-white shadow-sm transition-[box-shadow,opacity] hover:opacity-95 sm:px-3 sm:text-xs";
 
 export default function VideoStudioClient() {
-  const { user, ready } = useAuth();
+  const { user, ready, refreshUser } = useAuth();
   const router = useRouter();
   const reduce = useReducedMotion();
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const [rates, setRates] = useState<{ credits_per_image: number; credits_per_video_second: number }>({
+    credits_per_image: 2,
+    credits_per_video_second: 5,
+  });
+
+  useEffect(() => {
+    const fetchRates = async () => {
+      const token = localStorage.getItem("ruhgen_user_jwt_v1");
+      if (!token) return;
+      try {
+        const res = await fetch("/api/credits/rates", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (data.ok && data.rates) {
+          setRates(data.rates);
+        }
+      } catch (err) {
+        console.error("Error fetching credit rates", err);
+      }
+    };
+    if (user) {
+      void fetchRates();
+    }
+  }, [user]);
   const scrollEndRef = useRef<HTMLDivElement>(null);
   const promptDockRef = useRef<HTMLDivElement>(null);
   const stickToBottomRef = useRef(true);
@@ -487,6 +513,7 @@ export default function VideoStudioClient() {
         negative_prompt: neg || undefined,
         image_url: img || undefined,
       });
+      void refreshUser();
       setMessages((prev) => prev.map((x) => (x.id === asstId ? { ...x, phase: "Rendering video…" } : x)));
       const result = await pollPiApiTask(taskId, {
         intervalMs: 3000,
@@ -513,6 +540,7 @@ export default function VideoStudioClient() {
       setMessages((prev) => prev.map((x) => (x.id === asstId ? { ...x, loading: false, phase: "", urls: [], error: err } : x)));
     } finally {
       setBusy(false);
+      void refreshUser();
     }
   }, [prompt, negativePrompt, duration, aspect, mode, version, imageUrl, busy]);
 
@@ -1002,7 +1030,7 @@ export default function VideoStudioClient() {
             ) : (
               <>
                 <Sparkles className="h-5 w-5" strokeWidth={2} />
-                Generate
+                Generate ({duration * rates.credits_per_video_second} credits)
               </>
             )}
           </StudioGlowGenerate>
@@ -1414,7 +1442,7 @@ export default function VideoStudioClient() {
                   ) : (
                     <>
                       <Sparkles className="h-5 w-5" strokeWidth={2} />
-                      Generate
+                      Generate ({duration * rates.credits_per_video_second} credits)
                     </>
                   )}
                 </StudioGlowGenerate>
@@ -1492,6 +1520,7 @@ export default function VideoStudioClient() {
               aria-label="Credits"
             >
               <Sparkles className="h-3.5 w-3.5" strokeWidth={2} />
+              <span className="tabular-nums font-semibold">{user?.credits ?? 0} </span>
               <span className="hidden sm:inline">Credits</span>
             </Link>
             <Link

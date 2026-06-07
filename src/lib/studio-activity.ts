@@ -15,6 +15,7 @@ export type RecentGeneration = {
   previewUrl: string;
   prompt: string;
   href: string;
+  createdAt?: string;
 };
 
 function parseMessages(raw: string | null): StoredMsg[] | null {
@@ -72,4 +73,25 @@ export function readRecentGenerations(userId: string, limit = 8): RecentGenerati
   const image = generationsFromMessages(imageMsgs ?? [], "image");
   const video = generationsFromMessages(videoMsgs ?? [], "video");
   return interleave(image, video, limit);
+}
+
+export async function fetchRecentGenerations(limit = 50): Promise<RecentGeneration[]> {
+  try {
+    const token = typeof window !== "undefined" ? window.localStorage.getItem("ruhgen_user_jwt_v1") : null;
+    if (!token) return [];
+    const res = await fetch(`/api/studio/recent-generations?limit=${limit}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    if (data.ok && Array.isArray(data.generations)) {
+      return data.generations;
+    }
+    return [];
+  } catch (err) {
+    console.error("Error fetching recent generations from API:", err);
+    return [];
+  }
 }

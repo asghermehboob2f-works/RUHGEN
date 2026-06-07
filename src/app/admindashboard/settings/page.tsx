@@ -3,7 +3,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { Eye, EyeOff, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAdminAuth } from "@/components/AdminAuthProvider";
 import type { AdminUser } from "@/lib/admin-auth-storage";
 import {
@@ -28,6 +28,28 @@ function AdminSettingsForm({ admin }: { admin: AdminUser }) {
   const [showNew, setShowNew] = useState(false);
   const [status, setStatus] = useState("");
   const [pending, setPending] = useState(false);
+
+  // Credit Rates states
+  const [imageRate, setImageRate] = useState("2");
+  const [videoRate, setVideoRate] = useState("5");
+  const [rateStatus, setRateStatus] = useState("");
+  const [ratesPending, setRatesPending] = useState(false);
+
+  useEffect(() => {
+    const fetchRates = async () => {
+      try {
+        const res = await fetch("/api/credits/rates");
+        const data = await res.json();
+        if (data.ok && data.rates) {
+          setImageRate(String(data.rates.credits_per_image));
+          setVideoRate(String(data.rates.credits_per_video_second));
+        }
+      } catch (err) {
+        console.error("Error fetching credit rates", err);
+      }
+    };
+    fetchRates();
+  }, []);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,6 +108,40 @@ function AdminSettingsForm({ admin }: { admin: AdminUser }) {
     setPending(false);
   };
 
+  const onSaveRates = async () => {
+    setRateStatus("");
+    const imgVal = Number(imageRate);
+    const vidVal = Number(videoRate);
+    if (isNaN(imgVal) || imgVal < 0 || isNaN(vidVal) || vidVal < 0) {
+      setRateStatus("Rates must be positive numbers.");
+      return;
+    }
+    setRatesPending(true);
+    try {
+      const h = authHeaders();
+      if (!h.Authorization) {
+        setRateStatus("Sign in again at /admin/login.");
+        setRatesPending(false);
+        return;
+      }
+      const res = await fetch("/api/admin/rates", {
+        method: "POST",
+        headers: { ...h, "content-type": "application/json" },
+        body: JSON.stringify({ imageRate: imgVal, videoRate: vidVal }),
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        setRateStatus(data.error || "Could not save rates.");
+      } else {
+        setRateStatus("Saved credit rates successfully.");
+      }
+    } catch {
+      setRateStatus("Network error.");
+    } finally {
+      setRatesPending(false);
+    }
+  };
+
   return (
     <div className="relative flex-1 overflow-x-clip px-4 pb-20 pt-8 sm:px-6 sm:pt-10 lg:px-10">
       <div className="relative mx-auto max-w-[640px] space-y-8">
@@ -107,119 +163,176 @@ function AdminSettingsForm({ admin }: { admin: AdminUser }) {
 
         <motion.form initial={reduce ? false : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} onSubmit={onSubmit}>
           <ProSettingsCard>
-          <div className="flex flex-col gap-8">
-            <ProFieldGroup title="Profile" description="How you appear in the admin console and what you use to sign in.">
-            <div>
-              <ProLabel htmlFor="adm-name">Display name</ProLabel>
-              <input
-                id="adm-name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                autoComplete="name"
-                className={proInputClass}
-                style={proInputStyle}
-              />
-            </div>
-            <div>
-              <ProLabel htmlFor="adm-email">Admin email</ProLabel>
-              <input
-                id="adm-email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
-                className={`${proInputClass} font-mono text-[13px] sm:text-sm`}
-                style={proInputStyle}
-              />
-            </div>
-            </ProFieldGroup>
+            <div className="flex flex-col gap-8">
+              <ProFieldGroup title="Profile" description="How you appear in the admin console and what you use to sign in.">
+                <div>
+                  <ProLabel htmlFor="adm-name">Display name</ProLabel>
+                  <input
+                    id="adm-name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    autoComplete="name"
+                    className={proInputClass}
+                    style={proInputStyle}
+                  />
+                </div>
+                <div>
+                  <ProLabel htmlFor="adm-email">Admin email</ProLabel>
+                  <input
+                    id="adm-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
+                    className={`${proInputClass} font-mono text-[13px] sm:text-sm`}
+                    style={proInputStyle}
+                  />
+                </div>
+              </ProFieldGroup>
 
-            <div className="h-px" style={{ background: "var(--border-subtle)" }} />
+              <div className="h-px" style={{ background: "var(--border-subtle)" }} />
 
-            <ProFieldGroup title="Password" description="Leave new password blank to keep your current one.">
-            <div>
-              <ProLabel htmlFor="adm-new-pass">New password</ProLabel>
-              <div className="relative">
-                <input
-                  id="adm-new-pass"
-                  type={showNew ? "text" : "password"}
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  autoComplete="new-password"
-                  className={`${proInputClass} pr-12`}
-                  style={proInputStyle}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowNew((s) => !s)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5"
-                  style={{ color: "var(--text-muted)" }}
-                  aria-label={showNew ? "Hide" : "Show"}
+              <ProFieldGroup title="Password" description="Leave new password blank to keep your current one.">
+                <div>
+                  <ProLabel htmlFor="adm-new-pass">New password</ProLabel>
+                  <div className="relative">
+                    <input
+                      id="adm-new-pass"
+                      type={showNew ? "text" : "password"}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      autoComplete="new-password"
+                      className={`${proInputClass} pr-12`}
+                      style={proInputStyle}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNew((s) => !s)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5"
+                      style={{ color: "var(--text-muted)" }}
+                      aria-label={showNew ? "Hide" : "Show"}
+                    >
+                      {showNew ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <ProLabel htmlFor="adm-confirm">Confirm new password</ProLabel>
+                  <input
+                    id="adm-confirm"
+                    type={showNew ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    autoComplete="new-password"
+                    className={proInputClass}
+                    style={proInputStyle}
+                  />
+                </div>
+
+                <div>
+                  <ProLabel htmlFor="adm-cur-pass" required>
+                    Current password
+                  </ProLabel>
+                  <div className="relative">
+                    <input
+                      id="adm-cur-pass"
+                      type={showCur ? "text" : "password"}
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      autoComplete="current-password"
+                      className={`${proInputClass} pr-12`}
+                      style={proInputStyle}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCur((s) => !s)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5"
+                      style={{ color: "var(--text-muted)" }}
+                      aria-label={showCur ? "Hide" : "Show"}
+                    >
+                      {showCur ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                  </div>
+                </div>
+              </ProFieldGroup>
+
+              {status && (
+                <p
+                  className="text-sm font-medium"
+                  style={{ color: status.startsWith("Saved") ? "var(--text-muted)" : "#FF2E9A" }}
                 >
-                  {showNew ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                </button>
+                  {status}
+                </p>
+              )}
+
+              <div className="flex flex-wrap gap-3 pt-2">
+                <Link
+                  href="/admindashboard"
+                  className="inline-flex min-h-[48px] items-center justify-center rounded-xl border px-5 text-sm font-semibold"
+                  style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
+                >
+                  Cancel
+                </Link>
+                <motion.button
+                  type="submit"
+                  disabled={pending}
+                  whileTap={reduce ? undefined : { scale: 0.98 }}
+                  className="inline-flex min-h-[48px] items-center justify-center rounded-xl border px-6 text-sm font-semibold disabled:opacity-60"
+                  style={{
+                    borderColor: "var(--border-subtle)",
+                    background: "linear-gradient(135deg, #7B61FF 0%, #00D4FF 100%)",
+                    color: "#fff",
+                  }}
+                >
+                  {pending ? "Saving…" : "Save changes"}
+                </motion.button>
               </div>
             </div>
-            <div>
-              <ProLabel htmlFor="adm-confirm">Confirm new password</ProLabel>
-              <input
-                id="adm-confirm"
-                type={showNew ? "text" : "password"}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                autoComplete="new-password"
-                className={proInputClass}
-                style={proInputStyle}
-              />
-            </div>
+          </ProSettingsCard>
+        </motion.form>
 
-            <div>
-              <ProLabel htmlFor="adm-cur-pass" required>
-                Current password
-              </ProLabel>
-              <div className="relative">
+        {/* Credit System Rates Settings Card */}
+        <ProSettingsCard>
+          <div className="flex flex-col gap-6">
+            <ProFieldGroup title="Credit System Rates" description="Configure the credit costs for image and video generations.">
+              <div>
+                <ProLabel htmlFor="rate-image">Credits per Image Generation</ProLabel>
                 <input
-                  id="adm-cur-pass"
-                  type={showCur ? "text" : "password"}
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  autoComplete="current-password"
-                  className={`${proInputClass} pr-12`}
+                  id="rate-image"
+                  type="number"
+                  value={imageRate}
+                  onChange={(e) => setImageRate(e.target.value)}
+                  className={proInputClass}
                   style={proInputStyle}
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowCur((s) => !s)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5"
-                  style={{ color: "var(--text-muted)" }}
-                  aria-label={showCur ? "Hide" : "Show"}
-                >
-                  {showCur ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                </button>
               </div>
-            </div>
+              <div>
+                <ProLabel htmlFor="rate-video">Credits per Video Second</ProLabel>
+                <input
+                  id="rate-video"
+                  type="number"
+                  value={videoRate}
+                  onChange={(e) => setVideoRate(e.target.value)}
+                  className={proInputClass}
+                  style={proInputStyle}
+                />
+              </div>
             </ProFieldGroup>
 
-            {status && (
+            {rateStatus && (
               <p
-                className="text-sm font-medium"
-                style={{ color: status.startsWith("Saved") ? "var(--text-muted)" : "#FF2E9A" }}
+                className="text-sm font-medium animate-pulse"
+                style={{ color: rateStatus.includes("successfully") ? "#10B981" : "#FF2E9A" }}
               >
-                {status}
+                {rateStatus}
               </p>
             )}
 
-            <div className="flex flex-wrap gap-3 pt-2">
-              <Link
-                href="/admindashboard"
-                className="inline-flex min-h-[48px] items-center justify-center rounded-xl border px-5 text-sm font-semibold"
-                style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
-              >
-                Cancel
-              </Link>
+            <div className="flex pt-2">
               <motion.button
-                type="submit"
-                disabled={pending}
+                type="button"
+                onClick={onSaveRates}
+                disabled={ratesPending}
                 whileTap={reduce ? undefined : { scale: 0.98 }}
                 className="inline-flex min-h-[48px] items-center justify-center rounded-xl border px-6 text-sm font-semibold disabled:opacity-60"
                 style={{
@@ -228,12 +341,11 @@ function AdminSettingsForm({ admin }: { admin: AdminUser }) {
                   color: "#fff",
                 }}
               >
-                {pending ? "Saving…" : "Save changes"}
+                {ratesPending ? "Saving Rates…" : "Save Rates"}
               </motion.button>
             </div>
           </div>
-          </ProSettingsCard>
-        </motion.form>
+        </ProSettingsCard>
       </div>
     </div>
   );

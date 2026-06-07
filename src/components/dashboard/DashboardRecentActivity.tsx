@@ -23,7 +23,7 @@ import {
 } from "@/components/community/CommunityShareModal";
 import { fetchMyPosts, type CommunityPost } from "@/lib/community-api";
 import { readUserToken } from "@/lib/auth-storage";
-import { readRecentGenerations, type RecentGeneration } from "@/lib/studio-activity";
+import { fetchRecentGenerations, type RecentGeneration } from "@/lib/studio-activity";
 
 function timeAgo(iso: string): string {
   const t = new Date(iso).getTime();
@@ -53,14 +53,30 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [copiedAll, setCopiedAll] = useState(false);
 
+  const [recent, setRecent] = useState<RecentGeneration[]>([]);
+  const [recentLoading, setRecentLoading] = useState(true);
+
   useEffect(() => {
     const onFocus = () => setFocusBump((n) => n + 1);
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
   }, []);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- pathname / focusBump intentionally refresh reads from localStorage
-  const recent = useMemo(() => readRecentGenerations(userId), [userId, pathname, focusBump]);
+  useEffect(() => {
+    let active = true;
+    async function loadRecent() {
+      setRecentLoading(true);
+      const data = await fetchRecentGenerations(100);
+      if (active) {
+        setRecent(data);
+        setRecentLoading(false);
+      }
+    }
+    void loadRecent();
+    return () => {
+      active = false;
+    };
+  }, [userId, pathname, focusBump]);
 
   const sharedUrlSet = useMemo(
     () => new Set(myPosts.map((p) => p.mediaUrl)),
@@ -196,7 +212,18 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
           </div>
         </div>
 
-        {recent.length === 0 ? (
+        {recentLoading ? (
+          <div
+            className="mt-6 flex min-h-[140px] items-center justify-center gap-2.5 rounded-xl border border-dashed px-4 py-8 text-center text-xs text-[var(--text-muted)]"
+            style={{
+              borderColor: "var(--border-subtle)",
+              background: "color-mix(in srgb, var(--deep-black) 40%, transparent)",
+            }}
+          >
+            <Loader2 className="h-4 w-4 animate-spin text-[var(--primary-cyan)]" />
+            <span>Loading recent activity…</span>
+          </div>
+        ) : recent.length === 0 ? (
           <div
             className="mt-6 flex min-h-[140px] flex-col items-center justify-center rounded-xl border border-dashed px-4 py-8 text-center"
             style={{
@@ -259,11 +286,19 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
                     </span>
                     
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium leading-relaxed text-[var(--text-primary)] select-all whitespace-pre-wrap">
-                        {item.prompt}
-                      </p>
+                      <div className="max-h-24 overflow-y-auto pr-1 select-all whitespace-pre-wrap [scrollbar-width:thin] scrollbar-thumb-white/10">
+                        <p className="text-sm font-medium leading-relaxed text-[var(--text-primary)]">
+                          {item.prompt}
+                        </p>
+                      </div>
                       <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[10px] text-[var(--text-subtle)] font-medium">
                         <span className="uppercase tracking-wider text-[var(--primary-cyan)]">{item.kind} workspace</span>
+                        {item.createdAt && (
+                          <>
+                            <span>·</span>
+                            <span>{timeAgo(item.createdAt)}</span>
+                          </>
+                        )}
                         {alreadyShared && (
                           <>
                             <span>·</span>

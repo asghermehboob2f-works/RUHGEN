@@ -4,7 +4,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, Check, Coins, CreditCard } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { BillingSkeleton } from "@/components/Skeletons";
 
@@ -13,17 +13,42 @@ export default function BillingPage() {
   const router = useRouter();
   const reduce = useReducedMotion();
 
+  const [history, setHistory] = useState<any[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(true);
+
   useEffect(() => {
     if (ready && !user) router.replace("/sign-in?next=/dashboard/billing");
   }, [ready, user, router]);
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      const token = localStorage.getItem("ruhgen_user_jwt_v1");
+      if (!token) return;
+      try {
+        const res = await fetch("/api/credits/history", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (data.ok && data.history) {
+          setHistory(data.history);
+        }
+      } catch (err) {
+        console.error("Error fetching credit history", err);
+      } finally {
+        setLoadingHistory(false);
+      }
+    };
+    if (user) {
+      void fetchHistory();
+    }
+  }, [user]);
 
   if (!ready) {
     return <BillingSkeleton />;
   }
   if (!user) return null;
 
-  const credits = 120;
-
+  const credits = user.credits ?? 0;
   const features = ["Priority queue", "HD exports", "Email support"];
 
   return (
@@ -128,6 +153,72 @@ export default function BillingPage() {
           </ul>
         </motion.div>
       </div>
+
+      {/* Credit Transactions Ledger */}
+      <motion.div
+        initial={reduce ? false : { opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: reduce ? 0 : 0.15 }}
+        className="rounded-3xl border p-6 sm:p-8"
+        style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}
+      >
+        <div className="flex items-center gap-3 mb-6">
+          <Coins className="h-5 w-5" style={{ color: "var(--primary-purple)" }} strokeWidth={1.75} />
+          <h2 className="font-display text-lg font-bold" style={{ color: "var(--text-primary)" }}>
+            Transaction Ledger
+          </h2>
+        </div>
+
+        {loadingHistory ? (
+          <div className="flex justify-center py-8">
+            <span className="text-sm text-[var(--text-subtle)]">Loading transaction history...</span>
+          </div>
+        ) : history.length === 0 ? (
+          <div className="text-center py-8 border border-dashed border-white/5 rounded-2xl bg-black/10">
+            <p className="text-sm" style={{ color: "var(--text-muted)" }}>No transaction history found.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="border-b border-white/5 text-[var(--text-subtle)] font-bold uppercase tracking-wider">
+                  <th className="pb-3 pr-4">Type</th>
+                  <th className="pb-3 pr-4">Amount</th>
+                  <th className="pb-3 pr-4">New Balance</th>
+                  <th className="pb-3 pr-4">Reason</th>
+                  <th className="pb-3">Timestamp</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {history.map((item) => {
+                  const isAdd = item.creditsAdded > 0;
+                  const amtStr = isAdd ? `+${item.creditsAdded}` : `-${item.creditsDeducted}`;
+                  const color = isAdd ? "text-emerald-400" : "text-rose-400";
+                  return (
+                    <tr key={item.id} className="hover:bg-white/[0.01] transition-colors">
+                      <td className="py-3 pr-4 font-semibold text-[var(--text-primary)]">
+                        <span className="capitalize">{item.actionType.replace(/_/g, " ")}</span>
+                      </td>
+                      <td className={`py-3 pr-4 font-bold tabular-nums ${color}`}>
+                        {amtStr}
+                      </td>
+                      <td className="py-3 pr-4 tabular-nums text-[var(--text-muted)]">
+                        {item.newBalance}
+                      </td>
+                      <td className="py-3 pr-4 text-[var(--text-muted)] max-w-xs truncate" title={item.reason}>
+                        {item.reason}
+                      </td>
+                      <td className="py-3 text-[var(--text-subtle)] whitespace-nowrap">
+                        {new Date(item.timestamp).toLocaleString()}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </motion.div>
     </div>
   );
 }

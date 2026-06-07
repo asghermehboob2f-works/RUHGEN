@@ -3,7 +3,7 @@
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
-import { Ban, CheckCircle2, ChevronDown, ChevronRight, Loader2, Shield } from "lucide-react";
+import { Ban, CheckCircle2, ChevronDown, ChevronRight, Loader2, Shield, Coins } from "lucide-react";
 import { useAdminAuth } from "@/components/AdminAuthProvider";
 
 export type PlatformUserRow = {
@@ -15,6 +15,7 @@ export type PlatformUserRow = {
   subscriptionPlan: string;
   subscriptionStatus: string;
   adminNotes: string;
+  credits?: number;
 };
 
 const PLAN_PRESETS = ["free", "starter", "pro", "enterprise"] as const;
@@ -24,6 +25,7 @@ export default function AdminUsersPage() {
   const { admin, ready, authHeaders } = useAdminAuth();
   const reduce = useReducedMotion();
   const [rows, setRows] = useState<PlatformUserRow[] | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
@@ -105,6 +107,18 @@ export default function AdminUsersPage() {
     return { total: rows.length, active: rows.length - suspended, suspended };
   }, [rows]);
 
+  const filteredRows = useMemo(() => {
+    if (!rows) return null;
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return rows;
+    return rows.filter(
+      (r) =>
+        r.name.toLowerCase().includes(q) ||
+        r.email.toLowerCase().includes(q) ||
+        r.id.toLowerCase().includes(q)
+    );
+  }, [rows, searchQuery]);
+
   if (!ready) {
     return (
       <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 px-4" style={{ color: "var(--text-muted)" }}>
@@ -155,7 +169,7 @@ export default function AdminUsersPage() {
               Platform users
             </h1>
             <p className="mt-2 max-w-2xl text-sm sm:text-base" style={{ color: "var(--text-muted)" }}>
-              Registered accounts stored in SQLite. Suspend access, set subscription labels, and keep internal notes.
+              Registered accounts stored in SQLite. Suspend access, set subscription labels, and manage credit balances.
               Member sign-in uses the same API as the marketing app (<span className="font-mono text-[13px] text-[#00D4FF]">POST /api/auth/login</span>).
             </p>
             <div className="mt-4 flex flex-wrap gap-3 text-xs font-semibold">
@@ -199,12 +213,25 @@ export default function AdminUsersPage() {
           </div>
         </div>
 
-        <div className="mt-10 overflow-hidden rounded-2xl border" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
+        {/* Search Field */}
+        <div className="mt-6">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search by name, email, or user ID..."
+            className="min-h-[44px] w-full rounded-xl border px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-[#7B61FF]/45"
+            style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)", color: "var(--text-primary)" }}
+          />
+        </div>
+
+        <div className="mt-6 overflow-hidden rounded-2xl border" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[720px] text-left text-sm">
               <thead>
                 <tr className="border-b text-xs uppercase tracking-wider" style={{ borderColor: "var(--border-subtle)", color: "var(--text-subtle)" }}>
                   <th className="px-4 py-3 font-bold sm:px-5">Member</th>
+                  <th className="px-2 py-3 font-bold">Credits</th>
                   <th className="hidden px-2 py-3 font-bold md:table-cell">Plan</th>
                   <th className="hidden px-2 py-3 font-bold lg:table-cell">Status</th>
                   <th className="hidden px-2 py-3 font-bold sm:table-cell">Joined</th>
@@ -212,18 +239,14 @@ export default function AdminUsersPage() {
                 </tr>
               </thead>
               <tbody>
-                {!rows?.length && !loading ? (
+                {!filteredRows?.length && !loading ? (
                   <tr>
-                    <td colSpan={5} className="px-5 py-12 text-center" style={{ color: "var(--text-muted)" }}>
-                      No registered users yet. Accounts appear here after sign-up via{" "}
-                      <Link href="/sign-up" className="font-semibold text-[#00D4FF] hover:underline">
-                        /sign-up
-                      </Link>{" "}
-                      (API must be running).
+                    <td colSpan={6} className="px-5 py-12 text-center" style={{ color: "var(--text-muted)" }}>
+                      No users match your query.
                     </td>
                   </tr>
                 ) : null}
-                {rows?.map((u) => {
+                {filteredRows?.map((u) => {
                   const isOpen = openId === u.id;
                   const suspended = !!u.suspended;
                   return (
@@ -261,6 +284,9 @@ export default function AdminUsersPage() {
                             </div>
                           </div>
                         </td>
+                        <td className="px-2 py-3 font-semibold text-[var(--text-primary)]">
+                          {u.credits ?? 0}
+                        </td>
                         <td className="hidden px-2 py-3 md:table-cell">
                           <span className="rounded-md bg-[var(--deep-black)] px-2 py-1 font-mono text-xs" style={{ color: "var(--text-muted)" }}>
                             {u.subscriptionPlan}
@@ -293,12 +319,13 @@ export default function AdminUsersPage() {
                       </tr>
                       {isOpen ? (
                         <tr className="border-b bg-[var(--deep-black)]/40" style={{ borderColor: "var(--border-subtle)" }}>
-                          <td colSpan={5} className="px-4 py-4 sm:px-6">
+                          <td colSpan={6} className="px-4 py-4 sm:px-6">
                             <UserDetailPanel
-                              key={`${u.id}-${u.subscriptionPlan}-${u.subscriptionStatus}-${u.adminNotes ?? ""}`}
+                              key={`${u.id}-${u.subscriptionPlan}-${u.subscriptionStatus}-${u.adminNotes ?? ""}-${u.credits ?? 0}`}
                               user={u}
                               saving={savingId === u.id}
                               onSave={(patch) => void patchUser(u.id, patch)}
+                              authHeaders={authHeaders}
                             />
                           </td>
                         </tr>
@@ -319,17 +346,44 @@ function UserDetailPanel({
   user,
   saving,
   onSave,
+  authHeaders,
 }: {
   user: PlatformUserRow;
   saving: boolean;
   onSave: (patch: Record<string, unknown>) => void;
+  authHeaders: () => Record<string, string>;
 }) {
   const [plan, setPlan] = useState(user.subscriptionPlan);
   const [subStatus, setSubStatus] = useState(user.subscriptionStatus);
   const [notes, setNotes] = useState(user.adminNotes || "");
+  const [adjustCredits, setAdjustCredits] = useState("");
+  const [adjustReason, setAdjustReason] = useState("");
+
+  const [userHistory, setUserHistory] = useState<any[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(true);
+
+  useEffect(() => {
+    const fetchUserHistory = async () => {
+      const h = authHeaders();
+      try {
+        const res = await fetch(`/api/admin/users/${encodeURIComponent(user.id)}/history`, {
+          headers: h,
+        });
+        const data = await res.json();
+        if (data.ok && data.history) {
+          setUserHistory(data.history);
+        }
+      } catch (err) {
+        console.error("Error fetching user history", err);
+      } finally {
+        setLoadingHistory(false);
+      }
+    };
+    fetchUserHistory();
+  }, [user.id, authHeaders]);
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
       <label className="grid gap-1.5 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--text-subtle)" }}>
         Subscription plan
         <input
@@ -347,6 +401,7 @@ function UserDetailPanel({
           ))}
         </datalist>
       </label>
+
       <label className="grid gap-1.5 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--text-subtle)" }}>
         Billing / subscription status
         <input
@@ -364,7 +419,54 @@ function UserDetailPanel({
           ))}
         </datalist>
       </label>
-      <div className="sm:col-span-2 lg:col-span-1">
+
+      {/* Manual Credits Adjuster */}
+      <div className="sm:col-span-2 lg:col-span-1 border border-white/5 rounded-xl bg-black/10 p-3">
+        <label className="grid gap-1.5 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--text-subtle)" }}>
+          Credits Management
+          <div className="flex gap-2">
+            <input
+              type="number"
+              value={adjustCredits}
+              onChange={(e) => setAdjustCredits(e.target.value)}
+              placeholder="+/- amount"
+              className="min-h-[44px] w-24 rounded-lg border px-3 py-2 text-sm font-medium normal-case outline-none"
+              style={{ borderColor: "var(--border-subtle)", background: "var(--rich-black)", color: "var(--text-primary)" }}
+            />
+            <input
+              type="text"
+              value={adjustReason}
+              onChange={(e) => setAdjustReason(e.target.value)}
+              placeholder="Reason for change"
+              className="min-h-[44px] flex-1 rounded-lg border px-3 py-2 text-sm font-medium normal-case outline-none"
+              style={{ borderColor: "var(--border-subtle)", background: "var(--rich-black)", color: "var(--text-primary)" }}
+            />
+            <button
+              type="button"
+              disabled={saving}
+              onClick={() => {
+                const amount = Number(adjustCredits);
+                if (!amount) return;
+                onSave({
+                  adjustCredits: amount,
+                  creditsReason: adjustReason.trim() || "Manual admin adjustment"
+                });
+                setAdjustCredits("");
+                setAdjustReason("");
+              }}
+              className="inline-flex min-h-[44px] items-center justify-center rounded-xl border px-3 text-xs font-semibold"
+              style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
+            >
+              Adjust
+            </button>
+          </div>
+          <span className="text-[10px] text-[var(--text-subtle)] mt-1">
+            Current balance: <span className="font-bold text-white">{user.credits ?? 0}</span>
+          </span>
+        </label>
+      </div>
+
+      <div className="sm:col-span-2 lg:col-span-2">
         <label className="grid gap-1.5 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--text-subtle)" }}>
           Admin notes (internal)
           <textarea
@@ -377,6 +479,40 @@ function UserDetailPanel({
           />
         </label>
       </div>
+
+      {/* User Transaction History */}
+      <div className="sm:col-span-2 lg:col-span-3 border-t border-white/5 pt-4">
+        <h4 className="text-xs font-semibold uppercase tracking-wide mb-2 flex items-center gap-1.5" style={{ color: "var(--text-subtle)" }}>
+          <Coins className="h-3.5 w-3.5 text-[var(--primary-purple)]" />
+          Recent Transactions Ledger
+        </h4>
+        {loadingHistory ? (
+          <span className="text-xs text-[var(--text-subtle)]">Loading history...</span>
+        ) : userHistory.length === 0 ? (
+          <span className="text-xs text-[var(--text-subtle)]">No transactions found.</span>
+        ) : (
+          <div className="max-h-40 overflow-y-auto border border-white/5 rounded-lg bg-black/20 p-2 space-y-1.5">
+            {userHistory.slice(0, 10).map((tx) => {
+              const isAdd = tx.creditsAdded > 0;
+              const amtStr = isAdd ? `+${tx.creditsAdded}` : `-${tx.creditsDeducted}`;
+              const color = isAdd ? "text-emerald-400" : "text-rose-400";
+              return (
+                <div key={tx.id} className="flex justify-between items-center text-xs py-0.5 border-b border-white/[0.02] last:border-0">
+                  <span className="text-[var(--text-muted)]">
+                    <span className="font-semibold text-[var(--text-primary)] capitalize">{tx.actionType.replace(/_/g, " ")}</span> ({tx.reason || "no reason"})
+                  </span>
+                  <span className="font-mono text-[var(--text-subtle)] flex gap-2">
+                    <span className={`font-bold ${color}`}>{amtStr}</span>
+                    <span>(Bal: {tx.newBalance})</span>
+                    <span>· {new Date(tx.timestamp).toLocaleString()}</span>
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
       <div className="flex flex-wrap items-end gap-2 sm:col-span-2 lg:col-span-3">
         <button
           type="button"

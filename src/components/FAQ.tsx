@@ -3,7 +3,7 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
-import { type MarketingFaq } from "@/lib/marketing-faqs";
+import { MARKETING_FAQS, type MarketingFaq } from "@/lib/marketing-faqs";
 import { SITE_CONTAINER } from "@/lib/site-layout";
 
 interface Faq {
@@ -28,13 +28,24 @@ export function FAQ({
   useEffect(() => {
     if (!items) {
       fetch(`/api/faqs?_t=${Date.now()}`, { cache: "no-store" })
-        .then((r) => r.json())
+        .then((r) => {
+          if (!r.ok) {
+            throw new Error(`HTTP error! status: ${r.status}`);
+          }
+          return r.json();
+        })
         .then((data) => {
-          if (data.ok) {
+          if (data.ok && Array.isArray(data.faqs) && data.faqs.length > 0) {
             setList(data.faqs.slice(0, 5));
+          } else {
+            console.warn("[FAQ] API response was not OK or returned empty faqs, falling back to static FAQs.", data);
+            setList(MARKETING_FAQS.slice(0, 5));
           }
         })
-        .catch(console.error);
+        .catch((err) => {
+          console.error("[FAQ] Error fetching FAQs from backend API, falling back to static FAQs:", err);
+          setList(MARKETING_FAQS.slice(0, 5));
+        });
     }
   }, [items]);
 

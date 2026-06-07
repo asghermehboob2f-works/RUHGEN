@@ -40,7 +40,7 @@ function mountUserAuthRoutes(app, { db }) {
       db.prepare(
         "INSERT INTO users (id, email, name, password_hash, created_at) VALUES (?, ?, ?, ?, ?)"
       ).run(id, email, name, password_hash, created_at);
-      const user = { id, email, name };
+      const user = { id, email, name, credits: 120 };
       let token;
       try {
         token = signUserToken(user);
@@ -63,7 +63,7 @@ function mountUserAuthRoutes(app, { db }) {
         return res.status(400).json({ ok: false, error: "Email and password are required." });
       }
       const row = db
-        .prepare("SELECT id, email, name, password_hash, suspended FROM users WHERE email = ?")
+        .prepare("SELECT id, email, name, password_hash, suspended, credits FROM users WHERE email = ?")
         .get(email);
       if (!row) {
         return res.status(401).json({ ok: false, error: "Invalid email or password." });
@@ -74,7 +74,7 @@ function mountUserAuthRoutes(app, { db }) {
       if (hashPassword(password) !== row.password_hash) {
         return res.status(401).json({ ok: false, error: "Invalid email or password." });
       }
-      const user = { id: row.id, email: row.email, name: row.name };
+      const user = { id: row.id, email: row.email, name: row.name, credits: row.credits };
       let token;
       try {
         token = signUserToken(user);
@@ -106,7 +106,7 @@ function mountUserAuthRoutes(app, { db }) {
       }
       const row = db
         .prepare(
-          "SELECT id, email, name, suspended, subscription_plan, subscription_status FROM users WHERE id = ?"
+          "SELECT id, email, name, suspended, subscription_plan, subscription_status, credits FROM users WHERE id = ?"
         )
         .get(payload.sub);
       if (!row) {
@@ -121,6 +121,7 @@ function mountUserAuthRoutes(app, { db }) {
         name: row.name,
         subscriptionPlan: row.subscription_plan,
         subscriptionStatus: row.subscription_status,
+        credits: row.credits,
       };
       return res.json({ ok: true, user });
     } catch (e) {

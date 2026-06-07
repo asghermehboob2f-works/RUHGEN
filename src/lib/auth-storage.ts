@@ -17,6 +17,7 @@ export type SessionUser = {
   name: string;
   subscriptionPlan?: string;
   subscriptionStatus?: string;
+  credits?: number;
 };
 
 export async function hashPassword(password: string): Promise<string> {

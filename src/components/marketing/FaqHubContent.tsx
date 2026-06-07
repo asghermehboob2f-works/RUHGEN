@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   FAQ_CATEGORY_LABELS,
+  MARKETING_FAQS,
   type FaqCategory,
 } from "@/lib/marketing-faqs";
 import { SITE_CONTAINER } from "@/lib/site-layout";
@@ -38,14 +39,27 @@ export function FaqHubContent() {
 
   useEffect(() => {
     fetch(`/api/faqs?_t=${Date.now()}`, { cache: "no-store" })
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) {
+          throw new Error(`HTTP error! status: ${r.status}`);
+        }
+        return r.json();
+      })
       .then((data) => {
-        if (data.ok) {
+        if (data.ok && Array.isArray(data.faqs) && data.faqs.length > 0) {
           setFaqs(data.faqs);
           if (data.faqs.length > 0) setOpenId(data.faqs[0].id);
+        } else {
+          console.warn("[FaqHubContent] API response was not OK or returned empty faqs, falling back to static FAQs.", data);
+          setFaqs(MARKETING_FAQS);
+          if (MARKETING_FAQS.length > 0) setOpenId(MARKETING_FAQS[0].id);
         }
       })
-      .catch((e) => console.error(e))
+      .catch((err) => {
+        console.error("[FaqHubContent] Error fetching FAQs from backend API, falling back to static FAQs:", err);
+        setFaqs(MARKETING_FAQS);
+        if (MARKETING_FAQS.length > 0) setOpenId(MARKETING_FAQS[0].id);
+      })
       .finally(() => setLoading(false));
   }, []);
 

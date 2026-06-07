@@ -41,6 +41,7 @@ type AuthContextValue = {
     email: string;
     newPassword?: string;
   }) => Promise<AuthResult>;
+  refreshUser: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -401,6 +402,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
+  const refreshUser = useCallback(async () => {
+    const token = readUserToken();
+    if (!token) return;
+    try {
+      const res = await fetch("/api/auth/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = (await res.json()) as {
+        ok?: boolean;
+        user?: SessionUser;
+      };
+      if (data.ok && data.user) {
+        writeSession(data.user);
+        setUser(data.user);
+      }
+    } catch (err) {
+      console.error("Failed to refresh user context:", err);
+    }
+  }, []);
+
   const value = useMemo(
     () => ({
       user,
@@ -409,8 +430,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signUp,
       signOut,
       updateProfile,
+      refreshUser,
     }),
-    [user, ready, signIn, signUp, signOut, updateProfile]
+    [user, ready, signIn, signUp, signOut, updateProfile, refreshUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
