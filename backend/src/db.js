@@ -201,6 +201,31 @@ function openDb(projectRoot) {
     db.exec("ALTER TABLE users ADD COLUMN credits INTEGER NOT NULL DEFAULT 120");
     console.log("[db] Added credits column to users table");
   }
+  const hasGenDisabled = tableInfo.some(col => col.name === "generation_disabled");
+  if (!hasGenDisabled) {
+    db.exec("ALTER TABLE users ADD COLUMN generation_disabled INTEGER NOT NULL DEFAULT 0");
+    console.log("[db] Added generation_disabled column to users table");
+  }
+  const hasSpecialAccess = tableInfo.some(col => col.name === "special_access");
+  if (!hasSpecialAccess) {
+    db.exec("ALTER TABLE users ADD COLUMN special_access INTEGER NOT NULL DEFAULT 0");
+    console.log("[db] Added special_access column to users table");
+  }
+  const hasRole = tableInfo.some(col => col.name === "role");
+  if (!hasRole) {
+    db.exec("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'user'");
+    console.log("[db] Added role column to users table");
+  }
+  const hasTeamId = tableInfo.some(col => col.name === "team_id");
+  if (!hasTeamId) {
+    db.exec("ALTER TABLE users ADD COLUMN team_id TEXT DEFAULT NULL");
+    console.log("[db] Added team_id column to users table");
+  }
+  const hasTeamRole = tableInfo.some(col => col.name === "team_role");
+  if (!hasTeamRole) {
+    db.exec("ALTER TABLE users ADD COLUMN team_role TEXT DEFAULT NULL");
+    console.log("[db] Added team_role column to users table");
+  }
 
   // Create credit-related tables
   db.exec(`
@@ -234,12 +259,29 @@ function openDb(projectRoot) {
     );
     CREATE INDEX IF NOT EXISTS idx_studio_tasks_user_status_created
       ON studio_tasks (user_id, status, created_at DESC);
+    CREATE TABLE IF NOT EXISTS audit_logs (
+      id TEXT PRIMARY KEY,
+      actor_id TEXT NOT NULL,
+      actor_email TEXT NOT NULL,
+      target_user_id TEXT NOT NULL,
+      action_type TEXT NOT NULL,
+      old_value TEXT,
+      new_value TEXT,
+      timestamp TEXT NOT NULL,
+      details_json TEXT NOT NULL DEFAULT '{}'
+    );
+    CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp
+      ON audit_logs (timestamp DESC);
   `);
 
   // Seed default rates if not present
   const stmtSetting = db.prepare("INSERT OR IGNORE INTO credit_settings (key, value) VALUES (?, ?)");
   stmtSetting.run("credits_per_image", "2");
   stmtSetting.run("credits_per_video_second", "5");
+  stmtSetting.run("cost_image_schnell", "2");
+  stmtSetting.run("cost_image_dev", "3");
+  stmtSetting.run("cost_video_std", "5");
+  stmtSetting.run("cost_video_pro", "8");
 
   seedSiteContentIfEmpty(db, dataDir, projectRoot);
   migrateLegacyJsonIfEmpty(db, dataDir, projectRoot);
@@ -730,10 +772,104 @@ function upgradeExistingSiteContent(db) {
     data.upcomingFeatures = [];
     changed = true;
   }
+  if (!data.plans || !Array.isArray(data.plans) || data.plans.length < 4 || !data.plans.some(p => p.id === "custom")) {
+    data.plans = [
+      {
+        id: "free",
+        name: "Free",
+        monthlyPrice: 0,
+        yearlyPrice: 0,
+        credits: 120,
+        features: [
+          "120 Credits Included",
+          "Standard Image Generation Access",
+          "Standard Video Generation Access",
+          "Up to 2K Quality",
+          "Standard Rendering Queue",
+          "Community Support",
+          "Core Creative Tools",
+          "Basic Generation History"
+        ],
+        cta: "Get Started Free",
+        available: true
+      },
+      {
+        id: "pro",
+        name: "Pro",
+        monthlyPrice: 499,
+        yearlyPrice: 4799,
+        credits: 510,
+        features: [
+          "510 Credits Included",
+          "Advanced Image Generation Access",
+          "Advanced Video Generation Access",
+          "Up to 4K Quality",
+          "Priority Rendering",
+          "Faster Processing",
+          "Commercial Usage Rights",
+          "Premium Creative Tools",
+          "Extended History",
+          "Email Support"
+        ],
+        badge: "Most Popular",
+        cta: "Upgrade to Pro",
+        available: true
+      },
+      {
+        id: "pro_plus",
+        name: "Pro Plus",
+        monthlyPrice: 999,
+        yearlyPrice: 9599,
+        credits: 650,
+        features: [
+          "650 Credits Included",
+          "Full Platform Access",
+          "Ultra HD Outputs",
+          "Instant Priority Queue",
+          "Dedicated Support",
+          "Commercial Licensing",
+          "API Access",
+          "Team Collaboration",
+          "Advanced Workflow Controls",
+          "Premium Features",
+          "Early Feature Access",
+          "Highest Rendering Priority"
+        ],
+        badge: "Best Value",
+        cta: "Go Pro Plus",
+        available: true
+      },
+      {
+        id: "custom",
+        name: "Custom",
+        monthlyPrice: 0,
+        yearlyPrice: 0,
+        credits: 0,
+        features: [
+          "Custom Credit Allocation",
+          "Dedicated Infrastructure",
+          "Private Deployments",
+          "Team Management",
+          "Custom AI Models",
+          "Custom Integrations",
+          "Dedicated Account Manager",
+          "Enterprise Security",
+          "Priority Support",
+          "Flexible Licensing",
+          "API Scaling",
+          "Personalized Workflows"
+        ],
+        description: "Tell us what you need and we will build a tailored creative environment around your workflow.",
+        cta: "Contact Sales",
+        available: true
+      }
+    ];
+    changed = true;
+  }
 
   if (changed) {
     db.prepare("UPDATE site_content SET json = ? WHERE id = 1").run(JSON.stringify(data));
-    console.log("[db] upgraded site content table in SQLite database to include pillars, stats, testimonials, and spotlight fields.");
+    console.log("[db] upgraded site content table in SQLite database to include pillars, stats, testimonials, spotlight fields, and pricing plans.");
   }
 }
 

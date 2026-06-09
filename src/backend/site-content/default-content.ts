@@ -331,6 +331,96 @@ export const PUBLIC_DEFAULT_SITE_CONTENT: SiteContent = {
     landscape: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=1200",
     square: "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&q=80&w=800",
     portrait: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=800"
-  }
+  },
+  plans: [
+    {
+      id: "free",
+      name: "Free",
+      monthlyPrice: 0,
+      yearlyPrice: 0,
+      credits: 120,
+      features: [
+        "120 Credits Included",
+        "Standard Image Generation Access",
+        "Standard Video Generation Access",
+        "Up to 2K Quality",
+        "Standard Rendering Queue",
+        "Community Support",
+        "Core Creative Tools",
+        "Basic Generation History"
+      ],
+      cta: "Get Started Free",
+      available: true
+    },
+    {
+      id: "pro",
+      name: "Pro",
+      monthlyPrice: 499,
+      yearlyPrice: 4799,
+      credits: 510,
+      features: [
+        "510 Credits Included",
+        "Advanced Image Generation Access",
+        "Advanced Video Generation Access",
+        "Up to 4K Quality",
+        "Priority Rendering",
+        "Faster Processing",
+        "Commercial Usage Rights",
+        "Premium Creative Tools",
+        "Extended History",
+        "Email Support"
+      ],
+      badge: "Most Popular",
+      cta: "Upgrade to Pro",
+      available: true
+    },
+    {
+      id: "pro_plus",
+      name: "Pro Plus",
+      monthlyPrice: 999,
+      yearlyPrice: 9599,
+      credits: 650,
+      features: [
+        "650 Credits Included",
+        "Full Platform Access",
+        "Ultra HD Outputs",
+        "Instant Priority Queue",
+        "Dedicated Support",
+        "Commercial Licensing",
+        "API Access",
+        "Team Collaboration",
+        "Advanced Workflow Controls",
+        "Premium Features",
+        "Early Feature Access",
+        "Highest Rendering Priority"
+      ],
+      badge: "Best Value",
+      cta: "Go Pro Plus",
+      available: true
+    },
+    {
+      id: "custom",
+      name: "Custom",
+      monthlyPrice: 0,
+      yearlyPrice: 0,
+      credits: 0,
+      features: [
+        "Custom Credit Allocation",
+        "Dedicated Infrastructure",
+        "Private Deployments",
+        "Team Management",
+        "Custom AI Models",
+        "Custom Integrations",
+        "Dedicated Account Manager",
+        "Enterprise Security",
+        "Priority Support",
+        "Flexible Licensing",
+        "API Scaling",
+        "Personalized Workflows"
+      ],
+      description: "Tell us what you need and we will build a tailored creative environment around your workflow.",
+      cta: "Contact Sales",
+      available: true
+    }
+  ]
 };
-

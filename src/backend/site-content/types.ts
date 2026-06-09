@@ -106,6 +106,19 @@ export type FeaturesCalibrationConfig = {
   portrait: string;
 };
 
+export type PricingPlan = {
+  id: string;
+  name: string;
+  monthlyPrice: number;
+  yearlyPrice: number;
+  credits: number;
+  features: string[];
+  badge?: string;
+  cta: string;
+  available: boolean;
+  description?: string;
+};
+
 export type SiteContent = {
   hero: {};
   heroBackground: HeroBackgroundConfig;
@@ -119,5 +132,6 @@ export type SiteContent = {
   upcomingFeatures?: UpcomingFeatureItem[];
   visualizerPresets?: VisualizerPreset[];
   featuresCalibration?: FeaturesCalibrationConfig;
+  plans?: PricingPlan[];
 };
 

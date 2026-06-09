@@ -186,8 +186,13 @@ export default function VideoStudioClient() {
   const reduce = useReducedMotion();
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const [rates, setRates] = useState<{ credits_per_image: number; credits_per_video_second: number }>({
-    credits_per_image: 2,
+  const [rates, setRates] = useState<{
+    cost_video_std: number;
+    cost_video_pro: number;
+    credits_per_video_second: number;
+  }>({
+    cost_video_std: 5,
+    cost_video_pro: 8,
     credits_per_video_second: 5,
   });
 
@@ -238,6 +243,9 @@ export default function VideoStudioClient() {
   const [feedFilter, setFeedFilter] = useState<"all" | "ready" | "running">("all");
   const [lightbox, setLightbox] = useState<{ src: string } | null>(null);
   const [savedPresets, setSavedPresets] = useState<VideoPreset[]>([]);
+
+  const costPerSecond = mode === "pro" ? (rates.cost_video_pro ?? 8) : (rates.cost_video_std ?? rates.credits_per_video_second ?? 5);
+  const currentCost = costPerSecond * duration;
 
   useEffect(() => {
     if (ready && !user) router.replace("/sign-in?next=/dashboard/generate/video");
@@ -994,6 +1002,24 @@ export default function VideoStudioClient() {
             "linear-gradient(180deg, color-mix(in srgb, var(--deep-black) 55%, transparent) 0%, color-mix(in srgb, var(--deep-black) 88%, transparent) 100%)",
         }}
       >
+        {/* Cost Preview Panel */}
+        <div className="mb-2.5 flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.02] px-3 py-1.5 text-xs">
+          <div className="flex items-center gap-1.5 text-[var(--text-muted)]">
+            <span className="font-semibold text-white">Engine:</span>
+            <span className="font-mono bg-[#00D4FF]/10 border border-[#00D4FF]/20 px-1.5 py-0.5 rounded text-[10px] text-cyan-200">
+              Kling {mode === "pro" ? "Pro" : "Std"} ({duration}s)
+            </span>
+          </div>
+          <div className="flex items-center gap-4 text-[var(--text-muted)]">
+            <span>
+              Available: <strong className="text-white tabular-nums">{user.availableCredits ?? user.credits ?? 0}</strong>
+            </span>
+            <span>
+              Cost: <strong className={(user.availableCredits ?? user.credits ?? 0) < currentCost ? "text-rose-400 font-bold" : "text-[#00D4FF] font-bold"}>{currentCost} credits</strong>
+            </span>
+          </div>
+        </div>
+
         <div className="mb-1.5 flex items-center justify-between gap-2">
           <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--text-muted)]">Director prompt</span>
           <span className="text-[10px] tabular-nums text-[var(--text-subtle)]">{prompt.length}</span>
@@ -1030,7 +1056,7 @@ export default function VideoStudioClient() {
             ) : (
               <>
                 <Sparkles className="h-5 w-5" strokeWidth={2} />
-                Generate ({duration * rates.credits_per_video_second} credits)
+                Generate ({currentCost} credits)
               </>
             )}
           </StudioGlowGenerate>
@@ -1397,7 +1423,12 @@ export default function VideoStudioClient() {
                   rows={1}
                   className="studio-prompt-focus-video min-h-[44px] max-h-28 flex-1 resize-none rounded-xl border border-white/10 bg-black/45 px-3 py-2.5 text-sm leading-relaxed text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)]"
                 />
-                <StudioGlowGenerate tone="cyan" size="icon" disabled={busy || prompt.trim().length < 2} onClick={() => void run()}>
+                 <StudioGlowGenerate
+                  tone="cyan"
+                  size="icon"
+                  disabled={busy || prompt.trim().length < 2 || user.generationDisabled || (user.availableCredits ?? user.credits ?? 0) < currentCost}
+                  onClick={() => void run()}
+                >
                   {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowUp className="h-5 w-5" strokeWidth={2.25} />}
                 </StudioGlowGenerate>
               </div>
@@ -1415,6 +1446,12 @@ export default function VideoStudioClient() {
                 paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))",
               }}
             >
+              {/* Cost Preview Panel Mobile */}
+              <div className="mb-2 flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.02] px-2 py-1 text-[11px]">
+                <span className="font-semibold text-white">Cost: <strong className={(user.availableCredits ?? user.credits ?? 0) < currentCost ? "text-rose-400 font-bold" : "text-[#00D4FF] font-bold"}>{currentCost} credits</strong></span>
+                <span className="text-[var(--text-subtle)]">Available: {user.availableCredits ?? user.credits ?? 0}</span>
+              </div>
+
               <p className="mb-1.5 text-[9px] font-bold uppercase tracking-[0.14em]" style={{ color: "var(--text-subtle)" }}>
                 Motion prompt
               </p>
@@ -1433,16 +1470,31 @@ export default function VideoStudioClient() {
                   rows={2}
                   className="studio-prompt-focus-video min-h-[44px] w-full flex-1 resize-none rounded-xl border border-white/10 bg-black/35 px-3 py-2.5 text-sm leading-relaxed text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)]"
                 />
-                <StudioGlowGenerate tone="cyan" size="lg" disabled={busy || prompt.trim().length < 2} onClick={() => void run()}>
+                <StudioGlowGenerate
+                  tone="cyan"
+                  size="lg"
+                  disabled={busy || prompt.trim().length < 2 || user.generationDisabled || (user.availableCredits ?? user.credits ?? 0) < currentCost}
+                  onClick={() => void run()}
+                >
                   {busy ? (
                     <>
                       <Loader2 className="h-5 w-5 animate-spin" />
                       Rendering…
                     </>
+                  ) : user.generationDisabled ? (
+                    <>
+                      <X className="h-5 w-5" strokeWidth={2} />
+                      Access Disabled
+                    </>
+                  ) : (user.availableCredits ?? user.credits ?? 0) < currentCost ? (
+                    <>
+                      <X className="h-5 w-5" strokeWidth={2} />
+                      Insufficient
+                    </>
                   ) : (
                     <>
                       <Sparkles className="h-5 w-5" strokeWidth={2} />
-                      Generate ({duration * rates.credits_per_video_second} credits)
+                      Generate ({currentCost} credits)
                     </>
                   )}
                 </StudioGlowGenerate>
@@ -1520,7 +1572,7 @@ export default function VideoStudioClient() {
               aria-label="Credits"
             >
               <Sparkles className="h-3.5 w-3.5" strokeWidth={2} />
-              <span className="tabular-nums font-semibold">{user?.credits ?? 0} </span>
+              <span className="tabular-nums font-semibold">{user?.availableCredits ?? user?.credits ?? 0} </span>
               <span className="hidden sm:inline">Credits</span>
             </Link>
             <Link

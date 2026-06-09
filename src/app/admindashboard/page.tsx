@@ -1,7 +1,7 @@
 "use client";
  
 import { motion, useReducedMotion } from "framer-motion";
-import { Inbox, Settings, Sparkles, Users, BookOpen, Clapperboard } from "lucide-react";
+import { Inbox, Settings, Sparkles, Users, BookOpen, Clapperboard, Activity } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -15,8 +15,14 @@ const tiles = [
     icon: "users" as const,
   },
   {
+    title: "Analytics & Audits",
+    desc: "View platform metrics, engine usage stats, user plan distribution, and system audit logs.",
+    href: "/admindashboard/analytics",
+    icon: "analytics" as const,
+  },
+  {
     title: "Content studio",
-    desc: "Update homepage hero previews, gallery images, and spotlight slides.",
+    desc: "Update homepage hero previews, gallery images, pricing plans, and spotlight slides.",
     href: "/admindashboard/content",
     icon: "sparkles" as const,
   },
@@ -161,6 +167,8 @@ export default function DashboardPage() {
                     <Settings className="h-5 w-5" strokeWidth={1.75} style={{ color: "#7B61FF" }} />
                   ) : t.icon === "users" ? (
                     <Users className="h-5 w-5" strokeWidth={1.75} style={{ color: "#FF2E9A" }} />
+                  ) : t.icon === "analytics" ? (
+                    <Activity className="h-5 w-5" strokeWidth={1.75} style={{ color: "#00E575" }} />
                   ) : t.icon === "clapperboard" ? (
                     <Clapperboard className="h-5 w-5" strokeWidth={1.75} style={{ color: "#FFB000" }} />
                   ) : t.icon === "bookOpen" ? (

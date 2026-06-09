@@ -18,6 +18,11 @@ export type SessionUser = {
   subscriptionPlan?: string;
   subscriptionStatus?: string;
   credits?: number;
+  availableCredits?: number;
+  pendingCredits?: number;
+  generationDisabled?: boolean;
+  specialAccess?: boolean;
+  role?: string;
 };
 
 export async function hashPassword(password: string): Promise<string> {

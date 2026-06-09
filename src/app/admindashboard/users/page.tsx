@@ -16,6 +16,9 @@ export type PlatformUserRow = {
   subscriptionStatus: string;
   adminNotes: string;
   credits?: number;
+  generationDisabled?: boolean;
+  specialAccess?: boolean;
+  role?: string;
 };
 
 const PLAN_PRESETS = ["free", "starter", "pro", "enterprise"] as const;
@@ -358,6 +361,9 @@ function UserDetailPanel({
   const [notes, setNotes] = useState(user.adminNotes || "");
   const [adjustCredits, setAdjustCredits] = useState("");
   const [adjustReason, setAdjustReason] = useState("");
+  const [role, setRole] = useState(user.role || "user");
+  const [genDisabled, setGenDisabled] = useState(!!user.generationDisabled);
+  const [specialAccess, setSpecialAccess] = useState(!!user.specialAccess);
 
   const [userHistory, setUserHistory] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
@@ -466,6 +472,55 @@ function UserDetailPanel({
         </label>
       </div>
 
+      {/* Role & Access controls */}
+      <div className="sm:col-span-2 lg:col-span-1 border border-white/5 rounded-xl bg-black/10 p-3 space-y-3">
+        <h4 className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--text-subtle)" }}>
+          Access & Role Control
+        </h4>
+        <div className="space-y-2">
+          <label className="flex items-center justify-between gap-2 text-xs font-medium text-[var(--text-primary)]">
+            System Role
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className="rounded-lg border px-2 py-1 text-xs outline-none"
+              style={{ borderColor: "var(--border-subtle)", background: "var(--rich-black)", color: "var(--text-primary)" }}
+            >
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </select>
+          </label>
+          
+          <label className="flex items-center justify-between gap-2 text-xs font-medium text-[var(--text-primary)] cursor-pointer">
+            Generation Access
+            <div className="relative flex items-center">
+              <input
+                type="checkbox"
+                checked={!genDisabled}
+                onChange={(e) => setGenDisabled(!e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-9 h-5 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#7B61FF]"></div>
+              <span className="ml-2 text-[10px] min-w-[36px]">{!genDisabled ? "Enabled" : "Disabled"}</span>
+            </div>
+          </label>
+
+          <label className="flex items-center justify-between gap-2 text-xs font-medium text-[var(--text-primary)] cursor-pointer">
+            Special Access
+            <div className="relative flex items-center">
+              <input
+                type="checkbox"
+                checked={specialAccess}
+                onChange={(e) => setSpecialAccess(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-9 h-5 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#7B61FF]"></div>
+              <span className="ml-2 text-[10px] min-w-[36px]">{specialAccess ? "Yes" : "No"}</span>
+            </div>
+          </label>
+        </div>
+      </div>
+
       <div className="sm:col-span-2 lg:col-span-2">
         <label className="grid gap-1.5 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--text-subtle)" }}>
           Admin notes (internal)
@@ -522,13 +577,16 @@ function UserDetailPanel({
               subscriptionPlan: plan.trim() || "free",
               subscriptionStatus: subStatus.trim() || "active",
               adminNotes: notes.slice(0, 4000),
+              role: role,
+              generationDisabled: genDisabled,
+              specialAccess: specialAccess,
             })
           }
           className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border px-5 text-sm font-semibold disabled:opacity-50"
           style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
         >
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-          Save subscription & notes
+          Save user settings & notes
         </button>
         <p className="text-xs" style={{ color: "var(--text-muted)" }}>
           User id: <span className="font-mono text-[11px] text-[#00D4FF]">{user.id}</span>

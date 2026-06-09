@@ -106,7 +106,7 @@ function mountUserAuthRoutes(app, { db }) {
       }
       const row = db
         .prepare(
-          "SELECT id, email, name, suspended, subscription_plan, subscription_status, credits FROM users WHERE id = ?"
+          "SELECT id, email, name, suspended, subscription_plan, subscription_status, credits, generation_disabled, special_access, role FROM users WHERE id = ?"
         )
         .get(payload.sub);
       if (!row) {
@@ -115,6 +115,11 @@ function mountUserAuthRoutes(app, { db }) {
       if (row.suspended) {
         return res.status(403).json({ ok: false, error: "This account has been suspended." });
       }
+
+      // Calculate pending credits and available credits
+      const pendingRow = db.prepare("SELECT COALESCE(SUM(credits), 0) as pending FROM studio_tasks WHERE user_id = ? AND status = 'pending'").get(payload.sub);
+      const pending_credits = pendingRow?.pending || 0;
+
       const user = {
         id: row.id,
         email: row.email,
@@ -122,6 +127,11 @@ function mountUserAuthRoutes(app, { db }) {
         subscriptionPlan: row.subscription_plan,
         subscriptionStatus: row.subscription_status,
         credits: row.credits,
+        availableCredits: Math.max(0, row.credits - pending_credits),
+        pendingCredits: pending_credits,
+        generationDisabled: row.generation_disabled === 1,
+        specialAccess: row.special_access === 1,
+        role: row.role,
       };
       return res.json({ ok: true, user });
     } catch (e) {

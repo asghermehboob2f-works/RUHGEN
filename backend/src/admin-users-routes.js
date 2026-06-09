@@ -28,7 +28,7 @@ function mountAdminUsersRoutes(app, { db }) {
   app.get("/api/admin/users", requireAdmin, (req, res) => {
     try {
       const rows = db.prepare(
-        "SELECT id, email, name, created_at as createdAt, suspended, subscription_plan as subscriptionPlan, subscription_status as subscriptionStatus, admin_notes as adminNotes, credits FROM users ORDER BY created_at DESC"
+        "SELECT id, email, name, created_at as createdAt, suspended, subscription_plan as subscriptionPlan, subscription_status as subscriptionStatus, admin_notes as adminNotes, credits, generation_disabled as generationDisabled, special_access as specialAccess, role FROM users ORDER BY created_at DESC"
       ).all();
       return res.json({ ok: true, users: rows });
     } catch (e) {
@@ -42,8 +42,8 @@ function mountAdminUsersRoutes(app, { db }) {
       const { id } = req.params;
       const body = req.body;
       
-      const row = db.prepare("SELECT id, credits FROM users WHERE id = ?").get(id);
-      if (!row) {
+      const oldRow = db.prepare("SELECT credits, suspended, subscription_plan, subscription_status, admin_notes, generation_disabled, special_access, role FROM users WHERE id = ?").get(id);
+      if (!oldRow) {
         return res.status(404).json({ ok: false, error: "User not found." });
       }
 
@@ -66,9 +66,21 @@ function mountAdminUsersRoutes(app, { db }) {
         updates.push("admin_notes = ?");
         values.push(body.adminNotes.slice(0, 4000));
       }
+      if (typeof body.generationDisabled === "boolean") {
+        updates.push("generation_disabled = ?");
+        values.push(body.generationDisabled ? 1 : 0);
+      }
+      if (typeof body.specialAccess === "boolean") {
+        updates.push("special_access = ?");
+        values.push(body.specialAccess ? 1 : 0);
+      }
+      if (typeof body.role === "string") {
+        updates.push("role = ?");
+        values.push(body.role.trim());
+      }
 
       let creditsChanged = false;
-      let oldCredits = row.credits;
+      let oldCredits = oldRow.credits;
       let newCredits = oldCredits;
       if (typeof body.credits === "number") {
         if (oldCredits !== body.credits) {
@@ -77,6 +89,11 @@ function mountAdminUsersRoutes(app, { db }) {
           updates.push("credits = ?");
           values.push(newCredits);
         }
+      } else if (typeof body.adjustCredits === "number" && body.adjustCredits !== 0) {
+        creditsChanged = true;
+        newCredits = Math.max(0, oldCredits + body.adjustCredits);
+        updates.push("credits = ?");
+        values.push(newCredits);
       }
 
       const runUpdate = db.transaction(() => {
@@ -85,6 +102,30 @@ function mountAdminUsersRoutes(app, { db }) {
           db.prepare(
             `UPDATE users SET ${updates.join(", ")} WHERE id = ?`
           ).run(...values);
+        }
+
+        const actorId = req.admin.sub;
+        const actorEmail = req.admin.email;
+        const timestamp = new Date().toISOString();
+        const stmtAudit = db.prepare(`
+          INSERT INTO audit_logs (id, actor_id, actor_email, target_user_id, action_type, old_value, new_value, timestamp, details_json)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+
+        if (typeof body.suspended === "boolean" && (body.suspended ? 1 : 0) !== oldRow.suspended) {
+          stmtAudit.run(crypto.randomUUID(), actorId, actorEmail, id, "suspend_toggle", String(oldRow.suspended), String(body.suspended ? 1 : 0), timestamp, JSON.stringify({ reason: body.adminNotes || "" }));
+        }
+        if (typeof body.role === "string" && body.role.trim() !== oldRow.role) {
+          stmtAudit.run(crypto.randomUUID(), actorId, actorEmail, id, "role_change", oldRow.role, body.role.trim(), timestamp, "{}");
+        }
+        if (typeof body.generationDisabled === "boolean" && (body.generationDisabled ? 1 : 0) !== oldRow.generation_disabled) {
+          stmtAudit.run(crypto.randomUUID(), actorId, actorEmail, id, "generation_toggle", String(oldRow.generation_disabled), String(body.generationDisabled ? 1 : 0), timestamp, "{}");
+        }
+        if (typeof body.specialAccess === "boolean" && (body.specialAccess ? 1 : 0) !== oldRow.special_access) {
+          stmtAudit.run(crypto.randomUUID(), actorId, actorEmail, id, "special_access_change", String(oldRow.special_access), String(body.specialAccess ? 1 : 0), timestamp, "{}");
+        }
+        if (typeof body.subscriptionPlan === "string" && body.subscriptionPlan.trim() !== oldRow.subscription_plan) {
+          stmtAudit.run(crypto.randomUUID(), actorId, actorEmail, id, "plan_change", oldRow.subscription_plan, body.subscriptionPlan.trim(), timestamp, "{}");
         }
 
         if (creditsChanged) {
@@ -105,20 +146,39 @@ function mountAdminUsersRoutes(app, { db }) {
             deducted,
             oldCredits,
             newCredits,
-            new Date().toISOString(),
+            timestamp,
             reason,
             JSON.stringify({ adminId: req.admin.sub, reason })
           );
+
+          stmtAudit.run(crypto.randomUUID(), actorId, actorEmail, id, "adjust_credits", String(oldCredits), String(newCredits), timestamp, JSON.stringify({ reason }));
         }
       });
 
       runUpdate();
 
       const updatedRow = db.prepare(
-        "SELECT id, email, name, created_at as createdAt, suspended, subscription_plan as subscriptionPlan, subscription_status as subscriptionStatus, admin_notes as adminNotes, credits FROM users WHERE id = ?"
+        "SELECT id, email, name, created_at as createdAt, suspended, subscription_plan as subscriptionPlan, subscription_status as subscriptionStatus, admin_notes as adminNotes, credits, generation_disabled as generationDisabled, special_access as specialAccess, role FROM users WHERE id = ?"
       ).get(id);
 
       return res.json({ ok: true, user: updatedRow });
+    } catch (e) {
+      return res.status(500).json({ ok: false, error: e.message || "Database error." });
+    }
+  });
+
+  // Get transaction history for a specific user (admin view)
+  app.get("/api/admin/users/:id/history", requireAdmin, (req, res) => {
+    try {
+      const { id } = req.params;
+      const rows = db.prepare(`
+        SELECT id, action_type as actionType, credits_added as creditsAdded, credits_deducted as creditsDeducted, previous_balance as previousBalance, new_balance as newBalance, timestamp, source, reason, details_json as detailsJson
+        FROM credit_transactions
+        WHERE user_id = ?
+        ORDER BY timestamp DESC
+        LIMIT 100
+      `).all(id);
+      return res.json({ ok: true, history: rows });
     } catch (e) {
       return res.status(500).json({ ok: false, error: e.message || "Database error." });
     }
@@ -150,6 +210,10 @@ function mountAdminUsersRoutes(app, { db }) {
       }
       if (rates.credits_per_image === undefined) rates.credits_per_image = 2;
       if (rates.credits_per_video_second === undefined) rates.credits_per_video_second = 5;
+      if (rates.cost_image_schnell === undefined) rates.cost_image_schnell = 2;
+      if (rates.cost_image_dev === undefined) rates.cost_image_dev = 3;
+      if (rates.cost_video_std === undefined) rates.cost_video_std = 5;
+      if (rates.cost_video_pro === undefined) rates.cost_video_pro = 8;
       return res.json({ ok: true, rates });
     } catch (e) {
       return res.status(500).json({ ok: false, error: e.message || "Database error." });
@@ -159,18 +223,117 @@ function mountAdminUsersRoutes(app, { db }) {
   // Update credit settings (admin view)
   app.post("/api/admin/credits/rates", requireAdmin, (req, res) => {
     try {
-      const { credits_per_image, credits_per_video_second } = req.body;
-      
+      const { credits_per_image, credits_per_video_second, cost_image_schnell, cost_image_dev, cost_video_std, cost_video_pro } = req.body;
       const stmt = db.prepare("INSERT OR REPLACE INTO credit_settings (key, value) VALUES (?, ?)");
       
-      if (credits_per_image !== undefined && credits_per_image !== null) {
-        stmt.run("credits_per_image", String(credits_per_image));
-      }
-      if (credits_per_video_second !== undefined && credits_per_video_second !== null) {
-        stmt.run("credits_per_video_second", String(credits_per_video_second));
-      }
+      if (credits_per_image !== undefined && credits_per_image !== null) stmt.run("credits_per_image", String(credits_per_image));
+      if (credits_per_video_second !== undefined && credits_per_video_second !== null) stmt.run("credits_per_video_second", String(credits_per_video_second));
+      if (cost_image_schnell !== undefined && cost_image_schnell !== null) stmt.run("cost_image_schnell", String(cost_image_schnell));
+      if (cost_image_dev !== undefined && cost_image_dev !== null) stmt.run("cost_image_dev", String(cost_image_dev));
+      if (cost_video_std !== undefined && cost_video_std !== null) stmt.run("cost_video_std", String(cost_video_std));
+      if (cost_video_pro !== undefined && cost_video_pro !== null) stmt.run("cost_video_pro", String(cost_video_pro));
 
       return res.json({ ok: true });
+    } catch (e) {
+      return res.status(500).json({ ok: false, error: e.message || "Database error." });
+    }
+  });
+
+  // Alias endpoints for rates mapping to what the settings page calls
+  app.get("/api/admin/rates", requireAdmin, (req, res) => {
+    try {
+      const rows = db.prepare("SELECT key, value FROM credit_settings").all();
+      const rates = {};
+      for (const r of rows) {
+        rates[r.key] = Number(r.value);
+      }
+      return res.json({
+        ok: true,
+        rates: {
+          credits_per_image: rates.credits_per_image ?? 2,
+          credits_per_video_second: rates.credits_per_video_second ?? 5,
+          cost_image_schnell: rates.cost_image_schnell ?? 2,
+          cost_image_dev: rates.cost_image_dev ?? 3,
+          cost_video_std: rates.cost_video_std ?? 5,
+          cost_video_pro: rates.cost_video_pro ?? 8
+        }
+      });
+    } catch (e) {
+      return res.status(500).json({ ok: false, error: e.message || "Database error." });
+    }
+  });
+
+  app.post("/api/admin/rates", requireAdmin, (req, res) => {
+    try {
+      const { imageRate, videoRate, costImageSchnell, costImageDev, costVideoStd, costVideoPro } = req.body;
+      const stmt = db.prepare("INSERT OR REPLACE INTO credit_settings (key, value) VALUES (?, ?)");
+      
+      if (imageRate !== undefined && imageRate !== null) stmt.run("credits_per_image", String(imageRate));
+      if (videoRate !== undefined && videoRate !== null) stmt.run("credits_per_video_second", String(videoRate));
+      if (costImageSchnell !== undefined && costImageSchnell !== null) stmt.run("cost_image_schnell", String(costImageSchnell));
+      if (costImageDev !== undefined && costImageDev !== null) stmt.run("cost_image_dev", String(costImageDev));
+      if (costVideoStd !== undefined && costVideoStd !== null) stmt.run("cost_video_std", String(costVideoStd));
+      if (costVideoPro !== undefined && costVideoPro !== null) stmt.run("cost_video_pro", String(costVideoPro));
+
+      return res.json({ ok: true });
+    } catch (e) {
+      return res.status(500).json({ ok: false, error: e.message || "Database error." });
+    }
+  });
+
+  // Admin analytics endpoint
+  app.get("/api/admin/analytics", requireAdmin, (req, res) => {
+    try {
+      const totalUsers = db.prepare("SELECT COUNT(*) as count FROM users").get().count;
+      const suspendedUsers = db.prepare("SELECT COUNT(*) as count FROM users WHERE suspended = 1").get().count;
+      const activeUsers = totalUsers - suspendedUsers;
+
+      const totalCreditsAdded = db.prepare("SELECT COALESCE(SUM(credits_added), 0) as total FROM credit_transactions").get().total;
+      const totalCreditsConsumed = db.prepare("SELECT COALESCE(SUM(credits_deducted), 0) as total FROM credit_transactions WHERE action_type IN ('image_generation', 'video_generation')").get().total;
+
+      const activeTasks = db.prepare("SELECT COUNT(*) as count FROM studio_tasks WHERE status = 'pending'").get().count;
+
+      const engineRows = db.prepare("SELECT type, details_json FROM studio_tasks").all();
+      const engineCounts = {};
+      for (const row of engineRows) {
+        let modelName = row.type === "image" ? "flux1-dev" : "kling-turbo";
+        try {
+          const details = JSON.parse(row.details_json);
+          if (row.type === "image" && details.model) {
+            modelName = details.model.split("/").pop();
+          } else if (row.type === "video" && details.mode) {
+            modelName = `kling-${details.mode}`;
+          }
+        } catch(e) {}
+        engineCounts[modelName] = (engineCounts[modelName] || 0) + 1;
+      }
+
+      const engines = Object.entries(engineCounts).map(([name, count]) => ({ name, count })).sort((a,b) => b.count - a.count);
+
+      const planRows = db.prepare("SELECT subscription_plan as plan, COUNT(*) as count FROM users GROUP BY subscription_plan").all();
+
+      const auditLogs = db.prepare(`
+        SELECT a.id, a.actor_id as actorId, a.actor_email as actorEmail, a.target_user_id as targetUserId, u.email as targetUserEmail, a.action_type as actionType, a.old_value as oldValue, a.new_value as newValue, a.timestamp, a.details_json as detailsJson
+        FROM audit_logs a
+        LEFT JOIN users u ON a.target_user_id = u.id
+        ORDER BY a.timestamp DESC
+        LIMIT 100
+      `).all();
+
+      return res.json({
+        ok: true,
+        stats: {
+          totalUsers,
+          activeUsers,
+          suspendedUsers,
+          totalCreditsAdded,
+          totalCreditsConsumed,
+          activeTasks
+        },
+        engines,
+        plans: planRows,
+        auditLogs
+      });
     } catch (e) {
       return res.status(500).json({ ok: false, error: e.message || "Database error." });
     }

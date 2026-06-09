@@ -15,6 +15,7 @@ import type {
   UpcomingFeatureItem,
   VisualizerPreset,
   FeaturesCalibrationConfig,
+  PricingPlan,
 } from "@/backend/site-content/types";
 
 
@@ -160,6 +161,23 @@ function parseFeaturesCalibrationConfig(x: unknown): FeaturesCalibrationConfig |
   };
 }
 
+function parsePricingPlan(x: unknown): PricingPlan | null {
+  if (!isRecord(x)) return null;
+  if (!isString(x.id) || !isString(x.name) || !isString(x.cta)) return null;
+  return {
+    id: x.id,
+    name: x.name,
+    monthlyPrice: typeof x.monthlyPrice === "number" ? x.monthlyPrice : 0,
+    yearlyPrice: typeof x.yearlyPrice === "number" ? x.yearlyPrice : 0,
+    credits: typeof x.credits === "number" ? x.credits : 0,
+    features: Array.isArray(x.features) ? x.features.map(String) : [],
+    badge: isString(x.badge) ? x.badge : undefined,
+    cta: x.cta,
+    available: typeof x.available === "boolean" ? x.available : true,
+    description: isString(x.description) ? x.description : undefined,
+  };
+}
+
 /** Parse JSON payload into `SiteContent` (shared by file read and API response). */
 export function parseSiteContentPayload(data: unknown): SiteContent {
   if (!isRecord(data)) throw new Error("Invalid content: root is not an object.");
@@ -190,8 +208,9 @@ export function parseSiteContentPayload(data: unknown): SiteContent {
   const upcomingFeatures = Array.isArray(data.upcomingFeatures) ? (data.upcomingFeatures.map(parseUpcomingFeature).filter(Boolean) as UpcomingFeatureItem[]) : undefined;
   const visualizerPresets = Array.isArray(data.visualizerPresets) ? (data.visualizerPresets.map(parseVisualizerPreset).filter(Boolean) as VisualizerPreset[]) : undefined;
   const featuresCalibration = parseFeaturesCalibrationConfig(data.featuresCalibration) || undefined;
+  const plans = Array.isArray(data.plans) ? (data.plans.map(parsePricingPlan).filter(Boolean) as PricingPlan[]) : undefined;
 
-  return { hero, heroBackground, gallery: { items }, showcase: { slides }, pillars, stats, testimonials, spotlightFeatures, spotlightTemplates, upcomingFeatures, visualizerPresets, featuresCalibration };
+  return { hero, heroBackground, gallery: { items }, showcase: { slides }, pillars, stats, testimonials, spotlightFeatures, spotlightTemplates, upcomingFeatures, visualizerPresets, featuresCalibration, plans };
 }
 
 /** True when the CMS payload has no real gallery media (common after empty DB seed). */
@@ -248,6 +267,7 @@ export function applyPublicSiteDefaults(c: SiteContent): SiteContent {
   const upcomingFeatures = c.upcomingFeatures && c.upcomingFeatures.length > 0 ? c.upcomingFeatures : def.upcomingFeatures;
   const visualizerPresets = c.visualizerPresets && c.visualizerPresets.length > 0 ? c.visualizerPresets : def.visualizerPresets;
   const featuresCalibration = c.featuresCalibration || def.featuresCalibration;
+  const plans = c.plans && c.plans.length > 0 ? c.plans : def.plans;
 
   return {
     hero: c.hero,
@@ -262,6 +282,7 @@ export function applyPublicSiteDefaults(c: SiteContent): SiteContent {
     upcomingFeatures,
     visualizerPresets,
     featuresCalibration,
+    plans,
   };
 }
 

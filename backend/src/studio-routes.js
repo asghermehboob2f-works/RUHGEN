@@ -155,7 +155,7 @@ function mountStudioRoutes(app, options) {
     try {
       const pendingTasks = db.prepare("SELECT * FROM studio_tasks WHERE status = 'pending'").all();
       for (const t of pendingTasks) {
-        // If task is extremely old, mark it failed and refund credits
+        // If task is extremely old, mark it failed
         const ageMs = Date.now() - new Date(t.created_at).getTime();
         if (ageMs > 2 * 60 * 60 * 1000) {
           let details = {};
@@ -163,17 +163,21 @@ function mountStudioRoutes(app, options) {
             details = JSON.parse(t.details_json);
           } catch (e) {}
           details.error = { message: "Task timed out after 2 hours." };
-          db.prepare("UPDATE studio_tasks SET status = 'failed', details_json = ? WHERE id = ?").run(
-            JSON.stringify(details),
-            t.id
-          );
-          refundCredits(
-            t.user_id,
-            t.credits,
-            t.type === "image" ? "image_generation" : "video_generation",
-            `Refund: Task timed out`,
-            { taskId: t.id }
-          );
+          db.transaction(() => {
+            db.prepare("UPDATE studio_tasks SET status = 'failed', details_json = ? WHERE id = ?").run(
+              JSON.stringify(details),
+              t.id
+            );
+            db.prepare(`
+              INSERT INTO audit_logs (id, actor_id, actor_email, target_user_id, action_type, old_value, new_value, timestamp, details_json)
+              VALUES (?, 'system', 'system', ?, 'generation_status', 'pending', 'failed', ?, ?)
+            `).run(
+              crypto.randomUUID(),
+              t.user_id,
+              new Date().toISOString(),
+              JSON.stringify({ taskId: t.id, reason: "timeout" })
+            );
+          })();
           continue;
         }
 
@@ -196,10 +200,45 @@ function mountStudioRoutes(app, options) {
             } catch (e) {}
             details.urls = urls;
             details.output = data.output;
-            db.prepare("UPDATE studio_tasks SET status = 'completed', details_json = ? WHERE id = ?").run(
-              JSON.stringify(details),
-              t.id
-            );
+            db.transaction(() => {
+              const task = db.prepare("SELECT status, credits, user_id, type FROM studio_tasks WHERE id = ?").get(t.id);
+              if (task && task.status === 'pending') {
+                const u = db.prepare("SELECT credits FROM users WHERE id = ?").get(task.user_id);
+                if (u) {
+                  const finalBalance = Math.max(0, u.credits - task.credits);
+                  db.prepare("UPDATE users SET credits = ? WHERE id = ?").run(finalBalance, task.user_id);
+                  
+                  db.prepare(`
+                    INSERT INTO credit_transactions (id, user_id, action_type, credits_added, credits_deducted, previous_balance, new_balance, timestamp, source, reason, details_json)
+                    VALUES (?, ?, ?, 0, ?, ?, ?, ?, 'studio', ?, ?)
+                  `).run(
+                    crypto.randomUUID(),
+                    task.user_id,
+                    task.type === "image" ? "image_generation" : "video_generation",
+                    task.credits,
+                    u.credits,
+                    finalBalance,
+                    new Date().toISOString(),
+                    `${task.type === 'image' ? 'Image' : 'Video'} generation completed successfully`,
+                    JSON.stringify({ taskId: t.id })
+                  );
+
+                  db.prepare(`
+                    INSERT INTO audit_logs (id, actor_id, actor_email, target_user_id, action_type, old_value, new_value, timestamp, details_json)
+                    VALUES (?, 'system', 'system', ?, 'generation_status', 'pending', 'completed', ?, ?)
+                  `).run(
+                    crypto.randomUUID(),
+                    task.user_id,
+                    new Date().toISOString(),
+                    JSON.stringify({ taskId: t.id, creditsDeducted: task.credits })
+                  );
+                }
+                db.prepare("UPDATE studio_tasks SET status = 'completed', details_json = ? WHERE id = ?").run(
+                  JSON.stringify(details),
+                  t.id
+                );
+              }
+            })();
             console.log(`[checkPendingTasks] Task ${t.id} completed successfully`);
           } else if (status === "failed" || status === "cancelled") {
             let details = {};
@@ -207,18 +246,27 @@ function mountStudioRoutes(app, options) {
               details = JSON.parse(t.details_json);
             } catch (e) {}
             details.error = data.error || { message: "Task failed upstream." };
-            db.prepare("UPDATE studio_tasks SET status = 'failed', details_json = ? WHERE id = ?").run(
-              JSON.stringify(details),
-              t.id
-            );
-            refundCredits(
-              t.user_id,
-              t.credits,
-              t.type === "image" ? "image_generation" : "video_generation",
-              `Refund: Task ${status} upstream`,
-              { taskId: t.id, error: data.error }
-            );
-            console.log(`[checkPendingTasks] Task ${t.id} ${status}, refunded ${t.credits} credits`);
+            db.transaction(() => {
+              const task = db.prepare("SELECT status FROM studio_tasks WHERE id = ?").get(t.id);
+              if (task && task.status === 'pending') {
+                db.prepare(`
+                  INSERT INTO audit_logs (id, actor_id, actor_email, target_user_id, action_type, old_value, new_value, timestamp, details_json)
+                  VALUES (?, 'system', 'system', ?, 'generation_status', 'pending', ?, ?, ?)
+                `).run(
+                  crypto.randomUUID(),
+                  t.user_id,
+                  status,
+                  new Date().toISOString(),
+                  JSON.stringify({ taskId: t.id, error: data.error })
+                );
+                db.prepare("UPDATE studio_tasks SET status = ?, details_json = ? WHERE id = ?").run(
+                  status,
+                  JSON.stringify(details),
+                  t.id
+                );
+              }
+            })();
+            console.log(`[checkPendingTasks] Task ${t.id} ${status}`);
           }
         } catch (err) {
           console.error(`[checkPendingTasks] Exception polling task ${t.id}:`, err.message);
@@ -302,17 +350,37 @@ function mountStudioRoutes(app, options) {
     let guidanceScale = Number(req.body?.guidance_scale);
     if (!Number.isFinite(guidanceScale) || guidanceScale < 1 || guidanceScale > 20) guidanceScale = 3.5;
 
-    const costSetting = db.prepare("SELECT value FROM credit_settings WHERE key = 'credits_per_image'").get();
-    const finalCost = costSetting ? Number(costSetting.value) : 2;
+    // Engine specific credit costs
+    let costKey = "credits_per_image";
+    if (model.includes("schnell")) {
+      costKey = "cost_image_schnell";
+    } else if (model.includes("dev")) {
+      costKey = "cost_image_dev";
+    }
+    const costSetting = db.prepare("SELECT value FROM credit_settings WHERE key = ?").get(costKey)
+      || db.prepare("SELECT value FROM credit_settings WHERE key = 'credits_per_image'").get();
+    const finalCost = costSetting ? Number(costSetting.value) : (model.includes("dev") ? 3 : 2);
 
-    try {
-      deductCredits(req.user.sub, finalCost, "image_generation", `Image generation: ${prompt.slice(0, 50)}`, { prompt, model });
-    } catch (e) {
-      if (e.message === "INSUFFICIENT_CREDITS") {
-        const u = db.prepare("SELECT credits FROM users WHERE id = ?").get(req.user.sub);
-        return res.status(400).json({ ok: false, error: `Insufficient credits. You need ${finalCost} credits, but only have ${u ? u.credits : 0}.` });
-      }
-      return res.status(500).json({ ok: false, error: e.message || "Database error." });
+    // Validate balance and eligibility
+    const userRow = db.prepare("SELECT credits, suspended, generation_disabled FROM users WHERE id = ?").get(req.user.sub);
+    if (!userRow) {
+      return res.status(404).json({ ok: false, error: "User not found." });
+    }
+    if (userRow.suspended === 1) {
+      return res.status(403).json({ ok: false, error: "Your account has been suspended." });
+    }
+    if (userRow.generation_disabled === 1) {
+      return res.status(403).json({ ok: false, error: "Image generation is disabled for your account." });
+    }
+
+    const pendingSumRow = db.prepare("SELECT SUM(credits) as pending FROM studio_tasks WHERE user_id = ? AND status = 'pending'").get(req.user.sub);
+    const pendingCredits = pendingSumRow?.pending || 0;
+    const availableCredits = userRow.credits - pendingCredits;
+    if (availableCredits < finalCost) {
+      return res.status(400).json({ 
+        ok: false, 
+        error: `Insufficient credits. You need ${finalCost} credits (available: ${availableCredits}, pending holds: ${pendingCredits}).` 
+      });
     }
 
     try {
@@ -350,7 +418,6 @@ function mountStudioRoutes(app, options) {
 
       if (!r.ok || !r.json?.data?.task_id) {
         const errorMsg = r.ok ? "No task id returned from generation service." : studioUpstreamError(r.json);
-        refundCredits(req.user.sub, finalCost, "image_generation", `Refund: Image generation failed: ${errorMsg}`, { prompt, model });
         return res.status(r.ok ? 502 : (r.status >= 400 && r.status < 600 ? r.status : 502)).json({
           ok: false,
           error: errorMsg,
@@ -382,7 +449,6 @@ function mountStudioRoutes(app, options) {
       return res.json({ ok: true, taskId });
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Server error.";
-      refundCredits(req.user.sub, finalCost, "image_generation", `Refund: Image generation failed: ${msg}`, { prompt, model });
       if (msg === "STUDIO_CONFIG_MISSING") {
         return res.status(503).json({ ok: false, error: studioConfigError() });
       }
@@ -418,18 +484,33 @@ function mountStudioRoutes(app, options) {
     const klingModel = String(process.env.STUDIO_KLING_MODEL || "kling-turbo").trim().toLowerCase();
     const useTurbo = klingModel !== "kling";
 
-    const costSetting = db.prepare("SELECT value FROM credit_settings WHERE key = 'credits_per_video_second'").get();
-    const perSecond = costSetting ? Number(costSetting.value) : 5;
+    // Engine specific credit costs
+    let costKey = mode === "pro" ? "cost_video_pro" : "cost_video_std";
+    const costSetting = db.prepare("SELECT value FROM credit_settings WHERE key = ?").get(costKey)
+      || db.prepare("SELECT value FROM credit_settings WHERE key = 'credits_per_video_second'").get();
+    const perSecond = costSetting ? Number(costSetting.value) : (mode === "pro" ? 8 : 5);
     const finalCost = perSecond * dur;
 
-    try {
-      deductCredits(req.user.sub, finalCost, "video_generation", `Video generation (${dur}s): ${prompt.slice(0, 50)}`, { prompt, duration: dur });
-    } catch (e) {
-      if (e.message === "INSUFFICIENT_CREDITS") {
-        const u = db.prepare("SELECT credits FROM users WHERE id = ?").get(req.user.sub);
-        return res.status(400).json({ ok: false, error: `Insufficient credits. You need ${finalCost} credits, but only have ${u ? u.credits : 0}.` });
-      }
-      return res.status(500).json({ ok: false, error: e.message || "Database error." });
+    // Validate balance and eligibility
+    const userRow = db.prepare("SELECT credits, suspended, generation_disabled FROM users WHERE id = ?").get(req.user.sub);
+    if (!userRow) {
+      return res.status(404).json({ ok: false, error: "User not found." });
+    }
+    if (userRow.suspended === 1) {
+      return res.status(403).json({ ok: false, error: "Your account has been suspended." });
+    }
+    if (userRow.generation_disabled === 1) {
+      return res.status(403).json({ ok: false, error: "Video generation is disabled for your account." });
+    }
+
+    const pendingSumRow = db.prepare("SELECT SUM(credits) as pending FROM studio_tasks WHERE user_id = ? AND status = 'pending'").get(req.user.sub);
+    const pendingCredits = pendingSumRow?.pending || 0;
+    const availableCredits = userRow.credits - pendingCredits;
+    if (availableCredits < finalCost) {
+      return res.status(400).json({ 
+        ok: false, 
+        error: `Insufficient credits. You need ${finalCost} credits (available: ${availableCredits}, pending holds: ${pendingCredits}).` 
+      });
     }
 
     try {
@@ -481,7 +562,6 @@ function mountStudioRoutes(app, options) {
 
       if (!r.ok || !r.json?.data?.task_id) {
         const errorMsg = r.ok ? "No task id returned from generation service." : studioUpstreamError(r.json);
-        refundCredits(req.user.sub, finalCost, "video_generation", `Refund: Video generation failed: ${errorMsg}`, { prompt, duration: dur });
         return res.status(r.ok ? 502 : (r.status >= 400 && r.status < 600 ? r.status : 502)).json({
           ok: false,
           error: errorMsg,
@@ -512,7 +592,6 @@ function mountStudioRoutes(app, options) {
       return res.json({ ok: true, taskId });
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Server error.";
-      refundCredits(req.user.sub, finalCost, "video_generation", `Refund: Video generation failed: ${msg}`, { prompt, duration: dur });
       if (msg === "STUDIO_CONFIG_MISSING") {
         return res.status(503).json({ ok: false, error: studioConfigError() });
       }
@@ -680,6 +759,92 @@ function mountStudioRoutes(app, options) {
       const balance = user ? user.credits : 0;
 
       return res.json({ ok: true, history: rows, balance });
+    } catch (e) {
+      return res.status(500).json({ ok: false, error: e.message || "Database error." });
+    }
+  });
+
+  app.get("/api/credits/dashboard", requireUser, (req, res) => {
+    try {
+      const userId = req.user.sub;
+      const user = db.prepare("SELECT credits, suspended, subscription_plan, subscription_status FROM users WHERE id = ?").get(userId);
+      if (!user) {
+        return res.status(404).json({ ok: false, error: "User not found." });
+      }
+
+      // 1. Pending tasks & credits
+      const pendingRow = db.prepare("SELECT COUNT(*) as cnt, COALESCE(SUM(credits), 0) as sum FROM studio_tasks WHERE user_id = ? AND status = 'pending'").get(userId);
+      const pendingCount = pendingRow.cnt || 0;
+      const pendingCredits = pendingRow.sum || 0;
+      const availableCredits = Math.max(0, user.credits - pendingCredits);
+
+      // 2. Lifetime credits
+      const lifetimeDeductedRow = db.prepare("SELECT COALESCE(SUM(credits_deducted), 0) as total FROM credit_transactions WHERE user_id = ? AND action_type NOT IN ('generation_refund')").get(userId);
+      const lifetimeDeducted = lifetimeDeductedRow.total || 0;
+
+      const lifetimeAddedRow = db.prepare("SELECT COALESCE(SUM(credits_added), 0) as total FROM credit_transactions WHERE user_id = ?").get(userId);
+      const lifetimeAdded = lifetimeAddedRow.total || 0;
+
+      // 3. Transactions List (limit 50)
+      const transactions = db.prepare(`
+        SELECT id, action_type as actionType, credits_added as creditsAdded, credits_deducted as creditsDeducted, previous_balance as previousBalance, new_balance as newBalance, timestamp, source, reason, details_json as detailsJson
+        FROM credit_transactions
+        WHERE user_id = ?
+        ORDER BY timestamp DESC
+        LIMIT 50
+      `).all(userId);
+
+      // 4. Generations List (limit 50)
+      const tasks = db.prepare(`
+        SELECT id, type, credits, status, created_at, details_json
+        FROM studio_tasks
+        WHERE user_id = ?
+        ORDER BY created_at DESC
+        LIMIT 50
+      `).all(userId);
+
+      const generations = tasks.map(t => {
+        let details = {};
+        try {
+          details = JSON.parse(t.details_json);
+        } catch (e) {}
+        return {
+          id: t.id,
+          type: t.type,
+          credits: t.credits,
+          status: t.status,
+          createdAt: t.created_at,
+          prompt: details.prompt || "",
+          model: details.model || "",
+          error: details.error || null,
+          urls: details.urls || []
+        };
+      });
+
+      // 5. Monthly Stats
+      const monthlyStats = db.prepare(`
+        SELECT STRFTIME('%Y-%m', timestamp) as month, SUM(credits_deducted) as totalDeducted
+        FROM credit_transactions
+        WHERE user_id = ? AND credits_deducted > 0 AND action_type IN ('image_generation', 'video_generation')
+        GROUP BY month
+        ORDER BY month DESC
+        LIMIT 6
+      `).all(userId);
+
+      return res.json({
+        ok: true,
+        metrics: {
+          credits: user.credits,
+          pendingCredits,
+          availableCredits,
+          lifetimeUsed: lifetimeDeducted,
+          lifetimeAdded,
+          pendingCount
+        },
+        transactions,
+        generations,
+        monthlyStats
+      });
     } catch (e) {
       return res.status(500).json({ ok: false, error: e.message || "Database error." });
     }

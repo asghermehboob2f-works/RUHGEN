@@ -1,217 +1,626 @@
 "use client";
 
-import { Check } from "lucide-react";
+import { Check, Sparkles, Zap, Shield, Cpu, ChevronDown, Lock, RefreshCw, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import React, { useState } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { SITE_CONTAINER } from "@/lib/site-layout";
+import { PricingHeroGraphic } from "@/components/marketing/PricingHeroGraphic";
 
-const plans = [
+type PricingPlan = {
+  id: string;
+  name: string;
+  monthlyPrice: number;
+  yearlyPrice: number;
+  credits: number;
+  features: string[];
+  badge?: string;
+  cta: string;
+  available: boolean;
+  description?: string;
+};
+
+const DEFAULT_PLANS: PricingPlan[] = [
   {
+    id: "free",
     name: "Free",
-    monthly: 0,
-    yearly: 0,
-    description: "Try the magic",
+    monthlyPrice: 0,
+    yearlyPrice: 0,
+    credits: 120,
     features: [
-      "10 generations / month",
-      "Standard quality",
-      "2K resolution",
-      "Community support",
+      "120 Credits Included",
+      "Standard Image Generation Access",
+      "Standard Video Generation Access",
+      "Up to 2K Quality",
+      "Standard Rendering Queue",
+      "Community Support",
+      "Core Creative Tools",
+      "Basic Generation History"
     ],
-    cta: "Start free",
-    popular: false,
+    cta: "Get Started Free",
+    available: true
   },
   {
+    id: "pro",
     name: "Pro",
-    monthly: 29,
-    yearly: 290,
-    description: "For serious creators",
+    monthlyPrice: 499,
+    yearlyPrice: 4799,
+    credits: 510,
     features: [
-      "500 generations / month",
-      "Premium quality",
-      "4K resolution",
-      "Priority rendering",
-      "Email support",
-      "Commercial license",
+      "510 Credits Included",
+      "Advanced Image Generation Access",
+      "Advanced Video Generation Access",
+      "Up to 4K Quality",
+      "Priority Rendering",
+      "Faster Processing",
+      "Commercial Usage Rights",
+      "Premium Creative Tools",
+      "Extended History",
+      "Email Support"
     ],
-    cta: "Go Pro",
-    popular: true,
+    badge: "Most Popular",
+    cta: "Upgrade to Pro",
+    available: true
   },
   {
-    name: "Studio",
-    monthly: 99,
-    yearly: 990,
-    description: "Teams at scale",
+    id: "pro_plus",
+    name: "Pro Plus",
+    monthlyPrice: 999,
+    yearlyPrice: 9599,
+    credits: 650,
     features: [
-      "Unlimited generations",
-      "Ultra quality",
-      "8K resolution",
-      "Instant rendering",
-      "Dedicated support",
-      "API access",
-      "Team collaboration",
-      "Custom models",
+      "650 Credits Included",
+      "Full Platform Access",
+      "Ultra HD Outputs",
+      "Instant Priority Queue",
+      "Dedicated Support",
+      "Commercial Licensing",
+      "API Access",
+      "Team Collaboration",
+      "Advanced Workflow Controls",
+      "Premium Features",
+      "Early Feature Access",
+      "Highest Rendering Priority"
     ],
-    cta: "Get Studio",
-    popular: false,
+    badge: "Best Value",
+    cta: "Go Pro Plus",
+    available: true
+  },
+  {
+    id: "custom",
+    name: "Custom",
+    monthlyPrice: 0,
+    yearlyPrice: 0,
+    credits: 0,
+    features: [
+      "Custom Credit Allocation",
+      "Dedicated Infrastructure",
+      "Private Deployments",
+      "Team Management",
+      "Custom AI Models",
+      "Custom Integrations",
+      "Dedicated Account Manager",
+      "Enterprise Security",
+      "Priority Support",
+      "Flexible Licensing",
+      "API Scaling",
+      "Personalized Workflows"
+    ],
+    description: "Tell us what you need and we will build a tailored creative environment around your workflow.",
+    cta: "Contact Sales",
+    available: true
+  }
+];
+
+const CREDIT_RATES = [
+  {
+    action: "Fast Image Generation",
+    model: "Standard Models",
+    cost: "2 credits / image",
+    description: "Optimized for rapid iteration, prompt testing, and quick creative brainstorming.",
+    icon: Zap,
+    color: "#00D4FF",
+  },
+  {
+    action: "Production Image Generation",
+    model: "Advanced Models",
+    cost: "3 credits / image",
+    description: "High-fidelity rendering, extreme details, sharp typography, and perfect contrast.",
+    icon: Sparkles,
+    color: "#7B61FF",
+  },
+  {
+    action: "Standard Video Generation",
+    model: "Premium Models",
+    cost: "5 credits / second",
+    description: "Organic physical motions, fluid simulation, and reliable character consistency.",
+    icon: Cpu,
+    color: "#FF2E9A",
+  },
+  {
+    action: "High-Fidelity Video Generation",
+    model: "Exclusive Models",
+    cost: "8 credits / second",
+    description: "Cinematic depth-of-field, maximum temporal coherence, and multi-shot output.",
+    icon: Shield,
+    color: "#F59E0B",
   },
 ];
 
-export function Pricing({ hideHeading = false }: { hideHeading?: boolean }) {
-  const [yearly, setYearly] = useState(false);
+const COMPARISON_DATA: Record<string, Record<string, string>> = {
+  free: {
+    "Unused Credit Rollover": "No Rollover",
+    "Top-up Packages": "Not Available",
+    "Image Generation": "Standard Models",
+    "Video Generation": "Standard Models",
+    "Max Resolution": "Up to 2K Quality",
+    "Rendering Speed": "Standard Queue",
+    "Concurrency": "1 active task",
+    "Advanced Controls": "Core Creative Tools",
+    "Commercial Usage": "Watermarked Preview only",
+    "Support Level": "Community Support",
+    "API Access": "No API Access",
+    "Team Collaboration": "No",
+  },
+  pro: {
+    "Unused Credit Rollover": "Yes (up to 2x limit)",
+    "Top-up Packages": "Starting at ₹199",
+    "Image Generation": "Advanced Models",
+    "Video Generation": "Advanced Models",
+    "Max Resolution": "Up to 4K Quality",
+    "Rendering Speed": "Priority Queue",
+    "Concurrency": "Up to 3 concurrent",
+    "Advanced Controls": "Premium Creative Tools",
+    "Commercial Usage": "Full Commercial License",
+    "Support Level": "Email Support",
+    "API Access": "No API Access",
+    "Team Collaboration": "No",
+  },
+  pro_plus: {
+    "Unused Credit Rollover": "Yes (up to 3x limit)",
+    "Top-up Packages": "Starting at ₹149",
+    "Image Generation": "Premium Models",
+    "Video Generation": "Premium Models",
+    "Max Resolution": "Ultra HD Outputs",
+    "Rendering Speed": "Instant Priority Queue",
+    "Concurrency": "Unlimited concurrent",
+    "Advanced Controls": "Advanced Workflow Controls",
+    "Commercial Usage": "Full Commercial License",
+    "Support Level": "Dedicated Support",
+    "API Access": "API Access",
+    "Team Collaboration": "Team Collaboration",
+  },
+  custom: {
+    "Unused Credit Rollover": "Custom Rollover",
+    "Top-up Packages": "Volume / Enterprise Rates",
+    "Image Generation": "Exclusive Models",
+    "Video Generation": "Exclusive Models",
+    "Max Resolution": "Personalized Custom Resolution",
+    "Rendering Speed": "Dedicated Infrastructure",
+    "Concurrency": "Dedicated compute nodes",
+    "Advanced Controls": "Personalized Workflows",
+    "Commercial Usage": "Custom Enterprise Licensing",
+    "Support Level": "Dedicated Account Manager",
+    "API Access": "Scaling API & Webhooks",
+    "Team Collaboration": "Team Management & Controls",
+  }
+};
+
+const COMPARISON_SECTIONS = [
+  {
+    category: "Credits & Limits",
+    rows: [
+      {
+        name: "Credits Included",
+        getVal: (p: PricingPlan) => p.id === "custom" ? "Custom Quote" : `${p.credits} Credits`,
+      },
+      {
+        name: "Max Resolution",
+        getVal: (p: PricingPlan) => COMPARISON_DATA[p.id]?.["Max Resolution"] || "Up to 2K",
+      },
+    ],
+  },
+  {
+    category: "Performance",
+    rows: [
+      {
+        name: "Rendering Speed",
+        getVal: (p: PricingPlan) => COMPARISON_DATA[p.id]?.["Rendering Speed"] || "Standard",
+      },
+      {
+        name: "Concurrency",
+        getVal: (p: PricingPlan) => COMPARISON_DATA[p.id]?.["Concurrency"] || "1 active task",
+      },
+      {
+        name: "Advanced Controls",
+        getVal: (p: PricingPlan) => COMPARISON_DATA[p.id]?.["Advanced Controls"] || "Core Tools",
+      },
+    ],
+  },
+];
+
+const FAQS = [
+  {
+    q: "How do RUHGEN credits work?",
+    a: "Credits are spent dynamically depending on the model tier and quality you choose. Generation with Standard Models costs 2 credits, Advanced Models cost 3 credits, and cinematic video seconds cost between 5 to 8 credits. Included credits refresh monthly at the start of your billing cycle.",
+  },
+  {
+    q: "Do unused credits roll over to the next month?",
+    a: "Yes! For Pro and Pro Plus subscriptions, any unused monthly credits will automatically roll over to the next billing cycle. The rollover limit is capped at 2x your plan's monthly allocation for Pro, and 3x for Pro Plus.",
+  },
+  {
+    q: "Can I buy more credits if I run out?",
+    a: "Absolutely. Subscribers on Pro and Pro Plus tiers can buy top-up credit packs directly from their dashboard starting at ₹149. These top-up credits never expire as long as you maintain an active subscription.",
+  },
+  {
+    q: "What commercial licensing rights are included?",
+    a: "Free plans are strictly for personal, non-commercial evaluation. Pro and Pro Plus subscriptions grant full, worldwide, perpetual commercial usage rights for all generated assets. Enterprise plans include customized corporate licensing agreements.",
+  },
+  {
+    q: "Is there a contract or cancellation fee?",
+    a: "No. All plans are billed month-to-month or year-to-year and can be canceled at any time from your settings. If you cancel, your premium benefits and credit usage remain active until the end of your prepaid billing period.",
+  },
+];
+
+export function Pricing({ hideHeading = false, plans }: { hideHeading?: boolean; plans?: PricingPlan[] }) {
+  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
+  const [activeFaq, setActiveFaq] = useState<number | null>(null);
+  const reduce = useReducedMotion() === true;
+
+  const activePlans = (plans && plans.length > 0 ? plans : DEFAULT_PLANS).filter(p => p.available !== false);
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
+    }).format(price);
+  };
+
+  const getPlanLink = (plan: PricingPlan) => {
+    if (plan.id === "custom") return "/contact";
+    return plan.id === "free" ? "/sign-up" : `/sign-up?plan=${plan.id}&billing=${billingPeriod}`;
+  };
 
   return (
-    <section id="pricing" className="mesh-section-muted scroll-mt-24 py-12 md:py-24">
-      <div className={SITE_CONTAINER}>
-        <div
-          className={`mb-10 grid gap-8 sm:mb-12 lg:items-end lg:gap-10 ${hideHeading ? "lg:grid-cols-1" : "lg:grid-cols-[minmax(0,1fr)_auto]"}`}
+    <>
+      {/* ── Hero Section ── matches Demo / Platform split layout */}
+      {!hideHeading && (
+        <section
+          className="relative overflow-hidden border-b pt-24 sm:pt-28"
+          style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)" }}
         >
-          {!hideHeading && (
-            <div className="text-center lg:text-left">
-              <p
-                className="mb-2 text-xs font-bold uppercase tracking-[0.2em] sm:text-sm"
-                style={{ color: "var(--text-subtle)" }}
-              >
-                Pricing
+          {/* Ambient radial glows */}
+          <div
+            className="pointer-events-none absolute inset-0 opacity-60"
+            style={{
+              background:
+                "radial-gradient(ellipse 80% 55% at 100% 0%, rgba(123,97,255,0.16), transparent 55%), radial-gradient(ellipse 60% 45% at 0% 100%, rgba(0,212,255,0.09), transparent 55%)",
+            }}
+          />
+
+          <div
+            className={`relative ${SITE_CONTAINER} grid gap-10 pb-16 lg:grid-cols-[1fr_1fr] lg:items-center lg:gap-16 lg:pb-20`}
+          >
+            {/* Left — text content */}
+            <motion.div
+              initial={reduce ? false : { opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <p className="font-mono text-[11px] font-medium uppercase tracking-[0.25em] text-[#7B61FF]">
+                Exclusive Subscriptions
               </p>
-              <h2
-                className="font-display text-section-title font-bold leading-[1.2] tracking-tight"
+              <h1
+                className="font-display mt-3 text-page-title font-extrabold leading-[1.1] tracking-tight"
                 style={{ color: "var(--text-primary)" }}
               >
-                Choose your plan
-              </h2>
+                Plans that match your{" "}
+                <span className="text-gradient-primary">ambition</span>
+              </h1>
               <p
-                className="mx-auto mt-2 max-w-lg text-sm sm:mt-3 sm:text-lg lg:mx-0"
+                className="mt-4 max-w-xl text-sm leading-relaxed sm:text-base"
                 style={{ color: "var(--text-muted)" }}
               >
-                Flexible pricing for every creator
+                Scale your creative output dynamically. Access custom credit allocations, high-speed rendering queues, and studio-grade licensing agreements built for individuals and studios alike.
               </p>
-            </div>
-          )}
-          <div className={`flex justify-center ${hideHeading ? "" : "lg:justify-end"}`}>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link
+                  href="/sign-up"
+                  className="inline-flex min-h-[48px] items-center justify-center rounded-xl px-6 text-sm font-semibold text-white btn-gradient"
+                >
+                  <Sparkles className="mr-2 h-4 w-4 opacity-80" />
+                  Get started free
+                </Link>
+                <Link
+                  href="/contact"
+                  className="inline-flex min-h-[48px] items-center justify-center rounded-xl border px-6 text-sm font-semibold transition-colors hover:border-[#7B61FF]/45"
+                  style={{
+                    borderColor: "var(--border-subtle)",
+                    color: "var(--text-primary)",
+                    background: "var(--glass)",
+                  }}
+                >
+                  Talk to sales
+                  <ArrowRight className="ml-1.5 h-4 w-4" />
+                </Link>
+              </div>
+            </motion.div>
+
+            {/* Right — animated graphic */}
+            <motion.div
+              className="relative flex justify-center lg:justify-end"
+              initial={reduce ? false : { opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <PricingHeroGraphic />
+            </motion.div>
+          </div>
+        </section>
+      )}
+
+      {/* ── Pricing content section ── */}
+      <section id="pricing" className="relative overflow-hidden py-20 sm:py-28" style={{ background: "var(--deep-black)" }}>
+        {/* Soft ambient fill */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div
-            className="inline-flex min-h-12 rounded-full border p-1"
+            className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[70vw] h-[500px] rounded-full opacity-[0.04] blur-[140px]"
+            style={{ background: "radial-gradient(circle, var(--primary-purple) 30%, var(--primary-cyan) 70%)" }}
+          />
+        </div>
+
+        <div className={SITE_CONTAINER}>
+        {/* hideHeading variant — keep centred label for embedded use */}
+        {hideHeading && (
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <motion.p
+              initial={reduce ? false : { opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="font-mono text-[11px] font-bold uppercase tracking-[0.25em]"
+              style={{ color: "var(--primary-purple)" }}
+            >
+              Exclusive Subscriptions
+            </motion.p>
+            <motion.h2
+              initial={reduce ? false : { opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="font-display mt-4 text-page-title font-extrabold leading-[1.15] tracking-tight text-white"
+            >
+              Choose the Plan That Matches Your <span className="text-gradient-primary">Ambition</span>
+            </motion.h2>
+            <motion.p
+              initial={reduce ? false : { opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="mt-6 text-sm sm:text-base leading-relaxed"
+              style={{ color: "var(--text-muted)" }}
+            >
+              Scale your creative output dynamically. Access custom credit allocations, high-speed rendering queues, and studio-grade licensing agreements.
+            </motion.p>
+          </div>
+        )}
+
+        {/* Billing Switcher */}
+        <div className="flex flex-col items-center gap-3 mb-16">
+          {/* Toggle pill */}
+          <div
+            className="relative inline-flex items-center rounded-full p-1"
             style={{
-              borderColor: "var(--border-subtle)",
-              background: "var(--glass)",
+              background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.08)",
             }}
-            role="group"
-            aria-label="Billing period"
           >
+            {/* Sliding indicator */}
+            <motion.div
+              className="absolute inset-y-1 left-1 w-[calc(50%-4px)] rounded-full pointer-events-none"
+              animate={{ x: billingPeriod === "yearly" ? "100%" : "0%" }}
+              transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 380, damping: 30 }}
+              style={{
+                background: "linear-gradient(135deg, #7B61FF, #00D4FF)",
+              }}
+            />
+
+            {/* Monthly */}
             <button
               type="button"
-              onClick={() => setYearly(false)}
-              className={`min-h-10 rounded-full px-5 py-2.5 text-sm font-semibold transition-all ${
-                !yearly ? "text-white" : ""
-              }`}
-              style={
-                !yearly
-                  ? {
-                      background:
-                        "linear-gradient(135deg, #7B61FF 0%, #00D4FF 100%)",
-                    }
-                  : { color: "var(--text-muted)" }
-              }
+              onClick={() => setBillingPeriod("monthly")}
+              className="relative z-10 min-w-[140px] px-6 py-2.5 text-[11px] font-bold uppercase tracking-[0.14em] transition-colors duration-200 outline-none select-none rounded-full"
+              style={{
+                color: billingPeriod === "monthly" ? "#ffffff" : "rgba(255,255,255,0.38)",
+              }}
             >
               Monthly
             </button>
+
+            {/* Annually */}
             <button
               type="button"
-              onClick={() => setYearly(true)}
-              className={`min-h-10 rounded-full px-5 py-2.5 text-sm font-semibold transition-all ${
-                yearly ? "text-white" : ""
-              }`}
-              style={
-                yearly
-                  ? {
-                      background:
-                        "linear-gradient(135deg, #7B61FF 0%, #00D4FF 100%)",
-                    }
-                  : { color: "var(--text-muted)" }
-              }
+              onClick={() => setBillingPeriod("yearly")}
+              className="relative z-10 min-w-[140px] px-6 py-2.5 text-[11px] font-bold uppercase tracking-[0.14em] transition-colors duration-200 outline-none select-none rounded-full"
+              style={{
+                color: billingPeriod === "yearly" ? "#ffffff" : "rgba(255,255,255,0.38)",
+              }}
             >
-              Yearly
-              <span className="ml-2 rounded-md bg-[#FF2E9A]/20 px-1.5 py-0.5 text-xs text-[#FF2E9A]">
-                Save 20%
-              </span>
+              Annually
             </button>
           </div>
-          </div>
-        </div>
 
-        <div className="grid gap-6 lg:grid-cols-3 lg:gap-8 xl:gap-10">
-          {plans.map((plan) => {
-            const price = yearly ? plan.yearly : plan.monthly;
-            const suffix = plan.monthly === 0 ? "" : yearly ? "/yr" : "/mo";
-
-            return (
-              <div
-                key={plan.name}
-                className={`relative flex flex-col rounded-2xl border p-6 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_0_40px_rgba(123,97,255,0.25)] sm:p-8 md:p-10 ${
-                  plan.popular
-                    ? "border-transparent ring-2 ring-[#7B61FF]/50 lg:scale-[1.02]"
-                    : ""
-                }`}
+          {/* Save badge */}
+          <AnimatePresence mode="wait">
+            {billingPeriod === "yearly" && (
+              <motion.span
+                key="save"
+                initial={reduce ? false : { opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.2 }}
+                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-black uppercase text-white"
                 style={{
-                  borderColor: plan.popular ? "transparent" : "var(--border-subtle)",
-                  background: "var(--glass)",
-                  backdropFilter: "blur(20px)",
-                  ...(plan.popular
-                    ? {
-                        boxShadow: "0 0 60px -10px rgba(123, 97, 255, 0.35)",
-                        background:
-                          "linear-gradient(var(--soft-black), var(--soft-black)) padding-box, linear-gradient(135deg, #7B61FF, #00D4FF) border-box",
-                        border: "2px solid transparent",
-                      }
-                    : {}),
+                  background: "linear-gradient(135deg, #FF2E9A, #7B61FF)",
+                  letterSpacing: "0.18em",
                 }}
               >
-                {plan.popular && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-[#7B61FF] to-[#00D4FF] px-4 py-1 text-xs font-bold text-white shadow-lg">
-                    Most popular
+                <Sparkles className="h-2.5 w-2.5" />
+                Save ~20%
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Pricing Cards Grid (4 plans) */}
+        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4 items-stretch mb-28">
+          {activePlans.map((plan, idx) => {
+            const isFree = plan.monthlyPrice === 0 && plan.id === "free";
+            const isCustom = plan.id === "custom" || plan.monthlyPrice === -1 || plan.name.toLowerCase().includes("custom");
+            const price = billingPeriod === "yearly" ? plan.yearlyPrice : plan.monthlyPrice;
+            const suffix = isFree ? "" : billingPeriod === "yearly" ? " / year" : " / month";
+
+            const isPro = plan.id === "pro";
+            const isPlus = plan.id === "pro_plus";
+
+            // Luxury Card styling
+            let cardStyle: React.CSSProperties = {
+              borderColor: "var(--border-subtle)",
+              background: "linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%)",
+            };
+
+            if (isPro) {
+              cardStyle = {
+                borderColor: "transparent",
+                background: "linear-gradient(var(--soft-black), var(--soft-black)) padding-box, linear-gradient(135deg, #7B61FF, #00D4FF) border-box",
+                border: "2px solid transparent",
+                boxShadow: "0 20px 48px -12px rgba(123, 97, 255, 0.22)",
+              };
+            } else if (isPlus) {
+              cardStyle = {
+                borderColor: "transparent",
+                background: "linear-gradient(var(--soft-black), var(--soft-black)) padding-box, linear-gradient(135deg, #FF2E9A, #7B61FF) border-box",
+                border: "2px solid transparent",
+                boxShadow: "0 20px 48px -12px rgba(255, 46, 154, 0.18)",
+              };
+            }
+
+            return (
+              <motion.div
+                key={plan.id || idx}
+                whileHover={reduce ? undefined : { y: -6 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+                className={`relative flex flex-col justify-between rounded-2xl border p-6 sm:p-8 ${
+                  isPro ? "xl:scale-[1.04]" : ""
+                }`}
+                style={cardStyle}
+              >
+                {/* Visual Ambient Halos */}
+                {isPro && (
+                  <div className="absolute -inset-[1px] rounded-[16px] bg-gradient-to-r from-[#7B61FF] to-[#00D4FF] opacity-[0.06] blur-lg pointer-events-none" />
+                )}
+                {isPlus && (
+                  <div className="absolute -inset-[1px] rounded-[16px] bg-gradient-to-r from-[#FF2E9A] to-[#7B61FF] opacity-[0.06] blur-lg pointer-events-none" />
+                )}
+
+                {/* Popular / Best Value Badge */}
+                {plan.badge && (
+                  <span
+                    className={`absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-3.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-white shadow-lg ${
+                      isPro ? "bg-gradient-to-r from-[#7B61FF] to-[#00D4FF]" : "bg-gradient-to-r from-[#FF2E9A] to-[#7B61FF]"
+                    }`}
+                  >
+                    {plan.badge}
                   </span>
                 )}
-                <h3
-                  className="text-xl font-bold"
-                  style={{ color: "var(--text-primary)" }}
-                >
-                  {plan.name}
-                </h3>
-                <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
-                  {plan.description}
-                </p>
-                <div className="mt-6 flex items-baseline gap-1">
-                  <span
-                    className="text-4xl font-black md:text-5xl"
-                    style={{ color: "var(--text-primary)" }}
-                  >
-                    {price === 0 ? "$0" : `$${price}`}
-                  </span>
-                  {plan.monthly !== 0 && (
-                    <span className="text-sm" style={{ color: "var(--text-muted)" }}>
-                      {suffix}
-                    </span>
+
+                <div>
+                  {/* Card Header */}
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="text-lg font-bold font-display text-white">
+                        {plan.name}
+                      </h3>
+                      <p className="mt-1 text-[11px] leading-tight" style={{ color: "var(--text-muted)" }}>
+                        {isFree
+                          ? "Explore core capabilities"
+                          : isPro
+                          ? "Standard production grade"
+                          : isPlus
+                          ? "Ultimate creative autonomy"
+                          : "Fully customized deployment"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Price Block */}
+                  {isCustom ? (
+                    <div className="mt-6 flex flex-col justify-end min-h-[52px]">
+                      <span className="text-3xl font-extrabold tracking-tight font-display text-white">
+                        Custom
+                      </span>
+                      <span className="text-[10px] font-semibold tracking-wider uppercase mt-1" style={{ color: "var(--text-subtle)" }}>
+                        Enterprise Solution
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="mt-6 flex items-baseline min-h-[52px]">
+                      <span
+                        className="text-3xl font-black mr-0.5 leading-none"
+                        style={{
+                          fontFamily: "var(--font-calsans)",
+                          color: isPro ? "#00D4FF" : isPlus ? "#FF2E9A" : "rgba(255,255,255,0.85)",
+                          textShadow: isPro
+                            ? "0 0 18px rgba(0,212,255,0.45)"
+                            : isPlus
+                            ? "0 0 18px rgba(255,46,154,0.45)"
+                            : "none",
+                        }}
+                      >
+                        ₹
+                      </span>
+                      <span className="text-4xl font-extrabold tracking-tight font-display text-white">
+                        {price.toLocaleString("en-IN")}
+                      </span>
+                      <span className="text-[11px] font-semibold ml-1.5" style={{ color: "var(--text-muted)" }}>
+                        {suffix}
+                      </span>
+                    </div>
                   )}
+
+                  {/* Credits Pill / Status */}
+                  <div className="mt-4 flex items-center justify-between p-2 rounded-lg bg-white/[0.02] border border-white/[0.04]">
+                    <span className="text-[10px] font-mono font-medium tracking-wide uppercase text-neutral-400">Monthly Allowance</span>
+                    <span className="px-2 py-0.5 rounded text-[9px] font-black font-mono tracking-wider" style={{ background: "rgba(255,255,255,0.05)", color: isPro ? "#00D4FF" : isPlus ? "#FF2E9A" : "#FFFFFF" }}>
+                      {isCustom ? "Custom" : `${plan.credits} Credits`}
+                    </span>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="h-[1px] my-5 bg-white/5 w-full" />
+
+                  {/* Feature List */}
+                  <ul className="flex flex-col gap-3">
+                    {plan.features.map((feature, fidx) => (
+                      <li key={fidx} className="flex items-start gap-2.5 text-[11.5px] leading-relaxed">
+                        <Check
+                          className={`h-4 w-4 shrink-0 mt-0.5 ${
+                            isPro ? "text-[#00D4FF]" : isPlus ? "text-[#FF2E9A]" : "text-[#7B61FF]"
+                          }`}
+                          strokeWidth={3}
+                        />
+                        <span style={{ color: "var(--text-muted)" }}>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <ul className="mt-8 flex flex-col gap-4">
-                  {plan.features.map((f) => (
-                    <li key={f} className="flex gap-3 text-sm">
-                      <Check
-                        className="h-5 w-5 shrink-0 text-[#7B61FF]"
-                        strokeWidth={2.5}
-                      />
-                      <span style={{ color: "var(--text-muted)" }}>{f}</span>
-                    </li>
-                  ))}
-                </ul>
+
+                {/* Card CTA */}
                 <Link
-                  href="/sign-up"
-                  className={`mt-10 block w-full rounded-xl py-3.5 text-center text-sm font-bold transition-transform hover:scale-[1.02] ${
-                    plan.popular
-                      ? "text-white btn-gradient"
-                      : "border font-semibold"
+                  href={getPlanLink(plan)}
+                  className={`mt-8 block w-full rounded-xl py-3 text-center text-xs font-bold uppercase tracking-wider transition-all hover:opacity-90 active:scale-[0.98] ${
+                    isPro || isPlus ? "text-white btn-gradient" : "border font-bold"
                   }`}
                   style={
-                    !plan.popular
+                    !(isPro || isPlus)
                       ? {
                           borderColor: "var(--border-subtle)",
                           color: "var(--text-primary)",
@@ -222,11 +631,143 @@ export function Pricing({ hideHeading = false }: { hideHeading?: boolean }) {
                 >
                   {plan.cta}
                 </Link>
-              </div>
+              </motion.div>
             );
           })}
         </div>
+
+        {/* Credit Explanation section */}
+        <div className="mb-28 rounded-2xl border p-8 sm:p-12 relative overflow-hidden" style={{ borderColor: "var(--border-subtle)", background: "rgba(255,255,255,0.01)" }}>
+          <div className="pointer-events-none absolute inset-0 opacity-10 bg-radial-at-t from-[#7B61FF] via-transparent to-transparent" />
+
+          <div className="relative text-center max-w-xl mx-auto mb-12">
+            <p className="font-mono text-[9px] font-bold uppercase tracking-[0.2em]" style={{ color: "var(--primary-cyan)" }}>Dynamic Rendering Weights</p>
+            <h3 className="font-display mt-2 text-2xl font-bold text-white">
+              Understanding Credit Rates
+            </h3>
+            <p className="mt-3 text-xs sm:text-sm" style={{ color: "var(--text-muted)" }}>
+              Credits are spent dynamically depending on the compute power required. Fast iterations optimize your workflow, while production engines deliver ultimate fidelity.
+            </p>
+          </div>
+
+          <div className="relative grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {CREDIT_RATES.map((rate, idx) => {
+              const Icon = rate.icon;
+              return (
+                <div key={idx} className="rounded-xl border border-white/5 bg-black/40 p-5 flex flex-col justify-between">
+                  <div>
+                    <div className="h-9 w-9 rounded-lg flex items-center justify-center bg-white/5 mb-4">
+                      <Icon className="h-5 w-5" style={{ color: rate.color }} />
+                    </div>
+                    <h4 className="text-[11px] font-extrabold tracking-wider uppercase text-neutral-400">{rate.action}</h4>
+                    <p className="text-[10px] font-semibold text-neutral-500 mt-1">{rate.model}</p>
+                    <p className="text-[11.5px] text-neutral-400 leading-relaxed mt-3">{rate.description}</p>
+                  </div>
+                  <div className="mt-5 border-t border-white/5 pt-3">
+                    <span className="text-[12px] font-bold" style={{ color: rate.color }}>{rate.cost}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Feature Comparison Table Section */}
+        <div className="mb-28">
+          <div className="text-center mb-12">
+            <p className="font-mono text-[9px] font-bold uppercase tracking-[0.2em]" style={{ color: "var(--primary-purple)" }}>Side-by-Side Comparison</p>
+            <h3 className="font-display mt-2 text-2xl font-bold text-white">
+              Compare Features in Detail
+            </h3>
+            <p className="mt-3 text-xs sm:text-sm" style={{ color: "var(--text-muted)" }}>
+              A full technical breakdown of capability ceilings and pipeline infrastructure.
+            </p>
+          </div>
+
+          <div className="overflow-x-auto rounded-2xl border" style={{ borderColor: "var(--border-subtle)" }}>
+            <table className="w-full text-left border-collapse min-w-[750px]">
+              <thead>
+                <tr className="border-b" style={{ borderColor: "var(--border-subtle)", background: "rgba(255,255,255,0.02)" }}>
+                  <th className="p-5 text-xs font-bold uppercase tracking-wider text-white/40">Technical Specs</th>
+                  {activePlans.map((plan, idx) => (
+                    <th key={idx} className="p-5 text-sm font-bold w-[20%]" style={{ color: "var(--text-primary)" }}>
+                      {plan.name}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {COMPARISON_SECTIONS.map((section, sidx) => (
+                  <React.Fragment key={sidx}>
+                    <tr style={{ background: "rgba(255,255,255,0.01)" }}>
+                      <td colSpan={1 + activePlans.length} className="p-4 text-xs font-bold uppercase tracking-wider text-[#7B61FF]">
+                        {section.category}
+                      </td>
+                    </tr>
+                    {section.rows.map((row, ridx) => (
+                      <tr key={ridx} className="hover:bg-white/[0.01] transition-colors">
+                        <td className="p-5 text-xs font-semibold text-neutral-300">{row.name}</td>
+                        {activePlans.map((plan, pidx) => (
+                          <td key={pidx} className="p-5 text-xs font-semibold text-neutral-400">
+                            {row.getVal(plan)}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Enterprise Spotlight Card */}
+        <div className="mb-28 relative rounded-2xl overflow-hidden border p-8 sm:p-12" style={{ borderColor: "var(--border-subtle)", background: "rgba(255,255,255,0.01)" }}>
+          <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-brand-purple/10 via-transparent to-brand-cyan/10" />
+          <div className="relative grid gap-8 lg:grid-cols-[1.2fr_0.8fr] items-center">
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[9px] font-bold font-mono tracking-wider uppercase text-[#00D4FF] bg-[#00D4FF]/10 mb-4 border border-[#00D4FF]/20">
+                Studio Infrastructure
+              </div>
+              <h3 className="font-display text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+                Enterprise-Grade Scale & Private Deployments
+              </h3>
+              <p className="mt-4 text-xs sm:text-sm leading-relaxed max-w-2xl" style={{ color: "var(--text-muted)" }}>
+                For creative studios, game devs, and digital agencies requiring dedicated compute power, API rate limits, custom fine-tuned workflows, or on-prem private installations. Get high-concurrency capability backed by service-level guarantees.
+              </p>
+            </div>
+            <div className="flex flex-col gap-3 justify-center lg:items-end">
+              <Link href="/contact" className="inline-flex min-h-[46px] items-center justify-center rounded-xl px-6 text-xs font-bold uppercase tracking-wider text-white btn-gradient w-full lg:w-auto">
+                Contact Enterprise Sales
+              </Link>
+              <p className="text-[10px] text-center lg:text-right text-neutral-500 font-semibold">
+                SLA-backed response within 12 hours
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Secure Checkout / Trust Badges */}
+        <div className="flex flex-wrap items-center justify-center gap-6 md:gap-12 py-8 border-y border-white/5 text-white/30 text-[11px] font-semibold mb-28">
+          <div className="flex items-center gap-2">
+            <Lock className="h-4 w-4 text-[#00D4FF]" />
+            <span>Secure 256-bit SSL Checkout</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Shield className="h-4 w-4 text-[#7B61FF]" />
+            <span>UPI & Card Payments Protected</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Cpu className="h-4 w-4 text-[#FF2E9A]" />
+            <span>High-Speed Compute Priority</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <RefreshCw className="h-4 w-4 text-emerald-500" />
+            <span>Cancel or Pause Anytime</span>
+          </div>
+        </div>
       </div>
-    </section>
+      </section>
+    </>
   );
 }

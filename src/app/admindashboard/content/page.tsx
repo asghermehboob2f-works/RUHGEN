@@ -17,7 +17,7 @@ export default function DashboardContentPage() {
   const [content, setContent] = useState<SiteContent | null>(null);
   const [status, setStatus] = useState<string>("");
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"hero" | "homepage" | "visualizer" | "features">("hero");
+  const [activeTab, setActiveTab] = useState<"hero" | "homepage" | "visualizer" | "features" | "pricing">("hero");
 
   useEffect(() => {
     let ok = true;
@@ -235,6 +235,17 @@ export default function DashboardContentPage() {
               >
                 Features Page
                 {activeTab === "features" && (
+                  <motion.div layoutId="adminActiveTabLine" className="absolute bottom-0 inset-x-0 h-0.5 bg-gradient-to-r from-[var(--primary-purple)] to-[var(--primary-cyan)]" />
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("pricing")}
+                className="pb-3.5 text-sm font-bold uppercase tracking-wider transition-all relative outline-none shrink-0"
+                style={{ color: activeTab === "pricing" ? "var(--text-primary)" : "var(--text-subtle)" }}
+              >
+                Pricing Page
+                {activeTab === "pricing" && (
                   <motion.div layoutId="adminActiveTabLine" className="absolute bottom-0 inset-x-0 h-0.5 bg-gradient-to-r from-[var(--primary-purple)] to-[var(--primary-cyan)]" />
                 )}
               </button>
@@ -884,6 +895,287 @@ export default function DashboardContentPage() {
                     </div>
                   );
                 })}
+              </div>
+            </section>
+          )}
+
+          {/* Pricing Page Plans Editor */}
+          {activeTab === "pricing" && (
+            <section className="rounded-2xl border p-5 sm:p-7" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
+              <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+                <div>
+                  <h2 className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>Pricing Plans</h2>
+                  <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>Manage pricing packages, credits, and active features displayed on the pricing page.</p>
+                </div>
+                <motion.button
+                  type="button"
+                  whileTap={reduce ? undefined : { scale: 0.98 }}
+                  onClick={() => {
+                    const next = structuredClone(content);
+                    if (!next.plans) {
+                      next.plans = [];
+                    }
+                    next.plans.push({
+                      id: `plan-${Date.now()}`,
+                      name: "New Tier",
+                      monthlyPrice: 299,
+                      yearlyPrice: 2899,
+                      credits: 300,
+                      features: ["Feature Description 1", "Feature Description 2"],
+                      cta: "Get Started",
+                      available: true
+                    });
+                    setContent(next);
+                    setStatus("");
+                  }}
+                  className="rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all hover:bg-white/5 active:scale-95"
+                  style={{
+                    borderColor: "var(--border-subtle)",
+                    background: "var(--deep-black)",
+                    color: "var(--text-primary)",
+                  }}
+                >
+                  Add Plan Tier
+                </motion.button>
+              </div>
+
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {content.plans?.map((p, idx) => (
+                  <div key={p.id || idx} className="editor-card p-4 flex flex-col gap-4 rounded-xl border border-white/5 bg-[#0a0a0d]">
+                    <div className="flex items-center justify-between border-b border-white/[0.04] pb-2">
+                      <span className="text-xs font-mono text-[#00D4FF]">Plan Tier {idx + 1}</span>
+                      <div className="flex gap-2.5">
+                        <button
+                          type="button"
+                          disabled={idx === 0}
+                          onClick={() => {
+                            const next = structuredClone(content);
+                            if (!next.plans) return;
+                            const tmp = next.plans[idx - 1];
+                            next.plans[idx - 1] = next.plans[idx];
+                            next.plans[idx] = tmp;
+                            setContent(next);
+                          }}
+                          className="text-xs text-neutral-400 hover:text-white disabled:opacity-30"
+                        >
+                          ↑
+                        </button>
+                        <button
+                          type="button"
+                          disabled={idx === (content.plans?.length || 0) - 1}
+                          onClick={() => {
+                            const next = structuredClone(content);
+                            if (!next.plans) return;
+                            const tmp = next.plans[idx + 1];
+                            next.plans[idx + 1] = next.plans[idx];
+                            next.plans[idx] = tmp;
+                            setContent(next);
+                          }}
+                          className="text-xs text-neutral-400 hover:text-white disabled:opacity-30"
+                        >
+                          ↓
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const next = structuredClone(content);
+                            if (!next.plans) return;
+                            if (next.plans.length <= 1) {
+                              setStatus("You must keep at least one plan.");
+                              return;
+                            }
+                            next.plans.splice(idx, 1);
+                            setContent(next);
+                            setStatus("");
+                          }}
+                          className="text-xs font-semibold text-[#FF2E9A] hover:underline"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-3">
+                      <div>
+                        <label className="text-[9px] font-semibold uppercase tracking-wider text-white/40">Plan Name</label>
+                        <input
+                          value={p.name}
+                          onChange={(e) => {
+                            const next = structuredClone(content);
+                            if (!next.plans) return;
+                            next.plans[idx].name = e.target.value;
+                            setContent(next);
+                          }}
+                          className="min-h-[38px] w-full rounded-lg border px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-[#7B61FF]/40"
+                          style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
+                          placeholder="e.g. Pro"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-[9px] font-semibold uppercase tracking-wider text-white/40">Monthly Price (₹)</label>
+                          <input
+                            type="number"
+                            value={p.monthlyPrice}
+                            onChange={(e) => {
+                              const next = structuredClone(content);
+                              if (!next.plans) return;
+                              next.plans[idx].monthlyPrice = Number(e.target.value);
+                              setContent(next);
+                            }}
+                            className="min-h-[38px] w-full rounded-lg border px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-[#7B61FF]/40"
+                            style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[9px] font-semibold uppercase tracking-wider text-white/40">Yearly Price (₹)</label>
+                          <input
+                            type="number"
+                            value={p.yearlyPrice}
+                            onChange={(e) => {
+                              const next = structuredClone(content);
+                              if (!next.plans) return;
+                              next.plans[idx].yearlyPrice = Number(e.target.value);
+                              setContent(next);
+                            }}
+                            className="min-h-[38px] w-full rounded-lg border px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-[#7B61FF]/40"
+                            style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-[9px] font-semibold uppercase tracking-wider text-white/40">Credits</label>
+                          <input
+                            type="number"
+                            value={p.credits}
+                            onChange={(e) => {
+                              const next = structuredClone(content);
+                              if (!next.plans) return;
+                              next.plans[idx].credits = Number(e.target.value);
+                              setContent(next);
+                            }}
+                            className="min-h-[38px] w-full rounded-lg border px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-[#7B61FF]/40"
+                            style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[9px] font-semibold uppercase tracking-wider text-white/40">Badge Label</label>
+                          <input
+                            value={p.badge || ""}
+                            onChange={(e) => {
+                              const next = structuredClone(content);
+                              if (!next.plans) return;
+                              next.plans[idx].badge = e.target.value;
+                              setContent(next);
+                            }}
+                            className="min-h-[38px] w-full rounded-lg border px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-[#7B61FF]/40"
+                            style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
+                            placeholder="e.g. Most Popular"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-[9px] font-semibold uppercase tracking-wider text-white/40">CTA Text</label>
+                        <input
+                          value={p.cta}
+                          onChange={(e) => {
+                            const next = structuredClone(content);
+                            if (!next.plans) return;
+                            next.plans[idx].cta = e.target.value;
+                            setContent(next);
+                          }}
+                          className="min-h-[38px] w-full rounded-lg border px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-[#7B61FF]/40"
+                          style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
+                          placeholder="e.g. Upgrade to Pro"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-[9px] font-semibold uppercase tracking-wider text-white/40">Plan Description (for Custom plan)</label>
+                        <textarea
+                          value={p.description || ""}
+                          onChange={(e) => {
+                            const next = structuredClone(content);
+                            if (!next.plans) return;
+                            next.plans[idx].description = e.target.value;
+                            setContent(next);
+                          }}
+                          rows={2}
+                          className="w-full rounded-lg border px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-[#7B61FF]/40"
+                          style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
+                          placeholder="e.g. Tell us what you need..."
+                        />
+                      </div>
+
+                      <div className="flex items-center gap-2 py-1">
+                        <input
+                          type="checkbox"
+                          id={`available-${idx}`}
+                          checked={p.available}
+                          onChange={(e) => {
+                            const next = structuredClone(content);
+                            if (!next.plans) return;
+                            next.plans[idx].available = e.target.checked;
+                            setContent(next);
+                          }}
+                          className="rounded border-neutral-700 bg-neutral-900 text-[#7B61FF]"
+                        />
+                        <label htmlFor={`available-${idx}`} className="text-xs font-semibold select-none cursor-pointer" style={{ color: "var(--text-primary)" }}>Available for users</label>
+                      </div>
+
+                      <div className="mt-2">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label className="text-[9px] font-semibold uppercase tracking-wider text-white/40">Features List</label>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const next = structuredClone(content);
+                              if (!next.plans) return;
+                              next.plans[idx].features.push("New Feature");
+                              setContent(next);
+                            }}
+                            className="text-[10px] font-bold text-[#00D4FF] hover:underline"
+                          >
+                            + Add Feature
+                          </button>
+                        </div>
+                        <div className="space-y-1.5 max-h-[220px] overflow-y-auto pr-1">
+                          {p.features.map((f, fIdx) => (
+                            <div key={fIdx} className="flex gap-1.5 items-center">
+                              <input
+                                value={f}
+                                onChange={(e) => {
+                                  const next = structuredClone(content);
+                                  if (!next.plans) return;
+                                  next.plans[idx].features[fIdx] = e.target.value;
+                                  setContent(next);
+                                }}
+                                className="min-h-[30px] flex-1 rounded border px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-[#7B61FF]/40"
+                                style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const next = structuredClone(content);
+                                  if (!next.plans) return;
+                                  next.plans[idx].features.splice(fIdx, 1);
+                                  setContent(next);
+                                }}
+                                className="text-[10px] text-[#FF2E9A] hover:underline shrink-0 px-1"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </section>
           )}
