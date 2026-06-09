@@ -108,24 +108,14 @@ export function PricingHeroGraphic({ className = "" }: { className?: string }) {
         </div>
 
         {/* ── Main display area ── */}
-        <div className="relative w-full overflow-hidden bg-[#030305] p-6" style={{ aspectRatio: "16/10" }}>
+        <div className="relative w-full overflow-hidden bg-gradient-to-b from-[#060609] to-[#020204] p-6" style={{ aspectRatio: "16/10" }}>
           
-          {/* Subtle grid backdrop */}
-          <div
-            className="absolute inset-0 opacity-[0.03] pointer-events-none"
-            style={{
-              backgroundImage:
-                "linear-gradient(rgba(255,255,255,0.9) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.9) 1px, transparent 1px)",
-              backgroundSize: "40px 40px",
-            }}
-          />
-
           {/* Shimmer light reflection effect */}
           <div className="absolute inset-0 pointer-events-none bg-gradient-to-tr from-transparent via-white/[0.01] to-transparent" />
 
           {/* Ambient color wash inside */}
           <div
-            className="absolute -top-[20%] left-1/2 -translate-x-1/2 w-[70%] h-[50%] rounded-full opacity-[0.06] blur-3xl transition-all duration-1000"
+            className="absolute -top-[20%] left-1/2 -translate-x-1/2 w-[70%] h-[55%] rounded-full opacity-[0.07] blur-3xl transition-all duration-1000"
             style={{
               background: `radial-gradient(circle, ${plan.accentRaw} 0%, transparent 70%)`,
             }}
@@ -319,7 +309,7 @@ export function PricingHeroGraphic({ className = "" }: { className?: string }) {
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-center gap-1.5">
                     <Check className="h-2.5 w-2.5 shrink-0" style={{ color: plan.accentRaw }} strokeWidth={2.5} />
-                    <span className="font-mono text-[8px] tracking-wide text-white/40 truncate">
+                    <span className="font-mono text-[8px] tracking-wide text-white/45 truncate">
                       {feature}
                     </span>
                   </li>
