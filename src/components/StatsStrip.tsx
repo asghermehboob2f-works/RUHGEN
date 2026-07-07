@@ -62,9 +62,9 @@ export function StatsStrip({ stats }: { stats?: StatItem[] }) {
     >
       {/* Premium background design guidelines */}
       <div 
-        className="absolute inset-0 opacity-[0.008] mix-blend-screen pointer-events-none"
+        className="absolute inset-0 opacity-[0.02] dark:opacity-[0.01] pointer-events-none"
         style={{
-          backgroundImage: "linear-gradient(to right, rgba(255,255,255,0.06) 1px, transparent 1px)",
+          backgroundImage: "linear-gradient(to right, var(--text-primary) 1px, transparent 1px)",
           backgroundSize: "12.5%",
         }}
       />
@@ -74,17 +74,17 @@ export function StatsStrip({ stats }: { stats?: StatItem[] }) {
       <div className="mx-auto max-w-full px-6 sm:px-12 lg:px-20 xl:px-32 relative z-10">
         
         {/* Dynamic status line top header */}
-        <div className="flex items-center gap-4 mb-6 text-[8.5px] font-mono tracking-[0.2em] text-white/20 uppercase justify-between lg:justify-start">
+        <div className="flex items-center gap-4 mb-6 text-[8.5px] font-mono tracking-[0.2em] text-muted-foreground/55 uppercase justify-between lg:justify-start">
           <div className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 bg-brand-cyan rounded-full animate-ping" />
             <span>NODE STATUS: STREAMING LIVE</span>
           </div>
-          <div className="hidden lg:block h-px flex-1 bg-white/5 mx-6" />
+          <div className="hidden lg:block h-px flex-1 bg-border/40 mx-6" />
           <span>ENGINE METRICS V3.14</span>
         </div>
 
         {/* Enhanced Grid with modern responsive stacking & divider borders */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 sm:gap-x-6 gap-y-6 sm:gap-y-8 lg:divide-x divide-white/[0.04]">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 sm:gap-x-6 gap-y-6 sm:gap-y-8 lg:divide-x divide-border/40">
           {activeStats.map((s, i) => {
             const IconComponent = iconMap[i % iconMap.length];
             return (
@@ -100,16 +100,16 @@ export function StatsStrip({ stats }: { stats?: StatItem[] }) {
                 <div 
                   className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none rounded-2xl"
                   style={{
-                    background: `radial-gradient(circle at center, ${s.glowColor || 'rgba(255,255,255,0.01)'}, transparent 80%)`,
+                    background: `radial-gradient(circle at center, ${s.glowColor || 'var(--glass)'}, transparent 80%)`,
                   }}
                 />
 
                 <div>
                   <div className="flex items-center justify-between gap-1">
-                    <p className="text-[6.5px] sm:text-[8px] font-bold uppercase tracking-[0.12em] sm:tracking-[0.25em] text-white/30 transition-colors duration-500 group-hover:text-white/50 leading-tight">
+                    <p className="text-[6.5px] sm:text-[8px] font-bold uppercase tracking-[0.12em] sm:tracking-[0.25em] text-muted-foreground/80 transition-colors duration-500 group-hover:text-muted-foreground leading-tight">
                       {s.label}
                     </p>
-                    <IconComponent className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white/10 group-hover:text-white/25 transition-colors duration-500 shrink-0" />
+                    <IconComponent className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-muted-foreground/20 group-hover:text-muted-foreground/45 transition-colors duration-500 shrink-0" />
                   </div>
                   
                   {/* Bold Wide Premium Numeric Scale */}
@@ -122,20 +122,20 @@ export function StatsStrip({ stats }: { stats?: StatItem[] }) {
 
                 {/* Segmented Level Indicators - Sleek and Uniform (Monochrome) */}
                 <div className="mt-2 sm:mt-3 w-full">
-                  <div className="flex justify-between items-center text-[5.5px] sm:text-[6.5px] font-mono tracking-widest text-white/20 mb-1 uppercase">
-                    <span>Capacity Index</span>
-                    <span className="text-white/35">{s.pct}%</span>
+                  <div className="flex justify-between items-center text-[5.5px] sm:text-[6.5px] font-mono tracking-widest text-muted-foreground/75 mb-1 uppercase">
+                    <span className="text-muted-foreground/60">Capacity Index</span>
+                    <span className="text-muted-foreground/80">{s.pct}%</span>
                   </div>
                   {/* 12 Segment level blocks */}
                   <div className="h-[1.5px] sm:h-[2px] w-full relative flex gap-[1.5px] sm:gap-[2px] overflow-hidden rounded-full">
                     {Array.from({ length: 12 }).map((_, idx) => (
                       <motion.div
                         key={idx}
-                        className="h-full flex-1 bg-white/5 transition-colors duration-500 rounded-full"
+                        className="h-full flex-1 bg-border/60 transition-colors duration-500 rounded-full"
                         initial={{ opacity: 0.1 }}
                         whileInView={{
                           opacity: idx * 8.3 < s.pct ? 0.7 : 0.1,
-                          backgroundColor: idx * 8.3 < s.pct ? (s.accentColor || '#ffffff') : "rgba(255, 255, 255, 0.05)",
+                          backgroundColor: idx * 8.3 < s.pct ? (s.accentColor || 'var(--text-primary)') : "var(--border-subtle)",
                         }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.4, delay: idx * 0.03 }}
@@ -144,7 +144,7 @@ export function StatsStrip({ stats }: { stats?: StatItem[] }) {
                   </div>
                 </div>
 
-                <p className="mt-1.5 sm:mt-2.5 text-[6.5px] sm:text-[7.5px] font-bold text-white/10 tracking-[0.12em] sm:tracking-[0.2em] uppercase transition-colors duration-500 leading-none">
+                <p className="mt-1.5 sm:mt-2.5 text-[6.5px] sm:text-[7.5px] font-bold text-muted-foreground/70 tracking-[0.12em] sm:tracking-[0.2em] uppercase transition-colors duration-500 leading-none">
                   {s.sub}
                 </p>
               </motion.div>

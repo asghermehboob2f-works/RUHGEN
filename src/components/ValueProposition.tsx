@@ -46,7 +46,7 @@ export function ValueProposition({ pillars }: { pillars?: PillarItem[] }) {
       className="relative scroll-mt-24 overflow-hidden border-y py-16 sm:py-20 md:py-28"
       style={{
         borderColor: "var(--border-subtle)",
-        background: "radial-gradient(ellipse 80% 50% at 50% 100%, rgba(123, 97, 255, 0.02), transparent 70%), #050505",
+        background: "radial-gradient(ellipse 80% 50% at 50% 100%, rgba(123, 97, 255, 0.02), transparent 70%), var(--deep-black)",
       }}
     >
       {/* Precision grid backdrop (Minimal & Subtle) */}
@@ -54,8 +54,8 @@ export function ValueProposition({ pillars }: { pillars?: PillarItem[] }) {
         className="absolute inset-0 opacity-[0.008] mix-blend-screen pointer-events-none"
         style={{
           backgroundImage: `
-            linear-gradient(to right, white 1px, transparent 1px),
-            linear-gradient(to bottom, white 1px, transparent 1px)
+            linear-gradient(to right, var(--text-primary) 1px, transparent 1px),
+            linear-gradient(to bottom, var(--text-primary) 1px, transparent 1px)
           `,
           backgroundSize: "120px 120px",
         }}
@@ -71,22 +71,22 @@ export function ValueProposition({ pillars }: { pillars?: PillarItem[] }) {
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         >
           {/* Elegant Badge */}
-          <div className="relative mb-5 inline-flex items-center justify-center rounded-full border border-white/10 bg-white/[0.02] px-5 py-1.5 backdrop-blur-2xl transition-all duration-500 hover:border-brand-purple/20">
-            <span className="text-[8px] font-semibold uppercase tracking-[0.4em] text-white/40 ml-[0.4em]">
+          <div className="relative mb-5 inline-flex items-center justify-center rounded-full border border-border/60 bg-card/10 px-5 py-1.5 backdrop-blur-2xl transition-all duration-500 hover:border-brand-purple/20">
+            <span className="text-[8px] font-semibold uppercase tracking-[0.4em] text-muted-foreground/60 ml-[0.4em]">
               Platform Architecture
             </span>
           </div>
 
           {/* display heading with cohesive brand shimmer */}
           <h2
-            className="font-display text-[clamp(2rem,5vw,3.75rem)] font-extrabold leading-[1.05] tracking-[-0.03em] text-white"
+            className="font-display text-[clamp(2rem,5vw,3.75rem)] font-extrabold leading-[1.05] tracking-[-0.03em] text-foreground"
           >
             One engine. <br className="md:hidden" />
-            <span className="premium-text-shimmer bg-gradient-to-r from-brand-purple via-white to-brand-cyan bg-clip-text text-transparent">Infinite vision.</span>
+            <span className="premium-text-shimmer bg-gradient-to-r from-brand-purple via-[var(--text-primary)] to-brand-cyan bg-clip-text text-transparent">Infinite vision.</span>
           </h2>
           
           <p
-            className="mx-auto mt-5 max-w-lg text-xs sm:text-sm leading-relaxed font-normal tracking-wide text-white/40"
+            className="mx-auto mt-5 max-w-lg text-xs sm:text-sm leading-relaxed font-normal tracking-wide text-muted-foreground"
           >
             A cohesive creation space backed by high-fidelity infrastructure—so your creative direction leads, and the tooling follows.
           </p>
@@ -103,7 +103,7 @@ export function ValueProposition({ pillars }: { pillars?: PillarItem[] }) {
                 whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 viewport={{ once: true, margin: "-40px" }}
                 transition={{ duration: 0.7, delay: reduce ? 0 : i * 0.05, ease: [0.16, 1, 0.3, 1] }}
-                className="group relative h-full overflow-hidden rounded-2xl border border-white/[0.03] bg-[#07070a]/20 p-6 sm:p-8 backdrop-blur-2xl transition-all duration-700 hover:border-white/10 hover:bg-[#0c0c10]/30 flex flex-col justify-between"
+                className="group relative h-full overflow-hidden rounded-2xl border border-border/40 bg-card/20 p-6 sm:p-8 backdrop-blur-2xl transition-all duration-700 hover:border-border/80 hover:bg-card/40 flex flex-col justify-between"
               >
                 {/* Soft, minimal ambient glow behind cards on hover (Brand integrated) */}
                 <div 
@@ -126,30 +126,30 @@ export function ValueProposition({ pillars }: { pillars?: PillarItem[] }) {
                     
                     {/* Glowing Iconic Container (Brand integrated) */}
                     <div
-                      className="mb-6 flex h-11 w-11 items-center justify-center rounded-xl border border-white/5 bg-white/[0.01] transition-all duration-700 group-hover:border-white/15"
+                      className="mb-6 flex h-11 w-11 items-center justify-center rounded-xl border border-border/50 bg-card/10 transition-all duration-700 group-hover:border-border"
                     >
                       <IconComponent className="h-5 w-5 transition-colors duration-500" strokeWidth={1.5} style={{ color: p.accent || '#ffffff' }} />
                     </div>
                     
                     {/* BOLD Pillar Title */}
                     <h3
-                      className="font-display text-sm font-semibold tracking-tight text-white transition-colors duration-500"
+                      className="font-display text-sm font-semibold tracking-tight text-foreground transition-colors duration-500"
                     >
                       {p.title}
                     </h3>
                     
                     {/* Slimmed description text */}
                     <p
-                      className="mt-3 text-[11.5px] sm:text-xs leading-relaxed font-normal tracking-wide text-white/30 transition-colors duration-500 group-hover:text-white/45"
+                      className="mt-3 text-[11.5px] sm:text-xs leading-relaxed font-normal tracking-wide text-muted-foreground/60 transition-colors duration-500 group-hover:text-muted-foreground"
                     >
                       {p.body}
                     </p>
                   </div>
 
                   {/* Elegant dynamic capability indicators visible at all times */}
-                  <div className="mt-8 pt-4 border-t border-white/[0.03] flex items-center justify-between text-[8px] font-mono tracking-wider text-white/20 transition-colors duration-500 group-hover:text-white/40">
+                  <div className="mt-8 pt-4 border-t border-border/50 flex items-center justify-between text-[8px] font-mono tracking-wider text-muted-foreground/75 transition-colors duration-500 group-hover:text-muted-foreground/90">
                     <span className="uppercase">{p.cap1}</span>
-                    <span className="uppercase px-2 py-0.5 rounded border border-white/5 bg-white/[0.01]" style={{ borderColor: `${p.accent || '#ffffff'}20`, color: p.accent || '#ffffff' }}>{p.cap2}</span>
+                    <span className="uppercase px-2 py-0.5 rounded border border-border bg-card/20" style={{ borderColor: `${p.accent || '#ffffff'}20`, color: p.accent || '#ffffff' }}>{p.cap2}</span>
                   </div>
                 </div>
               </motion.article>

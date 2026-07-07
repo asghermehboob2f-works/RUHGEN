@@ -4,6 +4,7 @@ import { motion, useScroll, useTransform, useSpring, useMotionValue } from "fram
 import { useEffect, useState, useRef, useMemo } from "react";
 import Image from "next/image";
 import type { HeroBackgroundConfig, HeroBackgroundMedia } from "@/backend/site-content/types";
+import { useTheme } from "@/components/ThemeProvider";
 
 interface HeroBackgroundProps {
   config: HeroBackgroundConfig;
@@ -20,6 +21,8 @@ export function HeroBackground({ config }: HeroBackgroundProps) {
   const [mounted, setMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { theme } = useTheme();
+  const isLight = theme === "light";
   
   // Motion values for mouse movement parallax
   const mouseX = useMotionValue(0);
@@ -73,12 +76,12 @@ export function HeroBackground({ config }: HeroBackgroundProps) {
     ];
   }, [config.media]);
 
-  if (!mounted || !config.media || config.media.length === 0) return <div className="absolute inset-0 bg-[#020202]" />;
+  if (!mounted || !config.media || config.media.length === 0) return <div className="absolute inset-0 bg-[var(--deep-black)]" />;
 
   return (
     <div 
       ref={containerRef}
-      className="absolute top-0 left-0 w-full h-[100dvh] overflow-hidden bg-[#020202] perspective-1000 -z-10"
+      className="absolute top-0 left-0 w-full h-[100dvh] overflow-hidden bg-[var(--deep-black)] perspective-1000 -z-10"
     >
       <motion.div
         className="relative h-[130%] w-[130%] -left-[15%] -top-[15%] flex flex-col justify-center gap-6 py-8 pt-20"
@@ -95,9 +98,9 @@ export function HeroBackground({ config }: HeroBackgroundProps) {
             speed={TRACK_SPEEDS[idx]}
             reverse={idx === 1} // Middle goes opposite
             index={idx}
-            blur={isMobile ? false : idx !== 1} // Disable blur filter on mobile to save GPU
+            blur={isMobile ? false : (isLight ? false : idx !== 1)} // Disable blur filter on mobile and in light mode
             scale={isMobile ? 1 : (idx === 1 ? 1 : 0.9)} // Disable scale filter on mobile
-            opacity={idx === 1 ? 0.95 : 0.7} // Maximum visibility
+            opacity={idx === 1 ? (isLight ? 0.9 : 0.95) : (isLight ? 0.75 : 0.7)} // High visibility, no faded wash
           />
         ))}
       </motion.div>
@@ -105,14 +108,21 @@ export function HeroBackground({ config }: HeroBackgroundProps) {
       {/* Cinematic Overlays */}
       <div className="absolute inset-0 pointer-events-none z-20">
         {/* Very Subtle Vignette */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_40%,rgba(0,0,0,0.4)_100%)]" />
+        <div 
+          className="absolute inset-0 transition-colors duration-700" 
+          style={{
+            background: isLight 
+              ? "radial-gradient(circle at center, transparent 80%, var(--deep-black) 100%)"
+              : "radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.4) 100%)"
+          }}
+        />
         
         {/* Edge Gradual Fades (Ultra-Soft) */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#020202]/40 via-transparent to-[#020202]/40" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#020202]/40 via-transparent to-[#020202]/40" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[var(--deep-black)]/40 via-transparent to-[var(--deep-black)]/40" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[var(--deep-black)]/40 via-transparent to-[var(--deep-black)]/40" />
 
         {/* Dynamic Shadow Layer (Reduced) */}
-        <div className="absolute inset-0 bg-black/20 backdrop-blur-[0.5px]" />
+        <div className={`absolute inset-0 transition-colors duration-700 ${isLight ? 'bg-white/10' : 'bg-black/20 backdrop-blur-[0.5px]'}`} />
       </div>
 
       {/* Fine Film Grain */}
@@ -173,9 +183,12 @@ function SlidingTrack({
 }
 
 function TrackItem({ media, globalIndex }: { media: HeroBackgroundMedia, globalIndex: number }) {
+  const { theme } = useTheme();
+  const isLight = theme === "light";
+
   return (
     <div
-      className="relative h-full rounded-2xl bg-[#020202] group shadow-2xl flex-shrink-0 cursor-pointer overflow-hidden transform-gpu transition-all duration-500 hover:z-20 border border-white/5"
+      className="relative h-full rounded-2xl bg-[var(--deep-black)] group shadow-2xl flex-shrink-0 cursor-pointer overflow-hidden transform-gpu transition-all duration-500 hover:z-20 border border-[var(--border-subtle)]"
       style={{ willChange: "transform" }}
     >
       {/* Media Content - Natural Ratio */}
@@ -199,11 +212,18 @@ function TrackItem({ media, globalIndex }: { media: HeroBackgroundMedia, globalI
       )}
 
       {/* Premium Inner Glow & Shadow */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-40 transition-opacity duration-700 group-hover:opacity-20 pointer-events-none rounded-2xl" />
-      <div className="absolute inset-0 rounded-2xl shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05)] pointer-events-none" />
+      <div 
+        className="absolute inset-0 transition-opacity duration-700 group-hover:opacity-20 pointer-events-none rounded-2xl" 
+        style={{
+          background: isLight 
+            ? "linear-gradient(to top, rgba(0,0,0,0.12) 0%, transparent 60%)"
+            : "linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 100%)"
+        }}
+      />
+      <div className="absolute inset-0 rounded-2xl shadow-[inset_0_0_0_1px_var(--border-subtle)] pointer-events-none" />
       
       {/* Subtle overlay on hover */}
-      <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+      <div className="absolute inset-0 bg-[color-mix(in_srgb,var(--text-primary)_5%,transparent)] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
     </div>
   );
 }

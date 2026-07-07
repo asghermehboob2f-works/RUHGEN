@@ -192,7 +192,7 @@ export function SpotlightPageContent({ content }: { content: SiteContent }) {
                 }}
               >
                 {/* Visual top */}
-                <div className="relative aspect-video w-full shrink-0 bg-[#0e0c15] overflow-hidden flex items-center justify-center">
+                <div className="relative aspect-video w-full shrink-0 bg-card overflow-hidden flex items-center justify-center">
                   <div className="absolute inset-0 bg-gradient-to-tr from-[#7B61FF]/10 to-[#00D4FF]/10 opacity-30 group-hover:opacity-50 transition-opacity duration-300" />
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,212,255,0.08)_0%,transparent_70%)]" />
                   
@@ -203,16 +203,16 @@ export function SpotlightPageContent({ content }: { content: SiteContent }) {
 
                   {/* Floating Category tag */}
                   <div className="absolute top-3 left-3">
-                    <span className="inline-block rounded border border-[#00D4FF]/30 bg-black/60 px-2 py-0.5 text-[8.5px] font-bold uppercase tracking-wider text-[#00D4FF]">
+                    <span className="inline-block rounded border border-[#00D4FF]/30 bg-card/70 backdrop-blur-sm px-2 py-0.5 text-[8.5px] font-bold uppercase tracking-wider text-[#00D4FF]">
                       {tmpl.category}
                     </span>
                   </div>
 
                   {/* Slide/Try Overlay on hover */}
-                  <div className="absolute inset-0 z-20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/50 backdrop-blur-[2px]">
+                  <div className="absolute inset-0 z-20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-background/60 backdrop-blur-[2px]">
                     <Link
                       href={tmpl.demoUrl || "/demo"}
-                      className="flex h-10 w-10 items-center justify-center rounded-full border border-[#00D4FF]/30 bg-black/80 text-[#00D4FF] hover:bg-[#00D4FF] hover:text-black transition-all duration-300 hover:scale-110"
+                      className="flex h-10 w-10 items-center justify-center rounded-full border border-[#00D4FF]/30 bg-card/85 text-[#00D4FF] hover:bg-[#00D4FF] hover:text-black transition-all duration-300 hover:scale-110"
                     >
                       <Play className="h-4.5 w-4.5 translate-x-[1px]" fill="currentColor" />
                     </Link>
@@ -230,7 +230,7 @@ export function SpotlightPageContent({ content }: { content: SiteContent }) {
                     </p>
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-white/[0.04] flex items-center justify-between">
+                  <div className="mt-4 pt-3 border-t border-border/50 flex items-center justify-between">
                     <span className="text-[9px] font-mono text-[var(--text-subtle)] uppercase tracking-widest">
                       Ready
                     </span>
@@ -280,19 +280,19 @@ export function SpotlightPageContent({ content }: { content: SiteContent }) {
                   >
                     {/* Well-defined bullet dot */}
                     <div 
-                      className="absolute left-2.5 top-2 flex h-3.5 w-3.5 items-center justify-center rounded-full ring-4 ring-black md:left-1/2 md:-ml-[7px] transition-transform duration-300 group-hover:scale-125 z-10"
+                      className="absolute left-2.5 top-2 flex h-3.5 w-3.5 items-center justify-center rounded-full ring-4 ring-[var(--deep-black)] md:left-1/2 md:-ml-[7px] transition-transform duration-300 group-hover:scale-125 z-10"
                       style={{ 
                         background: color,
                         boxShadow: `0 0 12px ${color}80` 
                       }}
                     >
-                      <span className="h-1 w-1 rounded-full bg-white animate-ping" />
+                      <span className="h-1 w-1 rounded-full bg-[var(--text-primary)] animate-ping" />
                     </div>
 
                     {/* Precise Vertical Line Segment connecting to the next dot only */}
                     {i < (content.upcomingFeatures?.length ?? 0) - 1 && (
                       <div 
-                        className="absolute left-[17px] top-[15px] w-[1px] bg-white/10 md:left-1/2 md:-ml-[0.5px] -z-0" 
+                        className="absolute left-[17px] top-[15px] w-[1px] bg-border md:left-1/2 md:-ml-[0.5px] -z-0" 
                         style={{ height: "calc(100% + 3rem)" }}
                       />
                     )}

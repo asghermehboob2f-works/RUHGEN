@@ -85,12 +85,8 @@ export function Navbar() {
   );
 
   const headerBg = scrolled
-    ? isLight
-      ? "rgba(255,255,255,0.88)"
-      : "rgba(5, 5, 5, 0.78)"
-    : isLight
-      ? "rgba(255,255,255,0.55)"
-      : "rgba(5, 5, 5, 0.35)";
+    ? "var(--header-bg-scrolled)"
+    : "var(--header-bg-idle)";
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -119,9 +115,7 @@ export function Navbar() {
         animate={{
           backgroundColor: headerBg,
           boxShadow: scrolled
-            ? isLight
-              ? "0 8px 32px rgba(0,0,0,0.06)"
-              : "0 8px 32px rgba(0,0,0,0.35)"
+            ? "var(--header-shadow)"
             : "0 0px 0px rgba(0,0,0,0)",
         }}
         transition={{ duration: 0.4, ease: "easeOut" }}
@@ -145,7 +139,7 @@ export function Navbar() {
               className="nav-scroll-x max-w-full touch-pan-x overflow-x-auto overscroll-x-contain scroll-smooth rounded-full border px-1.5 py-1 pb-1.5 scroll-px-2.5 snap-x snap-proximity"
               style={{
                 borderColor: "var(--border-subtle)",
-                background: "rgba(255, 255, 255, 0.03)",
+                background: "var(--glass)",
                 backdropFilter: "blur(40px) saturate(200%)",
               }}
               aria-label="Main"
@@ -400,7 +394,7 @@ export function Navbar() {
               className="absolute right-0 top-0 flex h-full min-h-0 w-[300px] max-w-[85vw] flex-col border-l shadow-2xl"
               style={{
                 borderColor: "var(--border-subtle)",
-                background: isLight ? "rgba(244, 244, 248, 0.95)" : "rgba(10, 10, 12, 0.95)",
+                background: "var(--drawer-bg)",
                 backdropFilter: "blur(20px)",
                 WebkitBackdropFilter: "blur(20px)",
                 paddingTop: "env(safe-area-inset-top)",
@@ -455,7 +449,7 @@ export function Navbar() {
                         style={{
                           color: isActive ? "var(--text-primary)" : "var(--text-muted)",
                           background: isActive
-                            ? isLight ? "rgba(123, 97, 255, 0.1)" : "rgba(123, 97, 255, 0.12)"
+                            ? "color-mix(in srgb, var(--primary-purple) 12%, transparent)"
                             : "transparent",
                         }}
                       >
@@ -537,7 +531,7 @@ export function Navbar() {
                 className="flex shrink-0 flex-col gap-2.5 border-t px-4 py-3 pb-[max(0.875rem,env(safe-area-inset-bottom))]"
                 style={{
                   borderColor: "var(--border-subtle)",
-                  background: isLight ? "rgba(240, 240, 245, 0.6)" : "rgba(8, 8, 10, 0.6)",
+                  background: "var(--drawer-footer-bg)",
                   backdropFilter: "blur(10px)",
                   WebkitBackdropFilter: "blur(10px)",
                 }}

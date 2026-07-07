@@ -109,7 +109,7 @@ export function StudioControlDeck({
       ? "ring-1 ring-violet-400/[0.08]"
       : accent === "video"
         ? "ring-1 ring-cyan-400/[0.12]"
-        : "ring-1 ring-white/[0.04]";
+        : "ring-1 ring-border/30";
   const deckBg =
     accent === "image"
       ? "linear-gradient(165deg, color-mix(in srgb, var(--primary-purple) 9%, var(--soft-black)) 0%, color-mix(in srgb, var(--deep-black) 100%, transparent) 100%)"
@@ -199,7 +199,7 @@ export function StudioSegmented<T extends string>({
             type="button"
             disabled={disabled}
             onClick={() => onChange(o.value)}
-            className="min-h-[38px] rounded-lg px-3 text-xs font-semibold transition-all duration-200 sm:min-h-[40px] sm:px-3.5 sm:text-sm enabled:hover:bg-white/[0.04]"
+            className="min-h-[38px] rounded-lg px-3 text-xs font-semibold transition-all duration-200 sm:min-h-[40px] sm:px-3.5 sm:text-sm enabled:hover:bg-[color-mix(in_srgb,var(--text-primary)_6%,transparent)]"
             style={{
               background: on ? glass : "transparent",
               color: on ? "var(--text-primary)" : "var(--text-muted)",

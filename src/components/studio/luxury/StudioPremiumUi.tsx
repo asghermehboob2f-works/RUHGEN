@@ -25,7 +25,7 @@ export function StudioCollapsible({
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div
-      className={`rounded-2xl border border-white/[0.08] bg-gradient-to-b from-white/[0.04] to-transparent shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl ${className}`}
+      className={`rounded-2xl border border-border/50 bg-gradient-to-b from-card/30 to-transparent shadow-sm backdrop-blur-xl ${className}`}
     >
       <button
         type="button"
@@ -33,7 +33,7 @@ export function StudioCollapsible({
         aria-expanded={open}
         aria-controls={`${id}-panel`}
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition-colors hover:bg-white/[0.03] active:bg-white/[0.05] sm:px-3.5 sm:py-3"
+        className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition-colors hover:bg-card/40 active:bg-card/60 sm:px-3.5 sm:py-3"
       >
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -45,7 +45,7 @@ export function StudioCollapsible({
         <motion.span
           animate={{ rotate: open ? 180 : 0 }}
           transition={{ duration: reduce ? 0 : 0.22, ease: [0.22, 1, 0.36, 1] }}
-          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-black/25 text-[var(--text-muted)]"
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-border bg-card/40 text-[var(--text-muted)]"
         >
           <ChevronDown className="h-4 w-4" strokeWidth={2} />
         </motion.span>
@@ -62,7 +62,7 @@ export function StudioCollapsible({
             transition={{ duration: reduce ? 0 : 0.28, ease: [0.22, 1, 0.36, 1] }}
             className="overflow-hidden"
           >
-            <div className="border-t border-white/[0.06] px-3 pb-3.5 pt-3 sm:px-3.5">{children}</div>
+            <div className="border-t border-border/50 px-3 pb-3.5 pt-3 sm:px-3.5">{children}</div>
           </motion.div>
         ) : null}
       </AnimatePresence>
@@ -94,7 +94,7 @@ export function StudioPromptChips({
           type="button"
           disabled={disabled}
           onClick={() => onPick(t)}
-          className={`rounded-full border border-white/10 bg-black/25 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--text-muted)] transition-all hover:bg-white/[0.06] hover:text-[var(--text-primary)] disabled:opacity-40 sm:text-[11px] ${glow} focus:outline-none focus-visible:ring-2 ${ring}`}
+          className={`rounded-full border border-border/65 bg-card/35 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--text-muted)] transition-all hover:bg-card/70 hover:text-[var(--text-primary)] disabled:opacity-40 sm:text-[11px] ${glow} focus:outline-none focus-visible:ring-2 ${ring}`}
         >
           {t}
         </button>

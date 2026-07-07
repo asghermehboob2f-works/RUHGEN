@@ -553,7 +553,7 @@ export default function ImageStudioClient() {
   if (!ready) return <DashboardLoading label="Loading image studio…" />;
   if (!user) return null;
   const selectCls =
-    "min-h-[38px] w-full cursor-pointer rounded-xl border px-3 py-2 text-xs font-bold outline-none transition-all duration-300 bg-neutral-950/80 border-white/10 focus:border-[#7B61FF]/60 focus:ring-2 focus:ring-[#7B61FF]/15 hover:border-white/15 sm:min-h-[40px] sm:text-[13px]";
+    "min-h-[38px] w-full cursor-pointer rounded-xl border px-3 py-2 text-xs font-bold outline-none transition-all duration-300 bg-card border-border focus:border-[#7B61FF]/60 focus:ring-2 focus:ring-[#7B61FF]/15 hover:border-border/80 sm:min-h-[40px] sm:text-[13px]";
   const isEdit = Boolean(referenceImageUrl);
 
   const leftPanel = (
@@ -721,7 +721,7 @@ export default function ImageStudioClient() {
                         disabled={busy}
                         placeholder="Elements to suppress…"
                         rows={2}
-                        className="w-full resize-none rounded-xl border border-white/10 bg-neutral-950/60 px-3.5 py-2.5 text-xs outline-none transition-all duration-300 focus:border-[#7B61FF]/50 focus:ring-2 focus:ring-[#7B61FF]/15 sm:text-[13px]"
+                        className="w-full resize-none rounded-xl border border-border bg-card/60 px-3.5 py-2.5 text-xs outline-none transition-all duration-300 focus:border-[#7B61FF]/50 focus:ring-2 focus:ring-[#7B61FF]/15 sm:text-[13px]"
                         style={{ color: "var(--text-primary)", minHeight: "3.5rem" }}
                       />
                     </div>
@@ -736,7 +736,7 @@ export default function ImageStudioClient() {
                               setReferenceImageUrl(null);
                               setRefUploadError(null);
                             }}
-                            className="inline-flex h-6 items-center gap-1 rounded-lg border border-white/10 px-2 text-[9px] font-bold uppercase tracking-wider text-[var(--text-muted)] transition-all duration-200 hover:bg-white/[0.06] hover:text-white cursor-pointer"
+                            className="inline-flex h-6 items-center gap-1 rounded-lg border border-border px-2 text-[9px] font-bold uppercase tracking-wider text-[var(--text-muted)] transition-all duration-200 hover:bg-card/85 hover:text-[var(--text-primary)] cursor-pointer"
                           >
                             <X className="h-2.5 w-2.5" />
                             Clear
@@ -764,7 +764,7 @@ export default function ImageStudioClient() {
                       />
                       <div className="flex items-center gap-3">
                         {referenceImageUrl ? (
-                          <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-neutral-950">
+                          <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-border bg-card">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={referenceImageUrl} alt="" className="h-full w-full object-cover" />
                           </div>
@@ -773,7 +773,7 @@ export default function ImageStudioClient() {
                           type="button"
                           disabled={busy || refUploading}
                           onClick={() => refFileInput.current?.click()}
-                          className="inline-flex min-h-[42px] flex-1 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-neutral-950/40 px-3 text-[12px] font-bold text-[var(--text-primary)] shadow-sm transition-all duration-300 hover:bg-white/[0.04] hover:border-[#7B61FF]/45 disabled:opacity-40 cursor-pointer"
+                          className="inline-flex min-h-[42px] flex-1 items-center justify-center gap-1.5 rounded-xl border border-border bg-card/40 px-3 text-[12px] font-bold text-[var(--text-primary)] shadow-sm transition-all duration-300 hover:bg-card/85 hover:border-[#7B61FF]/45 disabled:opacity-40 cursor-pointer"
                         >
                           {refUploading ? <Loader2 className="h-4 w-4 animate-spin text-[#7B61FF]" /> : <ImagePlus className="h-4 w-4 text-[#a78bfa]" strokeWidth={2} />}
                           {refUploading ? "Uploading…" : referenceImageUrl ? "Replace image" : "Upload reference"}
@@ -829,13 +829,13 @@ export default function ImageStudioClient() {
                         onChange={(e) => setEditNegative(e.target.value.slice(0, 2000))}
                         disabled={busy}
                         placeholder="What to avoid…"
-                        className="min-h-[40px] w-full rounded-xl border border-white/10 bg-neutral-950/60 px-3.5 py-2.5 text-xs outline-none transition-all duration-300 focus:border-[#7B61FF]/50 focus:ring-2 focus:ring-[#7B61FF]/15"
+                        className="min-h-[40px] w-full rounded-xl border border-border bg-card/60 px-3.5 py-2.5 text-xs outline-none transition-all duration-300 focus:border-[#7B61FF]/50 focus:ring-2 focus:ring-[#7B61FF]/15"
                         style={{ color: "var(--text-primary)" }}
                       />
                     </div>
                     {referenceImageUrl ? (
                       <div className="flex items-center gap-3 sm:col-span-2">
-                        <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-neutral-950">
+                        <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-border bg-card">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={referenceImageUrl} alt="" className="h-full w-full object-cover" />
                         </div>
@@ -846,7 +846,7 @@ export default function ImageStudioClient() {
                 </StudioCollapsible>
               )}
 
-              <p className="rounded-xl border border-white/[0.08] bg-black/20 px-3 py-2 text-center text-[11px] leading-snug text-[var(--text-muted)] lg:hidden">
+              <p className="rounded-xl border border-border/80 bg-card/20 px-3 py-2 text-center text-[11px] leading-snug text-[var(--text-muted)] lg:hidden">
                 Switch to the <span className="font-semibold text-[var(--text-primary)]">Canvas</span> tab to write prompts.
               </p>
             </div>
@@ -864,16 +864,16 @@ export default function ImageStudioClient() {
         }}
       >
         {/* Cost Preview Panel */}
-        <div className="mb-2.5 flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.02] px-3 py-1.5 text-xs">
+        <div className="mb-2.5 flex items-center justify-between rounded-xl border border-border/50 bg-[color-mix(in_srgb,var(--text-primary)_3%,transparent)] px-3 py-1.5 text-xs">
           <div className="flex items-center gap-1.5 text-[var(--text-muted)]">
-            <span className="font-semibold text-white">Engine:</span>
-            <span className="font-mono bg-[#7B61FF]/10 border border-[#7B61FF]/20 px-1.5 py-0.5 rounded text-[10px] text-purple-200">
+            <span className="font-semibold text-[var(--text-primary)]">Engine:</span>
+            <span className="font-mono bg-[#7B61FF]/10 border border-[#7B61FF]/20 px-1.5 py-0.5 rounded text-[10px] text-[#7B61FF] dark:text-purple-200">
               {model.split("/").pop()}
             </span>
           </div>
           <div className="flex items-center gap-4 text-[var(--text-muted)]">
             <span>
-              Available: <strong className="text-white tabular-nums">{user.availableCredits ?? user.credits ?? 0}</strong>
+              Available: <strong className="text-[var(--text-primary)] tabular-nums">{user.availableCredits ?? user.credits ?? 0}</strong>
             </span>
             <span>
               Cost: <strong className={(user.availableCredits ?? user.credits ?? 0) < currentCost ? "text-rose-400 font-bold" : "text-[#00D4FF] font-bold"}>{currentCost} credits</strong>
@@ -886,7 +886,7 @@ export default function ImageStudioClient() {
           <span className="text-[10px] tabular-nums text-[var(--text-subtle)]">{prompt.length}</span>
         </div>
         <div
-          className="studio-prompt-focus-image rounded-xl border border-white/10 bg-black/45 px-3 py-2 transition-shadow"
+          className="studio-prompt-focus-image rounded-xl border border-border bg-card/65 px-3 py-2 transition-shadow"
           style={{ boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)" }}
         >
           <label className="sr-only" htmlFor="img-prompt">Prompt</label>
@@ -999,8 +999,8 @@ export default function ImageStudioClient() {
                       onClick={() => setFeedFilter(f)}
                       className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide transition-all ${
                         feedFilter === f
-                          ? "bg-[#7B61FF]/25 text-violet-100 ring-1 ring-[#7B61FF]/40"
-                          : "border border-white/10 bg-black/25 text-[var(--text-muted)] hover:border-white/20"
+                          ? "bg-[#7B61FF]/25 text-[var(--text-primary)] ring-1 ring-[#7B61FF]/40"
+                          : "border border-border bg-card/35 text-[var(--text-muted)] hover:border-border/80"
                       }`}
                     >
                       {f === "all" ? "All" : f === "running" ? "Live" : "Ready"}
@@ -1008,14 +1008,14 @@ export default function ImageStudioClient() {
                   ))}
                 </div>
               ) : null}
-              <div className="flex shrink-0 items-center gap-1 rounded-lg border border-white/10 bg-black/30 p-0.5">
+              <div className="flex shrink-0 items-center gap-1 rounded-lg border border-border bg-card/45 p-0.5">
                 <button
                   type="button"
                   onClick={() => setStudioView("feed")}
                   aria-pressed={studioView === "feed"}
                   aria-label="Feed view"
                   className={`inline-flex h-7 items-center gap-1 rounded-md px-1.5 text-[10px] font-bold uppercase tracking-wide transition-all ${
-                    studioView === "feed" ? "bg-white/10 text-white shadow-inner" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                    studioView === "feed" ? "bg-[color-mix(in_srgb,var(--text-primary)_12%,transparent)] text-[var(--text-primary)] shadow-inner" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                   }`}
                 >
                   <List className="h-3.5 w-3.5" strokeWidth={2} />
@@ -1026,7 +1026,7 @@ export default function ImageStudioClient() {
                   aria-pressed={studioView === "gallery"}
                   aria-label="Gallery view"
                   className={`inline-flex h-7 items-center gap-1 rounded-md px-1.5 text-[10px] font-bold uppercase tracking-wide transition-all ${
-                    studioView === "gallery" ? "bg-white/10 text-white shadow-inner" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                    studioView === "gallery" ? "bg-[color-mix(in_srgb,var(--text-primary)_12%,transparent)] text-[var(--text-primary)] shadow-inner" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                   }`}
                 >
                   <Grid3x3 className="h-3.5 w-3.5" strokeWidth={2} />
@@ -1049,7 +1049,7 @@ export default function ImageStudioClient() {
               </button>
             </div>
             {studioView === "feed" ? (
-              <div className="flex shrink-0 items-center gap-1 border-b border-white/[0.06] px-3 py-1.5 sm:hidden">
+              <div className="flex shrink-0 items-center gap-1 border-b border-border/30 px-3 py-1.5 sm:hidden">
                 {(["all", "running", "ready"] as const).map((f) => (
                   <button
                     key={f}
@@ -1057,8 +1057,8 @@ export default function ImageStudioClient() {
                     onClick={() => setFeedFilter(f)}
                     className={`flex-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide transition-all ${
                       feedFilter === f
-                        ? "bg-[#7B61FF]/25 text-violet-100 ring-1 ring-[#7B61FF]/40"
-                        : "border border-white/10 bg-black/25 text-[var(--text-muted)]"
+                        ? "bg-[#7B61FF]/25 text-[var(--text-primary)] ring-1 ring-[#7B61FF]/40"
+                        : "border border-border bg-card/35 text-[var(--text-muted)]"
                     }`}
                   >
                     {f === "all" ? "All" : f === "running" ? "Live" : "Ready"}
@@ -1073,7 +1073,7 @@ export default function ImageStudioClient() {
               {studioView === "gallery" ? (
                 galleryItems.length === 0 ? (
                   <div className="flex min-h-[240px] flex-col items-center justify-center gap-4 py-12 text-center">
-                    <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl border border-white/10 bg-gradient-to-br from-violet-600/30 to-cyan-500/20 shadow-[0_0_60px_-20px_rgba(123,97,255,0.55)]">
+                    <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl border border-border bg-gradient-to-br from-violet-600/15 to-cyan-500/10 shadow-[0_0_60px_-20px_rgba(123,97,255,0.55)]">
                       <Grid3x3 className="h-9 w-9 text-white/90" strokeWidth={1.5} />
                     </div>
                     <div className="max-w-xs space-y-2">
@@ -1091,7 +1091,7 @@ export default function ImageStudioClient() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: reduce ? 0 : Math.min(gi * 0.03, 0.35) }}
                         onClick={() => setLightbox({ src: item.src })}
-                        className="group relative aspect-square overflow-hidden rounded-2xl border border-white/10 bg-black/40 text-left shadow-lg ring-1 ring-white/[0.04] transition-transform hover:z-[1] hover:scale-[1.02] hover:ring-[#7B61FF]/40"
+                        className="group relative aspect-square overflow-hidden rounded-2xl border border-border bg-card/45 text-left shadow-lg ring-1 ring-border/20 transition-transform hover:z-[1] hover:scale-[1.02] hover:ring-[#7B61FF]/40"
                       >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={item.src} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
@@ -1126,11 +1126,11 @@ export default function ImageStudioClient() {
                       return (
                         <motion.div key={msg.id} initial={reduce ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex justify-end">
                           <div
-                            className="max-w-[min(100%,580px)] rounded-2xl rounded-br-md border border-violet-400/25 bg-gradient-to-br from-violet-500/15 to-black/40 px-4 py-3.5 shadow-[0_16px_48px_-28px_rgba(123,97,255,0.45)] ring-1 ring-white/[0.06] backdrop-blur-md"
+                            className="max-w-[min(100%,580px)] rounded-2xl rounded-br-md border border-violet-400/25 bg-gradient-to-br from-violet-500/15 to-card/40 px-4 py-3.5 shadow-[0_16px_48px_-28px_rgba(123,97,255,0.45)] ring-1 ring-border/20 backdrop-blur-md"
                           >
                             <div className="flex gap-3">
                               {msg.refineFromUrl ? (
-                                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-white/10">
+                                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-border">
                                   {/* eslint-disable-next-line @next/next/no-img-element */}
                                   <img src={msg.refineFromUrl} alt="" className="h-full w-full object-cover" />
                                 </div>
@@ -1142,7 +1142,7 @@ export default function ImageStudioClient() {
                                   <button
                                     type="button"
                                     onClick={() => void copyText(msg.content, "Prompt copied")}
-                                    className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/[0.04] px-2 py-1 text-[11px] font-semibold text-cyan-200 transition-colors hover:bg-white/[0.08]"
+                                    className="inline-flex items-center gap-1 rounded-lg border border-border bg-card/50 px-2 py-1 text-[11px] font-semibold text-[var(--text-primary)] transition-all hover:bg-card/90 active:scale-[0.98]"
                                   >
                                     <Copy className="h-3 w-3" />
                                     Copy
@@ -1161,7 +1161,7 @@ export default function ImageStudioClient() {
                           className={
                             msg.urls.length > 0 && !msg.loading
                               ? "w-full max-w-[min(100%,760px)]"
-                              : "max-w-[min(100%,760px)] rounded-2xl rounded-bl-md border border-white/10 bg-black/35 px-4 py-3.5 shadow-xl ring-1 ring-white/[0.05] backdrop-blur-md"
+                              : "max-w-[min(100%,760px)] rounded-2xl rounded-bl-md border border-border bg-card/45 px-4 py-3.5 shadow-xl ring-1 ring-border/20 backdrop-blur-md"
                           }
                         >
                           {msg.loading ? (
@@ -1277,7 +1277,7 @@ export default function ImageStudioClient() {
                                         setPrompt("");
                                         document.getElementById("img-prompt")?.focus();
                                       }}
-                                      className="flex h-8 flex-1 items-center justify-center gap-1 rounded-lg border border-white/10 bg-white/[0.04] text-[10px] font-bold uppercase tracking-wider text-white"
+                                      className="flex h-8 flex-1 items-center justify-center gap-1 rounded-lg border border-border bg-card/60 text-[10px] font-bold uppercase tracking-wider text-[var(--text-primary)] hover:bg-card/90 active:scale-[0.98]"
                                     >
                                       <Wand2 className="h-3 w-3" />
                                       Refine
@@ -1294,7 +1294,7 @@ export default function ImageStudioClient() {
                                           })
                                           .finally(() => setDownloadingIdx(null));
                                       }}
-                                      className="flex h-8 px-2.5 items-center justify-center gap-1 rounded-lg border border-white/10 bg-white/[0.04] text-[10px] font-bold uppercase tracking-wider text-white"
+                                      className="flex h-8 px-2.5 items-center justify-center gap-1 rounded-lg border border-border bg-card/60 text-[10px] font-bold uppercase tracking-wider text-[var(--text-primary)] hover:bg-card/90 active:scale-[0.98]"
                                     >
                                       {downloadingIdx?.key === msg.id && downloadingIdx.idx === idx ? (
                                         <Loader2 className="h-3 w-3 animate-spin" />
@@ -1306,7 +1306,7 @@ export default function ImageStudioClient() {
                                     <button
                                       type="button"
                                       onClick={() => void copyText(src, "Link copied")}
-                                      className="flex h-8 px-2.5 items-center justify-center gap-1 rounded-lg border border-white/10 bg-white/[0.04] text-[10px] font-bold uppercase tracking-wider text-white"
+                                      className="flex h-8 px-2.5 items-center justify-center gap-1 rounded-lg border border-border bg-card/60 text-[10px] font-bold uppercase tracking-wider text-[var(--text-primary)] hover:bg-card/90 active:scale-[0.98]"
                                     >
                                       <Copy className="h-3 w-3" />
                                       Link

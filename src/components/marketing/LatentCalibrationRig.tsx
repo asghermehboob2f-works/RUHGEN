@@ -126,10 +126,10 @@ export function LatentCalibrationRig() {
 
       {/* Main Luxury Bezel Cabinet */}
       <div
-        className="relative overflow-hidden rounded-2xl p-[1.5px] shadow-[0_32px_80px_rgba(0,0,0,0.85),0_0_0_1px_rgba(255,255,255,0.06)_inset] transition-all duration-500 hover:shadow-[0_40px_90px_rgba(0,0,0,0.9)]"
+        className="relative overflow-hidden rounded-2xl p-[1.5px] shadow-[0_32px_80px_rgba(0,0,0,0.35),0_0_0_1px_var(--border-subtle)_inset] transition-all duration-500 hover:shadow-[0_40px_90px_rgba(0,0,0,0.4)]"
         style={{
           background:
-            "linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.03) 50%, rgba(123,97,255,0.12) 100%)",
+            "linear-gradient(135deg, var(--border-subtle) 0%, transparent 50%, rgba(123,97,255,0.12) 100%)",
         }}
       >
         <div
@@ -149,14 +149,14 @@ export function LatentCalibrationRig() {
           />
 
           {/* Traffic lights / macOS bar */}
-          <div className="relative z-20 flex items-center justify-between px-5 py-4 border-b border-white/[0.04] bg-black/45 backdrop-blur-md">
+          <div className="relative z-20 flex items-center justify-between px-5 py-4 border-b border-border/50 bg-card/45 backdrop-blur-md">
             <div className="flex items-center gap-1.5 shrink-0">
               <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f56]/70 hover:bg-[#ff5f56]" />
               <span className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]/70 hover:bg-[#ffbd2e]" />
               <span className="w-2.5 h-2.5 rounded-full bg-[#27c93f]/70 hover:bg-[#27c93f]" />
             </div>
             
-            <span className="text-[9px] font-mono font-bold tracking-[0.25em] text-neutral-400 uppercase select-none truncate">
+            <span className="text-[9px] font-mono font-bold tracking-[0.25em] text-muted-foreground uppercase select-none truncate">
               RUHGEN // LATENT_CALIBRATION_STUDIO
             </span>
 
@@ -167,12 +167,12 @@ export function LatentCalibrationRig() {
           </div>
 
           {/* Top Panel: Calibration Viewport (Visualizers) */}
-          <div className="grid gap-4 p-5 md:grid-cols-[1.2fr_0.8fr] items-stretch flex-1 border-b border-white/[0.04]">
+          <div className="grid gap-4 p-5 md:grid-cols-[1.2fr_0.8fr] items-stretch flex-1 border-b border-border/50">
             
             {/* Left Box: SVG Focal Ray Diagram & Density Waves */}
-            <div className="relative min-h-[220px] rounded-xl border border-white/5 bg-black/55 overflow-hidden flex flex-col justify-between p-4 shadow-inner">
+            <div className="relative min-h-[220px] rounded-xl border border-border/60 bg-card/30 overflow-hidden flex flex-col justify-between p-4 shadow-inner">
               {/* Compiler crosshair dots */}
-              <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:10px_10px]" />
+              <div className="absolute inset-0 opacity-[0.012] bg-[linear-gradient(var(--text-primary)_1px,transparent_1px),linear-gradient(90deg,var(--text-primary)_1px,transparent_1px)] bg-[size:10px_10px]" />
               
               {/* Header metrics */}
               <div className="relative z-10 flex justify-between items-center font-mono text-[8px] text-neutral-500 uppercase tracking-wider">
@@ -235,7 +235,7 @@ export function LatentCalibrationRig() {
                   </g>
 
                   {/* Horizontal sensor optical center line */}
-                  <line x1="5" y1="60" x2="315" y2="60" stroke="rgba(255,255,255,0.08)" strokeDasharray="3, 3" />
+                  <line x1="5" y1="60" x2="315" y2="60" stroke="var(--border-subtle)" strokeDasharray="3, 3" />
 
                   {/* Lens Element in the Center (glass visual) */}
                   <ellipse 
@@ -244,38 +244,38 @@ export function LatentCalibrationRig() {
                     rx="14" 
                     ry="35" 
                     fill="url(#lens-shimmer)" 
-                    stroke="rgba(255,255,255,0.25)" 
+                    stroke="var(--border-subtle)" 
                     strokeWidth="1.5" 
                     className="shadow-2xl backdrop-blur-md"
                   />
 
                   {/* Lens Highlight curve */}
-                  <path d="M 152,40 Q 158,60 152,80" stroke="rgba(255,255,255,0.35)" strokeWidth="1" fill="none" />
+                  <path d="M 152,40 Q 158,60 152,80" stroke="var(--text-muted)" strokeWidth="1" fill="none" />
 
                   {/* Optical Focal Point indicator */}
-                  <circle cx="160" cy="60" r="3" fill="#ffffff" className="shadow-[0_0_12px_#ffffff]" />
+                  <circle cx="160" cy="60" r="3" fill="var(--text-primary)" className="shadow-[0_0_12px_var(--text-primary)]" />
 
                   {/* Sensor element at the far right */}
-                  <rect x="306" y="25" width="4" height="70" rx="2" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.2)" />
+                  <rect x="306" y="25" width="4" height="70" rx="2" fill="var(--card-bg)" stroke="var(--border-subtle)" />
                   {/* Lens aperture calibration tick labels */}
-                  <text x="160" y="112" textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="6.5" fontFamily="monospace">
+                  <text x="160" y="112" textAnchor="middle" fill="var(--text-muted)" fontSize="6.5" fontFamily="monospace">
                     LENS: {focal}mm // FOV: {Math.round(wideAngle * 2)}°
                   </text>
-                  <text x="306" y="112" textAnchor="end" fill="rgba(255,255,255,0.3)" fontSize="6.5" fontFamily="monospace">
+                  <text x="306" y="112" textAnchor="end" fill="var(--text-muted)" fontSize="6.5" fontFamily="monospace">
                     FOCAL SENSOR
                   </text>
-                  <text x="10" y="112" textAnchor="start" fill="rgba(255,255,255,0.3)" fontSize="6.5" fontFamily="monospace">
+                  <text x="10" y="112" textAnchor="start" fill="var(--text-muted)" fontSize="6.5" fontFamily="monospace">
                     RAYSOURCE
                   </text>
                 </svg>
 
                 {/* Simulated Aperture Blade overlay (shrinks/expands based on aperture value) */}
                 <div 
-                  className="absolute right-6 top-6 rounded-lg bg-black/60 border border-white/5 p-2 font-mono text-[7px] text-neutral-400 flex flex-col gap-1 transition-all duration-300"
+                  className="absolute right-6 top-6 rounded-lg bg-card/70 border border-border/80 p-2 font-mono text-[7px] text-neutral-400 flex flex-col gap-1 transition-all duration-300"
                 >
                   <span className="text-[6.5px] uppercase font-bold text-neutral-500">BLUR STRENGTH</span>
-                  <span className="text-white font-bold">{blurRadius.toFixed(1)}px blur</span>
-                  <div className="w-16 h-1 bg-neutral-800 rounded overflow-hidden mt-1">
+                  <span className="text-foreground font-bold">{blurRadius.toFixed(1)}px blur</span>
+                  <div className="w-16 h-1 bg-[var(--border-subtle)] rounded overflow-hidden mt-1">
                     <div 
                       className="h-full transition-all duration-300" 
                       style={{ 
@@ -289,7 +289,7 @@ export function LatentCalibrationRig() {
               </div>
 
               {/* Latent density undulating wave at the bottom */}
-              <div className="relative border-t border-white/5 pt-2 flex items-center justify-between">
+              <div className="relative border-t border-border/50 pt-2 flex items-center justify-between">
                 <span className="font-mono text-[7.5px] text-neutral-500 uppercase tracking-widest flex items-center gap-1">
                   <Activity className="w-3.5 h-3.5 text-[#00d4ff]" />
                   LATENT_DENSITY_WAVE (STEPS: {steps})
@@ -320,10 +320,10 @@ export function LatentCalibrationRig() {
               onMouseMove={handleMouseMove}
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
-              className="relative min-h-[220px] rounded-xl border border-white/5 bg-black/65 overflow-hidden flex flex-col justify-between p-4 cursor-crosshair group shadow-inner"
+              className="relative min-h-[220px] rounded-xl border border-border/60 bg-card/30 overflow-hidden flex flex-col justify-between p-4 cursor-crosshair group shadow-inner"
             >
               {/* Latent space dot mapping backdrop */}
-              <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.015)_1.5px,transparent_1.5px)] bg-[size:12px_12px]" />
+              <div className="absolute inset-0 bg-[radial-gradient(var(--text-primary)_1.5px,transparent_1.5px)] opacity-[0.02]" />
 
               <div className="relative z-10 flex justify-between font-mono text-[8px] text-neutral-500 uppercase tracking-wider">
                 <span>LATENT COORDINATE MAP</span>
@@ -333,14 +333,14 @@ export function LatentCalibrationRig() {
               </div>
 
               {/* Map grid display */}
-              <div className="relative flex-1 w-full flex items-center justify-center my-3.5 border border-white/[0.03] bg-black/35 rounded-lg overflow-hidden">
+              <div className="relative flex-1 w-full flex items-center justify-center my-3.5 border border-border/50 bg-card/20 rounded-lg overflow-hidden">
                 
                 {/* Horizontal intersecting line */}
                 <div 
                   className="absolute left-0 right-0 h-[0.5px] border-t border-dashed transition-all duration-75 pointer-events-none"
                   style={{ 
                     top: `${mousePos.y}%`, 
-                    borderColor: isHovered ? `${currentAccent}66` : "rgba(255,255,255,0.06)" 
+                    borderColor: isHovered ? `${currentAccent}66` : "var(--border-subtle)" 
                   }}
                 />
                 
@@ -368,7 +368,7 @@ export function LatentCalibrationRig() {
                 </div>
 
                 {/* Simulated Tensor terminal stream inside grid */}
-                <div className="absolute left-2.5 bottom-2.5 font-mono text-[6.5px] text-neutral-500 flex flex-col gap-0.5 bg-black/50 p-1.5 rounded border border-white/5 pointer-events-none">
+                <div className="absolute left-2.5 bottom-2.5 font-mono text-[6.5px] text-neutral-500 flex flex-col gap-0.5 bg-card/70 p-1.5 rounded border border-border/50 pointer-events-none">
                   <div className="text-[5.5px] uppercase font-bold text-neutral-600 mb-0.5">TENSOR_STREAM_RAW</div>
                   <div>COORD: X:{(mousePos.x / 100).toFixed(4)} Y:{(mousePos.y / 100).toFixed(4)}</div>
                   <div>SEED: 0x{((mousePos.x * mousePos.y * 13) % 9999).toString(16).toUpperCase()}</div>
@@ -376,9 +376,9 @@ export function LatentCalibrationRig() {
                 </div>
 
                 {/* Static target markers */}
-                <div className="absolute top-3 left-3 h-1.5 w-1.5 rounded-full bg-white/10" />
-                <div className="absolute bottom-3 right-3 h-1.5 w-1.5 rounded-full bg-white/10" />
-                <div className="absolute top-3 right-3 h-1.5 w-1.5 rounded-full bg-white/10" />
+                <div className="absolute top-3 left-3 h-1.5 w-1.5 rounded-full bg-[var(--text-muted)] opacity-30" />
+                <div className="absolute bottom-3 right-3 h-1.5 w-1.5 rounded-full bg-[var(--text-muted)] opacity-30" />
+                <div className="absolute top-3 right-3 h-1.5 w-1.5 rounded-full bg-[var(--text-muted)] opacity-30" />
 
                 {/* Calibration Matrix Pulse trigger */}
                 <AnimatePresence>
@@ -395,10 +395,10 @@ export function LatentCalibrationRig() {
               </div>
 
               {/* Vector readouts */}
-              <div className="relative border-t border-white/5 pt-2 flex items-center justify-between font-mono text-[7.5px] text-neutral-400">
+              <div className="relative border-t border-border/50 pt-2 flex items-center justify-between font-mono text-[7.5px] text-neutral-400">
                 <div className="flex gap-3">
-                  <span>VEC_X: <span className="text-white">{(mousePos.x/100).toFixed(3)}</span></span>
-                  <span>VEC_Y: <span className="text-white">{(mousePos.y/100).toFixed(3)}</span></span>
+                  <span>VEC_X: <span className="text-foreground">{(mousePos.x/100).toFixed(3)}</span></span>
+                  <span>VEC_Y: <span className="text-foreground">{(mousePos.y/100).toFixed(3)}</span></span>
                 </div>
                 <div className="text-neutral-500">SAMPLER: DPMSOLVER_V3</div>
               </div>
@@ -407,18 +407,18 @@ export function LatentCalibrationRig() {
           </div>
 
           {/* Lower Panel: Dial Adjustments & Archetype Quicksets */}
-          <div className="p-5 flex flex-col gap-5 bg-black/35">
+          <div className="p-5 flex flex-col gap-5 bg-card/10">
             
             {/* Calibration Sliders */}
             <div className="grid gap-5 sm:grid-cols-3">
               
               {/* Dial 1: Focal Length */}
-              <div className="flex flex-col gap-2 p-3 bg-white/[0.01] border border-white/5 rounded-xl">
+              <div className="flex flex-col gap-2 p-3 bg-card/20 border border-border/50 rounded-xl">
                 <div className="flex justify-between items-center text-[10px] font-mono">
                   <span className="text-neutral-400 flex items-center gap-1">
                     <Camera className="w-3.5 h-3.5 text-neutral-500" /> FOCAL LENGTH
                   </span>
-                  <span className="text-white font-bold">{focal}mm</span>
+                  <span className="text-foreground font-bold">{focal}mm</span>
                 </div>
                 <input 
                   type="range"
@@ -426,7 +426,7 @@ export function LatentCalibrationRig() {
                   max="200"
                   value={focal}
                   onChange={(e) => setFocal(Number(e.target.value))}
-                  className="w-full h-1 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-[#7B61FF]"
+                  className="w-full h-1 bg-[color-mix(in_srgb,var(--text-primary)_15%,transparent)] rounded-lg appearance-none cursor-pointer accent-[#7B61FF]"
                   style={{
                     accentColor: currentAccent
                   }}
@@ -438,12 +438,12 @@ export function LatentCalibrationRig() {
               </div>
 
               {/* Dial 2: Aperture / DOF */}
-              <div className="flex flex-col gap-2 p-3 bg-white/[0.01] border border-white/5 rounded-xl">
+              <div className="flex flex-col gap-2 p-3 bg-card/20 border border-border/50 rounded-xl">
                 <div className="flex justify-between items-center text-[10px] font-mono">
                   <span className="text-neutral-400 flex items-center gap-1">
                     <Sliders className="w-3.5 h-3.5 text-neutral-500" /> APERTURE (DOF)
                   </span>
-                  <span className="text-white font-bold">f/{aperture.toFixed(2)}</span>
+                  <span className="text-foreground font-bold">f/{aperture.toFixed(2)}</span>
                 </div>
                 <input 
                   type="range"
@@ -452,7 +452,7 @@ export function LatentCalibrationRig() {
                   step="0.05"
                   value={aperture}
                   onChange={(e) => setAperture(Number(e.target.value))}
-                  className="w-full h-1 bg-neutral-800 rounded-lg appearance-none cursor-pointer"
+                  className="w-full h-1 bg-[color-mix(in_srgb,var(--text-primary)_15%,transparent)] rounded-lg appearance-none cursor-pointer"
                   style={{
                     accentColor: currentAccent
                   }}
@@ -464,12 +464,12 @@ export function LatentCalibrationRig() {
               </div>
 
               {/* Dial 3: Latent Steps */}
-              <div className="flex flex-col gap-2 p-3 bg-white/[0.01] border border-white/5 rounded-xl">
+              <div className="flex flex-col gap-2 p-3 bg-card/20 border border-border/50 rounded-xl">
                 <div className="flex justify-between items-center text-[10px] font-mono">
                   <span className="text-neutral-400 flex items-center gap-1">
                     <Cpu className="w-3.5 h-3.5 text-neutral-500" /> DEEP LATENT STEPS
                   </span>
-                  <span className="text-white font-bold">{steps} steps</span>
+                  <span className="text-foreground font-bold">{steps} steps</span>
                 </div>
                 <input 
                   type="range"
@@ -477,7 +477,7 @@ export function LatentCalibrationRig() {
                   max="150"
                   value={steps}
                   onChange={(e) => setSteps(Number(e.target.value))}
-                  className="w-full h-1 bg-neutral-800 rounded-lg appearance-none cursor-pointer"
+                  className="w-full h-1 bg-[color-mix(in_srgb,var(--text-primary)_15%,transparent)] rounded-lg appearance-none cursor-pointer"
                   style={{
                     accentColor: currentAccent
                   }}
@@ -491,7 +491,7 @@ export function LatentCalibrationRig() {
             </div>
 
             {/* Quickset Archetype nodes */}
-            <div className="border-t border-white/[0.04] pt-4 flex flex-col gap-3">
+            <div className="border-t border-border/50 pt-4 flex flex-col gap-3">
               <div className="font-mono text-[8px] font-bold tracking-widest text-neutral-500 uppercase text-left">
                 CALIBRATE FROM CREATIVE ARCHETYPE PRESETS
               </div>
@@ -504,20 +504,20 @@ export function LatentCalibrationRig() {
                       onClick={() => applyArchetype(arch)}
                       className={`flex flex-col text-left p-3.5 rounded-xl border transition-all duration-300 outline-none relative overflow-hidden group select-none ${
                         isActive ? 
-                        "border-white/20 shadow-xl" : 
-                        "border-white/5 bg-white/[0.01] hover:bg-white/[0.03] hover:border-white/10"
+                        "border-border shadow-xl" : 
+                        "border-border/40 bg-card/10 hover:bg-card/25 hover:border-border"
                       }`}
                       style={{
                         background: isActive 
-                          ? `linear-gradient(135deg, ${arch.accent}14 0%, rgba(10,10,12,0.9) 100%)` 
-                          : "rgba(10,10,12,0.4)"
+                          ? `linear-gradient(135deg, ${arch.accent}14 0%, var(--drawer-bg) 100%)` 
+                          : "var(--glass)"
                       }}
                     >
                       {isActive && (
                         <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full shadow-[0_0_8px_currentColor]" style={{ backgroundColor: arch.accent, color: arch.accent }} />
                       )}
                       
-                      <span className="font-display text-[11px] font-bold text-white transition-colors">
+                      <span className="font-display text-[11px] font-bold text-foreground transition-colors">
                         {arch.name}
                       </span>
                       <span className="font-mono text-[7px] text-neutral-500 mt-1 uppercase tracking-wider block">
@@ -537,10 +537,10 @@ export function LatentCalibrationRig() {
                   style={{
                     borderColor: `${activeArchetype.accent}25`,
                     background: `${activeArchetype.accent}0a`,
-                    color: "rgba(255,255,255,0.75)"
+                    color: "var(--text-muted)"
                   }}
                 >
-                  <strong className="text-white">{activeArchetype.name}:</strong> {activeArchetype.description} 
+                  <strong className="text-foreground">{activeArchetype.name}:</strong> {activeArchetype.description} 
                   <span className="block mt-1 text-[7px] text-neutral-500">
                     CONFIG MATRIX: FOCAL: {activeArchetype.focal}mm | APERTURE: f/{activeArchetype.aperture} | LATENT STEPS: {activeArchetype.steps}
                   </span>

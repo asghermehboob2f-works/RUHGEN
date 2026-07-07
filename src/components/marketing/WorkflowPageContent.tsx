@@ -123,7 +123,7 @@ export function WorkflowPageContent() {
                 borderColor: "var(--border-subtle)",
                 background: "linear-gradient(165deg, var(--glass-elevated), var(--glass))",
                 backdropFilter: "blur(24px) saturate(180%)",
-                boxShadow: "0 32px 60px -16px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.06)"
+                boxShadow: "0 32px 60px -16px rgba(0,0,0,0.35), inset 0 1px 0 var(--border-subtle)"
               }}
             >
               <div className="absolute top-0 right-0 w-24 h-24 rounded-full blur-3xl" style={{ background: "rgba(255,46,154,0.1)" }} />
@@ -202,8 +202,8 @@ export function WorkflowPageContent() {
                     : "var(--glass)",
                   backdropFilter: "blur(20px) saturate(180%)",
                   boxShadow: activeStep === i
-                    ? `0 20px 50px -20px ${j.accent}30, inset 0 1px 0 rgba(255,255,255,0.06)`
-                    : "0 4px 32px -8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)"
+                    ? `0 20px 50px -20px ${j.accent}30, inset 0 1px 0 var(--border-subtle)`
+                    : "0 4px 32px -8px rgba(0,0,0,0.5), inset 0 1px 0 var(--border-subtle)"
                 }}
               >
                 <div
@@ -222,7 +222,7 @@ export function WorkflowPageContent() {
                     <j.Icon className="h-4.5 w-4.5" strokeWidth={1.5} style={{ color: "var(--text-subtle)" }} />
                   </div>
 
-                  <h3 className="font-display text-lg font-bold mb-2 group-hover:text-white transition-colors" style={{ color: "var(--text-primary)" }}>
+                  <h3 className="font-display text-lg font-bold mb-2 group-hover:text-foreground transition-colors" style={{ color: "var(--text-primary)" }}>
                     {j.title}
                   </h3>
                   <p className="text-xs leading-relaxed font-light" style={{ color: "var(--text-muted)" }}>
@@ -268,7 +268,7 @@ export function WorkflowPageContent() {
               borderColor: "var(--border-subtle)",
               background: "linear-gradient(135deg, rgba(123,97,255,0.12), rgba(0,212,255,0.08), rgba(255,46,154,0.06))",
               backdropFilter: "blur(24px) saturate(180%)",
-              boxShadow: "0 32px 80px -24px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06)"
+              boxShadow: "0 32px 80px -24px rgba(0,0,0,0.6), inset 0 1px 0 var(--border-subtle)"
             }}
           >
             <div className="absolute inset-0 pointer-events-none opacity-30" style={{ background: "radial-gradient(ellipse 70% 60% at 100% 0%, rgba(123,97,255,0.3), transparent 55%), radial-gradient(ellipse 50% 50% at 0% 100%, rgba(0,212,255,0.2), transparent 50%)" }} />

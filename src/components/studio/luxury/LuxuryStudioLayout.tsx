@@ -112,15 +112,15 @@ export function LuxuryStudioLayout({
 
         <header className="relative z-10 mb-2 shrink-0 lg:mb-3">
           <div
-            className="flex items-center gap-2 rounded-2xl border p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl sm:gap-3 sm:p-2.5 lg:rounded-xl lg:pl-3"
+            className="flex items-center gap-2 rounded-2xl border p-2 shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl sm:gap-3 sm:p-2.5 lg:rounded-xl lg:pl-3"
             style={{
-              borderColor: "color-mix(in srgb, white 9%, transparent)",
+              borderColor: "color-mix(in srgb, var(--text-primary) 9%, transparent)",
               background:
-                "linear-gradient(165deg, color-mix(in srgb, white 5%, transparent) 0%, color-mix(in srgb, var(--rich-black) 94%, transparent) 100%)",
+                "linear-gradient(165deg, color-mix(in srgb, var(--text-primary) 3%, transparent) 0%, color-mix(in srgb, var(--rich-black) 96%, transparent) 100%)",
             }}
           >
             <span
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-white ring-1 ring-white/12 sm:h-9 sm:w-9"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-white ring-1 ring-border sm:h-9 sm:w-9"
               style={{
                 background:
                   mode === "image"
@@ -150,11 +150,7 @@ export function LuxuryStudioLayout({
             </div>
 
             <nav
-              className="ml-auto flex shrink-0 gap-0.5 rounded-xl border p-0.5"
-              style={{
-                borderColor: "color-mix(in srgb, white 7%, transparent)",
-                background: "color-mix(in srgb, var(--deep-black) 72%, transparent)",
-              }}
+              className="ml-auto flex shrink-0 gap-0.5 rounded-xl border border-border p-0.5 bg-card/60"
               aria-label="Studio mode"
             >
               <Link
@@ -192,11 +188,7 @@ export function LuxuryStudioLayout({
 
         <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden">
           <div
-            className="mb-2 flex shrink-0 gap-1.5 rounded-2xl border p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-xl lg:hidden"
-            style={{
-              borderColor: "color-mix(in srgb, white 9%, transparent)",
-              background: "color-mix(in srgb, var(--deep-black) 78%, transparent)",
-            }}
+            className="mb-2 flex shrink-0 gap-1.5 rounded-2xl border border-border p-1 shadow-sm backdrop-blur-xl lg:hidden bg-card/60"
             role="tablist"
             aria-label="Studio workspace"
           >
@@ -220,7 +212,7 @@ export function LuxuryStudioLayout({
                   color: mobilePane === pane ? "var(--text-primary)" : "var(--text-muted)",
                   boxShadow: mobilePane === pane ? accent.tabGlow : undefined,
                   border:
-                    mobilePane === pane ? `1px solid color-mix(in srgb, white 14%, transparent)` : "1px solid transparent",
+                    mobilePane === pane ? `1px solid var(--border-subtle)` : "1px solid transparent",
                 }}
               >
                 {pane === "output" ? (
@@ -250,11 +242,11 @@ export function LuxuryStudioLayout({
               aria-label="Generation controls"
             >
               <div
-                className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-2xl lg:h-full lg:max-h-full lg:overflow-hidden"
+                className="flex min-h-[0] flex-1 flex-col overflow-hidden rounded-2xl border backdrop-blur-2xl lg:h-full lg:max-h-full lg:overflow-hidden dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] light:shadow-sm"
                 style={{
-                  borderColor: "color-mix(in srgb, white 8%, transparent)",
+                  borderColor: "color-mix(in srgb, var(--text-primary) 8%, transparent)",
                   background:
-                    "linear-gradient(180deg, color-mix(in srgb, white 4%, transparent) 0%, color-mix(in srgb, var(--deep-black) 88%, transparent) 100%)",
+                    "linear-gradient(180deg, color-mix(in srgb, var(--text-primary) 3%, transparent) 0%, color-mix(in srgb, var(--deep-black) 92%, transparent) 100%)",
                 }}
               >
                 {leftPanel}

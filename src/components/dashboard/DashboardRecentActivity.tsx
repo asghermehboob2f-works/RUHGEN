@@ -182,7 +182,12 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
               <button
                 type="button"
                 onClick={copyAllPrompts}
-                className="inline-flex min-h-[38px] items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-4.5 text-xs font-semibold text-white transition-all hover:bg-white/[0.08]"
+                className="inline-flex min-h-[38px] items-center gap-1.5 rounded-xl border px-4.5 text-xs font-semibold transition-all hover:bg-[color-mix(in_srgb,var(--text-primary)_8%,transparent)]"
+                style={{
+                  borderColor: "var(--border-subtle)",
+                  background: "var(--glass)",
+                  color: "var(--text-primary)",
+                }}
               >
                 {copiedAll ? (
                   <>
@@ -267,7 +272,7 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
                   initial={reduce ? false : { opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: reduce ? 0 : 0.04 * idx }}
-                  className="group flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-xl border p-4 transition-all duration-300 hover:border-white/15"
+                  className="group flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-xl border p-4 transition-all duration-300 hover:border-brand-cyan/35"
                   style={{
                     borderColor: "var(--border-subtle)",
                     background: "color-mix(in srgb, var(--deep-black) 55%, transparent)",
@@ -275,7 +280,7 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
                 >
                   <div className="flex items-start gap-3 flex-1 min-w-0">
                     <span
-                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/5 bg-white/5"
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border/40 bg-card/40"
                       title={item.kind === "image" ? "Image Prompt" : "Video Prompt"}
                     >
                       {item.kind === "image" ? (
@@ -286,7 +291,7 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
                     </span>
                     
                     <div className="min-w-0 flex-1">
-                      <div className="max-h-24 overflow-y-auto pr-1 select-all whitespace-pre-wrap [scrollbar-width:thin] scrollbar-thumb-white/10">
+                      <div className="max-h-24 overflow-y-auto pr-1 select-all whitespace-pre-wrap [scrollbar-width:thin] scrollbar-thumb-[var(--border-subtle)]">
                         <p className="text-sm font-medium leading-relaxed text-[var(--text-primary)]">
                           {item.prompt}
                         </p>
@@ -313,7 +318,7 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
                     <button
                       type="button"
                       onClick={() => copyPrompt(item.prompt, item.id)}
-                      className="inline-flex min-h-[32px] items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.03] px-3 text-xs font-semibold text-white transition-all hover:bg-white/[0.08]"
+                      className="inline-flex min-h-[32px] items-center gap-1.5 rounded-lg border border-border bg-card/50 px-3 text-xs font-semibold text-[var(--text-primary)] transition-all hover:bg-card/90 active:scale-[0.98]"
                       title="Copy prompt"
                     >
                       {isCopied ? (
@@ -323,7 +328,7 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
                         </>
                       ) : (
                         <>
-                          <Copy className="h-3.5 w-3.5 text-cyan-200/90" />
+                          <Copy className="h-3.5 w-3.5 text-[var(--text-muted)]" />
                           <span>Copy</span>
                         </>
                       )}
@@ -331,7 +336,7 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
                     
                     <Link
                       href={`${item.href}?prompt=${encodeURIComponent(item.prompt)}`}
-                      className="inline-flex min-h-[32px] items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.03] px-3 text-xs font-semibold text-white transition-all hover:bg-white/[0.08]"
+                      className="inline-flex min-h-[32px] items-center gap-1.5 rounded-lg border border-border bg-card/50 px-3 text-xs font-semibold text-[var(--text-primary)] transition-all hover:bg-card/90 active:scale-[0.98]"
                     >
                       <Wand2 className="h-3.5 w-3.5 text-[var(--primary-purple)]" />
                       <span>Use</span>
@@ -364,7 +369,7 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
                 <button
                   type="button"
                   onClick={() => setVisibleCount(4)}
-                  className="inline-flex min-h-[36px] items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-6 text-xs font-semibold text-white transition-all hover:bg-white/[0.06] active:scale-[0.98]"
+                  className="inline-flex min-h-[36px] items-center justify-center gap-1.5 rounded-xl border border-border bg-card/45 px-6 text-xs font-semibold text-[var(--text-primary)] transition-all hover:bg-card/85 active:scale-[0.98]"
                 >
                   Show less
                 </button>
@@ -373,7 +378,7 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
                 <button
                   type="button"
                   onClick={loadMore}
-                  className="inline-flex min-h-[36px] items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] px-6 text-xs font-semibold text-white transition-all hover:bg-white/[0.06] active:scale-[0.98]"
+                  className="inline-flex min-h-[36px] items-center justify-center gap-1.5 rounded-xl border border-border bg-card/45 px-6 text-xs font-semibold text-[var(--text-primary)] transition-all hover:bg-card/85 active:scale-[0.98]"
                 >
                   Load more
                 </button>
@@ -430,7 +435,7 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
               {myPosts.slice(0, 6).map((p) => (
                 <li
                   key={p.id}
-                  className="group flex items-center gap-3 rounded-xl border p-2.5 transition-all duration-300 hover:border-white/15"
+                  className="group flex items-center gap-3 rounded-xl border p-2.5 transition-all duration-300 hover:border-brand-cyan/30"
                   style={{
                     borderColor: "var(--border-subtle)",
                     background: "color-mix(in srgb, var(--deep-black) 55%, transparent)",
@@ -438,7 +443,7 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
                 >
                   <Link
                     href={`/community#${p.id}`}
-                    className="relative h-14 w-18 shrink-0 overflow-hidden rounded-lg bg-black/40"
+                    className="relative h-14 w-18 shrink-0 overflow-hidden rounded-lg bg-card/40"
                   >
                     {p.kind === "image" ? (
                       // eslint-disable-next-line @next/next/no-img-element -- arbitrary remote URL

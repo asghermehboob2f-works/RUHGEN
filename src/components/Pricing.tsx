@@ -6,6 +6,7 @@ import React, { useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { SITE_CONTAINER } from "@/lib/site-layout";
 import { PricingHeroGraphic } from "@/components/marketing/PricingHeroGraphic";
+import { useTheme } from "@/components/ThemeProvider";
 
 type PricingPlan = {
   id: string;
@@ -263,6 +264,7 @@ const FAQS = [
 ];
 
 export function Pricing({ hideHeading = false, plans }: { hideHeading?: boolean; plans?: PricingPlan[] }) {
+  const { theme } = useTheme();
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const reduce = useReducedMotion() === true;
@@ -387,7 +389,7 @@ export function Pricing({ hideHeading = false, plans }: { hideHeading?: boolean;
               initial={reduce ? false : { opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="font-display mt-4 text-page-title font-extrabold leading-[1.15] tracking-tight text-white"
+              className="font-display mt-4 text-page-title font-extrabold leading-[1.15] tracking-tight text-foreground"
             >
               Choose the Plan That Matches Your <span className="text-gradient-primary">Ambition</span>
             </motion.h2>
@@ -407,11 +409,7 @@ export function Pricing({ hideHeading = false, plans }: { hideHeading?: boolean;
         <div className="flex flex-col items-center gap-3 mb-16">
           {/* Toggle pill */}
           <div
-            className="relative inline-flex items-center rounded-full p-1"
-            style={{
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.08)",
-            }}
+            className="relative inline-flex items-center rounded-full p-1 border border-border bg-card/40"
           >
             {/* Sliding indicator */}
             <motion.div
@@ -429,7 +427,7 @@ export function Pricing({ hideHeading = false, plans }: { hideHeading?: boolean;
               onClick={() => setBillingPeriod("monthly")}
               className="relative z-10 min-w-[140px] px-6 py-2.5 text-[11px] font-bold uppercase tracking-[0.14em] transition-colors duration-200 outline-none select-none rounded-full"
               style={{
-                color: billingPeriod === "monthly" ? "#ffffff" : "rgba(255,255,255,0.38)",
+                color: billingPeriod === "monthly" ? "#ffffff" : "var(--text-muted)",
               }}
             >
               Monthly
@@ -441,7 +439,7 @@ export function Pricing({ hideHeading = false, plans }: { hideHeading?: boolean;
               onClick={() => setBillingPeriod("yearly")}
               className="relative z-10 min-w-[140px] px-6 py-2.5 text-[11px] font-bold uppercase tracking-[0.14em] transition-colors duration-200 outline-none select-none rounded-full"
               style={{
-                color: billingPeriod === "yearly" ? "#ffffff" : "rgba(255,255,255,0.38)",
+                color: billingPeriod === "yearly" ? "#ffffff" : "var(--text-muted)",
               }}
             >
               Annually
@@ -484,7 +482,7 @@ export function Pricing({ hideHeading = false, plans }: { hideHeading?: boolean;
             // Luxury Card styling
             let cardStyle: React.CSSProperties = {
               borderColor: "var(--border-subtle)",
-              background: "linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%)",
+              background: "linear-gradient(180deg, var(--glass) 0%, var(--glass-elevated) 100%)",
             };
 
             if (isPro) {
@@ -492,14 +490,18 @@ export function Pricing({ hideHeading = false, plans }: { hideHeading?: boolean;
                 borderColor: "transparent",
                 background: "linear-gradient(var(--soft-black), var(--soft-black)) padding-box, linear-gradient(135deg, #7B61FF, #00D4FF) border-box",
                 border: "2px solid transparent",
-                boxShadow: "0 20px 48px -12px rgba(123, 97, 255, 0.22)",
+                boxShadow: theme === "light"
+                  ? "0 12px 36px -8px rgba(123, 97, 255, 0.14), 0 4px 12px -2px rgba(0, 0, 0, 0.05)"
+                  : "0 20px 48px -12px rgba(123, 97, 255, 0.22)",
               };
             } else if (isPlus) {
               cardStyle = {
                 borderColor: "transparent",
                 background: "linear-gradient(var(--soft-black), var(--soft-black)) padding-box, linear-gradient(135deg, #FF2E9A, #7B61FF) border-box",
                 border: "2px solid transparent",
-                boxShadow: "0 20px 48px -12px rgba(255, 46, 154, 0.18)",
+                boxShadow: theme === "light"
+                  ? "0 12px 36px -8px rgba(255, 46, 154, 0.12), 0 4px 12px -2px rgba(0, 0, 0, 0.05)"
+                  : "0 20px 48px -12px rgba(255, 46, 154, 0.18)",
               };
             }
 
@@ -536,7 +538,7 @@ export function Pricing({ hideHeading = false, plans }: { hideHeading?: boolean;
                   {/* Card Header */}
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="text-lg font-bold font-display text-white">
+                      <h3 className="text-lg font-bold font-display text-foreground">
                         {plan.name}
                       </h3>
                       <p className="mt-1 text-[11px] leading-tight" style={{ color: "var(--text-muted)" }}>
@@ -554,7 +556,7 @@ export function Pricing({ hideHeading = false, plans }: { hideHeading?: boolean;
                   {/* Price Block */}
                   {isCustom ? (
                     <div className="mt-6 flex flex-col justify-end min-h-[52px]">
-                      <span className="text-3xl font-extrabold tracking-tight font-display text-white">
+                      <span className="text-3xl font-extrabold tracking-tight font-display text-foreground">
                         Custom
                       </span>
                       <span className="text-[10px] font-semibold tracking-wider uppercase mt-1" style={{ color: "var(--text-subtle)" }}>
@@ -567,7 +569,7 @@ export function Pricing({ hideHeading = false, plans }: { hideHeading?: boolean;
                         className="text-3xl font-black mr-0.5 leading-none"
                         style={{
                           fontFamily: "var(--font-calsans)",
-                          color: isPro ? "#00D4FF" : isPlus ? "#FF2E9A" : "rgba(255,255,255,0.85)",
+                          color: isPro ? "#00D4FF" : isPlus ? "#FF2E9A" : "var(--text-primary)",
                           textShadow: isPro
                             ? "0 0 18px rgba(0,212,255,0.45)"
                             : isPlus
@@ -577,7 +579,7 @@ export function Pricing({ hideHeading = false, plans }: { hideHeading?: boolean;
                       >
                         ₹
                       </span>
-                      <span className="text-4xl font-extrabold tracking-tight font-display text-white">
+                      <span className="text-4xl font-extrabold tracking-tight font-display text-foreground">
                         {price.toLocaleString("en-IN")}
                       </span>
                       <span className="text-[11px] font-semibold ml-1.5" style={{ color: "var(--text-muted)" }}>
@@ -587,22 +589,22 @@ export function Pricing({ hideHeading = false, plans }: { hideHeading?: boolean;
                   )}
 
                   {/* Credits Pill / Status */}
-                  <div className="mt-4 flex items-center justify-between p-2 rounded-lg bg-white/[0.02] border border-white/[0.04]">
-                    <span className="text-[10px] font-mono font-medium tracking-wide uppercase text-neutral-400">Monthly Allowance</span>
-                    <span className="px-2 py-0.5 rounded text-[9px] font-black font-mono tracking-wider" style={{ background: "rgba(255,255,255,0.05)", color: isPro ? "#00D4FF" : isPlus ? "#FF2E9A" : "#FFFFFF" }}>
+                  <div className="mt-4 flex items-center justify-between p-2 rounded-lg bg-card/40 border border-border/50">
+                    <span className="text-[10px] font-mono font-medium tracking-wide uppercase text-muted-foreground">Monthly Allowance</span>
+                    <span className="px-2 py-0.5 rounded text-[9px] font-black font-mono tracking-wider" style={{ background: "var(--border-subtle)", color: isPro ? "#00D4FF" : isPlus ? "#FF2E9A" : "var(--text-primary)" }}>
                       {isCustom ? "Custom" : `${plan.credits} Credits`}
                     </span>
                   </div>
 
                   {/* Divider */}
-                  <div className="h-[1px] my-5 bg-white/5 w-full" />
+                  <div className="h-[1px] my-5 bg-border/60 w-full" />
 
                   {/* Feature List */}
                   <ul className="flex flex-col gap-3">
                     {plan.features.map((feature, fidx) => (
                       <li key={fidx} className="flex items-start gap-2.5 text-[11.5px] leading-relaxed">
                         <Check
-                          className={`h-4 w-4 shrink-0 mt-0.5 ${
+                           className={`h-4 w-4 shrink-0 mt-0.5 ${
                             isPro ? "text-[#00D4FF]" : isPlus ? "text-[#FF2E9A]" : "text-[#7B61FF]"
                           }`}
                           strokeWidth={3}
@@ -637,12 +639,12 @@ export function Pricing({ hideHeading = false, plans }: { hideHeading?: boolean;
         </div>
 
         {/* Credit Explanation section */}
-        <div className="mb-28 rounded-2xl border p-8 sm:p-12 relative overflow-hidden" style={{ borderColor: "var(--border-subtle)", background: "rgba(255,255,255,0.01)" }}>
+        <div className="mb-28 rounded-2xl border border-border bg-card/10 p-8 sm:p-12 relative overflow-hidden">
           <div className="pointer-events-none absolute inset-0 opacity-10 bg-radial-at-t from-[#7B61FF] via-transparent to-transparent" />
 
           <div className="relative text-center max-w-xl mx-auto mb-12">
             <p className="font-mono text-[9px] font-bold uppercase tracking-[0.2em]" style={{ color: "var(--primary-cyan)" }}>Dynamic Rendering Weights</p>
-            <h3 className="font-display mt-2 text-2xl font-bold text-white">
+            <h3 className="font-display mt-2 text-2xl font-bold text-foreground">
               Understanding Credit Rates
             </h3>
             <p className="mt-3 text-xs sm:text-sm" style={{ color: "var(--text-muted)" }}>
@@ -654,16 +656,16 @@ export function Pricing({ hideHeading = false, plans }: { hideHeading?: boolean;
             {CREDIT_RATES.map((rate, idx) => {
               const Icon = rate.icon;
               return (
-                <div key={idx} className="rounded-xl border border-white/5 bg-black/40 p-5 flex flex-col justify-between">
+                <div key={idx} className="rounded-xl border border-border/60 bg-card/30 p-5 flex flex-col justify-between">
                   <div>
-                    <div className="h-9 w-9 rounded-lg flex items-center justify-center bg-white/5 mb-4">
+                    <div className="h-9 w-9 rounded-lg flex items-center justify-center bg-card mb-4">
                       <Icon className="h-5 w-5" style={{ color: rate.color }} />
                     </div>
-                    <h4 className="text-[11px] font-extrabold tracking-wider uppercase text-neutral-400">{rate.action}</h4>
-                    <p className="text-[10px] font-semibold text-neutral-500 mt-1">{rate.model}</p>
-                    <p className="text-[11.5px] text-neutral-400 leading-relaxed mt-3">{rate.description}</p>
+                    <h4 className="text-[11px] font-extrabold tracking-wider uppercase text-muted-foreground">{rate.action}</h4>
+                    <p className="text-[10px] font-semibold text-text-subtle mt-1">{rate.model}</p>
+                    <p className="text-[11.5px] text-muted-foreground leading-relaxed mt-3">{rate.description}</p>
                   </div>
-                  <div className="mt-5 border-t border-white/5 pt-3">
+                  <div className="mt-5 border-t border-border/60 pt-3">
                     <span className="text-[12px] font-bold" style={{ color: rate.color }}>{rate.cost}</span>
                   </div>
                 </div>
@@ -676,7 +678,7 @@ export function Pricing({ hideHeading = false, plans }: { hideHeading?: boolean;
         <div className="mb-28">
           <div className="text-center mb-12">
             <p className="font-mono text-[9px] font-bold uppercase tracking-[0.2em]" style={{ color: "var(--primary-purple)" }}>Side-by-Side Comparison</p>
-            <h3 className="font-display mt-2 text-2xl font-bold text-white">
+            <h3 className="font-display mt-2 text-2xl font-bold text-foreground">
               Compare Features in Detail
             </h3>
             <p className="mt-3 text-xs sm:text-sm" style={{ color: "var(--text-muted)" }}>
@@ -684,11 +686,11 @@ export function Pricing({ hideHeading = false, plans }: { hideHeading?: boolean;
             </p>
           </div>
 
-          <div className="overflow-x-auto rounded-2xl border" style={{ borderColor: "var(--border-subtle)" }}>
+          <div className="overflow-x-auto rounded-2xl border border-border">
             <table className="w-full text-left border-collapse min-w-[750px]">
               <thead>
-                <tr className="border-b" style={{ borderColor: "var(--border-subtle)", background: "rgba(255,255,255,0.02)" }}>
-                  <th className="p-5 text-xs font-bold uppercase tracking-wider text-white/40">Technical Specs</th>
+                <tr className="border-b border-border bg-card/10">
+                  <th className="p-5 text-xs font-bold uppercase tracking-wider text-muted-foreground/60">Technical Specs</th>
                   {activePlans.map((plan, idx) => (
                     <th key={idx} className="p-5 text-sm font-bold w-[20%]" style={{ color: "var(--text-primary)" }}>
                       {plan.name}
@@ -696,19 +698,19 @@ export function Pricing({ hideHeading = false, plans }: { hideHeading?: boolean;
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-border/60">
                 {COMPARISON_SECTIONS.map((section, sidx) => (
                   <React.Fragment key={sidx}>
-                    <tr style={{ background: "rgba(255,255,255,0.01)" }}>
+                    <tr className="bg-card/5">
                       <td colSpan={1 + activePlans.length} className="p-4 text-xs font-bold uppercase tracking-wider text-[#7B61FF]">
                         {section.category}
                       </td>
                     </tr>
                     {section.rows.map((row, ridx) => (
-                      <tr key={ridx} className="hover:bg-white/[0.01] transition-colors">
-                        <td className="p-5 text-xs font-semibold text-neutral-300">{row.name}</td>
+                      <tr key={ridx} className="hover:bg-card/20 transition-colors">
+                        <td className="p-5 text-xs font-semibold text-foreground/80">{row.name}</td>
                         {activePlans.map((plan, pidx) => (
-                          <td key={pidx} className="p-5 text-xs font-semibold text-neutral-400">
+                          <td key={pidx} className="p-5 text-xs font-semibold text-muted-foreground">
                             {row.getVal(plan)}
                           </td>
                         ))}
@@ -722,14 +724,14 @@ export function Pricing({ hideHeading = false, plans }: { hideHeading?: boolean;
         </div>
 
         {/* Enterprise Spotlight Card */}
-        <div className="mb-28 relative rounded-2xl overflow-hidden border p-8 sm:p-12" style={{ borderColor: "var(--border-subtle)", background: "rgba(255,255,255,0.01)" }}>
+        <div className="mb-28 relative rounded-2xl overflow-hidden border border-border bg-card/20 p-8 sm:p-12">
           <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-brand-purple/10 via-transparent to-brand-cyan/10" />
           <div className="relative grid gap-8 lg:grid-cols-[1.2fr_0.8fr] items-center">
             <div>
               <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[9px] font-bold font-mono tracking-wider uppercase text-[#00D4FF] bg-[#00D4FF]/10 mb-4 border border-[#00D4FF]/20">
                 Studio Infrastructure
               </div>
-              <h3 className="font-display text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+              <h3 className="font-display text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
                 Enterprise-Grade Scale & Private Deployments
               </h3>
               <p className="mt-4 text-xs sm:text-sm leading-relaxed max-w-2xl" style={{ color: "var(--text-muted)" }}>
@@ -740,7 +742,7 @@ export function Pricing({ hideHeading = false, plans }: { hideHeading?: boolean;
               <Link href="/contact" className="inline-flex min-h-[46px] items-center justify-center rounded-xl px-6 text-xs font-bold uppercase tracking-wider text-white btn-gradient w-full lg:w-auto">
                 Contact Enterprise Sales
               </Link>
-              <p className="text-[10px] text-center lg:text-right text-neutral-500 font-semibold">
+              <p className="text-[10px] text-center lg:text-right text-text-subtle font-semibold">
                 SLA-backed response within 12 hours
               </p>
             </div>
@@ -748,7 +750,7 @@ export function Pricing({ hideHeading = false, plans }: { hideHeading?: boolean;
         </div>
 
         {/* Secure Checkout / Trust Badges */}
-        <div className="flex flex-wrap items-center justify-center gap-6 md:gap-12 py-8 border-y border-white/5 text-white/30 text-[11px] font-semibold mb-28">
+        <div className="flex flex-wrap items-center justify-center gap-6 md:gap-12 py-8 border-y border-border text-muted-foreground/60 text-[11px] font-semibold mb-28">
           <div className="flex items-center gap-2">
             <Lock className="h-4 w-4 text-[#00D4FF]" />
             <span>Secure 256-bit SSL Checkout</span>

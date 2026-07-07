@@ -202,7 +202,7 @@ export function LivePreview({ hideHeading = false }: { hideHeading?: boolean }) 
       className={
         hideHeading
           ? "mesh-section relative scroll-mt-24 py-8 sm:py-10"
-          : "mesh-section relative scroll-mt-24 border-t border-white/[0.06] py-20 sm:py-28"
+          : "mesh-section relative scroll-mt-24 border-t border-border/50 py-20 sm:py-28"
       }
     >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(123,97,255,0.12),transparent)]" />
@@ -234,7 +234,7 @@ export function LivePreview({ hideHeading = false }: { hideHeading?: boolean }) 
             borderColor: "var(--border-subtle)",
             background:
               "linear-gradient(180deg, color-mix(in srgb, var(--soft-black) 88%, transparent) 0%, color-mix(in srgb, var(--deep-black) 96%, transparent) 100%)",
-            boxShadow: "0 0 0 1px color-mix(in srgb, var(--border-subtle) 50%, transparent), 0 32px 80px -24px rgba(0,0,0,0.55)",
+            boxShadow: "0 0 0 1px color-mix(in srgb, var(--border-subtle) 50%, transparent), 0 32px 80px -24px rgba(0,0,0,0.15)",
           }}
         >
           <div
@@ -325,8 +325,8 @@ export function LivePreview({ hideHeading = false }: { hideHeading?: boolean }) 
                             borderColor: aspectIdx === i ? "rgba(123,97,255,0.5)" : "var(--border-subtle)",
                             background:
                               aspectIdx === i
-                                ? "color-mix(in srgb, var(--primary-purple) 16%, var(--deep-black))"
-                                : "color-mix(in srgb, var(--deep-black) 45%, transparent)",
+                                ? "color-mix(in srgb, var(--primary-purple) 16%, var(--background))"
+                                : "color-mix(in srgb, var(--background) 45%, transparent)",
                           }}
                         >
                           <span className="block text-xs font-semibold" style={{ color: "var(--text-primary)" }}>
@@ -355,8 +355,8 @@ export function LivePreview({ hideHeading = false }: { hideHeading?: boolean }) 
                             borderColor: lookId === c.id ? "rgba(123,97,255,0.5)" : "var(--border-subtle)",
                             background:
                               lookId === c.id
-                                ? "color-mix(in srgb, var(--primary-purple) 16%, var(--deep-black))"
-                                : "color-mix(in srgb, var(--deep-black) 45%, transparent)",
+                                ? "color-mix(in srgb, var(--primary-purple) 16%, var(--background))"
+                                : "color-mix(in srgb, var(--background) 45%, transparent)",
                             color: lookId === c.id ? "var(--text-primary)" : "var(--text-muted)",
                           }}
                         >
@@ -381,8 +381,8 @@ export function LivePreview({ hideHeading = false }: { hideHeading?: boolean }) 
                             borderColor: detailIdx === i ? "rgba(123,97,255,0.5)" : "var(--border-subtle)",
                             background:
                               detailIdx === i
-                                ? "color-mix(in srgb, var(--primary-purple) 16%, var(--deep-black))"
-                                : "color-mix(in srgb, var(--deep-black) 45%, transparent)",
+                                ? "color-mix(in srgb, var(--primary-purple) 16%, var(--background))"
+                                : "color-mix(in srgb, var(--background) 45%, transparent)",
                             color: detailIdx === i ? "var(--text-primary)" : "var(--text-muted)",
                           }}
                         >
@@ -402,7 +402,7 @@ export function LivePreview({ hideHeading = false }: { hideHeading?: boolean }) 
                           type="checkbox"
                           checked={randomVariation}
                           onChange={(e) => setRandomVariation(e.target.checked)}
-                          className="h-4 w-4 rounded border-white/20 bg-transparent"
+                          className="h-4 w-4 rounded border-border bg-card text-[var(--primary-purple)] focus:ring-1 focus:ring-brand-purple/40"
                         />
                         Surprise me each time
                       </label>
@@ -459,8 +459,8 @@ export function LivePreview({ hideHeading = false }: { hideHeading?: boolean }) 
                             borderColor: videoFrame === f.value ? "rgba(0,200,255,0.45)" : "var(--border-subtle)",
                             background:
                               videoFrame === f.value
-                                ? "color-mix(in srgb, var(--primary-cyan) 12%, var(--deep-black))"
-                                : "color-mix(in srgb, var(--deep-black) 45%, transparent)",
+                                ? "color-mix(in srgb, var(--primary-cyan) 12%, var(--background))"
+                                : "color-mix(in srgb, var(--background) 45%, transparent)",
                             color: videoFrame === f.value ? "var(--text-primary)" : "var(--text-muted)",
                           }}
                         >
@@ -485,8 +485,8 @@ export function LivePreview({ hideHeading = false }: { hideHeading?: boolean }) 
                             borderColor: videoSeconds === sec ? "rgba(0,200,255,0.45)" : "var(--border-subtle)",
                             background:
                               videoSeconds === sec
-                                ? "color-mix(in srgb, var(--primary-cyan) 12%, var(--deep-black))"
-                                : "color-mix(in srgb, var(--deep-black) 45%, transparent)",
+                                ? "color-mix(in srgb, var(--primary-cyan) 12%, var(--background))"
+                                : "color-mix(in srgb, var(--background) 45%, transparent)",
                             color: videoSeconds === sec ? "var(--text-primary)" : "var(--text-muted)",
                           }}
                         >
@@ -511,8 +511,8 @@ export function LivePreview({ hideHeading = false }: { hideHeading?: boolean }) 
                             borderColor: videoLookId === c.id ? "rgba(0,200,255,0.4)" : "var(--border-subtle)",
                             background:
                               videoLookId === c.id
-                                ? "color-mix(in srgb, var(--primary-cyan) 12%, var(--deep-black))"
-                                : "color-mix(in srgb, var(--deep-black) 45%, transparent)",
+                                ? "color-mix(in srgb, var(--primary-cyan) 12%, var(--background))"
+                                : "color-mix(in srgb, var(--background) 45%, transparent)",
                             color: videoLookId === c.id ? "var(--text-primary)" : "var(--text-muted)",
                           }}
                         >
@@ -541,8 +541,8 @@ export function LivePreview({ hideHeading = false }: { hideHeading?: boolean }) 
                           borderColor: videoQuality === "std" ? "rgba(0,200,255,0.45)" : "var(--border-subtle)",
                           background:
                             videoQuality === "std"
-                              ? "color-mix(in srgb, var(--primary-cyan) 12%, var(--deep-black))"
-                              : "color-mix(in srgb, var(--deep-black) 45%, transparent)",
+                              ? "color-mix(in srgb, var(--primary-cyan) 12%, var(--background))"
+                              : "color-mix(in srgb, var(--background) 45%, transparent)",
                           color: videoQuality === "std" ? "var(--text-primary)" : "var(--text-muted)",
                         }}
                       >
@@ -556,8 +556,8 @@ export function LivePreview({ hideHeading = false }: { hideHeading?: boolean }) 
                           borderColor: videoQuality === "pro" ? "rgba(0,200,255,0.45)" : "var(--border-subtle)",
                           background:
                             videoQuality === "pro"
-                              ? "color-mix(in srgb, var(--primary-cyan) 12%, var(--deep-black))"
-                              : "color-mix(in srgb, var(--deep-black) 45%, transparent)",
+                              ? "color-mix(in srgb, var(--primary-cyan) 12%, var(--background))"
+                              : "color-mix(in srgb, var(--background) 45%, transparent)",
                           color: videoQuality === "pro" ? "var(--text-primary)" : "var(--text-muted)",
                         }}
                       >
@@ -591,7 +591,7 @@ export function LivePreview({ hideHeading = false }: { hideHeading?: boolean }) 
 
             <div
               className="flex min-h-[280px] flex-col justify-center border-t p-6 sm:min-h-[360px] sm:p-8 lg:min-h-[420px] lg:border-t-0"
-              style={{ borderColor: "var(--border-subtle)", background: "color-mix(in srgb, var(--deep-black) 40%, transparent)" }}
+              style={{ borderColor: "var(--border-subtle)", background: "color-mix(in srgb, var(--background) 40%, transparent)" }}
             >
               {mode === "image" && error && status === "idle" && (
                 <p className="text-center text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
@@ -625,7 +625,7 @@ export function LivePreview({ hideHeading = false }: { hideHeading?: boolean }) 
                     <button
                       type="button"
                       onClick={runImage}
-                      className="rounded-xl border px-4 py-2 text-sm font-semibold transition-colors hover:bg-white/[0.04]"
+                      className="rounded-xl border px-4 py-2 text-sm font-semibold transition-colors hover:bg-card"
                       style={{ borderColor: "var(--border-subtle)", color: "var(--text-primary)" }}
                     >
                       Regenerate
@@ -633,7 +633,7 @@ export function LivePreview({ hideHeading = false }: { hideHeading?: boolean }) 
                     <button
                       type="button"
                       onClick={downloadImage}
-                      className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition-colors hover:bg-white/[0.04]"
+                      className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition-colors hover:bg-card"
                       style={{ borderColor: "var(--border-subtle)", color: "var(--text-primary)" }}
                     >
                       <Download className="h-4 w-4" />

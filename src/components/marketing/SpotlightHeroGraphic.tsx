@@ -35,7 +35,7 @@ export function SpotlightHeroGraphic({
 
   return (
     <div className={`pointer-events-none absolute inset-0 min-h-full overflow-hidden ${className}`}>
-      <div className="absolute inset-0 bg-[#02030a]" aria-hidden />
+      <div className="absolute inset-0 bg-[var(--deep-black)]" aria-hidden />
 
       {/* Cool lift on hover — still nudges slightly with pointer */}
       <motion.div
@@ -54,9 +54,9 @@ export function SpotlightHeroGraphic({
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], x: drift, y: drift }}
         style={{
           background: `
-            linear-gradient(180deg, rgba(15,23,42,0.55) 0%, transparent 18%),
-            linear-gradient(125deg, rgba(2,6,23,0.88) 0%, transparent 46%),
-            radial-gradient(ellipse 90% 65% at 50% 108%, rgba(30,27,75,0.28), transparent 58%)
+            linear-gradient(180deg, var(--hero-glow-top) 0%, transparent 18%),
+            linear-gradient(125deg, var(--hero-glow-mid) 0%, transparent 46%),
+            radial-gradient(ellipse 90% 65% at 50% 108%, var(--hero-glow-bot), transparent 58%)
           `,
         }}
       />
@@ -77,10 +77,10 @@ export function SpotlightHeroGraphic({
         transition={{ opacity: { duration: 0.45, ease: "easeOut" }, x: snap, y: snap }}
         style={{
           background: `
-            radial-gradient(ellipse 68% 58% at 18% 22%, rgba(49,46,129,0.18), transparent 54%),
-            radial-gradient(ellipse 58% 52% at 88% 18%, rgba(30,58,138,0.12), transparent 52%),
-            radial-gradient(ellipse 52% 48% at 72% 88%, rgba(15,118,110,0.08), transparent 50%),
-            radial-gradient(ellipse 48% 42% at 8% 78%, rgba(30,41,59,0.2), transparent 52%)
+            radial-gradient(ellipse 68% 58% at 18% 22%, var(--hero-glow-radial-1), transparent 54%),
+            radial-gradient(ellipse 58% 52% at 88% 18%, var(--hero-glow-radial-2), transparent 52%),
+            radial-gradient(ellipse 52% 48% at 72% 88%, var(--hero-glow-radial-3), transparent 50%),
+            radial-gradient(ellipse 48% 42% at 8% 78%, var(--hero-glow-radial-4), transparent 52%)
           `,
         }}
       />
@@ -101,8 +101,8 @@ export function SpotlightHeroGraphic({
         transition={{ opacity: { duration: 0.45 }, x: lag, y: lag }}
         style={{
           background: `
-            radial-gradient(ellipse 55% 50% at 55% 35%, rgba(51,65,85,0.14), transparent 55%),
-            radial-gradient(ellipse 50% 45% at 30% 70%, rgba(30,41,59,0.18), transparent 52%)
+            radial-gradient(ellipse 55% 50% at 55% 35%, var(--hero-glow-radial-5), transparent 55%),
+            radial-gradient(ellipse 50% 45% at 30% 70%, var(--hero-glow-radial-6), transparent 52%)
           `,
         }}
       />
@@ -132,7 +132,7 @@ export function SpotlightHeroGraphic({
             className="absolute -left-[28%] top-[6%] h-[min(58vh,460px)] w-[min(95vw,680px)] rounded-[100%] blur-3xl"
             style={{
               background:
-                "linear-gradient(118deg, rgba(30,27,75,0.32), rgba(30,58,138,0.1), rgba(15,23,42,0.12) 78%, transparent 84%)",
+                "linear-gradient(118deg, var(--hero-glow-edge-1a), var(--hero-glow-edge-1b), var(--hero-glow-edge-1c) 78%, transparent 84%)",
             }}
             animate={{
               x: p.x * -62 + (hovered ? 0 : p.x * 8),
@@ -147,7 +147,7 @@ export function SpotlightHeroGraphic({
             className="absolute -right-[22%] bottom-[2%] h-[min(52vh,400px)] w-[min(90vw,640px)] rounded-[100%] blur-3xl"
             style={{
               background:
-                "linear-gradient(298deg, rgba(15,23,42,0.35), rgba(30,41,59,0.28), rgba(30,27,75,0.18) 72%, transparent 82%)",
+                "linear-gradient(298deg, var(--hero-glow-edge-2a), var(--hero-glow-edge-2b), var(--hero-glow-edge-2c) 72%, transparent 82%)",
             }}
             animate={{
               x: p.x * 58,
@@ -200,8 +200,8 @@ export function SpotlightHeroGraphic({
         transition={{ opacity: { duration: 0.4 }, x: drift, y: drift, rotate: drift, scale: { duration: 0.35, ease: "easeOut" } }}
         style={{
           backgroundImage: `
-            linear-gradient(rgba(100,116,139,0.9) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(100,116,139,0.9) 1px, transparent 1px)
+            linear-gradient(var(--border-subtle) 1px, transparent 1px),
+            linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px)
           `,
           maskImage: "radial-gradient(ellipse 92% 90% at 50% 32%, black 52%, transparent 86%)",
           WebkitMaskImage: "radial-gradient(ellipse 92% 90% at 50% 32%, black 52%, transparent 86%)",
@@ -215,7 +215,7 @@ export function SpotlightHeroGraphic({
         transition={{ duration: 0.45 }}
         style={{
           background:
-            "linear-gradient(180deg, transparent 0%, rgba(15,23,42,0.55) 48%, rgba(2,6,23,0.88) 100%)",
+            "linear-gradient(180deg, transparent 0%, var(--hero-glow-mid) 48%, var(--deep-black) 100%)",
         }}
       />
 
@@ -269,7 +269,7 @@ export function SpotlightHeroGraphic({
         aria-hidden
         style={{
           background:
-            "radial-gradient(ellipse 100% 52% at 50% -8%, rgba(15,23,42,0.45), transparent 42%), linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.58) 100%)",
+            "radial-gradient(ellipse 100% 52% at 50% -8%, var(--hero-glow-overlay-a), transparent 42%), linear-gradient(180deg, transparent 0%, var(--deep-black) 100%)",
         }}
       />
     </div>

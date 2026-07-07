@@ -36,10 +36,10 @@ export function Skeleton({
 }) {
   return (
     <div
-      className={`relative overflow-hidden rounded bg-[#1e1e24]/40 light:bg-black/[0.04] dark:bg-white/[0.02] border border-white/[0.03] light:border-black/[0.05] ${className}`}
+      className={`relative overflow-hidden rounded bg-card/45 border border-border/50 ${className}`}
       style={style}
     >
-      <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/[0.06] light:via-black/[0.06] to-transparent animate-shimmer" />
+      <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-[var(--text-primary)]/[0.06] to-transparent animate-shimmer" />
     </div>
   );
 }
@@ -67,11 +67,7 @@ export function DashboardSkeleton() {
     <div className="space-y-8 sm:space-y-10 animate-pulse duration-1000">
       {/* Banner / Studio Overview Section */}
       <div
-        className="relative overflow-hidden rounded-2xl border p-4 sm:p-5 lg:p-6"
-        style={{
-          borderColor: "rgba(123,97,255,0.15)",
-          background: "linear-gradient(180deg, rgba(18,18,18,0.7) 0%, rgba(10,10,10,0.9) 100%)",
-        }}
+        className="relative overflow-hidden rounded-2xl border border-brand-purple/20 bg-gradient-to-b from-card/70 to-background/90 p-4 sm:p-5 lg:p-6"
       >
         <div className="relative grid gap-5 lg:grid-cols-12 lg:items-center">
           {/* Left Column: Greeting & Actions */}
@@ -97,17 +93,13 @@ export function DashboardSkeleton() {
             ].map((stat, i) => (
               <div
                 key={stat.label}
-                className="relative overflow-hidden rounded-xl border p-3.5"
-                style={{
-                  borderColor: "rgba(255, 255, 255, 0.05)",
-                  background: "rgba(255,255,255,0.01)",
-                }}
+                className="relative overflow-hidden rounded-xl border border-border/50 bg-card/10 p-3.5"
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
                     {stat.label}
                   </span>
-                  <div className="flex h-6.5 w-6.5 items-center justify-center rounded-lg border border-white/5 bg-white/[0.02]">
+                  <div className="flex h-6.5 w-6.5 items-center justify-center rounded-lg border border-border bg-card/30">
                     <stat.icon className="h-3.5 w-3.5 opacity-40" style={{ color: stat.color }} />
                   </div>
                 </div>
@@ -132,13 +124,9 @@ export function DashboardSkeleton() {
           ].map((t) => (
             <div
               key={t.label}
-              className="relative flex min-h-[170px] flex-col rounded-2xl border p-5.5 sm:min-h-[190px] sm:p-6.5"
-              style={{
-                borderColor: "rgba(255, 255, 255, 0.05)",
-                background: "rgba(10,10,10,0.4)",
-              }}
+              className="relative flex min-h-[170px] flex-col rounded-2xl border border-border/50 bg-card/40 p-5.5 sm:min-h-[190px] sm:p-6.5"
             >
-              <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/5 bg-white/[0.01]">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-card/10">
                 <t.icon className="h-4.5 w-4.5 opacity-30 text-[var(--text-muted)]" />
               </span>
               <div className="mt-4 space-y-2">
@@ -167,13 +155,9 @@ export function DashboardSkeleton() {
           ].map((q) => (
             <div
               key={q.label}
-              className="flex items-center gap-4 rounded-xl border p-4"
-              style={{
-                borderColor: "rgba(255, 255, 255, 0.05)",
-                background: "rgba(10,10,10,0.4)",
-              }}
+              className="flex items-center gap-4 rounded-xl border border-border/50 bg-card/40 p-4"
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white/5 bg-white/[0.01]">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-card/10">
                 <q.icon className="h-4.5 w-4.5 opacity-35 text-[var(--primary-cyan)]" />
               </div>
               <div className="min-w-0 flex-1 space-y-1.5">
@@ -191,8 +175,8 @@ export function DashboardSkeleton() {
           <Skeleton className="h-6 w-36 rounded-lg" />
           <Skeleton className="h-4 w-44 rounded-md" />
         </div>
-        <div className="rounded-2xl border border-white/[0.05] bg-black/20 p-5 space-y-4">
-          <div className="flex justify-between items-center pb-2 border-b border-white/[0.04]">
+        <div className="rounded-2xl border border-border/50 bg-card/20 p-5 space-y-4">
+          <div className="flex justify-between items-center pb-2 border-b border-border/40">
             <Skeleton className="h-4 w-32 rounded-md" />
             <Skeleton className="h-4 w-20 rounded-md" />
           </div>
@@ -229,14 +213,10 @@ export function BillingSkeleton() {
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Left balance card */}
         <div
-          className="rounded-3xl border p-6 sm:p-8 space-y-6"
-          style={{
-            borderColor: "rgba(123,97,255,0.15)",
-            background: "rgba(10,10,10,0.4)",
-          }}
+          className="rounded-3xl border border-brand-purple/20 bg-card/40 p-6 sm:p-8 space-y-6"
         >
           <div className="flex items-start gap-4">
-            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/[0.01] border border-white/5">
+            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-card/10 border border-border">
               <Coins className="h-7 w-7 opacity-35 text-[var(--primary-cyan)]" />
             </span>
             <div className="space-y-2">
@@ -253,8 +233,7 @@ export function BillingSkeleton() {
 
         {/* Right plan card */}
         <div
-          className="rounded-3xl border p-6 sm:p-8 space-y-4"
-          style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}
+          className="rounded-3xl border border-border bg-card p-6 sm:p-8 space-y-4"
         >
           <div className="flex items-center gap-3">
             <CreditCard className="h-5 w-5 opacity-40 text-[var(--primary-cyan)]" />
@@ -296,13 +275,9 @@ export function SettingsSkeleton() {
       ].map((section, idx) => (
         <section
           key={section.title}
-          className="rounded-3xl border p-5 sm:p-6.5 space-y-4"
-          style={{
-            borderColor: "var(--border-subtle)",
-            background: "rgba(18, 18, 18, 0.4)",
-          }}
+          className="rounded-3xl border border-border bg-card/40 p-5 sm:p-6.5 space-y-4"
         >
-          <div className="flex items-center gap-2 pb-2 border-b border-white/[0.04]">
+          <div className="flex items-center gap-2 pb-2 border-b border-border/40">
             <section.icon className="h-5 w-5 opacity-45" style={{ color: section.color }} />
             <Skeleton className="h-5 w-36 rounded-md" />
           </div>
@@ -316,7 +291,7 @@ export function SettingsSkeleton() {
 
           {idx === 1 && (
             <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-2 border-b border-white/[0.03] gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-2 border-b border-border/30 gap-4">
                 <div className="space-y-1.5">
                   <Skeleton className="h-4 w-24 rounded-md" />
                   <Skeleton className="h-3 w-52 rounded-md" />
@@ -337,7 +312,7 @@ export function SettingsSkeleton() {
             <div className="space-y-4">
               <Skeleton className="h-4 w-full max-w-lg rounded-md" />
               {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="flex items-center justify-between py-2 border-b border-white/[0.03] last:border-0">
+                <div key={i} className="flex items-center justify-between py-2 border-b border-border/30 last:border-0">
                   <div className="space-y-1.5">
                     <Skeleton className="h-4 w-36 rounded-md" />
                     <Skeleton className="h-3 w-64 rounded-md" />
@@ -380,21 +355,21 @@ export function StudioSkeleton({ type }: { type: "image" | "video" }) {
       <div className="grid w-full grid-cols-1 lg:grid-cols-12 min-h-0 min-w-0">
         
         {/* Left Panel: Control Deck (col-span-4) */}
-        <aside className="lg:col-span-4 border-r border-white/[0.08] bg-black/40 flex flex-col min-h-0 min-w-0">
+        <aside className="lg:col-span-4 border-r border-border bg-card/40 flex flex-col min-h-0 min-w-0">
           <div className="studio-scrollbar min-h-0 flex-1 overflow-y-auto p-3 space-y-4">
             
             {/* Themed Control Frame Box */}
             <div
               className="rounded-2xl border p-4"
               style={{
-                borderColor: `color-mix(in srgb, ${accentColor} 20%, rgba(255,255,255,0.06))`,
-                background: `linear-gradient(180deg, color-mix(in srgb, ${accentColor} 6%, var(--deep-black)) 0%, rgba(10,10,10,0.95) 100%)`,
+                borderColor: `color-mix(in srgb, ${accentColor} 20%, var(--border-subtle))`,
+                background: `linear-gradient(180deg, color-mix(in srgb, ${accentColor} 6%, var(--card)) 0%, var(--card) 100%)`,
               }}
             >
               {/* Header */}
-              <div className="mb-4 flex items-center gap-2 border-b border-white/[0.06] pb-3.5">
+              <div className="mb-4 flex items-center gap-2 border-b border-border pb-3.5">
                 <span
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/[0.02] border"
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-card/20 border"
                   style={{ borderColor: `color-mix(in srgb, ${accentColor} 30%, transparent)` }}
                 >
                   {React.createElement(icon, { className: "h-4 w-4", style: { color: accentColor } })}
@@ -409,7 +384,7 @@ export function StudioSkeleton({ type }: { type: "image" | "video" }) {
 
               {/* Collapsible 1: Canvas & model / Timeline */}
               <div className="space-y-4">
-                <div className="flex justify-between items-center border-b border-white/[0.04] pb-2">
+                <div className="flex justify-between items-center border-b border-border/40 pb-2">
                   <Skeleton className="h-4 w-36 rounded-md" />
                   <Skeleton className="h-4 w-4 rounded-md" />
                 </div>
@@ -422,7 +397,7 @@ export function StudioSkeleton({ type }: { type: "image" | "video" }) {
                       {Array.from({ length: 4 }).map((_, i) => (
                         <div
                           key={i}
-                          className="h-10 rounded-xl border border-white/[0.05] bg-black/20 flex flex-col items-center justify-center space-y-1"
+                          className="h-10 rounded-xl border border-border/50 bg-card/20 flex flex-col items-center justify-center space-y-1"
                         >
                           <Skeleton className="h-3.5 w-16 rounded" />
                           <Skeleton className="h-2.5 w-8 rounded" />
@@ -436,15 +411,15 @@ export function StudioSkeleton({ type }: { type: "image" | "video" }) {
                     <div className="space-y-2">
                       <Skeleton className="h-3.5 w-16 rounded" />
                       <div className="grid grid-cols-2 gap-1.5">
-                        <div className="h-14 rounded-xl border border-white/[0.05] bg-black/20" />
-                        <div className="h-14 rounded-xl border border-white/[0.05] bg-black/20" />
+                        <div className="h-14 rounded-xl border border-border/50 bg-card/20" />
+                        <div className="h-14 rounded-xl border border-border/50 bg-card/20" />
                       </div>
                     </div>
                     <div className="space-y-2">
                       <Skeleton className="h-3.5 w-24 rounded" />
                       <div className="grid grid-cols-2 gap-1.5">
-                        <div className="h-12 rounded-xl border border-white/[0.05] bg-black/20" />
-                        <div className="h-12 rounded-xl border border-white/[0.05] bg-black/20" />
+                        <div className="h-12 rounded-xl border border-border/50 bg-card/20" />
+                        <div className="h-12 rounded-xl border border-border/50 bg-card/20" />
                       </div>
                     </div>
                   </div>
@@ -458,7 +433,7 @@ export function StudioSkeleton({ type }: { type: "image" | "video" }) {
               </div>
 
               {/* Collapsible 2: Prompt Chips */}
-              <div className="mt-6 space-y-3 pt-4 border-t border-white/[0.05]">
+              <div className="mt-6 space-y-3 pt-4 border-t border-border/50">
                 <div className="flex justify-between items-center pb-2">
                   <Skeleton className="h-4 w-32 rounded-md" />
                   <Skeleton className="h-4 w-4 rounded-md" />
@@ -471,7 +446,7 @@ export function StudioSkeleton({ type }: { type: "image" | "video" }) {
               </div>
 
               {/* Collapsible 3: Reference image/negatives */}
-              <div className="mt-6 space-y-3 pt-4 border-t border-white/[0.05]">
+              <div className="mt-6 space-y-3 pt-4 border-t border-border/50">
                 <div className="flex justify-between items-center pb-2">
                   <Skeleton className="h-4 w-44 rounded-md" />
                   <Skeleton className="h-4 w-4 rounded-md" />
@@ -483,9 +458,9 @@ export function StudioSkeleton({ type }: { type: "image" | "video" }) {
         </aside>
 
         {/* Right Panel: Canvas Output & Chat Feed (col-span-8) */}
-        <main className="lg:col-span-8 flex flex-col min-h-0 min-w-0 bg-[#07070a]/90 relative">
+        <main className="lg:col-span-8 flex flex-col min-h-0 min-w-0 bg-background/90 relative">
           {/* Header tabs row */}
-          <header className="h-12 shrink-0 border-b border-white/[0.06] px-4 flex items-center justify-between">
+          <header className="h-12 shrink-0 border-b border-border px-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Skeleton className="h-7 w-20 rounded-lg" />
               <Skeleton className="h-7 w-20 rounded-lg" />
@@ -501,7 +476,7 @@ export function StudioSkeleton({ type }: { type: "image" | "video" }) {
             
             {/* Assistant message skeleton (Visual output preview) */}
             <div className="flex items-start gap-3.5 max-w-2xl">
-              <div className="h-8 w-8 rounded-lg bg-white/[0.03] border border-white/5 shrink-0 flex items-center justify-center">
+              <div className="h-8 w-8 rounded-lg bg-card/30 border border-border shrink-0 flex items-center justify-center">
                 <Sparkles className="h-4 w-4 opacity-30" style={{ color: accentColor }} />
               </div>
               <div className="space-y-3 flex-1">
@@ -513,8 +488,8 @@ export function StudioSkeleton({ type }: { type: "image" | "video" }) {
                 <div
                   className="rounded-xl border overflow-hidden relative shadow-lg"
                   style={{
-                    borderColor: "rgba(255,255,255,0.06)",
-                    background: "rgba(0,0,0,0.3)",
+                    borderColor: "var(--border-subtle)",
+                    background: "var(--card)",
                     aspectRatio: isImage ? "1" : "16/9",
                     maxWidth: isImage ? "400px" : "100%",
                   }}
@@ -537,7 +512,7 @@ export function StudioSkeleton({ type }: { type: "image" | "video" }) {
                   <Skeleton className="h-3 w-12 rounded" />
                   <Skeleton className="h-3 w-24 rounded" />
                 </div>
-                <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-3 text-left w-full max-w-md space-y-2">
+                <div className="rounded-2xl border border-border bg-card/20 p-3 text-left w-full max-w-md space-y-2">
                   <Skeleton className="h-4 w-full rounded-md" />
                   <Skeleton className="h-4 w-[80%] rounded-md" />
                 </div>
@@ -548,7 +523,7 @@ export function StudioSkeleton({ type }: { type: "image" | "video" }) {
           </div>
 
           {/* Bottom input composer dock */}
-          <footer className="shrink-0 border-t border-white/[0.06] bg-black/60 p-4 space-y-3.5">
+          <footer className="shrink-0 border-t border-border bg-background/60 p-4 space-y-3.5">
             {/* suggestions */}
             <div className="flex gap-2 overflow-x-auto pb-1 max-w-full">
               <Skeleton className="h-6.5 w-32 rounded-lg shrink-0" />
@@ -558,10 +533,9 @@ export function StudioSkeleton({ type }: { type: "image" | "video" }) {
             
             {/* composer text area */}
             <div
-              className="rounded-xl border p-2 flex items-center gap-2"
+              className="rounded-xl border border-border p-2 flex items-center gap-2"
               style={{
-                borderColor: "rgba(255,255,255,0.08)",
-                background: "rgba(10,10,10,0.8)",
+                background: "var(--card)",
               }}
             >
               <Skeleton className="h-9 w-9 rounded-lg shrink-0" />
@@ -596,11 +570,7 @@ export function ContentPageSkeleton() {
         {Array.from({ length: 3 }).map((_, i) => (
           <div
             key={i}
-            className="rounded-2xl border p-6 space-y-5"
-            style={{
-              borderColor: "rgba(255, 255, 255, 0.05)",
-              background: "rgba(18, 18, 18, 0.4)",
-            }}
+            className="rounded-2xl border border-border/50 bg-card/40 p-6 space-y-5"
           >
             <Skeleton className="h-12 w-12 rounded-xl" />
             <div className="space-y-2">
@@ -616,11 +586,7 @@ export function ContentPageSkeleton() {
 
       {/* Secondary large section layout */}
       <div
-        className="rounded-2xl border p-6 sm:p-10 grid md:grid-cols-2 gap-8 items-center"
-        style={{
-          borderColor: "rgba(255, 255, 255, 0.05)",
-          background: "rgba(10, 10, 10, 0.5)",
-        }}
+        className="rounded-2xl border border-border/50 bg-card/50 p-6 sm:p-10 grid md:grid-cols-2 gap-8 items-center"
       >
         <div className="space-y-4">
           <Skeleton className="h-5 w-24 rounded-full" />

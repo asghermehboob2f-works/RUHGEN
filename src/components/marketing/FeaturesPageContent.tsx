@@ -46,7 +46,7 @@ function PremiumBackgroundLattice() {
       <div className="absolute top-[35%] right-[-10%] w-[900px] h-[900px] rounded-full blur-[200px] opacity-[0.12]" style={{ background: "radial-gradient(circle, var(--mesh-2) 0%, transparent 80%)" }} />
       <div className="absolute bottom-[5%] left-[-15%] w-[900px] h-[900px] rounded-full blur-[260px] opacity-[0.1]" style={{ background: "radial-gradient(circle, var(--mesh-3) 0%, transparent 80%)" }} />
       {/* High-End Technical Crosshair Grid overlay */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.012)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.012)_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_40%,transparent_100%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(var(--border-subtle)_1px,transparent_1px),linear-gradient(90deg,var(--border-subtle)_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_40%,transparent_100%)]" />
     </div>
   );
 }
@@ -95,7 +95,7 @@ function AspectCalibrationRig({ featuresCalibration }: { featuresCalibration?: a
   return (
     <div className="w-full flex flex-col gap-6 select-none text-left">
       {/* Aspect selection pills */}
-      <div className="flex flex-wrap gap-2 border-b border-white/[0.04] pb-4">
+      <div className="flex flex-wrap gap-2 border-b border-border/50 pb-4">
         {(Object.keys(aspects) as AspectRatioKey[]).map((key) => {
           const isActive = activeAspect === key;
           return (
@@ -105,7 +105,7 @@ function AspectCalibrationRig({ featuresCalibration }: { featuresCalibration?: a
               className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer ${
                 isActive
                   ? "bg-[#7b61ff] text-white shadow-[0_0_15px_rgba(123,97,255,0.3)] border border-[#7b61ff]/40"
-                  : "border border-white/5 bg-white/[0.01] text-neutral-400 hover:text-white hover:bg-white/[0.03]"
+                  : "border border-border bg-card/10 text-muted-foreground hover:text-foreground hover:bg-card/25"
               }`}
             >
               {aspects[key].label}
@@ -119,13 +119,13 @@ function AspectCalibrationRig({ featuresCalibration }: { featuresCalibration?: a
         ref={viewportRef}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        className="relative min-h-[380px] flex items-center justify-center bg-[#050508]/40 border border-white/5 rounded-2xl p-8 overflow-hidden shadow-inner cursor-crosshair"
+        className="relative min-h-[380px] flex items-center justify-center bg-card/10 border border-border/50 rounded-2xl p-8 overflow-hidden shadow-inner cursor-crosshair"
       >
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.012)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.012)_1px,transparent_1px)] bg-[size:12px_12px]" />
+        <div className="absolute inset-0 opacity-[0.012] bg-[linear-gradient(var(--text-primary)_1px,transparent_1px),linear-gradient(90deg,var(--text-primary)_1px,transparent_1px)] bg-[size:12px_12px]" />
 
         {/* Morphing Aspect Frame Chassis */}
         <div
-          className={`relative transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] mx-auto overflow-hidden rounded-xl border border-white/10 shadow-2xl bg-black flex items-center justify-center ${aspects[activeAspect].widthClass} ${aspects[activeAspect].aspectStyle}`}
+          className={`relative transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] mx-auto overflow-hidden rounded-xl border border-border/80 shadow-2xl bg-card flex items-center justify-center ${aspects[activeAspect].widthClass} ${aspects[activeAspect].aspectStyle}`}
           style={{
             perspective: "800px"
           }}
@@ -145,22 +145,22 @@ function AspectCalibrationRig({ featuresCalibration }: { featuresCalibration?: a
             />
 
             {/* Dynamic Glass Reflection overlay for hyper-luxury sheen */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-white/5 via-transparent to-white/[0.08] pointer-events-none mix-blend-overlay" />
-            <div className="absolute inset-0 bg-black/10 pointer-events-none mix-blend-multiply" />
+            <div className="absolute inset-0 bg-gradient-to-tr from-[var(--text-primary)]/5 via-transparent to-[var(--text-primary)]/[0.08] pointer-events-none mix-blend-overlay" />
+            <div className="absolute inset-0 bg-card/10 pointer-events-none mix-blend-multiply" />
 
             {/* Rule of Thirds camera grid lines */}
             <div className="absolute inset-0 z-10 pointer-events-none opacity-25">
-              <div className="absolute top-1/3 left-0 right-0 h-[0.5px] border-t border-dashed border-white/30" />
-              <div className="absolute top-2/3 left-0 right-0 h-[0.5px] border-t border-dashed border-white/30" />
-              <div className="absolute left-1/3 top-0 bottom-0 w-[0.5px] border-l border-dashed border-white/30" />
-              <div className="absolute left-2/3 top-0 bottom-0 w-[0.5px] border-l border-dashed border-white/30" />
+              <div className="absolute top-1/3 left-0 right-0 h-[0.5px] border-t border-dashed border-[var(--text-primary)]/30" />
+              <div className="absolute top-2/3 left-0 right-0 h-[0.5px] border-t border-dashed border-[var(--text-primary)]/30" />
+              <div className="absolute left-1/3 top-0 bottom-0 w-[0.5px] border-l border-dashed border-[var(--text-primary)]/30" />
+              <div className="absolute left-2/3 top-0 bottom-0 w-[0.5px] border-l border-dashed border-[var(--text-primary)]/30" />
             </div>
 
             {/* Corner Crop Marks */}
-            <div className="absolute top-4 left-4 w-4 h-4 border-t border-l border-white/30 z-10" />
-            <div className="absolute top-4 right-4 w-4 h-4 border-t border-r border-white/30 z-10" />
-            <div className="absolute bottom-4 left-4 w-4 h-4 border-b border-l border-white/30 z-10" />
-            <div className="absolute bottom-4 right-4 w-4 h-4 border-b border-r border-white/30 z-10" />
+            <div className="absolute top-4 left-4 w-4 h-4 border-t border-l border-[var(--text-primary)]/30 z-10" />
+            <div className="absolute top-4 right-4 w-4 h-4 border-t border-r border-[var(--text-primary)]/30 z-10" />
+            <div className="absolute bottom-4 left-4 w-4 h-4 border-b border-l border-[var(--text-primary)]/30 z-10" />
+            <div className="absolute bottom-4 right-4 w-4 h-4 border-b border-r border-[var(--text-primary)]/30 z-10" />
           </div>
         </div>
       </div>
@@ -244,8 +244,8 @@ function InteractivePipelineTimeline() {
               onClick={() => setActiveStep(idx)}
               className={`p-4 rounded-xl border text-left transition-all duration-300 relative overflow-hidden cursor-pointer ${
                 isActive
-                  ? "border-[#7b61ff]/40 bg-white/[0.02] shadow-xl shadow-[#7b61ff]/5"
-                  : "border-white/5 bg-white/[0.01] hover:border-white/10 hover:bg-white/[0.02]"
+                  ? "border-[#7b61ff]/40 bg-card/10 shadow-xl shadow-[#7b61ff]/5"
+                  : "border-border/50 bg-card/5 hover:border-border hover:bg-card/15"
               }`}
             >
               {isActive && (
@@ -255,7 +255,7 @@ function InteractivePipelineTimeline() {
               <div className="font-mono text-[8px] text-[#00d4ff] uppercase tracking-wider mb-1">
                 STAGE 0{idx + 1}
               </div>
-              <h4 className="font-display text-xs font-bold text-white tracking-tight leading-tight">
+              <h4 className="font-display text-xs font-bold text-foreground tracking-tight leading-tight">
                 {node.title}
               </h4>
             </button>
@@ -267,12 +267,12 @@ function InteractivePipelineTimeline() {
       <div className="grid gap-6 lg:grid-cols-12 items-stretch">
         
         {/* Left Copy Panel */}
-        <div className="lg:col-span-7 flex flex-col justify-between p-6 sm:p-8 rounded-2xl border border-white/5 bg-[#07070a]/40">
+        <div className="lg:col-span-7 flex flex-col justify-between p-6 sm:p-8 rounded-2xl border border-border/50 bg-card/30">
           <div>
             <div className="inline-block font-mono text-[8px] font-bold text-[#ff2e9a] uppercase tracking-[0.2em] mb-3">
               {step.focus}
             </div>
-            <h3 className="font-display text-xl sm:text-2xl font-extrabold text-white tracking-tight mb-4">
+            <h3 className="font-display text-xl sm:text-2xl font-extrabold text-foreground tracking-tight mb-4">
               {step.title} System
             </h3>
             <p className="text-neutral-400 text-xs sm:text-sm leading-relaxed font-light mb-8">
@@ -280,16 +280,16 @@ function InteractivePipelineTimeline() {
             </p>
           </div>
 
-          <div className="border-t border-white/[0.04] pt-4 flex items-center justify-between font-mono text-[9px]">
+          <div className="border-t border-border/50 pt-4 flex items-center justify-between font-mono text-[9px]">
             <span className="text-neutral-500">Telemetry Rating:</span>
-            <span className="text-white font-bold">{step.metric}</span>
+            <span className="text-foreground font-bold">{step.metric}</span>
           </div>
         </div>
 
         {/* Right Live Console log reader */}
-        <div className="lg:col-span-5 rounded-2xl border border-white/5 bg-black p-5 flex flex-col justify-between font-mono text-[9.5px]">
+        <div className="lg:col-span-5 rounded-2xl border border-border/50 bg-card p-5 flex flex-col justify-between font-mono text-[9.5px]">
           <div>
-            <div className="flex items-center justify-between pb-3 mb-3 border-b border-white/[0.04] text-[8px] text-neutral-500 uppercase tracking-widest">
+            <div className="flex items-center justify-between pb-3 mb-3 border-b border-border/50 text-[8px] text-neutral-500 uppercase tracking-widest">
               <span>SYSTEM TRACER // DIAGNOSTIC_LOGGER</span>
               <span className="text-[#00d4ff] flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#00d4ff] animate-pulse" />
@@ -303,7 +303,7 @@ function InteractivePipelineTimeline() {
                 return (
                   <div key={index} className="flex gap-2">
                     <span className="text-neutral-600 select-none">&gt;&gt;</span>
-                    <span className={isHighlight ? "text-[#00d4ff]" : "text-neutral-300"}>
+                    <span className={isHighlight ? "text-[#00d4ff]" : "text-foreground/80"}>
                       {log}
                     </span>
                   </div>
@@ -312,7 +312,7 @@ function InteractivePipelineTimeline() {
             </div>
           </div>
 
-          <div className="mt-6 border-t border-white/[0.03] pt-3 text-[7px] text-neutral-500 flex justify-between">
+          <div className="mt-6 border-t border-border/40 pt-3 text-[7px] text-neutral-500 flex justify-between">
             <span>BUFFER_DUMP: CLASSIFIED</span>
             <span>ENCRYPTED_FLOW: ACTIVE</span>
           </div>
@@ -474,29 +474,29 @@ function InteractiveSplitScanRig() {
           onMouseMove={handleMouseMove}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-          className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#020204] shadow-2xl aspect-[16/10] flex items-center justify-center cursor-ew-resize"
+          className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-2xl aspect-[16/10] flex items-center justify-center cursor-ew-resize"
         >
           <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
           
-          <div className="absolute inset-4 border border-dashed border-white/5 pointer-events-none rounded-xl" />
+          <div className="absolute inset-4 border border-dashed border-border/50 pointer-events-none rounded-xl" />
 
           {/* Interactive instruction tooltip */}
           {!isHovered && (
-            <div className="absolute bg-black/80 border border-white/10 rounded-xl px-4 py-2 text-center z-20 backdrop-blur-md animate-pulse">
-              <span className="font-mono text-[9px] font-bold text-white tracking-widest uppercase">
+            <div className="absolute bg-card/90 border border-border rounded-xl px-4 py-2 text-center z-20 backdrop-blur-md animate-pulse">
+              <span className="font-mono text-[9px] font-bold text-foreground tracking-widest uppercase">
                 Drag Mouse To Compare Renders
               </span>
             </div>
           )}
           
           <div className="absolute top-4 left-4 z-20 font-mono">
-            <span className="inline-flex items-center gap-1 rounded bg-black/60 border border-white/10 px-2 py-0.5 text-[6.5px] font-black text-[#00d4ff] backdrop-blur-sm shadow-md">
+            <span className="inline-flex items-center gap-1 rounded bg-card/75 border border-border px-2 py-0.5 text-[6.5px] font-black text-[#00d4ff] backdrop-blur-sm shadow-md">
               DRAFT: STEP 4
             </span>
           </div>
 
           <div className="absolute top-4 right-4 z-20 font-mono">
-            <span className="inline-flex items-center gap-1 rounded bg-black/60 border border-white/10 px-2 py-0.5 text-[6.5px] font-black text-[#7b61ff] backdrop-blur-sm shadow-md">
+            <span className="inline-flex items-center gap-1 rounded bg-card/75 border border-border px-2 py-0.5 text-[6.5px] font-black text-[#7b61ff] backdrop-blur-sm shadow-md">
               MASTER: STEP 30
             </span>
           </div>
@@ -506,7 +506,7 @@ function InteractiveSplitScanRig() {
 
       {/* Narrative & Specification list */}
       <div className="lg:col-span-6 flex flex-col justify-center text-left">
-        <h3 className="font-display text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight mb-4">
+        <h3 className="font-display text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight leading-tight mb-4">
           Adaptive Synthesis Engines
         </h3>
         <p className="text-neutral-400 text-xs sm:text-sm font-light leading-relaxed mb-6">
@@ -516,7 +516,7 @@ function InteractiveSplitScanRig() {
         {/* Spec comparison cards */}
         <div className="space-y-3 font-mono text-[9.5px]">
           
-          <div className="p-3.5 rounded-xl border border-white/5 bg-[#07070a]/40 flex justify-between items-center">
+          <div className="p-3.5 rounded-xl border border-border/50 bg-card/20 flex justify-between items-center">
             <span className="text-neutral-500 uppercase tracking-wider">Engine Processing Time</span>
             <div className="flex gap-2">
               <span className="text-[9px] px-2 py-0.5 rounded font-bold bg-[#00d4ff]/10 text-[#00d4ff] border border-[#00d4ff]/20">
@@ -528,22 +528,22 @@ function InteractiveSplitScanRig() {
             </div>
           </div>
 
-          <div className="p-3.5 rounded-xl border border-white/5 bg-[#07070a]/40 flex justify-between items-center">
+          <div className="p-3.5 rounded-xl border border-border/50 bg-card/20 flex justify-between items-center">
             <span className="text-neutral-500 uppercase tracking-wider">Lattice Nodes Density</span>
             <div className="flex gap-2">
-              <span className="text-[9px] px-2 py-0.5 rounded font-bold text-neutral-500 bg-white/[0.02]">
+              <span className="text-[9px] px-2 py-0.5 rounded font-bold text-neutral-500 bg-card/10">
                 12 × 12 Grid
               </span>
-              <span className="text-[9px] px-2 py-0.5 rounded font-bold text-white bg-white/10">
+              <span className="text-[9px] px-2 py-0.5 rounded font-bold text-foreground bg-card/20">
                 36 × 36 Dense Grid
               </span>
             </div>
           </div>
 
-          <div className="p-3.5 rounded-xl border border-white/5 bg-[#07070a]/40 flex justify-between items-center">
+          <div className="p-3.5 rounded-xl border border-border/50 bg-card/20 flex justify-between items-center">
             <span className="text-neutral-500 uppercase tracking-wider">Dynamic Handoff Depth</span>
             <div className="flex gap-2">
-              <span className="text-[9px] px-2 py-0.5 rounded font-bold text-neutral-500 bg-white/[0.02]">
+              <span className="text-[9px] px-2 py-0.5 rounded font-bold text-neutral-500 bg-card/10">
                 Standard Web 8-Bit
               </span>
               <span className="text-[9px] px-2 py-0.5 rounded font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
@@ -581,7 +581,7 @@ function IsometricLayerStack() {
       >
         {/* Layer 3: Normal Map */}
         <div 
-          className="absolute inset-0 border border-[#ff2e9a]/50 bg-black/90 rounded-lg flex flex-col items-center justify-center font-mono text-[7px] font-bold text-[#ff2e9a] transition-all duration-700"
+          className="absolute inset-0 border border-[#ff2e9a]/50 bg-card/90 rounded-lg flex flex-col items-center justify-center font-mono text-[7px] font-bold text-[#ff2e9a] transition-all duration-700"
           style={{
             transform: hovered ? "translateZ(55px) translateY(-22px) translateX(-12px)" : "translateZ(12px)",
             boxShadow: hovered ? "0 10px 20px rgba(255, 46, 154, 0.25)" : "none",
@@ -597,7 +597,7 @@ function IsometricLayerStack() {
 
         {/* Layer 2: Depth Channel */}
         <div 
-          className="absolute inset-0 border border-[#00d4ff]/50 bg-black/90 rounded-lg flex flex-col items-center justify-center font-mono text-[7px] font-bold text-[#00d4ff] transition-all duration-700"
+          className="absolute inset-0 border border-[#00d4ff]/50 bg-card/90 rounded-lg flex flex-col items-center justify-center font-mono text-[7px] font-bold text-[#00d4ff] transition-all duration-700"
           style={{
             transform: hovered ? "translateZ(28px) translateY(-5px) translateX(2px)" : "translateZ(6px)",
             boxShadow: hovered ? "0 10px 20px rgba(0, 212, 255, 0.2)" : "none",
@@ -613,7 +613,7 @@ function IsometricLayerStack() {
 
         {/* Layer 1: RGB Plate */}
         <div 
-          className="absolute inset-0 border border-[#7b61ff]/50 bg-black/90 rounded-lg flex flex-col items-center justify-center font-mono text-[7px] font-bold text-[#7b61ff] transition-all duration-700"
+          className="absolute inset-0 border border-[#7b61ff]/50 bg-card/90 rounded-lg flex flex-col items-center justify-center font-mono text-[7px] font-bold text-[#7b61ff] transition-all duration-700"
           style={{
             transform: hovered ? "translateZ(0px) translateY(12px) translateX(14px)" : "translateZ(0px)",
             boxShadow: hovered ? "0 10px 20px rgba(123, 97, 255, 0.2)" : "none"
@@ -645,7 +645,7 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
   };
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden animate-fade-in" style={{ background: "#030305" }}>
+    <div className="relative min-h-screen overflow-x-hidden animate-fade-in">
       
       {/* Immersive glowing background mesh */}
       <PremiumBackgroundLattice />
@@ -653,7 +653,7 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
       <div className="app-grain absolute inset-0 z-0 pointer-events-none select-none opacity-45" />
 
       {/* 1. TYPOGRAPHIC HERO SECTION */}
-      <section className="relative pt-20 pb-12 overflow-hidden z-10 border-b border-white/[0.04]">
+      <section className="relative pt-20 pb-12 overflow-hidden z-10 border-b border-border/50">
         <div className={SITE_CONTAINER}>
           
           <div className="flex flex-col items-start text-left max-w-4xl mr-auto mb-16">
@@ -669,7 +669,7 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
                 [ PIPELINE TELEMETRY: CALIBRATED ]
               </div>
 
-              <h1 className="font-display text-[2.75rem] sm:text-[4.5rem] lg:text-[5.5rem] font-extrabold leading-[1.03] tracking-tight mb-8 text-white max-w-3xl">
+              <h1 className="font-display text-[2.75rem] sm:text-[4.5rem] lg:text-[5.5rem] font-extrabold leading-[1.03] tracking-tight mb-8 text-foreground max-w-3xl">
                 Stochastic <br className="sm:hidden" />
                 <span className="premium-text-shimmer font-black">
                   Latent Command
@@ -691,7 +691,7 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
                 </Link>
                 <a
                   href="#capabilities"
-                  className="inline-flex min-h-[50px] items-center justify-center rounded-xl border border-white/10 bg-white/[0.02] px-7 text-[11px] font-bold uppercase tracking-wider text-neutral-300 transition-colors hover:text-white hover:border-white/20 cursor-pointer"
+                  className="inline-flex min-h-[50px] items-center justify-center rounded-xl border border-border bg-card/10 px-7 text-[11px] font-bold uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground hover:border-border/80 cursor-pointer"
                 >
                   Features Narrative
                 </a>
@@ -705,7 +705,7 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
       </section>
 
       {/* 2. THE CALIBRATION SECTION */}
-      <section id="capabilities" className="relative py-24 z-10 border-b border-white/[0.04]">
+      <section id="capabilities" className="relative py-24 z-10 border-b border-border/50">
         <div className={SITE_CONTAINER}>
           
           {/* SECTION A — Dynamic Crop Viewport Rigs */}
@@ -716,7 +716,7 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
                 <div className="font-mono text-[9px] font-bold text-[#7b61ff] uppercase tracking-[0.25em] mb-4">
                   01 // STOCHASTIC BOUNDING RIGS
                 </div>
-                <h2 className="font-display text-[2.25rem] sm:text-[3rem] font-extrabold tracking-tight text-white mb-6 leading-[1.08]">
+                <h2 className="font-display text-[2.25rem] sm:text-[3rem] font-extrabold tracking-tight text-foreground mb-6 leading-[1.08]">
                   Composition Calibration.
                 </h2>
                 <p className="text-neutral-400 text-xs sm:text-sm font-light leading-relaxed mb-6">
@@ -747,12 +747,12 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
           </div>
 
           {/* SECTION B — Workflow & Automation */}
-          <div className="mb-32 border-t border-white/[0.04] pt-24">
+          <div className="mb-32 border-t border-border/50 pt-24">
             <div className="max-w-3xl text-left mb-16">
               <div className="font-mono text-[9px] font-bold text-[#00d4ff] uppercase tracking-[0.25em] mb-4">
                 02 // REPEATABLE PIPELINE SYSTEMS
               </div>
-              <h2 className="font-display text-[2.25rem] sm:text-[3rem] font-extrabold tracking-tight text-white mb-6 leading-[1.08]">
+              <h2 className="font-display text-[2.25rem] sm:text-[3rem] font-extrabold tracking-tight text-foreground mb-6 leading-[1.08]">
                 Deterministic Pipelines.
               </h2>
               <p className="text-neutral-400 text-xs sm:text-sm font-light leading-relaxed">
@@ -764,12 +764,12 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
           </div>
 
           {/* SECTION C — Split-Screen Comparison Sandbox */}
-          <div className="mb-24 border-t border-white/[0.04] pt-24">
+          <div className="mb-24 border-t border-border/50 pt-24">
             <div className="max-w-3xl text-left mb-16">
               <div className="font-mono text-[9px] font-bold text-[#ff2e9a] uppercase tracking-[0.25em] mb-4">
                 03 // STOCHASTIC SAMPLERS
               </div>
-              <h2 className="font-display text-[2.25rem] sm:text-[3rem] font-extrabold tracking-tight text-white mb-6 leading-[1.08]">
+              <h2 className="font-display text-[2.25rem] sm:text-[3rem] font-extrabold tracking-tight text-foreground mb-6 leading-[1.08]">
                 Dual-Stage Denoising.
               </h2>
               <p className="text-neutral-400 text-xs sm:text-sm font-light leading-relaxed">
@@ -784,14 +784,14 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
       </section>
 
       {/* 3. PREMIUM BENTO SHOWCASE SECTION */}
-      <section className="relative py-24 z-10 border-b border-white/[0.04] bg-[#050508]/40">
+      <section className="relative py-24 z-10 border-b border-border/50 bg-card/10">
         <div className={SITE_CONTAINER}>
           
           <header className="mb-16 text-left max-w-2xl">
             <p className="text-[9px] font-mono font-bold uppercase tracking-[0.25em] mb-4 text-[#7b61ff]">
               04 // TECHNICAL EXTENSION SUITES
             </p>
-            <h2 className="font-display text-[2.25rem] sm:text-[3rem] font-extrabold tracking-tight text-white mb-5 leading-[1.08]">
+            <h2 className="font-display text-[2.25rem] sm:text-[3rem] font-extrabold tracking-tight text-foreground mb-5 leading-[1.08]">
               Advanced Bento Toolkit
             </h2>
             <p className="text-neutral-400 text-xs sm:text-sm font-light leading-relaxed">
@@ -804,7 +804,7 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
             
             {/* Card 1: Seed Coordinate Lock */}
             <div 
-              className="md:col-span-3 rounded-2xl border border-white/[0.05] bg-[#08080c]/60 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#7b61ff]/25 transition-all duration-300"
+              className="md:col-span-3 rounded-2xl border border-border/50 bg-card/65 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#7b61ff]/25 transition-all duration-300"
             >
               <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-[0.08] pointer-events-none bg-[radial-gradient(ellipse_60%_50%_at_50%_50%,var(--primary-purple)_0%,transparent_100%)]" />
               
@@ -817,7 +817,7 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
                     COORDINATE SCHEDULER
                   </span>
                 </div>
-                <h3 className="font-display text-base font-bold text-white tracking-tight mb-1.5">
+                <h3 className="font-display text-base font-bold text-foreground tracking-tight mb-1.5">
                   Deterministic Latent Vectors
                 </h3>
                 <p className="text-neutral-400 text-xs font-light leading-relaxed max-w-lg mb-4">
@@ -826,15 +826,15 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
               </div>
 
               {/* Static Coordinate blueprint grid inside card (no movement animation) - super slimmed h-16 */}
-              <div className="relative h-16 w-full border border-white/5 bg-[#050508]/40 rounded-xl overflow-hidden flex flex-col items-center justify-center p-3">
-                <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.012)_1px,transparent_1px)] bg-[size:12px_12px]" />
+              <div className="relative h-16 w-full border border-border/50 bg-card/20 rounded-xl overflow-hidden flex flex-col items-center justify-center p-3">
+                <div className="absolute inset-0 bg-[radial-gradient(var(--text-primary)_1px,transparent_1px)] opacity-[0.015]" />
                 
                 {/* Tech editorial details */}
                 <div className="relative z-10 text-center font-mono space-y-0.5">
                   <div className="text-[#7b61ff] text-[8px] font-bold tracking-widest uppercase">
                     [ PIPELINE CALIBRATION COMPLETED ]
                   </div>
-                  <div className="text-white text-[9.5px] font-semibold tracking-wide">
+                  <div className="text-foreground text-[9.5px] font-semibold tracking-wide">
                     STABLE LATENT VECTOR CACHE // 0.618:0.382
                   </div>
                   <div className="text-neutral-500 text-[6.5px] tracking-wider uppercase">
@@ -845,7 +845,7 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
             </div>
 
             {/* Card 2: Workspace Config Presets */}
-            <div className="md:col-span-1 rounded-2xl border border-white/[0.05] bg-[#08080c]/60 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#00d4ff]/25 transition-all duration-300">
+            <div className="md:col-span-1 rounded-2xl border border-border/50 bg-card/65 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#00d4ff]/25 transition-all duration-300">
               <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-[0.08] pointer-events-none bg-[radial-gradient(ellipse_60%_50%_at_50%_50%,var(--primary-cyan)_0%,transparent_100%)]" />
               
               <div>
@@ -857,7 +857,7 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
                     PRESETS
                   </span>
                 </div>
-                <h3 className="font-display text-sm font-bold text-white tracking-tight mb-1.5">
+                <h3 className="font-display text-sm font-bold text-foreground tracking-tight mb-1.5">
                   Persistent Configuration
                 </h3>
                 <p className="text-neutral-400 text-[10px] font-light leading-relaxed mb-4">
@@ -866,11 +866,11 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
               </div>
 
               <div className="flex flex-col gap-1 font-mono text-[8px] text-neutral-400">
-                <div className="p-2 border border-white/5 bg-black/35 rounded-lg flex justify-between items-center">
+                <div className="p-2 border border-border/50 bg-card/25 rounded-lg flex justify-between items-center">
                   <span>Cinematic Noir</span>
                   <span className="text-[#00d4ff]">f/1.2</span>
                 </div>
-                <div className="p-2 border border-white/5 bg-black/35 rounded-lg flex justify-between items-center">
+                <div className="p-2 border border-border/50 bg-card/25 rounded-lg flex justify-between items-center">
                   <span>Studio Prime</span>
                   <span className="text-neutral-500">85mm</span>
                 </div>
@@ -878,7 +878,7 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
             </div>
 
             {/* Card 3: 3D Isometric EXR Stack */}
-            <div className="md:col-span-1 rounded-2xl border border-white/[0.05] bg-[#08080c]/60 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#ff2e9a]/25 transition-all duration-300">
+            <div className="md:col-span-1 rounded-2xl border border-border/50 bg-card/65 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#ff2e9a]/25 transition-all duration-300">
               <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-[0.08] pointer-events-none bg-[radial-gradient(ellipse_60%_50%_at_50%_50%,var(--accent-pink)_0%,transparent_100%)]" />
               
               <div>
@@ -890,7 +890,7 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
                     PIPELINE
                   </span>
                 </div>
-                <h3 className="font-display text-sm font-bold text-white tracking-tight mb-1.5">
+                <h3 className="font-display text-sm font-bold text-foreground tracking-tight mb-1.5">
                   Multi-Channel Plates
                 </h3>
                 <p className="text-neutral-400 text-[10px] font-light leading-relaxed mb-4">
@@ -903,7 +903,7 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
             </div>
 
             {/* Card 4: Enterprise Compute */}
-            <div className="md:col-span-3 rounded-2xl border border-white/[0.05] bg-[#08080c]/60 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-500/25 transition-all duration-300">
+            <div className="md:col-span-3 rounded-2xl border border-border/50 bg-card/65 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-500/25 transition-all duration-300">
               <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-[0.08] pointer-events-none bg-[radial-gradient(ellipse_60%_50%_at_50%_50%,#10b981_0%,transparent_100%)]" />
               
               <div>
@@ -915,7 +915,7 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
                     COMPUTE METRICS
                   </span>
                 </div>
-                <h3 className="font-display text-base font-bold text-white tracking-tight mb-1.5">
+                <h3 className="font-display text-base font-bold text-foreground tracking-tight mb-1.5">
                   Isolated Cloud GPU Architecture
                 </h3>
                 <p className="text-neutral-400 text-xs font-light leading-relaxed max-w-lg mb-4">
@@ -924,14 +924,14 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
               </div>
 
               <div className="grid grid-cols-2 gap-3 font-mono text-[8px] text-neutral-400">
-                <div className="p-2 border border-white/5 bg-black/35 rounded-lg flex items-center justify-between">
+                <div className="p-2 border border-border/50 bg-card/25 rounded-lg flex items-center justify-between">
                   <span className="flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                     Frankfurt Edge 04
                   </span>
                   <span className="text-neutral-500">22ms Ping</span>
                 </div>
-                <div className="p-2 border border-white/5 bg-black/35 rounded-lg flex items-center justify-between">
+                <div className="p-2 border border-border/50 bg-card/25 rounded-lg flex items-center justify-between">
                   <span className="flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                     Seoul Edge 09
@@ -949,7 +949,7 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
 
 
       {/* 4. PRIVATE & TRUST INFRASTRUCTURE SECTION */}
-      <section className="relative py-24 z-10 border-b border-white/[0.04]">
+      <section className="relative py-24 z-10 border-b border-border/50">
         <div className={SITE_CONTAINER}>
           <div className="grid gap-12 lg:grid-cols-12 lg:items-center">
             
@@ -958,7 +958,7 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
                 <Shield className="w-3.5 h-3.5 text-emerald-400" />
                 Zero-Retention Compute Policy
               </div>
-              <h2 className="font-display text-[2.25rem] sm:text-[3rem] font-extrabold tracking-tight text-white mb-6 leading-[1.08]">
+              <h2 className="font-display text-[2.25rem] sm:text-[3rem] font-extrabold tracking-tight text-foreground mb-6 leading-[1.08]">
                 Isolated Creative Ownership.
               </h2>
               <p className="text-neutral-400 text-xs sm:text-sm font-light leading-relaxed mb-6">
@@ -966,25 +966,25 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
               </p>
 
               <div className="grid gap-4.5 sm:grid-cols-2 font-mono text-[9.5px] text-neutral-300">
-                <div className="p-4 border border-white/5 bg-white/[0.01] rounded-xl">
+                <div className="p-4 border border-border bg-card/10 rounded-xl">
                   <Lock className="w-4 h-4 text-emerald-400 mb-2" />
-                  <span className="block font-bold text-white mb-1">Encrypted Channels</span>
-                  <span className="text-neutral-500 leading-relaxed font-light font-light">TLS 1.3 vector streams with absolute key confinement.</span>
+                  <span className="block font-bold text-foreground mb-1">Encrypted Channels</span>
+                  <span className="text-neutral-500 leading-relaxed font-light">TLS 1.3 vector streams with absolute key confinement.</span>
                 </div>
-                <div className="p-4 border border-white/5 bg-white/[0.01] rounded-xl">
+                <div className="p-4 border border-border bg-card/10 rounded-xl">
                   <EyeOff className="w-4 h-4 text-emerald-400 mb-2" />
-                  <span className="block font-bold text-white mb-1">Zero Training Scraping</span>
-                  <span className="text-neutral-500 leading-relaxed font-light font-light">Complete legal exemption from public database scraping schedules.</span>
+                  <span className="block font-bold text-foreground mb-1">Zero Training Scraping</span>
+                  <span className="text-neutral-500 leading-relaxed font-light">Complete legal exemption from public database scraping schedules.</span>
                 </div>
               </div>
             </div>
 
             <div className="lg:col-span-6">
               {/* Graphical Security matrix */}
-              <div className="relative rounded-2xl border border-white/[0.08] p-6 sm:p-8 bg-[#09090c]/40 backdrop-blur-md overflow-hidden max-w-[500px] mx-auto">
-                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:14px_14px]" />
+              <div className="relative rounded-2xl border border-border/80 p-6 sm:p-8 bg-card/40 backdrop-blur-md overflow-hidden max-w-[500px] mx-auto">
+                <div className="absolute inset-0 bg-[linear-gradient(var(--text-primary)_1px,transparent_1px),linear-gradient(90deg,var(--text-primary)_1px,transparent_1px)] bg-[size:14px_14px] opacity-[0.01]" />
                 
-                <div className="relative z-10 flex items-center justify-between pb-4 mb-4 border-b border-white/[0.04]">
+                <div className="relative z-10 flex items-center justify-between pb-4 mb-4 border-b border-border/50">
                   <span className="font-mono text-[8px] font-bold text-neutral-500 uppercase tracking-widest">
                     SECURITY MATRIX MONITOR
                   </span>
@@ -994,26 +994,26 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
                 </div>
 
                 <div className="space-y-3.5 font-mono text-[9px] text-neutral-400 text-left">
-                  <div className="flex justify-between items-center p-2.5 border border-white/5 bg-black/40 rounded-lg">
+                  <div className="flex justify-between items-center p-2.5 border border-border/50 bg-card/45 rounded-lg">
                     <span>Active Security Protocol</span>
-                    <span className="text-white font-bold">AES-256-GCM</span>
+                    <span className="text-foreground font-bold">AES-256-GCM</span>
                   </div>
-                  <div className="flex justify-between items-center p-2.5 border border-white/5 bg-black/40 rounded-lg">
+                  <div className="flex justify-between items-center p-2.5 border border-border/50 bg-card/45 rounded-lg">
                     <span>Isolated Data Retention</span>
                     <span className="text-emerald-400 font-bold">0 Seconds</span>
                   </div>
-                  <div className="flex justify-between items-center p-2.5 border border-white/5 bg-black/40 rounded-lg">
+                  <div className="flex justify-between items-center p-2.5 border border-border/50 bg-card/45 rounded-lg">
                     <span>Pipeline Key Integrity</span>
-                    <span className="text-white font-bold">SHA-512 Signed</span>
+                    <span className="text-foreground font-bold">SHA-512 Signed</span>
                   </div>
-                  <div className="flex justify-between items-center p-2.5 border border-white/5 bg-black/40 rounded-lg">
+                  <div className="flex justify-between items-center p-2.5 border border-border/50 bg-card/45 rounded-lg">
                     <span>GPU Compute Exemption</span>
                     <span className="text-[#00d4ff] font-bold">Verified</span>
                   </div>
                 </div>
 
                 {/* Secure network pulse visual */}
-                <div className="mt-5 h-1.5 w-full rounded-full overflow-hidden bg-white/5 relative">
+                <div className="mt-5 h-1.5 w-full rounded-full overflow-hidden bg-border relative">
                   <div className="absolute top-0 bottom-0 left-0 bg-gradient-to-r from-emerald-500 to-[#00d4ff] w-full animate-progress" />
                 </div>
               </div>
@@ -1035,7 +1035,7 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="relative overflow-hidden rounded-2xl border border-white/[0.06] py-7 px-8 sm:px-10 text-left flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6"
+            className="relative overflow-hidden rounded-2xl border border-border/75 py-7 px-8 sm:px-10 text-left flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6"
             style={{
               background: "linear-gradient(135deg, rgba(0, 212, 255, 0.03), rgba(123, 97, 255, 0.03), rgba(255, 46, 154, 0.02))",
               backdropFilter: "blur(16px)",
@@ -1049,7 +1049,7 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
                 <Sparkles className="w-3 h-3 text-[#7b61ff]" />
                 Command the Latent Space
               </div>
-              <h2 className="font-display text-lg sm:text-xl font-bold tracking-tight text-white leading-tight">
+              <h2 className="font-display text-lg sm:text-xl font-bold tracking-tight text-foreground leading-tight">
                 Command the Latent Space with Absolute Precision.
               </h2>
               <p className="text-neutral-500 text-[10px] font-light mt-1">
@@ -1068,7 +1068,7 @@ export function FeaturesPageContent({ content }: { content: SiteContent }) {
               
               <Link
                 href="/contact"
-                className="inline-flex min-h-[42px] items-center justify-center rounded-xl border border-white/10 bg-white/[0.02] px-5 text-[10px] font-bold uppercase tracking-wider text-neutral-300 transition-colors hover:text-white hover:border-white/20 cursor-pointer"
+                className="inline-flex min-h-[42px] items-center justify-center rounded-xl border border-border bg-card/10 px-5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground hover:border-border/80 cursor-pointer"
               >
                 Talk to a Specialist
               </Link>

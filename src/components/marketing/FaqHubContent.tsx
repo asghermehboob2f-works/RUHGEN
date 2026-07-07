@@ -77,7 +77,7 @@ export function FaqHubContent() {
   }, [q, cat, faqs]);
 
   return (
-    <div className="relative min-h-screen font-sans" style={{ background: "var(--deep-black)" }}>
+    <div className="relative min-h-screen font-sans" style={{ background: "var(--background)" }}>
       {/* Decorative Cinematic Background Mesh */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute top-0 left-1/3 w-[500px] h-[500px] rounded-full bg-[#7B61FF]/10 blur-[130px]" />
@@ -85,7 +85,7 @@ export function FaqHubContent() {
       </div>
 
       {/* Hero Search Section */}
-      <section className="relative overflow-hidden border-b border-white/[0.03] pt-32 pb-16 z-10">
+      <section className="relative overflow-hidden border-b border-border/50 pt-32 pb-16 z-10">
         <div className={`relative ${SITE_CONTAINER} flex flex-col items-center text-center`}>
           <motion.div
             initial={reduce ? false : { opacity: 0, y: 15 }}
@@ -243,7 +243,7 @@ export function FaqHubContent() {
                               exit={reduce ? undefined : { opacity: 0, height: 0 }}
                               transition={{ duration: 0.25, ease: "easeOut" }}
                             >
-                              <p className="border-t border-white/5 px-5 pb-5 pt-4 text-xs sm:text-sm leading-relaxed text-[var(--text-muted)] font-light sm:px-6">
+                              <p className="border-t border-border/40 px-5 pb-5 pt-4 text-xs sm:text-sm leading-relaxed text-[var(--text-muted)] font-light sm:px-6">
                                 {item.answer}
                               </p>
                             </motion.div>

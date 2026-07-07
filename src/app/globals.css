@@ -19,6 +19,29 @@
   --mesh-1: rgba(123, 97, 255, 0.13);
   --mesh-2: rgba(0, 212, 255, 0.1);
   --mesh-3: rgba(255, 46, 154, 0.07);
+  --header-bg-scrolled: rgba(5, 5, 5, 0.78);
+  --header-bg-idle: rgba(5, 5, 5, 0.35);
+  --header-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  --drawer-bg: rgba(10, 10, 12, 0.95);
+  --drawer-footer-bg: rgba(8, 8, 10, 0.6);
+
+  --hero-glow-top: rgba(15, 23, 42, 0.55);
+  --hero-glow-mid: rgba(2, 6, 23, 0.88);
+  --hero-glow-bot: rgba(30, 27, 75, 0.28);
+  --hero-glow-radial-1: rgba(49, 46, 129, 0.18);
+  --hero-glow-radial-2: rgba(30, 58, 138, 0.12);
+  --hero-glow-radial-3: rgba(15, 118, 110, 0.08);
+  --hero-glow-radial-4: rgba(30, 41, 59, 0.2);
+  --hero-glow-radial-5: rgba(51, 65, 85, 0.14);
+  --hero-glow-radial-6: rgba(30, 41, 59, 0.18);
+  --hero-glow-edge-1a: rgba(30, 27, 75, 0.32);
+  --hero-glow-edge-1b: rgba(30, 58, 138, 0.1);
+  --hero-glow-edge-1c: rgba(15, 23, 42, 0.12);
+  --hero-glow-edge-2a: rgba(15, 23, 42, 0.35);
+  --hero-glow-edge-2b: rgba(30, 41, 59, 0.28);
+  --hero-glow-edge-2c: rgba(30, 27, 75, 0.18);
+  --hero-glow-overlay-a: rgba(15, 23, 42, 0.45);
+  --hero-glow-overlay-b: rgba(0, 0, 0, 0.58);
 }
 
 html.light {
@@ -34,6 +57,29 @@ html.light {
   --mesh-1: rgba(123, 97, 255, 0.09);
   --mesh-2: rgba(0, 212, 255, 0.07);
   --mesh-3: rgba(255, 46, 154, 0.05);
+  --header-bg-scrolled: rgba(255, 255, 255, 0.88);
+  --header-bg-idle: rgba(255, 255, 255, 0.55);
+  --header-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+  --drawer-bg: rgba(244, 244, 248, 0.95);
+  --drawer-footer-bg: rgba(240, 240, 245, 0.6);
+
+  --hero-glow-top: rgba(123, 97, 255, 0.06);
+  --hero-glow-mid: rgba(0, 212, 255, 0.04);
+  --hero-glow-bot: rgba(255, 46, 154, 0.03);
+  --hero-glow-radial-1: rgba(123, 97, 255, 0.08);
+  --hero-glow-radial-2: rgba(0, 212, 255, 0.06);
+  --hero-glow-radial-3: rgba(255, 46, 154, 0.05);
+  --hero-glow-radial-4: rgba(100, 116, 139, 0.04);
+  --hero-glow-radial-5: rgba(100, 116, 139, 0.03);
+  --hero-glow-radial-6: rgba(123, 97, 255, 0.04);
+  --hero-glow-edge-1a: rgba(123, 97, 255, 0.07);
+  --hero-glow-edge-1b: rgba(0, 212, 255, 0.05);
+  --hero-glow-edge-1c: rgba(255, 46, 154, 0.04);
+  --hero-glow-edge-2a: rgba(100, 116, 139, 0.06);
+  --hero-glow-edge-2b: rgba(123, 97, 255, 0.05);
+  --hero-glow-edge-2c: rgba(0, 212, 255, 0.04);
+  --hero-glow-overlay-a: rgba(255, 255, 255, 0.15);
+  --hero-glow-overlay-b: rgba(255, 255, 255, 0.35);
 }
 
 @theme inline {
@@ -52,6 +98,23 @@ html.light {
   --color-brand-purple: #7b61ff;
   --color-brand-cyan: #00d4ff;
   --color-brand-pink: #ff2e9a;
+
+  /* Theme-aware color bindings */
+  --color-deep-black: var(--deep-black);
+  --color-rich-black: var(--rich-black);
+  --color-soft-black: var(--soft-black);
+  --color-text-primary: var(--text-primary);
+  --color-text-muted: var(--text-muted);
+  --color-text-subtle: var(--text-subtle);
+  --color-border-subtle: var(--border-subtle);
+
+  --color-background: var(--deep-black);
+  --color-foreground: var(--text-primary);
+  --color-card: var(--rich-black);
+  --color-muted-foreground: var(--text-muted);
+  --color-border: var(--border-subtle);
+  --color-glass-bg: var(--glass);
+  --color-glass-elevated-bg: var(--glass-elevated);
 
   /* Premium Responsive Typography Scale */
   --text-hero-title: clamp(1.65rem, 8vw, 5rem);
@@ -742,7 +805,7 @@ html.light .luxury-glass-panel {
   appearance: none;
   height: 6px;
   border-radius: 999px;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
   outline: none;
 }
 
@@ -752,11 +815,23 @@ html.light .luxury-glass-panel {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: linear-gradient(145deg, #fff 0%, rgba(255, 255, 255, 0.75) 100%);
+  background: linear-gradient(145deg, #fff 0%, rgba(255, 255, 255, 0.85) 100%);
   box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.35),
-    0 4px 14px -2px rgba(123, 97, 255, 0.55);
+    0 0 0 1px color-mix(in srgb, var(--text-primary) 15%, transparent),
+    0 4px 14px -2px rgba(123, 97, 255, 0.45);
   cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.studio-range-premium::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow:
+    0 0 0 1px rgba(123, 97, 255, 0.4),
+    0 4px 16px -1px rgba(123, 97, 255, 0.6);
+}
+
+.studio-range-premium::-webkit-slider-thumb:active {
+  transform: scale(0.95);
 }
 
 .studio-range-premium::-moz-range-thumb {
@@ -764,11 +839,23 @@ html.light .luxury-glass-panel {
   height: 18px;
   border: 0;
   border-radius: 50%;
-  background: linear-gradient(145deg, #fff 0%, rgba(255, 255, 255, 0.75) 100%);
+  background: linear-gradient(145deg, #fff 0%, rgba(255, 255, 255, 0.85) 100%);
   box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.35),
-    0 4px 14px -2px rgba(123, 97, 255, 0.55);
+    0 0 0 1px color-mix(in srgb, var(--text-primary) 15%, transparent),
+    0 4px 14px -2px rgba(123, 97, 255, 0.45);
   cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.studio-range-premium::-moz-range-thumb:hover {
+  transform: scale(1.1);
+  box-shadow:
+    0 0 0 1px rgba(123, 97, 255, 0.4),
+    0 4px 16px -1px rgba(123, 97, 255, 0.6);
+}
+
+.studio-range-premium::-moz-range-thumb:active {
+  transform: scale(0.95);
 }
 
 /* Thin, luxurious scrollbar for studio panes */
@@ -784,13 +871,13 @@ html.light .luxury-glass-panel {
   background: transparent;
 }
 .studio-scrollbar::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, white 10%, transparent);
+  background: color-mix(in srgb, var(--text-primary) 12%, transparent);
   border-radius: 999px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 .studio-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in srgb, white 16%, transparent);
+  background: color-mix(in srgb, var(--text-primary) 22%, transparent);
   background-clip: padding-box;
 }
 [data-studio-mode="image"] .studio-scrollbar::-webkit-scrollbar-thumb:hover {

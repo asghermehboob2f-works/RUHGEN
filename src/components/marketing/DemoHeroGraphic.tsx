@@ -94,23 +94,23 @@ export function DemoHeroGraphic({ presets, className = "" }: DemoHeroGraphicProp
       />
 
       {/* Main console chassis */}
-      <div className="relative overflow-hidden rounded-[1.5rem] border border-white/[0.08] bg-black shadow-[0_20px_60px_-16px_rgba(0,0,0,0.95)]">
+      <div className="relative overflow-hidden rounded-[1.5rem] border border-border bg-card shadow-[0_20px_60px_-16px_rgba(0,0,0,0.15)]">
         <div className="relative flex flex-col justify-between">
           
           {/* Classic macOS Header Bar */}
-          <div className="relative z-20 flex items-center px-3.5 py-2 border-b border-white/[0.04] bg-black/40 backdrop-blur-md">
+          <div className="relative z-20 flex items-center px-3.5 py-2 border-b border-border/40 bg-card/40 backdrop-blur-md">
             <div className="flex items-center gap-1 mr-3 shrink-0">
               <span className="w-1.5 h-1.5 rounded-full bg-[#ff5f56]" />
               <span className="w-1.5 h-1.5 rounded-full bg-[#ffbd2e]" />
               <span className="w-1.5 h-1.5 rounded-full bg-[#27c93f]" />
             </div>
-            <span className="text-[7px] font-mono font-bold tracking-[0.25em] text-neutral-500 uppercase select-none truncate">
+            <span className="text-[7px] font-mono font-bold tracking-[0.25em] text-muted-foreground/60 uppercase select-none truncate">
               RUHGEN ENGINE // STILL_VISUALIZER
             </span>
           </div>
 
           {/* Main Visualizer Area (16/9.8 Cinematic Aspect Ratio - Perfectly Balanced Height) */}
-          <div className="relative flex-1 w-full aspect-[16/9.8] bg-[#030305] overflow-hidden flex items-center justify-center">
+          <div className="relative flex-1 w-full aspect-[16/9.8] bg-background overflow-hidden flex items-center justify-center">
             
             {/* Shifting images */}
             <AnimatePresence mode="wait">
@@ -128,7 +128,7 @@ export function DemoHeroGraphic({ presets, className = "" }: DemoHeroGraphicProp
 
             {/* Left Top: Dynamic RUHGEN STANDARD Tag */}
             <div className="absolute top-2.5 left-2.5 z-20">
-              <span className="inline-flex items-center gap-1 rounded-full bg-black/60 backdrop-blur-md px-2.5 py-1 border border-white/10 text-[8px] font-mono font-bold tracking-wider text-white shadow-md">
+              <span className="inline-flex items-center gap-1 rounded-full bg-card/60 backdrop-blur-md px-2.5 py-1 border border-border text-[8px] font-mono font-bold tracking-wider text-foreground shadow-md">
                 <span className="w-1 h-1 rounded-full transition-all duration-500" style={{ backgroundColor: activePreset.accent }} />
                 RUHGEN STANDARD
               </span>
@@ -142,8 +142,8 @@ export function DemoHeroGraphic({ presets, className = "" }: DemoHeroGraphicProp
             </div>
 
             {/* Ultra Slim Premium Prompt Box (Float Bottom) */}
-            <div className="absolute bottom-2.5 left-2.5 right-2.5 z-20 border border-white/5 bg-black/60 backdrop-blur-md rounded-lg p-2.5 text-left shadow-[0_6px_16px_rgba(0,0,0,0.6)]">
-              <p className="text-[9px] sm:text-[9.5px] font-mono text-neutral-300 leading-relaxed italic block">
+            <div className="absolute bottom-2.5 left-2.5 right-2.5 z-20 border border-border/50 bg-card/60 backdrop-blur-md rounded-lg p-2.5 text-left shadow-[0_6px_16px_rgba(0,0,0,0.15)]">
+              <p className="text-[9px] sm:text-[9.5px] font-mono text-foreground/90 leading-relaxed italic block">
                 &ldquo;{activePreset.prompt}&rdquo;
               </p>
             </div>
@@ -151,8 +151,8 @@ export function DemoHeroGraphic({ presets, className = "" }: DemoHeroGraphicProp
           </div>
 
           {/* Bottom Dock: ACTIVE ENGINE PRESETS */}
-          <div className="p-3 border-t border-white/[0.04] bg-[#07070a] relative z-20">
-            <div className="text-[8px] font-mono font-bold tracking-widest text-neutral-500 uppercase mb-2.5 text-left">
+          <div className="p-3 border-t border-border/40 bg-card/50 relative z-20">
+            <div className="text-[8px] font-mono font-bold tracking-widest text-muted-foreground/60 uppercase mb-2.5 text-left">
               ACTIVE ENGINE PRESETS
             </div>
 
@@ -165,8 +165,8 @@ export function DemoHeroGraphic({ presets, className = "" }: DemoHeroGraphicProp
                     onClick={() => selectPreset(index)}
                     className={`flex flex-col text-left p-2 sm:p-2.5 rounded-lg border transition-all duration-300 outline-none relative overflow-hidden select-none cursor-pointer ${
                       isActive ? 
-                      "border-white/20 shadow-[0_0_8px_rgba(123,97,255,0.04)]" : 
-                      "border-white/5 bg-white/[0.01] hover:bg-white/[0.03] hover:border-white/10"
+                      "border-border shadow-[0_0_8px_rgba(123,97,255,0.04)]" : 
+                      "border-border/30 bg-card/10 hover:bg-card/25 hover:border-border"
                     }`}
                     style={isActive ? { borderColor: `${preset.accent}66`, backgroundColor: `${preset.accent}05` } : {}}
                   >
@@ -175,12 +175,12 @@ export function DemoHeroGraphic({ presets, className = "" }: DemoHeroGraphicProp
                     )}
                     <span 
                       className={`font-sans text-[10px] sm:text-[10.5px] font-bold transition-colors ${
-                        isActive ? "text-white" : "text-neutral-400"
+                        isActive ? "text-foreground" : "text-muted-foreground"
                       }`}
                     >
                       {preset.name}
                     </span>
-                    <span className="font-mono text-[7px] text-neutral-500 mt-0.5 uppercase tracking-wider block">
+                    <span className="font-mono text-[7px] text-muted-foreground/75 mt-0.5 uppercase tracking-wider block">
                       {getSubtext(index)}
                     </span>
                   </button>

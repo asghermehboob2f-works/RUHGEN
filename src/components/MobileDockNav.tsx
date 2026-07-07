@@ -63,7 +63,7 @@ export function MobileDockNav() {
       <div
         className="absolute inset-x-0 bottom-0 h-20"
         style={{
-          background: "linear-gradient(0deg, rgba(5,5,5,0.85) 0%, transparent 100%)",
+          background: "linear-gradient(0deg, var(--header-bg-scrolled) 0%, transparent 100%)",
         }}
       />
 
@@ -77,10 +77,10 @@ export function MobileDockNav() {
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           className="relative flex items-center justify-between rounded-full px-2 py-1.5"
           style={{
-            background: "rgba(10, 10, 12, 0.85)",
+            background: "var(--drawer-bg)",
             backdropFilter: "blur(40px) saturate(200%)",
-            border: "0.5px solid rgba(255, 255, 255, 0.12)",
-            boxShadow: "0 20px 40px -12px rgba(0, 0, 0, 0.6), inset 0 0.5px 0 rgba(255,255,255,0.08)",
+            border: "0.5px solid var(--border-subtle)",
+            boxShadow: "0 20px 40px -12px rgba(0, 0, 0, 0.35), inset 0 0.5px 0 var(--border-subtle)",
           }}
         >
           {slots.map((slot) => {
@@ -98,7 +98,7 @@ export function MobileDockNav() {
                         className="absolute inset-0 rounded-full blur-md"
                         style={{ background: "linear-gradient(135deg, #7B61FF 0%, #00D4FF 100%)" }}
                       />
-                      <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-[#0a0a0c] border border-white/15 overflow-hidden shadow-2xl">
+                      <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-card border border-border overflow-hidden shadow-2xl">
                         <motion.div 
                           animate={{ x: ["-100%", "100%"] }}
                           transition={{ repeat: Infinity, duration: 2, ease: "linear", repeatDelay: 1 }}
@@ -129,7 +129,7 @@ export function MobileDockNav() {
                   transition={{ type: "spring", stiffness: 350, damping: 30 }}
                 >
                   <slot.Icon 
-                    className={`h-[16px] w-[16px] transition-colors duration-500 ${on ? "text-white" : "text-white/70"}`} 
+                    className={`h-[16px] w-[16px] transition-colors duration-500 ${on ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"}`} 
                     strokeWidth={on ? 2.4 : 1.4} 
                   />
                 </motion.div>
@@ -138,7 +138,7 @@ export function MobileDockNav() {
                   {on && (
                     <motion.div
                       layoutId="nav-dot-active"
-                      className="mt-0.5 h-0.5 w-0.5 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]"
+                      className="mt-0.5 h-0.5 w-0.5 rounded-full bg-[var(--text-primary)] shadow-[0_0_8px_var(--primary-purple)]"
                       transition={{ type: "spring", stiffness: 300, damping: 30 }}
                     />
                   )}
@@ -147,7 +147,7 @@ export function MobileDockNav() {
                 <span
                   className="mt-0.5 text-[6.5px] font-black uppercase tracking-[0.3em] transition-all duration-500"
                   style={{
-                    color: on ? "#fff" : "rgba(255, 255, 255, 0.65)",
+                    color: on ? "var(--text-primary)" : "var(--text-muted)",
                     opacity: on ? 1 : 0.9,
                   }}
                 >

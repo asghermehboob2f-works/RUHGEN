@@ -140,7 +140,7 @@ function CalibrationEngine() {
         }}
       />
 
-      <div className="relative flex items-center justify-between border-b border-white/[0.06] pb-3.5 mb-5">
+      <div className="relative flex items-center justify-between border-b border-[var(--border-subtle)] pb-3.5 mb-5">
         <div className="flex items-center gap-2">
           <div className="relative flex h-1.5 w-1.5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-cyan opacity-75"></span>
@@ -173,7 +173,7 @@ function CalibrationEngine() {
               max="100"
               value={calibration}
               onChange={(e) => setCalibration(parseInt(e.target.value))}
-              className="w-full h-[2px] bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-white [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:ring-1 [&::-webkit-slider-thumb]:ring-black [&::-moz-range-thumb]:w-2.5 [&::-moz-range-thumb]:h-2.5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-0"
+              className="w-full h-[2px] bg-[color-mix(in_srgb,var(--text-primary)_15%,transparent)] rounded-lg appearance-none cursor-pointer accent-white [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:ring-1 [&::-webkit-slider-thumb]:ring-black [&::-moz-range-thumb]:w-2.5 [&::-moz-range-thumb]:h-2.5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-0"
             />
           </div>
 
@@ -191,7 +191,7 @@ function CalibrationEngine() {
               max="100"
               value={latentDepth}
               onChange={(e) => setLatentDepth(parseInt(e.target.value))}
-              className="w-full h-[2px] bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-white [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:ring-1 [&::-webkit-slider-thumb]:ring-black [&::-moz-range-thumb]:w-2.5 [&::-moz-range-thumb]:h-2.5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-0"
+              className="w-full h-[2px] bg-[color-mix(in_srgb,var(--text-primary)_15%,transparent)] rounded-lg appearance-none cursor-pointer accent-white [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:ring-1 [&::-webkit-slider-thumb]:ring-black [&::-moz-range-thumb]:w-2.5 [&::-moz-range-thumb]:h-2.5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-0"
             />
           </div>
 
@@ -209,14 +209,14 @@ function CalibrationEngine() {
               max="100"
               value={meshFocus}
               onChange={(e) => setMeshFocus(parseInt(e.target.value))}
-              className="w-full h-[2px] bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-white [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:ring-1 [&::-webkit-slider-thumb]:ring-black [&::-moz-range-thumb]:w-2.5 [&::-moz-range-thumb]:h-2.5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-0"
+              className="w-full h-[2px] bg-[color-mix(in_srgb,var(--text-primary)_15%,transparent)] rounded-lg appearance-none cursor-pointer accent-white [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:ring-1 [&::-webkit-slider-thumb]:ring-black [&::-moz-range-thumb]:w-2.5 [&::-moz-range-thumb]:h-2.5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-0"
             />
           </div>
 
           {/* Sovereign Switch Toggle */}
-          <div className="flex items-center justify-between border-t border-white/[0.05] pt-3.5 mt-1.5">
+          <div className="flex items-center justify-between border-t border-[var(--border-subtle)] pt-3.5 mt-1.5">
             <div className="flex flex-col text-left">
-              <span className="text-[9px] font-mono tracking-[0.1em] text-[var(--text-primary)] flex items-center gap-1 uppercase font-bold">
+              <span className="text-[9px] font-mono tracking-[0.15em] text-[var(--text-primary)] flex items-center gap-1 uppercase font-bold">
                 <Lock className="h-2.5 w-2.5 text-green-400" />
                 SOVEREIGN CHANNEL
               </span>
@@ -227,7 +227,7 @@ function CalibrationEngine() {
             <button
               onClick={() => setSovereignMode(!sovereignMode)}
               className={`relative inline-flex h-4 w-8 shrink-0 cursor-pointer rounded-full border border-transparent transition-colors duration-300 ease-in-out focus:outline-none ${
-                sovereignMode ? "bg-brand-purple" : "bg-neutral-800"
+                sovereignMode ? "bg-brand-purple" : "bg-[color-mix(in_srgb,var(--text-primary)_15%,transparent)]"
               }`}
             >
               <span
@@ -240,7 +240,7 @@ function CalibrationEngine() {
         </div>
 
         {/* Right: Abstract Render Monitor with GPU animated path */}
-        <div className="relative h-[150px] rounded-xl border border-white/[0.04] bg-neutral-950/80 overflow-hidden flex flex-col items-center justify-center p-3">
+        <div className="relative h-[150px] rounded-xl border border-[var(--border-subtle)] bg-[color-mix(in_srgb,var(--deep-black)_80%,transparent)] overflow-hidden flex flex-col items-center justify-center p-3">
           {/* Diagnostic status overlay */}
           <div className="absolute top-2 left-2 flex items-center gap-1.5 font-mono text-[7px] text-neutral-500 uppercase tracking-[0.12em] font-semibold">
             <span className="w-1 h-1 rounded-full bg-green-500 animate-pulse" />
@@ -340,7 +340,7 @@ function CalibrationEngine() {
       </div>
 
       {/* Diagnostics ticker */}
-      <div className="mt-5 border-t border-white/[0.05] pt-3 flex items-center justify-between text-[8px] font-mono text-neutral-500 uppercase tracking-widest">
+      <div className="mt-5 border-t border-[var(--border-subtle)] pt-3 flex items-center justify-between text-[8px] font-mono text-neutral-500 uppercase tracking-widest">
         <span>TUNNEL_HASH: 0x{coherence}FFF_SECURED</span>
         <span>LOSSLESS_TRANSIT: 100%</span>
       </div>
@@ -544,11 +544,11 @@ function EngineOrchestrationHub() {
       const h = rect.height;
 
       // Draw dark gloss background with micro trail delay
-      ctx.fillStyle = "rgba(6, 6, 6, 0.22)";
+      ctx.fillStyle = document.documentElement.classList.contains("light") ? "rgba(240, 240, 245, 0.22)" : "rgba(6, 6, 6, 0.22)";
       ctx.fillRect(0, 0, w, h);
 
       // Render aesthetic technical crosshairs
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.015)";
+      ctx.strokeStyle = document.documentElement.classList.contains("light") ? "rgba(0, 0, 0, 0.02)" : "rgba(255, 255, 255, 0.015)";
       ctx.lineWidth = 0.5;
       
       // Horizontal & Vertical Sub-Grids
@@ -566,11 +566,11 @@ function EngineOrchestrationHub() {
       }
 
       // Draw aesthetic outer framing
-      ctx.strokeStyle = "rgba(255,255,255,0.03)";
+      ctx.strokeStyle = document.documentElement.classList.contains("light") ? "rgba(0, 0, 0, 0.05)" : "rgba(255, 255, 255, 0.03)";
       ctx.strokeRect(10, 10, w - 20, h - 20);
 
       // Compass crosshair guides
-      ctx.strokeStyle = "rgba(255,255,255,0.06)";
+      ctx.strokeStyle = document.documentElement.classList.contains("light") ? "rgba(0, 0, 0, 0.08)" : "rgba(255, 255, 255, 0.06)";
       ctx.beginPath();
       ctx.moveTo(w / 2 - 15, h / 2); ctx.lineTo(w / 2 + 15, h / 2);
       ctx.moveTo(w / 2, h / 2 - 15); ctx.lineTo(w / 2, h / 2 + 15);
@@ -675,7 +675,7 @@ function EngineOrchestrationHub() {
   };
 
   return (
-    <div className="premium-ring grid gap-8 lg:grid-cols-12 rounded-[1.25rem] border p-6 bg-black/40 backdrop-blur-3xl overflow-hidden relative" style={{ borderColor: "var(--border-subtle)" }}>
+    <div className="premium-ring grid gap-8 lg:grid-cols-12 rounded-[1.25rem] border p-6 bg-[color-mix(in_srgb,var(--deep-black)_40%,transparent)] backdrop-blur-3xl overflow-hidden relative" style={{ borderColor: "var(--border-subtle)" }}>
       {/* Dynamic Receding Font Background Layer */}
       <style>{`
         @keyframes receding-breath {
@@ -695,7 +695,7 @@ function EngineOrchestrationHub() {
         <div className="flex items-center justify-between mb-4">
           <span className="font-mono text-[8px] tracking-[0.15em] text-neutral-400 flex items-center gap-1.5 uppercase font-bold">
             <Terminal className="h-2.5 w-2.5 text-brand-purple" />
-            ENGINE_VISUALIZATION_FEED
+            ENGINE_VISIZATION_FEED
           </span>
           <span className="font-mono text-[8px] text-neutral-500">
             MATRIX_RECONSTRUCTION: OK
@@ -703,10 +703,10 @@ function EngineOrchestrationHub() {
         </div>
 
         {/* Blueprint Visual Screen */}
-        <div className="aspect-[16/10] rounded-xl border border-white/[0.04] bg-neutral-950/60 p-6 flex items-center justify-center relative overflow-hidden group cursor-crosshair">
+        <div className="aspect-[16/10] rounded-xl border border-[var(--border-subtle)] bg-[color-mix(in_srgb,var(--deep-black)_60%,transparent)] p-6 flex items-center justify-center relative overflow-hidden group cursor-crosshair">
           {/* Subtle Receding Font Layer directly behind the canvas particles */}
           <div className="absolute inset-0 flex justify-center items-center pointer-events-none select-none overflow-hidden z-0 opacity-[0.035] mix-blend-plus-lighter">
-            <span className="font-bungee-hairline text-[50px] sm:text-[90px] text-white tracking-[0.35em] uppercase whitespace-nowrap animate-receding-breath">
+            <span className="font-bungee-hairline text-[50px] sm:text-[90px] text-[var(--text-primary)] tracking-[0.35em] uppercase whitespace-nowrap animate-receding-breath">
               {engine.name.split(" ")[0]}
             </span>
           </div>
@@ -733,7 +733,7 @@ function EngineOrchestrationHub() {
       </div>
 
       {/* Right Column: Spec sheet & description (5 cols) */}
-      <div className="lg:col-span-5 flex flex-col justify-between border-t border-white/[0.06] lg:border-t-0 lg:border-l border-white/[0.06] pt-5 lg:pt-0 lg:pl-8 text-left z-10">
+      <div className="lg:col-span-5 flex flex-col justify-between border-t border-[var(--border-subtle)] lg:border-t-0 lg:border-l pt-5 lg:pt-0 lg:pl-8 text-left z-10">
         <div>
           <span className="text-[9px] font-mono tracking-[0.15em] text-[#7B61FF] uppercase font-bold block mb-3.5">
             ORCHESTRATED CAPABILITIES
@@ -761,7 +761,7 @@ function EngineOrchestrationHub() {
               {/* Glowing metrics grids with receding font */}
               <div className="grid grid-cols-3 gap-2">
                 {engine.metrics.map((met) => (
-                  <div key={met.label} className="border border-white/[0.04] bg-neutral-950/40 rounded-lg p-2.5 text-center flex flex-col justify-center items-center backdrop-blur-md relative overflow-hidden group hover:border-white/[0.08] transition-all duration-300">
+                  <div key={met.label} className="border border-[var(--border-subtle)] bg-[color-mix(in_srgb,var(--deep-black)_40%,transparent)] rounded-lg p-2.5 text-center flex flex-col justify-center items-center backdrop-blur-md relative overflow-hidden group hover:border-[var(--text-primary)]/20 transition-all duration-300">
                     <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                     <span className="text-[11px] text-[var(--text-primary)] tracking-widest block font-bungee-hairline premium-text-shimmer leading-none mb-1">
                       {met.value}
@@ -774,7 +774,7 @@ function EngineOrchestrationHub() {
               </div>
 
               {/* Description */}
-              <div className="space-y-1.5 border-t border-white/[0.04] pt-3.5">
+              <div className="space-y-1.5 border-t border-[var(--border-subtle)] pt-3.5">
                 <span className="text-[8px] font-mono text-neutral-500 uppercase block tracking-wider font-bold">
                   ORCHESTRATION PIPELINE OPERATION_LOG
                 </span>
@@ -788,7 +788,7 @@ function EngineOrchestrationHub() {
                 {engine.specs.map((spec) => (
                   <span
                     key={spec}
-                    className="px-2 py-0.5 rounded-full border border-white/[0.05] bg-white/[0.01] text-neutral-400 font-mono text-[7px] tracking-wider uppercase font-medium"
+                    className="px-2 py-0.5 rounded-full border border-[var(--border-subtle)] bg-[color-mix(in_srgb,var(--text-primary)_1%,transparent)] text-[var(--text-muted)] font-mono text-[7px] tracking-wider uppercase font-medium"
                   >
                     {spec}
                   </span>
@@ -799,7 +799,7 @@ function EngineOrchestrationHub() {
         </div>
 
         {/* Engine selector tab matrix at the bottom */}
-        <div className="pt-4 border-t border-white/[0.04] mt-5 flex flex-wrap justify-between items-center gap-4">
+        <div className="pt-4 border-t border-[var(--border-subtle)] mt-5 flex flex-wrap justify-between items-center gap-4">
           <div className="flex flex-wrap gap-1.5">
             {CREATIVE_ENGINES.map((eng, idx) => (
               <button
@@ -807,7 +807,7 @@ function EngineOrchestrationHub() {
                 onClick={() => setActiveEngineIdx(idx)}
                 className={`px-2.5 py-1 rounded-md font-mono text-[8px] uppercase tracking-wider transition-all duration-300 border cursor-pointer flex items-center gap-1.5 ${
                   activeEngineIdx === idx
-                    ? "bg-white/[0.04] border-white/[0.1] text-[var(--text-primary)]"
+                    ? "bg-[var(--glass-elevated)] border-[var(--border-subtle)] text-[var(--text-primary)]"
                     : "bg-transparent border-transparent text-neutral-500 hover:text-neutral-300"
                 }`}
               >
@@ -845,8 +845,8 @@ export function AboutPageContent() {
           backgroundSize: "28px 28px",
         }}
       />
-      <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/[0.05] to-transparent" />
-      <div className="absolute inset-y-0 left-0 w-[1px] bg-gradient-to-b from-transparent via-white/[0.03] to-transparent" />
+      <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-[var(--border-subtle)] to-transparent" />
+      <div className="absolute inset-y-0 left-0 w-[1px] bg-gradient-to-b from-transparent via-[var(--border-subtle)]/60 to-transparent" />
 
       {/* Luxury ambient light leak / soft auroras */}
       <div className="pointer-events-none absolute inset-0 z-0">
@@ -874,7 +874,7 @@ export function AboutPageContent() {
             initial={reduce ? false : { opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="inline-flex items-center gap-2 rounded-full border border-white/[0.06] bg-white/[0.01] px-4 py-1.5 text-[8px] tracking-[0.25em] text-[#7B61FF] uppercase shadow-[0_0_24px_rgba(123,97,255,0.06)] mb-8"
+            className="inline-flex items-center gap-2 rounded-full border border-[var(--border-subtle)] bg-[color-mix(in_srgb,var(--text-primary)_1%,transparent)] px-4 py-1.5 text-[8px] tracking-[0.25em] text-[#7B61FF] uppercase shadow-[0_0_24px_rgba(123,97,255,0.06)] mb-8"
             style={{ fontFamily: "var(--font-calsans)" }}
           >
             <Sparkles className="h-3 w-3 animate-pulse" style={{ color: "#7B61FF" }} />
@@ -907,7 +907,7 @@ export function AboutPageContent() {
         {/* ====================================================================== */}
         {/* PARAGRAPH INTRODUCTION STARTS (GRID ROW BELOW HERO) */}
         {/* ====================================================================== */}
-        <section className="grid gap-12 lg:grid-cols-12 lg:gap-16 items-start w-full pt-16 border-t border-white/[0.06]">
+        <section className="grid gap-12 lg:grid-cols-12 lg:gap-16 items-start w-full pt-16 border-t border-[var(--border-subtle)]">
           {/* Left: Paragraph introduction starts */}
           <motion.div
             className="lg:col-span-7 flex flex-col items-start text-left space-y-6 max-w-3xl"
@@ -973,7 +973,7 @@ export function AboutPageContent() {
         {/* ====================================================================== */}
         {/* ORCHESTRATION PIPELINES: Multi-Engine Showcase */}
         {/* ====================================================================== */}
-        <section className="pt-20 border-t border-white/[0.06] w-full space-y-12">
+        <section className="pt-20 border-t border-[var(--border-subtle)] w-full space-y-12">
           <div className="text-center mb-10 space-y-3 max-w-5xl mx-auto">
             <span className="text-[9px] font-mono tracking-[0.15em] text-[#00D4FF] uppercase block font-bold">
               ORCHESTRATION PIPELINES
@@ -1083,7 +1083,7 @@ export function AboutPageContent() {
         {/* ====================================================================== */}
         {/* NARRATIVE SECTION: THE SOVEREIGN INTENT (Brand Philosophy Centered) */}
         {/* ====================================================================== */}
-        <section className="flex flex-col items-center pt-20 border-t border-white/[0.06] text-center max-w-6xl mx-auto w-full space-y-10">
+        <section className="flex flex-col items-center pt-20 border-t border-[var(--border-subtle)] text-center max-w-6xl mx-auto w-full space-y-10">
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -1158,7 +1158,7 @@ export function AboutPageContent() {
         {/* ====================================================================== */}
         {/* THE THREE PILLARS OF PRESTIGE */}
         {/* ====================================================================== */}
-        <section className="flex flex-col items-center pt-20 border-t border-white/[0.06] text-center w-full space-y-10">
+        <section className="flex flex-col items-center pt-20 border-t border-[var(--border-subtle)] text-center w-full space-y-10">
           <div className="space-y-3 max-w-5xl mx-auto">
             <span className="text-[9px] font-mono tracking-[0.15em] text-[#00D4FF] uppercase block font-bold">
               DESIGN SPECIFICATIONS
@@ -1228,7 +1228,7 @@ export function AboutPageContent() {
                 </div>
 
                 {/* Benefit (ESTABLISHED VALUE) with selective highlight */}
-                <div className="pt-4 border-t border-white/[0.04] space-y-1 mt-auto relative z-10">
+                <div className="pt-4 border-t border-[var(--border-subtle)] space-y-1 mt-auto relative z-10">
                   <span className="text-[8px] font-mono text-[var(--text-subtle)] uppercase block tracking-wider font-bold">
                     ESTABLISHED VALUE
                   </span>
@@ -1264,7 +1264,7 @@ export function AboutPageContent() {
                 </div>
 
                 {/* Stats readout inside the card */}
-                <div className="pt-3 mt-4 border-t border-white/[0.04] flex items-center justify-between text-[8px] font-mono text-[var(--text-subtle)] uppercase tracking-widest font-bold">
+                <div className="pt-3 mt-4 border-t border-border/50 flex items-center justify-between text-[8px] font-mono text-[var(--text-subtle)] uppercase tracking-widest font-bold">
                   <span>STAT_LOG</span>
                   <span className="text-[var(--text-primary)] font-bold" style={{ fontFamily: "var(--font-calsans)" }}>{pillar.stats}</span>
                 </div>
@@ -1324,11 +1324,11 @@ export function AboutPageContent() {
             </blockquote>
 
             <div className="flex items-center justify-center gap-3 pt-3">
-              <span className="h-[1px] w-8 bg-neutral-800" />
+              <span className="h-[1px] w-8 bg-[var(--border-subtle)]" />
               <cite className="font-mono text-[8px] text-[var(--text-subtle)] uppercase tracking-[0.2em] font-extrabold not-italic">
                 RUHGEN FOUNDING ARCHITECTS // 2026
               </cite>
-              <span className="h-[1px] w-8 bg-neutral-800" />
+              <span className="h-[1px] w-8 bg-[var(--border-subtle)]" />
             </div>
           </div>
         </motion.section>
@@ -1336,7 +1336,7 @@ export function AboutPageContent() {
         {/* ====================================================================== */}
         {/* TIMELINE: THE CHRONICLE */}
         {/* ====================================================================== */}
-        <section className="flex flex-col items-center pt-20 border-t border-white/[0.06] text-center max-w-6xl mx-auto w-full space-y-10">
+        <section className="flex flex-col items-center pt-20 border-t border-[var(--border-subtle)] text-center max-w-6xl mx-auto w-full space-y-10">
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -1356,7 +1356,7 @@ export function AboutPageContent() {
           </motion.div>
 
           {/* Symmetrical Centered Selector Tabs */}
-          <div className="flex items-center justify-center gap-3 bg-white/[0.01] border border-white/[0.06] p-1 rounded-xl max-w-[240px] mx-auto w-full relative z-10">
+          <div className="flex items-center justify-center gap-3 bg-[color-mix(in_srgb,var(--text-primary)_1%,transparent)] border border-[var(--border-subtle)] p-1 rounded-xl max-w-[240px] mx-auto w-full relative z-10">
             {EPOCHS.map((epoch, idx) => (
               <button
                 key={epoch.year}
@@ -1364,7 +1364,7 @@ export function AboutPageContent() {
                 className="flex-1 py-2 px-4 text-xs font-semibold rounded-lg tracking-wider transition-all duration-300 cursor-pointer"
                 style={{
                   fontFamily: "var(--font-calsans)",
-                  background: activeEpoch === idx ? "rgba(255,255,255,0.05)" : "transparent",
+                  background: activeEpoch === idx ? "var(--glass-elevated)" : "transparent",
                   color: activeEpoch === idx ? "var(--text-primary)" : "var(--text-muted)",
                 }}
               >
@@ -1405,7 +1405,7 @@ export function AboutPageContent() {
                 &ldquo;{EPOCHS[activeEpoch].tagline}&rdquo;
               </p>
 
-              <div className="h-[1px] w-12 bg-white/[0.06] mx-auto my-2" />
+              <div className="h-[1px] w-12 bg-[var(--border-subtle)] mx-auto my-2" />
 
               <p className="text-[var(--text-muted)] text-xs sm:text-sm leading-relaxed font-light font-sans max-w-3xl mx-auto">
                 {EPOCHS[activeEpoch].description}
@@ -1458,7 +1458,7 @@ export function AboutPageContent() {
           />
 
           <div className="relative flex flex-col items-center justify-center text-center gap-6 max-w-2xl mx-auto">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/[0.06] bg-white/[0.01] px-3 py-1 text-[8px] tracking-[0.15em] text-[#FF2E9A] uppercase font-bold">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border-subtle)] bg-[color-mix(in_srgb,var(--text-primary)_1%,transparent)] px-3 py-1 text-[8px] tracking-[0.15em] text-[#FF2E9A] uppercase font-bold">
               CAREERS // COMPUTE SYSTEMS
             </div>
 

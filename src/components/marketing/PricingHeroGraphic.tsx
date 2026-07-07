@@ -93,10 +93,10 @@ export function PricingHeroGraphic({ className = "" }: { className?: string }) {
       />
 
       {/* ── Main Classic Console Chassis ── */}
-      <div className="relative overflow-hidden rounded-[1.5rem] border border-white/[0.08] bg-black shadow-[0_20px_60px_-16px_rgba(0,0,0,0.95)]">
+      <div className="relative overflow-hidden rounded-[1.5rem] border border-border/80 bg-card shadow-[0_20px_60px_-16px_rgba(0,0,0,0.35)]">
         
         {/* macOS-style Header Bar */}
-        <div className="relative z-20 flex items-center border-b border-white/[0.04] bg-black/40 px-3.5 py-2 backdrop-blur-md">
+        <div className="relative z-20 flex items-center border-b border-border/50 bg-card/40 px-3.5 py-2 backdrop-blur-md">
           <div className="mr-3 flex shrink-0 items-center gap-1">
             <span className="h-1.5 w-1.5 rounded-full bg-[#ff5f56]" />
             <span className="h-1.5 w-1.5 rounded-full bg-[#ffbd2e]" />
@@ -108,10 +108,10 @@ export function PricingHeroGraphic({ className = "" }: { className?: string }) {
         </div>
 
         {/* ── Main display area ── */}
-        <div className="relative w-full overflow-hidden bg-gradient-to-b from-[#060609] to-[#020204] p-6" style={{ aspectRatio: "16/10" }}>
+        <div className="relative w-full overflow-hidden bg-gradient-to-b from-card to-background p-6" style={{ aspectRatio: "16/10" }}>
           
           {/* Shimmer light reflection effect */}
-          <div className="absolute inset-0 pointer-events-none bg-gradient-to-tr from-transparent via-white/[0.01] to-transparent" />
+          <div className="absolute inset-0 pointer-events-none bg-gradient-to-tr from-transparent via-[var(--text-primary)]/[0.01] to-transparent" />
 
           {/* Ambient color wash inside */}
           <div
@@ -125,7 +125,7 @@ export function PricingHeroGraphic({ className = "" }: { className?: string }) {
           <div className="flex items-center justify-between relative z-10">
             <div className="flex items-center gap-2">
               <span
-                className="flex h-5 w-5 items-center justify-center rounded border border-white/5 bg-white/[0.02] transition-colors duration-500"
+                className="flex h-5 w-5 items-center justify-center rounded border border-border/50 bg-card/10 transition-colors duration-500"
                 style={{ color: plan.accentRaw }}
               >
                 <Icon className="h-3 w-3" />
@@ -137,7 +137,7 @@ export function PricingHeroGraphic({ className = "" }: { className?: string }) {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 4 }}
                   transition={{ duration: 0.3 }}
-                  className="font-mono text-[10px] font-bold tracking-wider uppercase text-white/90"
+                  className="font-mono text-[10px] font-bold tracking-wider uppercase text-foreground"
                 >
                   {plan.label}
                 </motion.span>
@@ -151,7 +151,7 @@ export function PricingHeroGraphic({ className = "" }: { className?: string }) {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.3 }}
-                className="inline-flex items-center gap-1.5 rounded-full border border-white/5 bg-white/[0.02] px-2 py-0.5"
+                className="inline-flex items-center gap-1.5 rounded-full border border-border/50 bg-card/10 px-2 py-0.5"
               >
                 <span className="relative flex h-1 w-1">
                   <span
@@ -163,7 +163,7 @@ export function PricingHeroGraphic({ className = "" }: { className?: string }) {
                     style={{ backgroundColor: plan.accentRaw }}
                   />
                 </span>
-                <span className="font-mono text-[6.5px] font-bold uppercase tracking-wider text-white/50">
+                <span className="font-mono text-[6.5px] font-bold uppercase tracking-wider text-muted-foreground">
                   {plan.status}
                 </span>
               </motion.div>
@@ -197,7 +197,7 @@ export function PricingHeroGraphic({ className = "" }: { className?: string }) {
                       </span>
                     )}
                     <span
-                      className="font-extrabold leading-none tracking-tighter text-white"
+                      className="font-extrabold leading-none tracking-tighter text-foreground"
                       style={{
                         fontFamily: "var(--font-syne)",
                         fontSize: plan.price.length > 4 ? 48 : 58,
@@ -207,14 +207,14 @@ export function PricingHeroGraphic({ className = "" }: { className?: string }) {
                       {plan.price}
                     </span>
                     {plan.period && (
-                      <span className="self-end mb-2 ml-1 text-[10px] font-semibold text-white/20">
+                      <span className="self-end mb-2 ml-1 text-[10px] font-semibold text-muted-foreground/65">
                         {plan.period}
                       </span>
                     )}
                   </div>
 
                   <div className="mt-3 flex flex-col gap-0.5">
-                    <span className="font-mono text-[8.5px] uppercase tracking-wider text-white/30">
+                    <span className="font-mono text-[8.5px] uppercase tracking-wider text-muted-foreground/65">
                       {plan.credits}
                     </span>
                     <span className="font-mono text-[8px] font-bold uppercase tracking-wider transition-colors duration-500" style={{ color: plan.accent }}>
@@ -226,7 +226,7 @@ export function PricingHeroGraphic({ className = "" }: { className?: string }) {
             </div>
 
             {/* Right Column: Performance Indicators */}
-            <div className="rounded-xl border border-white/[0.04] bg-white/[0.01] p-3.5 flex flex-col gap-2 relative overflow-hidden">
+            <div className="rounded-xl border border-border/50 bg-card/10 p-3.5 flex flex-col gap-2 relative overflow-hidden">
               <div className="absolute inset-0 pointer-events-none opacity-20 bg-radial-gradient" 
                 style={{
                   background: `radial-gradient(circle at 100% 0%, ${plan.accentRaw}15, transparent 60%)`
@@ -243,11 +243,11 @@ export function PricingHeroGraphic({ className = "" }: { className?: string }) {
                   className="space-y-2"
                 >
                   <div>
-                    <div className="flex justify-between font-mono text-[6.5px] uppercase text-white/30 mb-0.5">
+                    <div className="flex justify-between font-mono text-[6.5px] uppercase text-muted-foreground/45 mb-0.5">
                       <span>Render Speed</span>
                       <span style={{ color: plan.accentRaw }}>{plan.performance.speed}</span>
                     </div>
-                    <div className="h-1 rounded-full bg-white/5 overflow-hidden">
+                    <div className="h-1 rounded-full bg-border overflow-hidden">
                       <motion.div 
                         className="h-full rounded-full"
                         initial={{ width: 0 }}
@@ -259,11 +259,11 @@ export function PricingHeroGraphic({ className = "" }: { className?: string }) {
                   </div>
 
                   <div>
-                    <div className="flex justify-between font-mono text-[6.5px] uppercase text-white/30 mb-0.5">
+                    <div className="flex justify-between font-mono text-[6.5px] uppercase text-muted-foreground/45 mb-0.5">
                       <span>Concurrency</span>
                       <span style={{ color: plan.accentRaw }}>{plan.performance.concurrency}</span>
                     </div>
-                    <div className="h-1 rounded-full bg-white/5 overflow-hidden">
+                    <div className="h-1 rounded-full bg-border overflow-hidden">
                       <motion.div 
                         className="h-full rounded-full"
                         initial={{ width: 0 }}
@@ -275,11 +275,11 @@ export function PricingHeroGraphic({ className = "" }: { className?: string }) {
                   </div>
 
                   <div>
-                    <div className="flex justify-between font-mono text-[6.5px] uppercase text-white/30 mb-0.5">
+                    <div className="flex justify-between font-mono text-[6.5px] uppercase text-muted-foreground/45 mb-0.5">
                       <span>Max Output</span>
                       <span style={{ color: plan.accentRaw }}>{plan.performance.quality}</span>
                     </div>
-                    <div className="h-1 rounded-full bg-white/5 overflow-hidden">
+                    <div className="h-1 rounded-full bg-border overflow-hidden">
                       <motion.div 
                         className="h-full rounded-full"
                         initial={{ width: 0 }}
@@ -296,7 +296,7 @@ export function PricingHeroGraphic({ className = "" }: { className?: string }) {
           </div>
 
           {/* ── Feature List Footer (Compact Horizontal Row) ── */}
-          <div className="relative z-10 border-t border-white/[0.05] pt-3 mt-4">
+          <div className="relative z-10 border-t border-border/50 pt-3 mt-4">
             <AnimatePresence mode="wait">
               <motion.ul
                 key={plan.id + "-features-list"}
@@ -309,7 +309,7 @@ export function PricingHeroGraphic({ className = "" }: { className?: string }) {
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-center gap-1.5">
                     <Check className="h-2.5 w-2.5 shrink-0" style={{ color: plan.accentRaw }} strokeWidth={2.5} />
-                    <span className="font-mono text-[8px] tracking-wide text-white/45 truncate">
+                    <span className="font-mono text-[8px] tracking-wide text-muted-foreground/60 truncate">
                       {feature}
                     </span>
                   </li>
@@ -321,7 +321,7 @@ export function PricingHeroGraphic({ className = "" }: { className?: string }) {
         </div>
 
         {/* ── Bottom Dock: active selector presets ── */}
-        <div className="relative z-20 border-t border-white/[0.04] bg-[#07070a] p-3">
+        <div className="relative z-20 border-t border-border/50 bg-card p-3">
           <div className="mb-2 text-left font-mono text-[7.5px] font-bold uppercase tracking-widest text-neutral-500">
             ACTIVE PLAN PRESETS
           </div>
@@ -333,7 +333,7 @@ export function PricingHeroGraphic({ className = "" }: { className?: string }) {
                   key={p.id}
                   onClick={() => setIdx(i)}
                   className={`relative flex flex-col overflow-hidden rounded-lg border p-1.5 text-left outline-none transition-all duration-300 cursor-pointer ${
-                    isActive ? "" : "border-white/5 bg-white/[0.01] hover:bg-white/[0.03] hover:border-white/10"
+                    isActive ? "" : "border-border/40 bg-card/10 hover:bg-card/25 hover:border-border"
                   }`}
                   style={
                     isActive
@@ -348,7 +348,7 @@ export function PricingHeroGraphic({ className = "" }: { className?: string }) {
                     />
                   )}
                   <span
-                    className={`font-mono text-[8.5px] font-bold tracking-tight transition-colors ${isActive ? "text-white" : "text-neutral-400"}`}
+                    className={`font-mono text-[8.5px] font-bold tracking-tight transition-colors ${isActive ? "text-foreground" : "text-muted-foreground"}`}
                   >
                     {p.label}
                   </span>
