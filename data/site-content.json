@@ -287,12 +287,6 @@
         "filename": "829f7ae8-90d8-480e-85a7-f7c5efe35352.jpg"
       },
       {
-        "id": "71535f94-4d62-4616-b364-3687c3958e14",
-        "type": "video",
-        "src": "/media/homepage/3bd63c55-66bb-4562-a37d-98c9fb43da81.mp4",
-        "filename": "ad638073-fd3d-4a73-bf8d-68da8658ee82.mp4"
-      },
-      {
         "id": "b10c6be0-5249-4ce6-9b34-8226dc94633d",
         "type": "image",
         "src": "/media/homepage/5fda8e4e-9bd2-41e6-a4e3-f654ad5864f3.png",
@@ -321,12 +315,6 @@
         "type": "image",
         "src": "/media/homepage/6a5cc77d-d69a-42d8-8a19-483359395a92.jpg",
         "filename": "52809c59-5915-431c-a5dc-a63a21336444.jpg"
-      },
-      {
-        "id": "12a2a1cb-9968-4286-b385-439929915dbe",
-        "type": "video",
-        "src": "/media/homepage/f7d698e5-431d-4022-b694-978563c21bfb.mp4",
-        "filename": "YouCut_20260805_200137804.mp4"
       },
       {
         "id": "672b1b28-0730-47c4-9ee5-33a78f12ea69",
@@ -359,12 +347,6 @@
         "filename": "b2481fe2-9e3c-4257-8628-78538add9378.jpg"
       },
       {
-        "id": "c50df353-d2d4-4bb0-bd74-78991d4826af",
-        "type": "video",
-        "src": "/media/homepage/dbe5932e-af1a-4d71-95da-eb173f0233f6.mp4",
-        "filename": "YouCut_20260805_200049682.mp4"
-      },
-      {
         "id": "bf5f365d-e8d8-4be1-baa5-2897c24e61a0",
         "type": "image",
         "src": "/media/homepage/b90e8cbf-a300-48d7-aee7-3d2a64149ed3.jpg",
@@ -393,12 +375,6 @@
         "type": "image",
         "src": "/media/homepage/32e5c7ec-17ac-4ae3-aa1d-e6f708221508.jpg",
         "filename": "cef8a654-1dcd-4323-ae37-1cddb7de6286.jpg"
-      },
-      {
-        "id": "d0f0d5c5-4e0a-49c7-8a4a-c01535f98247",
-        "type": "video",
-        "src": "/media/homepage/da98bafd-65d3-4afa-91da-e82e2cf1623e.mp4",
-        "filename": "YouCut_20260805_195909355.mp4"
       },
       {
         "id": "e7ccdb79-e695-4ef3-bdd5-e27f502a6144",
@@ -431,12 +407,6 @@
         "filename": "f98eaabd-e317-48a8-b44e-a9a11b8036c3.jpg"
       },
       {
-        "id": "c21b1bf4-6455-430a-82f6-c263b25c0b3b",
-        "type": "video",
-        "src": "/media/homepage/4a8fb712-f8ce-4a93-aedd-f0710df97f5f.mp4",
-        "filename": "YouCut_20260805_195808016.mp4"
-      },
-      {
         "id": "66f735af-cf1c-4bb6-8d40-0fefdf6177b2",
         "type": "image",
         "src": "/media/homepage/fd5e2daf-af58-4b95-8419-40521dab42e4.jpg",
@@ -465,12 +435,6 @@
         "type": "image",
         "src": "/media/homepage/67994c5d-9138-4e50-9811-7f20cf0b461e.jpg",
         "filename": "lw.jpg"
-      },
-      {
-        "id": "b8efe37e-f055-4bf7-85b4-b00560958c2d",
-        "type": "video",
-        "src": "/media/homepage/8c9d8977-496c-4944-a764-e84e7f7d1d08.mp4",
-        "filename": "YouCut_20260805_195701540.mp4"
       },
       {
         "id": "332280c4-ef27-4b53-bac4-0eff18921902",
@@ -503,12 +467,6 @@
         "filename": "sf.jpg"
       },
       {
-        "id": "1467e906-526f-4fa7-8481-157a75c143e6",
-        "type": "video",
-        "src": "/media/homepage/4050ec44-652e-41b0-a2de-0e1fb01fcfc5.mp4",
-        "filename": "YouCut_20260805_195522497.mp4"
-      },
-      {
         "id": "40578c18-c3a2-4cc4-b213-6d4dcd6c95c2",
         "type": "image",
         "src": "/media/homepage/a518bb21-4443-400c-b2d9-26e3394fa7ac.jpg",
@@ -537,6 +495,42 @@
         "type": "image",
         "src": "/media/homepage/40709e0b-69b3-4033-be30-eda2c2581e8a.png",
         "filename": "yc.png"
+      },
+      {
+        "id": "12a2a1cb-9968-4286-b385-439929915dbe",
+        "type": "video",
+        "src": "/media/homepage/f7d698e5-431d-4022-b694-978563c21bfb.mp4",
+        "filename": "YouCut_20260805_200137804.mp4"
+      },
+      {
+        "id": "c50df353-d2d4-4bb0-bd74-78991d4826af",
+        "type": "video",
+        "src": "/media/homepage/dbe5932e-af1a-4d71-95da-eb173f0233f6.mp4",
+        "filename": "YouCut_20260805_200049682.mp4"
+      },
+      {
+        "id": "d0f0d5c5-4e0a-49c7-8a4a-c01535f98247",
+        "type": "video",
+        "src": "/media/homepage/da98bafd-65d3-4afa-91da-e82e2cf1623e.mp4",
+        "filename": "YouCut_20260805_195909355.mp4"
+      },
+      {
+        "id": "c21b1bf4-6455-430a-82f6-c263b25c0b3b",
+        "type": "video",
+        "src": "/media/homepage/4a8fb712-f8ce-4a93-aedd-f0710df97f5f.mp4",
+        "filename": "YouCut_20260805_195808016.mp4"
+      },
+      {
+        "id": "b8efe37e-f055-4bf7-85b4-b00560958c2d",
+        "type": "video",
+        "src": "/media/homepage/8c9d8977-496c-4944-a764-e84e7f7d1d08.mp4",
+        "filename": "YouCut_20260805_195701540.mp4"
+      },
+      {
+        "id": "1467e906-526f-4fa7-8481-157a75c143e6",
+        "type": "video",
+        "src": "/media/homepage/4050ec44-652e-41b0-a2de-0e1fb01fcfc5.mp4",
+        "filename": "YouCut_20260805_195522497.mp4"
       }
     ],
     "overlayOpacity": 0.55,
