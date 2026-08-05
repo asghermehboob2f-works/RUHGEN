@@ -22,6 +22,56 @@ const TRACK_HEIGHTS = [
 ];
 const TRACK_SPEEDS = [0.05, 0.08, 0.06]; // Relative speeds for parallax
 
+function shuffleArray<T>(array: T[]): T[] {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+/**
+ * Distributes images and videos randomly across 3 sliding tracks,
+ * ensuring photos and videos are randomly mixed up together.
+ */
+function distributeMediaRandomly(media: HeroBackgroundMedia[]): [HeroBackgroundMedia[], HeroBackgroundMedia[], HeroBackgroundMedia[]] {
+  if (!media || media.length === 0) return [[], [], []];
+
+  const videos = shuffleArray(media.filter((m) => m.type === "video"));
+  const images = shuffleArray(media.filter((m) => m.type === "image"));
+
+  if (videos.length === 0 || images.length === 0) {
+    const shuffledAll = shuffleArray(media);
+    const third = Math.ceil(shuffledAll.length / 3);
+    const twoThirds = Math.ceil((shuffledAll.length * 2) / 3);
+    return [
+      shuffledAll.slice(0, third),
+      shuffledAll.slice(third, twoThirds),
+      shuffledAll.slice(twoThirds),
+    ];
+  }
+
+  const trackVideos: HeroBackgroundMedia[][] = [[], [], []];
+  const trackImages: HeroBackgroundMedia[][] = [[], [], []];
+
+  videos.forEach((v, idx) => {
+    trackVideos[idx % 3].push(v);
+  });
+
+  images.forEach((img, idx) => {
+    trackImages[idx % 3].push(img);
+  });
+
+  const resultTracks: [HeroBackgroundMedia[], HeroBackgroundMedia[], HeroBackgroundMedia[]] = [[], [], []];
+
+  for (let t = 0; t < 3; t++) {
+    resultTracks[t] = shuffleArray([...trackVideos[t], ...trackImages[t]]);
+  }
+
+  return resultTracks;
+}
+
 export function HeroBackground({ config }: HeroBackgroundProps) {
   const mounted = useIsMounted();
   const [isMobile, setIsMobile] = useState(false);
@@ -64,19 +114,9 @@ export function HeroBackground({ config }: HeroBackgroundProps) {
     };
   }, [config.enableParallax, config.parallaxIntensity, mouseX, mouseY]);
 
-  // Create 3 DIFFERENT pools of media for the 3 tracks to ensure ZERO vertical repetition on desktop.
+  // Create 3 pool tracks with videos and photos randomly mixed up
   const tracksMedia = useMemo(() => {
-    if (!config.media || config.media.length === 0) return [[], [], []];
-    
-    const media = config.media;
-    const third = Math.ceil(media.length / 3);
-    const twoThirds = Math.ceil((media.length * 2) / 3);
-    
-    return [
-      media.slice(0, third),
-      media.slice(third, twoThirds),
-      media.slice(twoThirds)
-    ];
+    return distributeMediaRandomly(config.media || []);
   }, [config.media]);
 
   if (!mounted || !config.media || config.media.length === 0) return <div className="absolute inset-0 bg-[var(--deep-black)]" />;
@@ -188,6 +228,31 @@ function SlidingTrack({
 function TrackItem({ media, globalIndex }: { media: HeroBackgroundMedia, globalIndex: number }) {
   const { theme } = useTheme();
   const isLight = theme === "light";
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.defaultMuted = true;
+    video.muted = true;
+
+    const playVideo = () => {
+      video.play().catch(() => {});
+    };
+
+    if (video.readyState >= 2) {
+      playVideo();
+    } else {
+      video.addEventListener("canplay", playVideo, { once: true });
+      video.addEventListener("loadedmetadata", playVideo, { once: true });
+    }
+
+    return () => {
+      video.removeEventListener("canplay", playVideo);
+      video.removeEventListener("loadedmetadata", playVideo);
+    };
+  }, [media.src]);
 
   return (
     <div
@@ -197,12 +262,14 @@ function TrackItem({ media, globalIndex }: { media: HeroBackgroundMedia, globalI
       {/* Media Content - Natural Ratio */}
       {media.type === "video" ? (
         <video
+          ref={videoRef}
           src={media.src}
           autoPlay
           muted
           loop
           playsInline
-          className="h-full w-auto max-w-none rounded-2xl transition-transform duration-1000 ease-out group-hover:scale-[1.05]"
+          preload="auto"
+          className="h-full w-auto max-w-none rounded-2xl transition-transform duration-1000 ease-out group-hover:scale-[1.05] pointer-events-none"
         />
       ) : (
         /* eslint-disable-next-line @next/next/no-img-element */
