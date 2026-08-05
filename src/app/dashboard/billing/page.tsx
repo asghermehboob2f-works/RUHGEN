@@ -21,7 +21,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { BillingSkeleton } from "@/components/Skeletons";
 import { RazorpayCheckoutModal, type Plan } from "@/components/payments/RazorpayCheckoutModal";
 
-function PlanCard({ plan }: { plan: Plan }) {
+function PlanCard({ plan, paymentsAvailable }: { plan: Plan; paymentsAvailable: boolean }) {
   const reduce = useReducedMotion();
   const planId = plan.id.replace("_yearly", "");
   const billingPeriod = plan.id.includes("yearly") ? "yearly" : "monthly";
@@ -119,6 +119,7 @@ export default function BillingPage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [plans, setPlans] = useState<Plan[]>([]);
+  const [paymentsAvailable, setPaymentsAvailable] = useState<boolean>(true);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [activeTab, setActiveTab] = useState<"overview" | "history" | "plans">("overview");
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
@@ -151,7 +152,10 @@ export default function BillingPage() {
         updatedData.paymentHistory = historyData.payments;
       }
       setData(updatedData);
-      if (plansData.ok) setPlans(plansData.plans);
+      if (plansData.ok) {
+        setPlans(plansData.plans || []);
+        setPaymentsAvailable(plansData.available !== false);
+      }
     } catch {
       // Handle fetch failure gracefully
     } finally {
@@ -232,6 +236,19 @@ export default function BillingPage() {
           Refresh
         </button>
       </motion.div>
+
+      {/* Temporary Gateway Notice Banner if unconfigured */}
+      {!paymentsAvailable && (
+        <div className="flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-amber-200">
+          <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
+          <div>
+            <p className="text-sm font-bold">Payments Temporarily Unavailable</p>
+            <p className="mt-1 text-xs text-amber-200/80">
+              Payments are temporarily unavailable while our payment system is being configured. Please try again later.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Metrics Grid */}
       <motion.div
@@ -487,7 +504,7 @@ export default function BillingPage() {
                   return billingPeriod === "yearly" ? isYearly : !isYearly;
                 })
                 .map((p) => (
-                  <PlanCard key={p.id} plan={p} />
+                  <PlanCard key={p.id} plan={p} paymentsAvailable={paymentsAvailable} />
                 ))}
             </div>
           )}
@@ -497,8 +514,8 @@ export default function BillingPage() {
           >
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--text-subtle)]" />
             <p className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
-              All payments are processed securely by Razorpay. Credits are added to your account
-              immediately after payment verification. Contact support if you have any billing issues.
+              All payments are processed securely by Razorpay with cryptographic server-side signature verification. Credits are added to your account
+              immediately after payment confirmation. Contact support if you have any billing issues.
             </p>
           </div>
         </motion.div>

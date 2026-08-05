@@ -3,46 +3,63 @@
  * Secure, production-ready Razorpay payment integration.
  * - All order creation and signature verification is server-side only.
  * - Credits are granted ONLY after cryptographic signature verification.
+ * - Simulator / mock payment bypasses are strictly forbidden.
+ * - When Razorpay is not fully configured, all payment actions are safely blocked.
  * - No price, plan, or credit data is trusted from the frontend.
  */
 const crypto = require("node:crypto");
 const express = require("express");
 
-/** Razorpay SDK — initialized lazily so missing keys don't crash cold starts. */
+/**
+ * Check if valid Razorpay API keys are configured.
+ * Rejects missing, empty, or placeholder keys.
+ */
+function isRazorpayConfigured() {
+  const keyId = String(process.env.RAZORPAY_KEY_ID || "").trim();
+  const keySecret = String(process.env.RAZORPAY_KEY_SECRET || "").trim();
+
+  if (!keyId || !keySecret) return false;
+  if (
+    keyId.includes("REPLACE") ||
+    keyId.includes("YOUR_KEY") ||
+    keyId === "rzp_test_simulator" ||
+    keyId.length < 8
+  ) {
+    return false;
+  }
+  if (
+    keySecret.includes("REPLACE") ||
+    keySecret.includes("YOUR_KEY_SECRET") ||
+    keySecret.length < 8
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+/** Razorpay SDK instance — initialized lazily when configured. */
 function getRazorpay() {
-  const keyId = process.env.RAZORPAY_KEY_ID;
-  const keySecret = process.env.RAZORPAY_KEY_SECRET;
-  if (!keyId || !keySecret) {
-    throw new Error("Razorpay keys are not configured.");
+  if (!isRazorpayConfigured()) {
+    throw new Error("Razorpay payment gateway is not configured.");
   }
   const Razorpay = require("razorpay");
-  return new Razorpay({ key_id: keyId, key_secret: keySecret });
+  return new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID.trim(),
+    key_secret: process.env.RAZORPAY_KEY_SECRET.trim(),
+  });
 }
 
-/** Safely verify Razorpay payment signature. */
+/** Safely verify Razorpay payment signature via HMAC SHA-256. */
 function verifyRazorpaySignature(orderId, paymentId, signature) {
-  const keySecret = process.env.RAZORPAY_KEY_SECRET;
-  if (!keySecret) return false;
+  if (!isRazorpayConfigured()) return false;
+  const keySecret = process.env.RAZORPAY_KEY_SECRET.trim();
   const body = `${orderId}|${paymentId}`;
-  const expected = crypto
-    .createHmac("sha256", keySecret)
-    .update(body)
-    .digest("hex");
-  return crypto.timingSafeEqual(
-    Buffer.from(expected, "hex"),
-    Buffer.from(signature, "hex")
-  );
-}
-
-/** Verify Razorpay webhook signature from X-Razorpay-Signature header. */
-function verifyWebhookSignature(rawBody, signature) {
-  const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
-  if (!secret) return false;
-  const expected = crypto
-    .createHmac("sha256", secret)
-    .update(rawBody)
-    .digest("hex");
   try {
+    const expected = crypto
+      .createHmac("sha256", keySecret)
+      .update(body)
+      .digest("hex");
     return crypto.timingSafeEqual(
       Buffer.from(expected, "hex"),
       Buffer.from(signature, "hex")
@@ -52,7 +69,25 @@ function verifyWebhookSignature(rawBody, signature) {
   }
 }
 
-/** Server-side plan definitions — never read from client. */
+/** Verify Razorpay webhook signature from X-Razorpay-Signature header. */
+function verifyWebhookSignature(rawBody, signature) {
+  const secret = String(process.env.RAZORPAY_WEBHOOK_SECRET || "").trim();
+  if (!secret || secret.includes("REPLACE")) return false;
+  try {
+    const expected = crypto
+      .createHmac("sha256", secret)
+      .update(rawBody)
+      .digest("hex");
+    return crypto.timingSafeEqual(
+      Buffer.from(expected, "hex"),
+      Buffer.from(signature, "hex")
+    );
+  } catch {
+    return false;
+  }
+}
+
+/** Server-side plan definitions — single source of truth. */
 function getServerPlans() {
   return [
     {
@@ -206,9 +241,22 @@ function mountPaymentRoutes(app, { db, verifyAdminToken }) {
   const authUser = requireUserAuth(db);
   const authAdmin = requireAdminAuth(verifyAdminToken);
 
+  // ─── PUBLIC: Payment Gateway Status ──────────────────────────────────────
+  app.get("/api/payments/status", (_req, res) => {
+    const configured = isRazorpayConfigured();
+    return res.json({
+      ok: true,
+      available: configured,
+      message: configured
+        ? "Payment gateway is active."
+        : "Payments are temporarily unavailable while our payment system is being configured. Please try again later."
+    });
+  });
+
   // ─── PUBLIC: Get available plans ─────────────────────────────────────────
   app.get("/api/payments/plans", (_req, res) => {
     try {
+      const configured = isRazorpayConfigured();
       const plans = getServerPlans().map((p) => ({
         id: p.id,
         name: p.name,
@@ -219,7 +267,7 @@ function mountPaymentRoutes(app, { db, verifyAdminToken }) {
         badge: p.badge,
         popular: p.popular,
       }));
-      return res.json({ ok: true, plans });
+      return res.json({ ok: true, available: configured, plans });
     } catch (e) {
       return res.status(500).json({ ok: false, error: "Failed to load plans." });
     }
@@ -228,38 +276,43 @@ function mountPaymentRoutes(app, { db, verifyAdminToken }) {
   // ─── USER: Create Razorpay Order (server-side only) ──────────────────────
   app.post("/api/payments/create-order", authUser, async (req, res) => {
     try {
+      // 1. Enforce payment gateway availability
+      if (!isRazorpayConfigured()) {
+        return res.status(503).json({
+          ok: false,
+          available: false,
+          error: "Payments are temporarily unavailable while our payment system is being configured. Please try again later."
+        });
+      }
+
       const planId = typeof req.body?.planId === "string" ? req.body.planId.trim() : "";
       if (!planId) return res.status(400).json({ ok: false, error: "Plan ID is required." });
 
       const plan = getPlanById(planId);
-      if (!plan) return res.status(400).json({ ok: false, error: "Invalid plan." });
+      if (!plan) return res.status(400).json({ ok: false, error: "Invalid plan selected." });
 
-      // Check for very recent duplicate order for same user+plan (anti-replay)
+      // Check for very recent pending order for same user+plan (anti-replay)
       const recentOrder = db
         .prepare(
-          `SELECT id FROM payments
+          `SELECT id, razorpay_order_id, amount_paise FROM payments
            WHERE user_id = ? AND plan_id = ? AND status = 'created'
            AND created_at > datetime('now', '-5 minutes')`
         )
         .get(req.userId, planId);
-      if (recentOrder) {
-        const existing = db.prepare("SELECT razorpay_order_id, amount_paise FROM payments WHERE id = ?").get(recentOrder.id);
-        if (existing) {
-          return res.json({
-            ok: true,
-            orderId: existing.razorpay_order_id,
-            amount: existing.amount_paise,
-            currency: "INR",
-            keyId: process.env.RAZORPAY_KEY_ID,
-            planName: plan.name,
-            credits: plan.credits,
-          });
-        }
-      }
 
-      const keyId = process.env.RAZORPAY_KEY_ID || "";
-      const keySecret = process.env.RAZORPAY_KEY_SECRET || "";
-      const isSimulator = !keyId || keyId.includes("REPLACE") || !keySecret || keySecret.includes("REPLACE");
+      if (recentOrder) {
+        return res.json({
+          ok: true,
+          available: true,
+          orderId: recentOrder.razorpay_order_id,
+          amount: recentOrder.amount_paise,
+          currency: "INR",
+          keyId: process.env.RAZORPAY_KEY_ID.trim(),
+          planName: plan.name,
+          credits: plan.credits,
+          priceDisplay: plan.price_display,
+        });
+      }
 
       const idempotencyKey = crypto
         .createHash("sha256")
@@ -267,26 +320,15 @@ function mountPaymentRoutes(app, { db, verifyAdminToken }) {
         .digest("hex")
         .slice(0, 32);
 
-      let order;
-      if (isSimulator) {
-        order = {
-          id: `order_sim_${crypto.randomBytes(8).toString("hex")}`,
-          amount: plan.price_inr,
-          currency: "INR",
-          receipt: `rcpt_${idempotencyKey.slice(0, 20)}`,
-        };
-        console.log("[payment] Simulator mode active: Created mock order", order.id);
-      } else {
-        const razorpay = getRazorpay();
-        order = await razorpay.orders.create({
-          amount: plan.price_inr,
-          currency: "INR",
-          receipt: `rcpt_${idempotencyKey.slice(0, 20)}`,
-          notes: { userId: req.userId, planId },
-        });
-      }
+      const razorpay = getRazorpay();
+      const order = await razorpay.orders.create({
+        amount: plan.price_inr,
+        currency: "INR",
+        receipt: `rcpt_${idempotencyKey.slice(0, 20)}`,
+        notes: { userId: req.userId, planId },
+      });
 
-      // Persist order in DB immediately
+      // Persist order in DB immediately with 'created' status
       const paymentId = crypto.randomUUID();
       db.prepare(
         `INSERT INTO payments
@@ -305,105 +347,107 @@ function mountPaymentRoutes(app, { db, verifyAdminToken }) {
 
       return res.json({
         ok: true,
+        available: true,
         orderId: order.id,
         amount: plan.price_inr,
         currency: "INR",
-        keyId: process.env.RAZORPAY_KEY_ID || "rzp_test_simulator",
+        keyId: process.env.RAZORPAY_KEY_ID.trim(),
         planName: plan.name,
         credits: plan.credits,
         priceDisplay: plan.price_display,
       });
     } catch (e) {
       console.error("[payment] create-order error:", e.message);
-      return res.status(500).json({ ok: false, error: "Could not create payment order. Please try again." });
+      return res.status(500).json({ ok: false, error: "Could not create payment order. Please try again later." });
     }
   });
 
   // ─── USER: Verify Payment & Grant Credits ────────────────────────────────
   app.post("/api/payments/verify", authUser, (req, res) => {
     try {
+      // 1. Enforce payment gateway availability
+      if (!isRazorpayConfigured()) {
+        return res.status(503).json({
+          ok: false,
+          available: false,
+          error: "Payments are temporarily unavailable while our payment system is being configured. Please try again later."
+        });
+      }
+
       const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body || {};
 
       if (
         typeof razorpay_order_id !== "string" ||
         typeof razorpay_payment_id !== "string" ||
         typeof razorpay_signature !== "string" ||
-        !razorpay_order_id || !razorpay_payment_id || !razorpay_signature
+        !razorpay_order_id.trim() ||
+        !razorpay_payment_id.trim() ||
+        !razorpay_signature.trim()
       ) {
-        return res.status(400).json({ ok: false, error: "Invalid payment data." });
+        return res.status(400).json({ ok: false, error: "Invalid payment verification data." });
       }
 
-      // 1. Verify cryptographic signature
-      const keyId = process.env.RAZORPAY_KEY_ID || "";
-      const keySecret = process.env.RAZORPAY_KEY_SECRET || "";
-      const isSimulator = !keyId || keyId.includes("REPLACE") || !keySecret || keySecret.includes("REPLACE");
+      const orderId = razorpay_order_id.trim();
+      const paymentId = razorpay_payment_id.trim();
+      const signature = razorpay_signature.trim();
 
-      let isValid = false;
-      if (isSimulator && razorpay_order_id.startsWith("order_sim_")) {
-        isValid = true;
-        console.log("[payment] Simulator mode active: Bypassed signature check for", razorpay_order_id);
-      } else {
-        isValid = verifyRazorpaySignature(razorpay_order_id, razorpay_payment_id, razorpay_signature);
-      }
+      // 2. Strict Cryptographic Signature Verification
+      const isValid = verifyRazorpaySignature(orderId, paymentId, signature);
 
       if (!isValid) {
-        console.warn("[payment] Invalid signature for order:", razorpay_order_id, "user:", req.userId);
-        // Log the failed attempt
+        console.warn("[payment] Security Warning: Invalid signature for order:", orderId, "user:", req.userId);
         db.prepare(
           `INSERT INTO payment_security_logs (id, user_id, event, razorpay_order_id, razorpay_payment_id, timestamp)
            VALUES (?, ?, 'invalid_signature', ?, ?, ?)`
-        ).run(crypto.randomUUID(), req.userId, razorpay_order_id, razorpay_payment_id, new Date().toISOString());
-        return res.status(400).json({ ok: false, error: "Payment verification failed." });
+        ).run(crypto.randomUUID(), req.userId, orderId, paymentId, new Date().toISOString());
+
+        return res.status(400).json({ ok: false, error: "Payment verification failed. Invalid cryptographic signature." });
       }
 
-      // 2. Find the pending payment record (must belong to this user)
+      // 3. Find the pending payment record (must belong to this user)
       const payment = db
         .prepare(
           "SELECT id, plan_id, amount_paise, status, metadata_json FROM payments WHERE razorpay_order_id = ? AND user_id = ?"
         )
-        .get(razorpay_order_id, req.userId);
+        .get(orderId, req.userId);
 
       if (!payment) {
         return res.status(404).json({ ok: false, error: "Payment record not found." });
       }
 
-      // 3. Idempotency: already captured
+      // 4. Idempotency: check if already processed
       if (payment.status === "captured") {
-        return res.json({ ok: true, alreadyCaptured: true, message: "Payment already processed." });
+        return res.json({ ok: true, alreadyCaptured: true, message: "Payment already verified and credits granted." });
       }
 
       if (payment.status !== "created") {
-        return res.status(400).json({ ok: false, error: "Invalid payment state." });
+        return res.status(400).json({ ok: false, error: "Payment order is not in a valid state for verification." });
       }
 
-      // 4. Resolve plan from DB record (never trust frontend)
+      // 5. Resolve plan from DB record (never trust frontend input)
       const plan = getPlanById(payment.plan_id);
       if (!plan) {
         return res.status(500).json({ ok: false, error: "Plan configuration error." });
       }
 
-      // 5. Atomically update payment + credits in a transaction
+      // 6. Atomically update payment status + user credits in a SQLite transaction
       const grantCredits = db.transaction(() => {
-        // Mark payment captured
         db.prepare(
           `UPDATE payments
            SET status = 'captured', razorpay_payment_id = ?, captured_at = ?
            WHERE id = ?`
-        ).run(razorpay_payment_id, new Date().toISOString(), payment.id);
+        ).run(paymentId, new Date().toISOString(), payment.id);
 
-        // Get current user balance
         const user = db.prepare("SELECT credits FROM users WHERE id = ?").get(req.userId);
         const prevBalance = user?.credits ?? 0;
         const newBalance = prevBalance + plan.credits;
 
-        // Add credits
         db.prepare("UPDATE users SET credits = ?, subscription_plan = ? WHERE id = ?").run(
           newBalance,
           plan.id,
           req.userId
         );
 
-        // Log the credit transaction
         db.prepare(
           `INSERT INTO credit_transactions
            (id, user_id, action_type, credits_added, credits_deducted,
@@ -417,7 +461,7 @@ function mountPaymentRoutes(app, { db, verifyAdminToken }) {
           newBalance,
           new Date().toISOString(),
           `Purchased ${plan.name} plan`,
-          JSON.stringify({ planId: plan.id, razorpayPaymentId: razorpay_payment_id, orderId: razorpay_order_id })
+          JSON.stringify({ planId: plan.id, razorpayPaymentId: paymentId, orderId: orderId })
         );
 
         return { newBalance, creditsAdded: plan.credits };
@@ -487,9 +531,9 @@ function mountPaymentRoutes(app, { db, verifyAdminToken }) {
       const signature = req.headers["x-razorpay-signature"];
       if (!signature) return res.status(400).json({ ok: false, error: "Missing signature." });
 
-      const rawBody = req.body; // Buffer when using express.raw
+      const rawBody = req.body;
       if (!verifyWebhookSignature(rawBody, signature)) {
-        console.warn("[webhook] Invalid signature");
+        console.warn("[webhook] Security Warning: Invalid webhook signature");
         return res.status(400).json({ ok: false, error: "Invalid signature." });
       }
 
@@ -613,7 +657,6 @@ function mountPaymentRoutes(app, { db, verifyAdminToken }) {
         };
       });
 
-      // Analytics summary
       const analytics = db
         .prepare(
           `SELECT
@@ -688,4 +731,4 @@ function mountPaymentRoutes(app, { db, verifyAdminToken }) {
   });
 }
 
-module.exports = { mountPaymentRoutes };
+module.exports = { mountPaymentRoutes, isRazorpayConfigured };

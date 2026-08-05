@@ -42,17 +42,20 @@ function loadRazorpayScript(): Promise<boolean> {
 export function RazorpayCheckoutModal({ plan, onClose, onSuccess }: Props) {
   const [step, setStep] = useState<"confirm" | "processing" | "success" | "error">("confirm");
   const [errorMessage, setErrorMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Trap focus & keyboard
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && step === "confirm") onClose();
+      if (e.key === "Escape" && step === "confirm" && !isSubmitting) onClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose, step]);
+  }, [onClose, step, isSubmitting]);
 
   const handlePay = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     setStep("processing");
     setErrorMessage("");
 
@@ -60,12 +63,14 @@ export function RazorpayCheckoutModal({ plan, onClose, onSuccess }: Props) {
     if (!token) {
       setErrorMessage("You are not signed in. Please sign in and try again.");
       setStep("error");
+      setIsSubmitting(false);
       return;
     }
 
     // 1. Create server-side order first
     let orderData: {
       ok: boolean;
+      available?: boolean;
       orderId?: string;
       amount?: number;
       keyId?: string;
@@ -81,115 +86,94 @@ export function RazorpayCheckoutModal({ plan, onClose, onSuccess }: Props) {
     } catch {
       setErrorMessage("Network error. Please try again.");
       setStep("error");
+      setIsSubmitting(false);
       return;
     }
 
-    if (!orderData.ok || !orderData.orderId) {
-      setErrorMessage(orderData.error || "Failed to create payment order.");
+    if (!orderData.ok || orderData.available === false || !orderData.orderId) {
+      setErrorMessage(
+        orderData.error ||
+          "Payments are temporarily unavailable while our payment system is being configured. Please try again later."
+      );
       setStep("error");
+      setIsSubmitting(false);
       return;
     }
 
-    // 2. Check if we should run in Simulator Mode
-    if (orderData.orderId.startsWith("order_sim_")) {
-      console.log("[payment] Simulating successful checkout for:", orderData.orderId);
-      // Wait to simulate user interface action
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      const mockPaymentId = `pay_sim_${Math.random().toString(36).substring(7)}`;
-      const mockSignature = `sig_sim_${Math.random().toString(36).substring(7)}`;
-
-      try {
-        const verifyRes = await fetch("/api/payments/verify", {
-          method: "POST",
-          headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
-          body: JSON.stringify({
-            razorpay_order_id: orderData.orderId,
-            razorpay_payment_id: mockPaymentId,
-            razorpay_signature: mockSignature,
-          }),
-        });
-        const verifyData = await verifyRes.json();
-        if (verifyData.ok) {
-          setStep("success");
-          onSuccess({
-            creditsAdded: verifyData.creditsAdded,
-            newBalance: verifyData.newBalance,
-            planName: verifyData.planName,
-          });
-        } else {
-          setErrorMessage(verifyData.error || "Payment verification failed. Contact support.");
-          setStep("error");
-        }
-      } catch {
-        setErrorMessage("Verification request failed. If payment was deducted, contact support.");
-        setStep("error");
-      }
-      return;
-    }
-
-    // 3. Regular Razorpay SDK checkout flow
+    // 2. Load Razorpay SDK checkout flow
     const loaded = await loadRazorpayScript();
     if (!loaded) {
-      setErrorMessage("Could not load the payment system. Check your internet connection.");
+      setErrorMessage("Could not load the payment system script. Please check your internet connection.");
       setStep("error");
+      setIsSubmitting(false);
       return;
     }
 
-    const rzp = new window.Razorpay({
-      key: orderData.keyId,
-      amount: orderData.amount,
-      currency: "INR",
-      name: "RUHGEN",
-      description: `${plan.name} — ${plan.credits} credits`,
-      order_id: orderData.orderId,
-      prefill: {},
-      theme: { color: "#7B61FF" },
-      modal: {
-        ondismiss: () => {
-          if (step === "processing") setStep("confirm");
+    try {
+      const rzp = new window.Razorpay({
+        key: orderData.keyId,
+        amount: orderData.amount,
+        currency: "INR",
+        name: "RUHGEN",
+        description: `${plan.name} — ${plan.credits} credits`,
+        order_id: orderData.orderId,
+        prefill: {},
+        theme: { color: "#7B61FF" },
+        modal: {
+          ondismiss: () => {
+            setIsSubmitting(false);
+            setStep("confirm");
+          },
         },
-      },
-      handler: async (response: {
-        razorpay_payment_id: string;
-        razorpay_order_id: string;
-        razorpay_signature: string;
-      }) => {
-        try {
-          const verifyRes = await fetch("/api/payments/verify", {
-            method: "POST",
-            headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
-            body: JSON.stringify({
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-            }),
-          });
-          const verifyData = await verifyRes.json();
-          if (verifyData.ok) {
-            setStep("success");
-            onSuccess({
-              creditsAdded: verifyData.creditsAdded,
-              newBalance: verifyData.newBalance,
-              planName: verifyData.planName,
+        handler: async (response: {
+          razorpay_payment_id: string;
+          razorpay_order_id: string;
+          razorpay_signature: string;
+        }) => {
+          try {
+            const verifyRes = await fetch("/api/payments/verify", {
+              method: "POST",
+              headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
             });
-          } else {
-            setErrorMessage(verifyData.error || "Payment verification failed. Contact support.");
+            const verifyData = await verifyRes.json();
+            if (verifyData.ok) {
+              setStep("success");
+              setIsSubmitting(false);
+              onSuccess({
+                creditsAdded: verifyData.creditsAdded,
+                newBalance: verifyData.newBalance,
+                planName: verifyData.planName,
+              });
+            } else {
+              setErrorMessage(verifyData.error || "Payment verification failed. Contact support.");
+              setStep("error");
+              setIsSubmitting(false);
+            }
+          } catch {
+            setErrorMessage("Verification request failed. If payment was deducted, contact support.");
             setStep("error");
+            setIsSubmitting(false);
           }
-        } catch {
-          setErrorMessage("Verification request failed. If payment was deducted, contact support.");
-          setStep("error");
-        }
-      },
-    });
+        },
+      });
 
-    rzp.on("payment.failed", (resp: { error: { description: string } }) => {
-      setErrorMessage(resp.error?.description || "Payment failed. Please try again.");
+      rzp.on("payment.failed", (resp: { error: { description: string } }) => {
+        setErrorMessage(resp.error?.description || "Payment failed. Please try again.");
+        setStep("error");
+        setIsSubmitting(false);
+      });
+
+      rzp.open();
+    } catch (err) {
+      setErrorMessage("Could not launch Razorpay checkout modal.");
       setStep("error");
-    });
-
-    rzp.open();
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -206,7 +190,7 @@ export function RazorpayCheckoutModal({ plan, onClose, onSuccess }: Props) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-          onClick={() => step === "confirm" && onClose()}
+          onClick={() => step === "confirm" && !isSubmitting && onClose()}
         />
 
         {/* Modal */}
@@ -217,13 +201,13 @@ export function RazorpayCheckoutModal({ plan, onClose, onSuccess }: Props) {
           transition={{ duration: 0.2 }}
           className="relative w-full max-w-md overflow-hidden rounded-2xl border shadow-2xl"
           style={{
-            background: "var(--soft-black)",
+            background: "var(--soft-black, #0f1117)",
             borderColor: "color-mix(in srgb, #7B61FF 45%, transparent)",
             boxShadow: "0 0 60px -15px rgba(123,97,255,0.35)",
           }}
         >
           {/* Close */}
-          {step === "confirm" && (
+          {step === "confirm" && !isSubmitting && (
             <button
               onClick={onClose}
               className="absolute right-4 top-4 z-10 rounded-lg p-1.5 text-[var(--text-muted)] transition-colors hover:bg-white/10 hover:text-white"
@@ -297,13 +281,21 @@ export function RazorpayCheckoutModal({ plan, onClose, onSuccess }: Props) {
                 {/* CTA */}
                 <button
                   onClick={handlePay}
-                  className="w-full rounded-xl py-3.5 font-display text-base font-bold text-white transition-all hover:opacity-90"
+                  disabled={isSubmitting}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl py-3.5 font-display text-base font-bold text-white transition-all hover:opacity-90 disabled:opacity-50"
                   style={{
                     background: "linear-gradient(135deg, #7B61FF, #00D4FF)",
                     boxShadow: "0 8px 24px -8px rgba(123,97,255,0.7)",
                   }}
                 >
-                  Pay {plan.price_display} →
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      Initializing Payment…
+                    </>
+                  ) : (
+                    <>Pay {plan.price_display} →</>
+                  )}
                 </button>
               </>
             )}
@@ -316,7 +308,7 @@ export function RazorpayCheckoutModal({ plan, onClose, onSuccess }: Props) {
                   Opening Payment Gateway…
                 </h3>
                 <p className="mt-2 text-sm text-[var(--text-muted)]">
-                  Complete the payment in the Razorpay window.
+                  Please complete the payment in the Razorpay checkout window.
                 </p>
               </div>
             )}
@@ -355,20 +347,23 @@ export function RazorpayCheckoutModal({ plan, onClose, onSuccess }: Props) {
                 >
                   <X className="h-8 w-8 text-rose-400" />
                 </div>
-                <h3 className="mt-4 font-display text-xl font-bold text-white">Payment Failed</h3>
+                <h3 className="mt-4 font-display text-xl font-bold text-white">Payment Unavailable / Failed</h3>
                 <p className="mt-2 max-w-sm text-sm text-[var(--text-muted)]">{errorMessage}</p>
                 <div className="mt-6 flex gap-3">
                   <button
-                    onClick={() => setStep("confirm")}
-                    className="rounded-xl border px-5 py-2.5 text-sm font-semibold text-white"
-                    style={{ borderColor: "var(--border-subtle)" }}
+                    onClick={() => {
+                      setStep("confirm");
+                      setIsSubmitting(false);
+                    }}
+                    className="rounded-xl border px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/5"
+                    style={{ borderColor: "rgba(255,255,255,0.15)" }}
                   >
                     Try Again
                   </button>
                   <button
                     onClick={onClose}
-                    className="rounded-xl border px-5 py-2.5 text-sm font-semibold text-[var(--text-muted)]"
-                    style={{ borderColor: "var(--border-subtle)" }}
+                    className="rounded-xl border px-5 py-2.5 text-sm font-semibold text-[var(--text-muted)] hover:bg-white/5 hover:text-white"
+                    style={{ borderColor: "rgba(255,255,255,0.15)" }}
                   >
                     Cancel
                   </button>

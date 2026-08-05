@@ -2,12 +2,10 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import {
+  AlertCircle,
   ArrowLeft,
   Check,
-  CheckCircle,
   Coins,
-  Cpu,
-  HelpCircle,
   Loader2,
   Lock,
   RefreshCw,
@@ -31,16 +29,18 @@ function CheckoutContent() {
 
   const [loading, setLoading] = useState(true);
   const [plans, setPlans] = useState<Plan[]>([]);
+  const [paymentsAvailable, setPaymentsAvailable] = useState<boolean>(true);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [agreed, setAgreed] = useState(true);
 
-  // 1. Fetch available plans from backend
+  // 1. Fetch available plans & status from backend
   const loadPlans = useCallback(async () => {
     try {
       const res = await fetch("/api/payments/plans");
       const data = await res.json();
       if (data.ok) {
         setPlans(data.plans || []);
+        setPaymentsAvailable(data.available !== false);
       }
     } catch (e) {
       console.error(e);
@@ -133,8 +133,21 @@ function CheckoutContent() {
         </div>
       </div>
 
+      {/* Temporary Gateway Notice Banner */}
+      {!paymentsAvailable && (
+        <div className="flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-amber-200">
+          <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
+          <div>
+            <p className="text-sm font-bold">Payments Temporarily Unavailable</p>
+            <p className="mt-1 text-xs text-amber-200/80">
+              Payments are temporarily unavailable while our payment system is being configured. Please try again later.
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="grid gap-8 md:grid-cols-12 items-start">
-        {/* Left Side: Plan Info (8 columns) */}
+        {/* Left Side: Plan Info (7 columns) */}
         <div className="md:col-span-7 space-y-6">
           {/* Card details */}
           <div
@@ -177,11 +190,11 @@ function CheckoutContent() {
                     {selectedPlan.credits.toLocaleString()} Credits Included
                   </span>
                   <span className="text-[10px] text-[var(--text-muted)]">
-                    Added immediately to your account balance
+                    Added immediately to your account balance upon verification
                   </span>
                 </div>
               </div>
-              <Zap className="h-5 w-5 text-[#7B61FF] animate-pulse" />
+              <Zap className="h-5 w-5 text-[#7B61FF]" />
             </div>
 
             {/* Features check list */}
@@ -259,21 +272,23 @@ function CheckoutContent() {
                 className="mt-0.5 h-4 w-4 shrink-0 rounded border-[var(--border-subtle)] text-[#7B61FF] focus:ring-[#7B61FF]/40"
               />
               <span className="text-[11px] leading-snug" style={{ color: "var(--text-muted)" }}>
-                I agree to the terms of service, auto-grant policy, and confirm that all payments are secure and final.
+                I agree to the terms of service, server-side payment verification policy, and confirm that all payments are secure.
               </span>
             </label>
 
             {/* Pay Button */}
             <button
-              onClick={() => agreed && setShowCheckoutModal(true)}
-              disabled={!agreed}
+              onClick={() => agreed && paymentsAvailable && setShowCheckoutModal(true)}
+              disabled={!agreed || !paymentsAvailable}
               className="mt-6 w-full rounded-xl py-4 font-display text-base font-bold text-white transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50"
               style={{
-                background: "linear-gradient(135deg, #7B61FF, #00D4FF)",
-                boxShadow: agreed ? "0 8px 24px -8px rgba(123,97,255,0.6)" : "none",
+                background: paymentsAvailable
+                  ? "linear-gradient(135deg, #7B61FF, #00D4FF)"
+                  : "rgba(255,255,255,0.1)",
+                boxShadow: agreed && paymentsAvailable ? "0 8px 24px -8px rgba(123,97,255,0.6)" : "none",
               }}
             >
-              Proceed to Payment
+              {paymentsAvailable ? "Proceed to Payment" : "Payments Temporarily Unavailable"}
             </button>
           </div>
 
