@@ -7,6 +7,7 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { SITE_CONTAINER } from "@/lib/site-layout";
 import { PricingHeroGraphic } from "@/components/marketing/PricingHeroGraphic";
 import { useTheme } from "@/components/ThemeProvider";
+import { useAuth } from "@/components/AuthProvider";
 
 type PricingPlan = {
   id: string;
@@ -265,6 +266,7 @@ const FAQS = [
 
 export function Pricing({ hideHeading = false, plans }: { hideHeading?: boolean; plans?: PricingPlan[] }) {
   const { theme } = useTheme();
+  const { user } = useAuth();
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const reduce = useReducedMotion() === true;
@@ -281,7 +283,11 @@ export function Pricing({ hideHeading = false, plans }: { hideHeading?: boolean;
 
   const getPlanLink = (plan: PricingPlan) => {
     if (plan.id === "custom") return "/contact";
-    return plan.id === "free" ? "/sign-up" : `/sign-up?plan=${plan.id}&billing=${billingPeriod}`;
+    if (plan.id === "free") return user ? "/dashboard" : "/sign-up";
+    if (user) {
+      return `/dashboard/billing/checkout?plan=${plan.id}&billing=${billingPeriod}`;
+    }
+    return `/sign-up?plan=${plan.id}&billing=${billingPeriod}`;
   };
 
   return (

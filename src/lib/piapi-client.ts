@@ -24,6 +24,7 @@ async function authFetch(path: string, init?: RequestInit): Promise<Response> {
 /** Create image task (via backend only). `image_url` triggers image-to-image (edit) on the server. */
 export async function createImageTask(body: {
   prompt: string;
+  quality?: string;
   model?: string;
   width?: number;
   height?: number;
@@ -67,6 +68,7 @@ export async function uploadStudioReferenceImage(file: File): Promise<{ url: str
 /** Create video task (via backend only). */
 export async function createVideoTask(body: {
   prompt: string;
+  quality?: string;
   duration?: 5 | 10;
   aspect_ratio?: "16:9" | "9:16" | "1:1";
   mode?: "std" | "pro";

@@ -28,6 +28,7 @@ type AuthResult = { ok: true } | { ok: false; error: string };
 type AuthContextValue = {
   user: SessionUser | null;
   ready: boolean;
+  token: string | null;
   signIn: (email: string, password: string) => Promise<AuthResult>;
   signUp: (
     name: string,
@@ -53,6 +54,7 @@ function normalizeEmail(email: string) {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [ready, setReady] = useState(false);
+  const [token, setToken] = useState<string | null>(() => readUserToken());
 
   useEffect(() => {
     let cancelled = false;
@@ -72,6 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (data.ok && data.user) {
             writeSession(data.user);
             setUser(data.user);
+            setToken(readUserToken());
             setReady(true);
             return;
           }
@@ -164,6 +167,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         writeUserToken(data.token);
         writeSession(data.user);
         setUser(data.user);
+        setToken(data.token);
         return { ok: true };
       }
       if (res.status === 403 && data.error) {
@@ -288,6 +292,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           writeUserToken(data.token);
           writeSession(data.user);
           setUser(data.user);
+          setToken(data.token);
           return { ok: true };
         }
         return { ok: false, error: data.error || "Sign-up failed." };
@@ -426,13 +431,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     () => ({
       user,
       ready,
+      token,
       signIn,
       signUp,
       signOut,
       updateProfile,
       refreshUser,
     }),
-    [user, ready, signIn, signUp, signOut, updateProfile, refreshUser]
+    [user, ready, token, signIn, signUp, signOut, updateProfile, refreshUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -28,7 +28,7 @@ export function SpotlightHeroGraphic({
   hovered,
 }: SpotlightHeroGraphicProps) {
   const reduce = useReducedMotion() === true;
-  const p = useMemo(() => (reduce ? { x: 0, y: 0 } : pointer), [reduce, pointer.x, pointer.y]);
+  const p = reduce ? { x: 0, y: 0 } : pointer;
 
   const live = hovered && !reduce;
   const lift = hovered ? 1 : 0.34;

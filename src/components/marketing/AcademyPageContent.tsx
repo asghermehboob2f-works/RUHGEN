@@ -98,7 +98,15 @@ export function AcademyPageContent() {
   const [activeCategory, setActiveCategory] = useState("all");
   const [activeVideo, setActiveVideo] = useState<Tutorial | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
+  const [likedIds, setLikedIds] = useState<Set<string>>(() => {
+    if (typeof window === "undefined") return new Set();
+    try {
+      const stored = localStorage.getItem("ruhgen_liked_tutorials");
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
 
   // Fetch tutorials from the backend database on mount and poll for real-time stats
   useEffect(() => {
@@ -111,7 +119,6 @@ export function AcademyPageContent() {
           const data = await res.json();
           if (!isMounted) return;
           if (data.ok && Array.isArray(data.tutorials) && data.tutorials.length > 0) {
-            // Keep local optimistic updates intact if they are higher, or just sync completely
             setTutorials(data.tutorials);
           }
           if (data.ok && typeof data.totalUsers === "number") {
@@ -125,10 +132,8 @@ export function AcademyPageContent() {
       }
     }
     
-    // Initial load
     loadData();
 
-    // Real-time polling every 5 seconds
     const intervalId = setInterval(() => {
       loadData();
     }, 5000);
@@ -137,16 +142,6 @@ export function AcademyPageContent() {
       isMounted = false;
       clearInterval(intervalId);
     };
-  }, []);
-
-  useEffect(() => {
-    // Recover liked IDs from session/local storage on client mount
-    try {
-      const stored = localStorage.getItem("ruhgen_liked_tutorials");
-      if (stored) {
-        setLikedIds(new Set(JSON.parse(stored)));
-      }
-    } catch {}
   }, []);
 
   const handlePlayVideo = async (tutorial: Tutorial) => {

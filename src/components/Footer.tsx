@@ -2,7 +2,12 @@
 
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect, type ReactNode } from "react";
+import { useState, useEffect, useSyncExternalStore, type ReactNode } from "react";
+
+const emptySubscribe = () => () => {};
+function useIsMounted() {
+  return useSyncExternalStore(emptySubscribe, () => true, () => false);
+}
 import {
   MARKETING_NAV_PRIMARY,
   MARKETING_NAV_SECONDARY,
@@ -202,10 +207,7 @@ function MobileAccordion({ id, title, children }: { id: string; title: string; c
 }
 
 export function Footer() {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useIsMounted();
 
   const [email, setEmail] = useState("");
   const [newsletterState, setNewsletterState] = useState<"idle" | "loading" | "success" | "error">(

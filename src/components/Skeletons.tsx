@@ -346,8 +346,8 @@ export function StudioSkeleton({ type }: { type: "image" | "video" }) {
   const isImage = type === "image";
   const accentColor = isImage ? "var(--primary-purple)" : "var(--primary-cyan)";
   const icon = isImage ? Wand2 : Clapperboard;
-  const subtitleText = isImage ? "Diffusion pipeline" : "Temporal engine";
-  const eyebrowText = isImage ? "Control deck" : "Motion deck";
+  const subtitleText = isImage ? "Image generation studio" : "Video generation studio";
+  const eyebrowText = isImage ? "Workspace controls" : "Motion controls";
 
   return (
     <div className="flex w-full h-[calc(100vh-4rem)] lg:h-[calc(100vh-0px)] overflow-hidden text-[var(--text-primary)] animate-pulse duration-1000">
@@ -382,7 +382,7 @@ export function StudioSkeleton({ type }: { type: "image" | "video" }) {
                 </div>
               </div>
 
-              {/* Collapsible 1: Canvas & model / Timeline */}
+              {/* Collapsible 1: Canvas & quality / Timeline */}
               <div className="space-y-4">
                 <div className="flex justify-between items-center border-b border-border/40 pb-2">
                   <Skeleton className="h-4 w-36 rounded-md" />
@@ -406,7 +406,7 @@ export function StudioSkeleton({ type }: { type: "image" | "video" }) {
                     </div>
                   </div>
                 ) : (
-                  // Video length buttons (2 sizes) + modes (2 sizes)
+                  // Video length buttons (2 sizes) + quality profiles (3 sizes)
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Skeleton className="h-3.5 w-16 rounded" />
@@ -425,7 +425,7 @@ export function StudioSkeleton({ type }: { type: "image" | "video" }) {
                   </div>
                 )}
 
-                {/* Render engine selection */}
+                {/* Quality profile selection */}
                 <div className="space-y-2 pt-2">
                   <Skeleton className="h-3.5 w-24 rounded" />
                   <Skeleton className="h-10 w-full rounded-xl" />

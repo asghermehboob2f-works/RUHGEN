@@ -61,6 +61,8 @@ function openDb(projectRoot) {
   const dbPath = path.join(dataDir, "ruhgen.sqlite");
   const db = new Database(dbPath);
   db.pragma("journal_mode = WAL");
+  db.pragma("foreign_keys = ON");
+  db.pragma("synchronous = NORMAL");
   db.exec(`
     CREATE TABLE IF NOT EXISTS contact_messages (
       id TEXT PRIMARY KEY,
@@ -96,6 +98,10 @@ function openDb(projectRoot) {
       subscription_status TEXT NOT NULL DEFAULT 'active',
       admin_notes TEXT NOT NULL DEFAULT ''
     );
+
+    CREATE INDEX IF NOT EXISTS idx_users_email ON users (email);
+    CREATE INDEX IF NOT EXISTS idx_users_created ON users (created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_contact_messages_submitted ON contact_messages (submitted_at DESC);
 
     -- Community: posts shared by members (images/videos generated in studio
     -- or pasted external URLs).  Counters are denormalized for fast feed reads.
@@ -227,6 +233,31 @@ function openDb(projectRoot) {
     console.log("[db] Added team_role column to users table");
   }
 
+  // --- Email verification columns ---
+  const verCols = [
+    ["suspended", "INTEGER NOT NULL DEFAULT 0"],
+    ["email_verified", "INTEGER NOT NULL DEFAULT 0"],
+    ["email_verified_at", "TEXT DEFAULT NULL"],
+    ["verification_status", "TEXT NOT NULL DEFAULT 'pending'"],
+    ["verification_deadline", "TEXT DEFAULT NULL"],
+    ["verification_token_hash", "TEXT DEFAULT NULL"],
+    ["verification_token_expiry", "TEXT DEFAULT NULL"],
+    ["otp_hash", "TEXT DEFAULT NULL"],
+    ["otp_expiry", "TEXT DEFAULT NULL"],
+    ["otp_attempts", "INTEGER NOT NULL DEFAULT 0"],
+    ["last_resend_at", "TEXT DEFAULT NULL"],
+    ["resend_count_today", "INTEGER NOT NULL DEFAULT 0"],
+    ["resend_day", "TEXT DEFAULT NULL"],
+    ["last_reminder_at", "TEXT DEFAULT NULL"],
+    ["reminder_count", "INTEGER NOT NULL DEFAULT 0"],
+  ];
+  for (const [col, def] of verCols) {
+    if (!tableInfo.some(c => c.name === col)) {
+      db.exec(`ALTER TABLE users ADD COLUMN ${col} ${def}`);
+      console.log(`[db] Added ${col} column to users table`);
+    }
+  }
+
   // Create credit-related tables
   db.exec(`
     CREATE TABLE IF NOT EXISTS credit_settings (
@@ -272,6 +303,99 @@ function openDb(projectRoot) {
     );
     CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp
       ON audit_logs (timestamp DESC);
+    CREATE TABLE IF NOT EXISTS email_verification_audit (
+      id TEXT PRIMARY KEY,
+      actor_id TEXT NOT NULL,
+      actor_email TEXT NOT NULL,
+      target_user_id TEXT NOT NULL,
+      action TEXT NOT NULL,
+      old_value TEXT,
+      new_value TEXT,
+      timestamp TEXT NOT NULL,
+      details_json TEXT NOT NULL DEFAULT '{}'
+    );
+    CREATE INDEX IF NOT EXISTS idx_email_ver_audit_ts
+      ON email_verification_audit (timestamp DESC);
+    CREATE INDEX IF NOT EXISTS idx_email_ver_audit_user
+      ON email_verification_audit (target_user_id, timestamp DESC);
+
+    -- ── Razorpay Payment Records ─────────────────────────────────────────
+    CREATE TABLE IF NOT EXISTS payments (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      razorpay_order_id TEXT NOT NULL UNIQUE,
+      razorpay_payment_id TEXT DEFAULT NULL,
+      plan_id TEXT NOT NULL,
+      amount_paise INTEGER NOT NULL,
+      currency TEXT NOT NULL DEFAULT 'INR',
+      status TEXT NOT NULL DEFAULT 'created',
+      created_at TEXT NOT NULL,
+      captured_at TEXT DEFAULT NULL,
+      metadata_json TEXT NOT NULL DEFAULT '{}',
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_payments_user_created
+      ON payments (user_id, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_payments_status_created
+      ON payments (status, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_payments_order_id
+      ON payments (razorpay_order_id);
+
+    -- ── Payment Security / Fraud Logs ────────────────────────────────────
+    CREATE TABLE IF NOT EXISTS payment_security_logs (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      event TEXT NOT NULL,
+      razorpay_order_id TEXT DEFAULT NULL,
+      razorpay_payment_id TEXT DEFAULT NULL,
+      ip_address TEXT DEFAULT NULL,
+      timestamp TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_payment_security_ts
+      ON payment_security_logs (timestamp DESC);
+
+    -- ── Support Tickets ──────────────────────────────────────────────────
+    CREATE TABLE IF NOT EXISTS support_tickets (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      category TEXT NOT NULL,
+      subject TEXT NOT NULL,
+      message TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'open',
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_support_tickets_user
+      ON support_tickets (user_id, updated_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_support_tickets_status
+      ON support_tickets (status, updated_at DESC);
+
+    -- ── Support Replies ──────────────────────────────────────────────────
+    CREATE TABLE IF NOT EXISTS support_replies (
+      id TEXT PRIMARY KEY,
+      ticket_id TEXT NOT NULL,
+      message TEXT NOT NULL,
+      is_admin INTEGER NOT NULL DEFAULT 0,
+      author_name TEXT NOT NULL DEFAULT '',
+      read_by_user INTEGER NOT NULL DEFAULT 0,
+      read_by_admin INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (ticket_id) REFERENCES support_tickets(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_support_replies_ticket
+      ON support_replies (ticket_id, created_at ASC);
+
+    -- ── Support Attachments ──────────────────────────────────────────────
+    CREATE TABLE IF NOT EXISTS support_attachments (
+      id TEXT PRIMARY KEY,
+      ticket_id TEXT NOT NULL,
+      filename TEXT NOT NULL,
+      size INTEGER NOT NULL DEFAULT 0,
+      mimetype TEXT NOT NULL DEFAULT '',
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (ticket_id) REFERENCES support_tickets(id) ON DELETE CASCADE
+    );
   `);
 
   // Seed default rates if not present

@@ -43,8 +43,8 @@ const generateTiles = [
 
 const quickLinks = [
   { href: "/dashboard/billing", label: "Credits & plan", hint: "Balance and upgrades", icon: Coins },
+  { href: "/dashboard/support", label: "Support", hint: "Create & track tickets", icon: HelpCircle },
   { href: "/dashboard/settings", label: "Preferences", hint: "Theme and notifications", icon: Settings },
-  { href: "/contact", label: "Help & support", hint: "We reply within a day", icon: HelpCircle },
 ] as const;
 
 export default function DashboardPage() {

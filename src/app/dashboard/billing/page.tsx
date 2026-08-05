@@ -1,363 +1,427 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, Check, Coins, CreditCard, Activity, Zap, ClipboardList, Loader2, AlertCircle, RefreshCw } from "lucide-react";
+import {
+  Activity,
+  ArrowRight,
+  Check,
+  Coins,
+  CreditCard,
+  Loader2,
+  RefreshCw,
+  Sparkles,
+  TrendingUp,
+  Zap,
+  AlertCircle,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { BillingSkeleton } from "@/components/Skeletons";
+import { RazorpayCheckoutModal, type Plan } from "@/components/payments/RazorpayCheckoutModal";
+
+function PlanCard({ plan }: { plan: Plan }) {
+  const reduce = useReducedMotion();
+  const planId = plan.id.replace("_yearly", "");
+  const billingPeriod = plan.id.includes("yearly") ? "yearly" : "monthly";
+  const labelSuffix = billingPeriod === "yearly" ? "yr" : "mo";
+
+  return (
+    <motion.div
+      initial={reduce ? false : { opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={`relative flex flex-col rounded-2xl border p-5 transition-all hover:-translate-y-0.5 ${
+        plan.popular
+          ? "border-[#7B61FF]/50 shadow-[0_0_30px_-8px_rgba(123,97,255,0.4)]"
+          : "border-[var(--border-subtle)]"
+      }`}
+      style={{ background: "var(--soft-black)" }}
+    >
+      {plan.badge && (
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full border border-[#7B61FF]/40 bg-[#7B61FF]/20 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#A08AFF]">
+          {plan.badge}
+        </div>
+      )}
+      <div className="mb-4">
+        <h3 className="font-display text-lg font-bold text-white">{plan.name}</h3>
+        <p className="mt-1 text-xs text-[var(--text-muted)]">{plan.description}</p>
+      </div>
+      <div className="mb-4 flex items-baseline gap-2">
+        <span className="font-display text-3xl font-extrabold text-white">{plan.price_display}</span>
+        <span className="text-xs text-[var(--text-subtle)]">/{labelSuffix}</span>
+      </div>
+      <div className="mb-4 flex items-center gap-2 rounded-lg border border-[#7B61FF]/25 bg-[#7B61FF]/10 px-3 py-2">
+        <Zap className="h-4 w-4 text-[#7B61FF]" />
+        <span className="text-sm font-bold text-white">{plan.credits.toLocaleString()} credits</span>
+      </div>
+      <ul className="mb-5 flex-1 space-y-1.5">
+        {plan.features.map((f) => (
+          <li key={f} className="flex items-start gap-2 text-xs text-[var(--text-muted)]">
+            <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#00E575]" />
+            {f}
+          </li>
+        ))}
+      </ul>
+      <Link
+        href={`/dashboard/billing/checkout?plan=${planId}&billing=${billingPeriod}`}
+        className={`w-full rounded-xl py-3 text-sm font-bold text-white transition-all hover:opacity-90 text-center block ${
+          plan.popular ? "" : "border border-[var(--border-subtle)]"
+        }`}
+        style={
+          plan.popular
+            ? { background: "linear-gradient(135deg, #7B61FF, #00D4FF)", boxShadow: "0 6px 20px -6px rgba(123,97,255,0.6)" }
+            : { background: "var(--deep-black)", color: "var(--text-primary)" }
+        }
+      >
+        Upgrade Plan
+      </Link>
+    </motion.div>
+  );
+}
+
+interface PaymentRecord {
+  id: string;
+  planName: string;
+  amountDisplay: string;
+  credits: number;
+  status: string;
+  date?: string;
+}
+
+interface CreditTransaction {
+  id: string;
+  actionType?: string;
+  creditsAdded?: number;
+  creditsDeducted?: number;
+  newBalance: number;
+  reason?: string;
+  timestamp?: string;
+}
+
+interface BillingDashboardData {
+  metrics?: {
+    credits: number;
+    availableCredits: number;
+    lifetimeUsed: number;
+    lifetimeAdded: number;
+  };
+  transactions?: CreditTransaction[];
+  paymentHistory?: PaymentRecord[];
+}
 
 export default function BillingPage() {
-  const { user, ready } = useAuth();
+  const { user, ready, refreshUser } = useAuth();
   const router = useRouter();
   const reduce = useReducedMotion();
 
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<BillingDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState<"ledger" | "history">("ledger");
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [activeTab, setActiveTab] = useState<"overview" | "history" | "plans">("overview");
+  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
 
-  const loadDashboardData = async (isSilent = false) => {
-    if (!isSilent) setLoading(true);
+  const loadData = useCallback(async (silent = false) => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("ruhgen_user_jwt_v1") : null;
+    if (!token) {
+      setLoading(false);
+      setRefreshing(false);
+      return;
+    }
+    if (!silent) setLoading(true);
     else setRefreshing(true);
 
-    const token = localStorage.getItem("ruhgen_user_jwt_v1");
-    if (!token) return;
-
     try {
-      const res = await fetch("/api/credits/dashboard", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const resJson = await res.json();
-      if (resJson.ok) {
-        setData(resJson);
+      const [creditRes, historyRes, plansRes] = await Promise.all([
+        fetch("/api/credits/dashboard", { headers: { Authorization: `Bearer ${token}` } }),
+        fetch("/api/payments/history", { headers: { Authorization: `Bearer ${token}` } }),
+        fetch("/api/payments/plans"),
+      ]);
+      const creditData = await creditRes.json();
+      const historyData = await historyRes.json();
+      const plansData = await plansRes.json();
+      
+      let updatedData: BillingDashboardData = {};
+      if (creditData.ok) {
+        updatedData = { ...creditData };
       }
-    } catch (err) {
-      console.error("Error fetching credit dashboard data", err);
+      if (historyData.ok) {
+        updatedData.paymentHistory = historyData.payments;
+      }
+      setData(updatedData);
+      if (plansData.ok) setPlans(plansData.plans);
+    } catch {
+      // Handle fetch failure gracefully
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (ready && !user) router.replace("/sign-in?next=/dashboard/billing");
   }, [ready, user, router]);
 
   useEffect(() => {
-    if (user) {
-      void loadDashboardData();
+    let active = true;
+    if (user && active) {
+      loadData();
     }
-  }, [user]);
+    return () => {
+      active = false;
+    };
+  }, [user, loadData]);
 
-  if (!ready || (loading && !data)) {
-    return <BillingSkeleton />;
-  }
-
+  if (!ready || (loading && !data)) return <BillingSkeleton />;
   if (!user) return null;
 
-  const metrics = data?.metrics || {
-    credits: user.credits ?? 0,
-    pendingCredits: 0,
-    availableCredits: user.credits ?? 0,
-    lifetimeUsed: 0,
-    lifetimeAdded: 0,
-    pendingCount: 0
+  const metrics = data?.metrics || { credits: user.credits ?? 0, availableCredits: user.credits ?? 0, lifetimeUsed: 0, lifetimeAdded: 0 };
+  const creditHistory = data?.transactions || [];
+  const paymentHistory = data?.paymentHistory || [];
+  const currentPlan = user.subscriptionPlan || "free";
+
+  const statusColor = (s: string) => {
+    if (s === "captured") return "text-emerald-400 bg-emerald-400/10 border-emerald-400/25";
+    if (s === "failed") return "text-rose-400 bg-rose-400/10 border-rose-400/25";
+    return "text-amber-400 bg-amber-400/10 border-amber-400/25";
   };
 
-  const transactions = data?.transactions || [];
-  const generations = data?.generations || [];
-  const monthlyStats = data?.monthlyStats || [];
-
-  const features = ["Priority processing queue", "HD generation exports", "Engine selector & custom settings", "Dedicated email support"];
+  const TABS = [
+    { id: "overview", label: "Overview" },
+    { id: "history", label: "Credit Ledger" },
+    { id: "plans", label: "Upgrade Plan" },
+  ] as const;
 
   return (
     <div className="space-y-8">
-      {/* Title */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <motion.div initial={reduce ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+      {selectedPlan && (
+        <RazorpayCheckoutModal
+          plan={selectedPlan}
+          onClose={() => setSelectedPlan(null)}
+          onSuccess={({ creditsAdded, newBalance, planName }) => {
+            setSelectedPlan(null);
+            loadData(true);
+            if (typeof refreshUser === "function") refreshUser();
+          }}
+        />
+      )}
+
+      {/* Header */}
+      <motion.div
+        initial={reduce ? false : { opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"
+      >
+        <div>
           <p className="text-xs font-bold uppercase tracking-[0.2em]" style={{ color: "var(--text-subtle)" }}>
-            Billing
+            Billing &amp; Credits
           </p>
-          <h1 className="font-display mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl" style={{ color: "var(--text-primary)" }}>
-            Credits & usage
+          <h1 className="font-display mt-1 text-3xl font-extrabold tracking-tight sm:text-4xl" style={{ color: "var(--text-primary)" }}>
+            Your Plan
           </h1>
-          <p className="mt-2 max-w-2xl text-sm sm:text-base" style={{ color: "var(--text-muted)" }}>
-            Manage your compute balance, monitor active holds, and view your generation history logs.
-          </p>
-        </motion.div>
-        
+        </div>
         <button
+          onClick={() => loadData(true)}
           disabled={refreshing}
-          onClick={() => void loadDashboardData(true)}
-          className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-xl border px-4 text-xs font-semibold text-white transition-colors self-start sm:self-center"
-          style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)" }}
+          className="inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold disabled:opacity-50"
+          style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)", color: "var(--text-primary)" }}
         >
-          <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin text-[#7B61FF]" : ""}`} />
-          Refresh usage
+          {refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+          Refresh
         </button>
+      </motion.div>
+
+      {/* Metrics Grid */}
+      <motion.div
+        initial={reduce ? false : { opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.05 }}
+        className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+      >
+        {[
+          { label: "Current Plan", value: currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1), icon: Sparkles, color: "#7B61FF" },
+          { label: "Available Credits", value: (metrics.availableCredits ?? metrics.credits ?? 0).toLocaleString(), icon: Coins, color: "#00D4FF" },
+          { label: "Credits Used", value: (metrics.lifetimeUsed ?? 0).toLocaleString(), icon: Activity, color: "#FF2E9A" },
+          { label: "Credits Purchased", value: (metrics.lifetimeAdded ?? 0).toLocaleString(), icon: TrendingUp, color: "#00E575" },
+        ].map((m) => (
+          <div
+            key={m.label}
+            className="rounded-2xl border p-5"
+            style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}
+          >
+            <div
+              className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl"
+              style={{ background: `${m.color}1a` }}
+            >
+              <m.icon className="h-5 w-5" style={{ color: m.color }} />
+            </div>
+            <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-subtle)" }}>
+              {m.label}
+            </p>
+            <p className="mt-1 font-display text-2xl font-extrabold" style={{ color: "var(--text-primary)" }}>
+              {m.value}
+            </p>
+          </div>
+        ))}
+      </motion.div>
+
+      {/* Tabs */}
+      <div className="flex gap-1 rounded-xl border p-1" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setActiveTab(t.id)}
+            className="flex-1 rounded-lg py-2.5 text-sm font-semibold transition-all"
+            style={{
+              background: activeTab === t.id ? "var(--deep-black)" : "transparent",
+              color: activeTab === t.id ? "var(--text-primary)" : "var(--text-muted)",
+              border: activeTab === t.id ? "1px solid var(--border-subtle)" : "1px solid transparent",
+            }}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
 
-      {/* Credit Cards Grid */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Main balance card */}
+      {/* OVERVIEW TAB */}
+      {activeTab === "overview" && (
         <motion.div
-          initial={reduce ? false : { opacity: 0, y: 14 }}
+          initial={reduce ? false : { opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: reduce ? 0 : 0.06 }}
-          className="relative overflow-hidden rounded-3xl border p-6 sm:p-8 lg:col-span-2 flex flex-col justify-between"
-          style={{
-            borderColor: "transparent",
-            background:
-              "linear-gradient(var(--soft-black), var(--soft-black)) padding-box, linear-gradient(135deg, rgba(123,97,255,0.4), rgba(0,212,255,0.2)) border-box",
-            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)",
-          }}
+          className="space-y-6"
         >
-          <div className="flex items-start gap-4">
-            <span
-              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-white"
-              style={{ background: "linear-gradient(135deg, var(--primary-purple), var(--primary-cyan))" }}
-            >
-              <Coins className="h-7 w-7" strokeWidth={1.75} />
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
-                Available Balance
-              </p>
-              <p className="font-display mt-1 text-5xl font-extrabold tabular-nums text-white">
-                {metrics.availableCredits}
-              </p>
-              <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
-                net credits available (holds subtracted)
-              </p>
-            </div>
-          </div>
-
-          {/* Sub metrics / holds block */}
-          <div className="mt-8 grid grid-cols-2 gap-4 border-t border-white/5 pt-4">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">Settled credits</p>
-              <p className="text-lg font-bold text-white mt-0.5">{metrics.credits}</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)] flex items-center gap-1">
-                Active holds
-                {metrics.pendingCount > 0 && (
-                  <span className="flex h-2.5 w-2.5 rounded-full bg-amber-400 animate-pulse" />
-                )}
-              </p>
-              <p className="text-lg font-bold text-amber-400 mt-0.5">
-                {metrics.pendingCredits} <span className="text-xs font-medium text-[var(--text-muted)]">({metrics.pendingCount} active)</span>
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link
-              href="/pricing"
-              className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-2xl px-5 text-sm font-semibold text-white"
-              style={{
-                background: "linear-gradient(135deg, var(--primary-purple), var(--primary-cyan))",
-                boxShadow: "0 10px 32px -8px rgba(123,97,255,0.5)",
-              }}
-            >
-              View pricing
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-        </motion.div>
-
-        {/* Plan Details Card */}
-        <motion.div
-          initial={reduce ? false : { opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: reduce ? 0 : 0.1 }}
-          className="rounded-3xl border p-6 sm:p-8 flex flex-col justify-between"
-          style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}
-        >
-          <div>
-            <div className="flex items-center gap-3">
-              <CreditCard className="h-5 w-5" style={{ color: "var(--primary-cyan)" }} strokeWidth={1.75} />
+          {/* Payment History Table */}
+          <div className="overflow-hidden rounded-2xl border" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
+            <div className="border-b px-5 py-4" style={{ borderColor: "var(--border-subtle)" }}>
               <h2 className="font-display text-base font-bold" style={{ color: "var(--text-primary)" }}>
-                Current plan
+                Recent Payments
               </h2>
             </div>
-            <p className="mt-2 text-2xl font-extrabold capitalize text-white">
-              {user.subscriptionPlan || "free"} tier
-            </p>
-            <p className="mt-1 text-xs uppercase font-bold tracking-wider" style={{ color: "var(--text-muted)" }}>
-              Status: <span className="text-emerald-400">{user.subscriptionStatus || "active"}</span>
-            </p>
-            <ul className="mt-6 space-y-2.5">
-              {features.map((f) => (
-                <li key={f} className="flex items-start gap-2 text-xs" style={{ color: "var(--text-muted)" }}>
-                  <span className="mt-0.5 flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--primary-cyan)_15%,transparent)]">
-                    <Check className="h-3 w-3 text-[var(--primary-cyan)]" strokeWidth={2.5} />
-                  </span>
-                  {f}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </motion.div>
-      </div>
-
-      {/* Lifetime stats grid */}
-      <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
-        <div className="rounded-2xl border p-4 bg-[var(--soft-black)]" style={{ borderColor: "var(--border-subtle)" }}>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">Lifetime Spent</p>
-          <p className="text-xl font-bold text-white mt-1">{metrics.lifetimeUsed} credits</p>
-        </div>
-        <div className="rounded-2xl border p-4 bg-[var(--soft-black)]" style={{ borderColor: "var(--border-subtle)" }}>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">Total Issued</p>
-          <p className="text-xl font-bold text-white mt-1">{metrics.lifetimeAdded} credits</p>
-        </div>
-        <div className="rounded-2xl border p-4 bg-[var(--soft-black)]" style={{ borderColor: "var(--border-subtle)" }}>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">Active Tasks</p>
-          <p className="text-xl font-bold text-white mt-1">{metrics.pendingCount} queued</p>
-        </div>
-        <div className="rounded-2xl border p-4 bg-[var(--soft-black)]" style={{ borderColor: "var(--border-subtle)" }}>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">Account Access</p>
-          <p className="text-xl font-bold mt-1 text-emerald-400">Full Access</p>
-        </div>
-      </div>
-
-      {/* Tabs list */}
-      <div className="border-b border-white/5 flex gap-6">
-        <button
-          onClick={() => setActiveTab("ledger")}
-          className={`pb-3 text-sm font-semibold relative transition-colors ${activeTab === "ledger" ? "text-white" : "text-[var(--text-subtle)] hover:text-white"}`}
-        >
-          Transaction Ledger
-          {activeTab === "ledger" && (
-            <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#7B61FF]" />
-          )}
-        </button>
-        <button
-          onClick={() => setActiveTab("history")}
-          className={`pb-3 text-sm font-semibold relative transition-colors ${activeTab === "history" ? "text-white" : "text-[var(--text-subtle)] hover:text-white"}`}
-        >
-          Generation History & Holds
-          {activeTab === "history" && (
-            <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#7B61FF]" />
-          )}
-        </button>
-      </div>
-
-      {/* Ledger Tab */}
-      {activeTab === "ledger" && (
-        <motion.div
-          initial={reduce ? false : { opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="rounded-3xl border p-6 bg-[var(--soft-black)]"
-          style={{ borderColor: "var(--border-subtle)" }}
-        >
-          {transactions.length === 0 ? (
-            <div className="text-center py-8 border border-dashed border-white/5 rounded-2xl bg-black/10">
-              <p className="text-xs text-[var(--text-muted)]">No transaction logs logged yet.</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="border-b border-white/5 text-[var(--text-subtle)] font-bold uppercase tracking-wider pb-3">
-                    <th className="pb-3 pr-4">Action Type</th>
-                    <th className="pb-3 pr-4">Amount</th>
-                    <th className="pb-3 pr-4">Settled Balance</th>
-                    <th className="pb-3 pr-4">Details / Source</th>
-                    <th className="pb-3">Timestamp</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                  {transactions.map((item: any) => {
-                    const isAdd = item.creditsAdded > 0;
-                    const amtStr = isAdd ? `+${item.creditsAdded}` : `-${item.creditsDeducted}`;
-                    const color = isAdd ? "text-emerald-400" : "text-rose-400";
-                    return (
-                      <tr key={item.id} className="hover:bg-white/[0.01] transition-colors">
-                        <td className="py-3 pr-4 font-semibold text-white capitalize">
-                          {item.actionType.replace(/_/g, " ")}
-                        </td>
-                        <td className={`py-3 pr-4 font-bold tabular-nums ${color}`}>
-                          {amtStr}
-                        </td>
-                        <td className="py-3 pr-4 tabular-nums text-[var(--text-muted)]">
-                          {item.newBalance}
-                        </td>
-                        <td className="py-3 pr-4 text-[var(--text-muted)] max-w-xs truncate" title={item.reason}>
-                          {item.reason} <span className="text-[10px] text-[var(--text-subtle)] font-mono">({item.source})</span>
-                        </td>
-                        <td className="py-3 text-[var(--text-subtle)] whitespace-nowrap">
-                          {new Date(item.timestamp).toLocaleString()}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </motion.div>
-      )}
-
-      {/* History & Queue Tab */}
-      {activeTab === "history" && (
-        <motion.div
-          initial={reduce ? false : { opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="rounded-3xl border p-6 bg-[var(--soft-black)]"
-          style={{ borderColor: "var(--border-subtle)" }}
-        >
-          {generations.length === 0 ? (
-            <div className="text-center py-8 border border-dashed border-white/5 rounded-2xl bg-black/10">
-              <p className="text-xs text-[var(--text-muted)]">No generations recorded.</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="border-b border-white/5 text-[var(--text-subtle)] font-bold uppercase tracking-wider pb-3">
-                    <th className="pb-3 pr-4">Task ID</th>
-                    <th className="pb-3 pr-4">Type</th>
-                    <th className="pb-3 pr-4">Model</th>
-                    <th className="pb-3 pr-4">Credit Cost</th>
-                    <th className="pb-3 pr-4">Status</th>
-                    <th className="pb-3 pr-4">Prompt preview</th>
-                    <th className="pb-3">Submitted</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                  {generations.map((gen: any) => {
-                    let statusColor = "text-zinc-400 bg-zinc-800/40";
-                    if (gen.status === "completed") statusColor = "text-emerald-400 bg-emerald-500/10";
-                    else if (gen.status === "pending") statusColor = "text-amber-400 bg-amber-500/10 animate-pulse";
-                    else if (gen.status === "failed") statusColor = "text-rose-400 bg-rose-500/10";
-
-                    return (
-                      <tr key={gen.id} className="hover:bg-white/[0.01] transition-colors">
-                        <td className="py-3 pr-4 font-mono text-[var(--text-subtle)]">
-                          {gen.id.slice(0, 8)}...
-                        </td>
-                        <td className="py-3 pr-4 font-semibold text-white capitalize">
-                          {gen.type}
-                        </td>
-                        <td className="py-3 pr-4 font-mono text-[var(--text-muted)]">
-                          {gen.model ? gen.model.split("/").pop() : "—"}
-                        </td>
-                        <td className="py-3 pr-4 font-bold text-white tabular-nums">
-                          {gen.credits}
-                        </td>
-                        <td className="py-3 pr-4">
-                          <span className={`rounded-full px-2 py-0.5 font-semibold text-[10px] ${statusColor}`}>
-                            {gen.status}
+            {paymentHistory.length === 0 ? (
+              <div className="flex flex-col items-center py-12" style={{ color: "var(--text-muted)" }}>
+                <CreditCard className="mb-3 h-10 w-10 opacity-30" />
+                <p className="text-sm">No payments yet</p>
+                <button
+                  onClick={() => setActiveTab("plans")}
+                  className="mt-4 flex items-center gap-1 text-sm font-semibold text-[#7B61FF] hover:underline"
+                >
+                  View plans <ArrowRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="border-b text-xs uppercase tracking-wider" style={{ borderColor: "var(--border-subtle)", color: "var(--text-subtle)" }}>
+                      <th className="px-5 py-3 font-bold">Plan</th>
+                      <th className="px-4 py-3 font-bold">Amount</th>
+                      <th className="px-4 py-3 font-bold">Credits</th>
+                      <th className="px-4 py-3 font-bold">Status</th>
+                      <th className="px-5 py-3 font-bold">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paymentHistory.map((p: PaymentRecord) => (
+                      <tr key={p.id} className="border-b hover:bg-white/[0.02]" style={{ borderColor: "var(--border-subtle)" }}>
+                        <td className="px-5 py-3 font-semibold" style={{ color: "var(--text-primary)" }}>{p.planName}</td>
+                        <td className="px-4 py-3 font-bold" style={{ color: "var(--text-primary)" }}>{p.amountDisplay}</td>
+                        <td className="px-4 py-3">
+                          <span className="flex items-center gap-1 text-xs font-semibold text-[#00D4FF]">
+                            <Zap className="h-3 w-3" /> +{p.credits}
                           </span>
                         </td>
-                        <td className="py-3 pr-4 text-[var(--text-muted)] max-w-xs truncate" title={gen.prompt}>
-                          {gen.prompt || "—"}
+                        <td className="px-4 py-3">
+                          <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${statusColor(p.status)}`}>
+                            {p.status === "captured" ? "Success" : p.status}
+                          </span>
                         </td>
-                        <td className="py-3 text-[var(--text-subtle)] whitespace-nowrap">
-                          {new Date(gen.createdAt).toLocaleString()}
+                        <td className="px-5 py-3 font-mono text-xs" style={{ color: "var(--text-subtle)" }}>
+                          {p.date ? new Date(p.date).toLocaleDateString() : "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* Quick upgrade CTA */}
+          <div
+            className="flex flex-col gap-4 rounded-2xl border p-6 sm:flex-row sm:items-center sm:justify-between"
+            style={{ borderColor: "color-mix(in srgb, #7B61FF 25%, transparent)", background: "color-mix(in srgb, #7B61FF 6%, var(--soft-black))" }}
+          >
+            <div>
+              <p className="font-display text-base font-bold" style={{ color: "var(--text-primary)" }}>
+                Need more credits?
+              </p>
+              <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
+                Top up instantly with a one-time purchase. Credits never expire.
+              </p>
+            </div>
+            <button
+              onClick={() => setActiveTab("plans")}
+              className="inline-flex shrink-0 items-center gap-2 rounded-xl px-5 py-3 text-sm font-bold text-white"
+              style={{ background: "linear-gradient(135deg, #7B61FF, #00D4FF)", boxShadow: "0 6px 20px -6px rgba(123,97,255,0.6)" }}
+            >
+              Browse Plans <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
+        </motion.div>
+      )}
+
+      {/* CREDIT LEDGER TAB */}
+      {activeTab === "history" && (
+        <motion.div
+          initial={reduce ? false : { opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="overflow-hidden rounded-2xl border"
+          style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}
+        >
+          <div className="border-b px-5 py-4" style={{ borderColor: "var(--border-subtle)" }}>
+            <h2 className="font-display text-base font-bold" style={{ color: "var(--text-primary)" }}>
+              Credit Transaction Ledger
+            </h2>
+          </div>
+          {creditHistory.length === 0 ? (
+            <div className="flex flex-col items-center py-12" style={{ color: "var(--text-muted)" }}>
+              <Activity className="mb-3 h-10 w-10 opacity-30" />
+              <p className="text-sm">No credit transactions yet</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b text-xs uppercase tracking-wider" style={{ borderColor: "var(--border-subtle)", color: "var(--text-subtle)" }}>
+                    <th className="px-5 py-3 font-bold">Action</th>
+                    <th className="px-4 py-3 font-bold">Amount</th>
+                    <th className="px-4 py-3 font-bold">Balance After</th>
+                    <th className="px-4 py-3 font-bold">Reason</th>
+                    <th className="px-5 py-3 font-bold">Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {creditHistory.map((t: CreditTransaction) => {
+                    const isAdd = (t.creditsAdded ?? 0) > 0;
+                    const amt = isAdd ? `+${t.creditsAdded}` : `-${t.creditsDeducted}`;
+                    return (
+                      <tr key={t.id} className="border-b hover:bg-white/[0.02]" style={{ borderColor: "var(--border-subtle)" }}>
+                        <td className="px-5 py-3 font-semibold capitalize" style={{ color: "var(--text-primary)" }}>
+                          {(t.actionType || "").replace(/_/g, " ")}
+                        </td>
+                        <td className={`px-4 py-3 font-mono font-bold ${isAdd ? "text-emerald-400" : "text-rose-400"}`}>
+                          {amt}
+                        </td>
+                        <td className="px-4 py-3 font-mono font-semibold" style={{ color: "var(--text-primary)" }}>
+                          {t.newBalance}
+                        </td>
+                        <td className="px-4 py-3 text-xs" style={{ color: "var(--text-muted)" }}>
+                          {t.reason || "—"}
+                        </td>
+                        <td className="px-5 py-3 font-mono text-xs" style={{ color: "var(--text-subtle)" }}>
+                          {t.timestamp ? new Date(t.timestamp).toLocaleString() : "—"}
                         </td>
                       </tr>
                     );
@@ -368,6 +432,87 @@ export default function BillingPage() {
           )}
         </motion.div>
       )}
+
+      {/* PLANS TAB */}
+      {activeTab === "plans" && (
+        <motion.div
+          initial={reduce ? false : { opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-6"
+        >
+          <div className="text-center space-y-4">
+            <div>
+              <h2 className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>
+                Upgrade Pricing & Plans
+              </h2>
+              <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
+                Select a plan to view details and proceed to secure checkout.
+              </p>
+            </div>
+
+            {/* Toggle Switcher */}
+            <div className="inline-flex rounded-xl border p-1" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
+              <button
+                onClick={() => setBillingPeriod("monthly")}
+                className={`rounded-lg px-4 py-1.5 text-xs font-bold transition-all ${
+                  billingPeriod === "monthly"
+                    ? "bg-[#7B61FF] text-white shadow-sm"
+                    : "text-[var(--text-muted)] hover:text-white"
+                }`}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setBillingPeriod("yearly")}
+                className={`rounded-lg px-4 py-1.5 text-xs font-bold transition-all ${
+                  billingPeriod === "yearly"
+                    ? "bg-[#7B61FF] text-white shadow-sm"
+                    : "text-[var(--text-muted)] hover:text-white"
+                }`}
+              >
+                Yearly
+              </button>
+            </div>
+          </div>
+
+          {plans.length === 0 ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-[#7B61FF]" />
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 justify-center">
+              {plans
+                .filter((p) => {
+                  const isYearly = p.id.includes("yearly");
+                  return billingPeriod === "yearly" ? isYearly : !isYearly;
+                })
+                .map((p) => (
+                  <PlanCard key={p.id} plan={p} />
+                ))}
+            </div>
+          )}
+          <div
+            className="flex items-start gap-3 rounded-xl border p-4"
+            style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}
+          >
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--text-subtle)]" />
+            <p className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
+              All payments are processed securely by Razorpay. Credits are added to your account
+              immediately after payment verification. Contact support if you have any billing issues.
+            </p>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Support link */}
+      <div className="flex items-center justify-center">
+        <Link
+          href="/dashboard/support"
+          className="flex items-center gap-1.5 text-sm font-semibold text-[var(--text-subtle)] hover:text-[var(--text-primary)] transition-colors"
+        >
+          Billing issue? <span className="text-[#7B61FF]">Contact Support →</span>
+        </Link>
+      </div>
     </div>
   );
 }

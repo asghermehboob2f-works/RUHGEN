@@ -50,7 +50,13 @@ next-env.d.ts
 /backend/data/contact-messages.json
 
 # SQLite (Express backend)
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
 /data/*.sqlite
 /data/*.sqlite-*
 /backend/data/*.sqlite
 /backend/data/*.sqlite-*
+/backend/data/*.db
+

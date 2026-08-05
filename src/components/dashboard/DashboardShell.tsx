@@ -12,6 +12,7 @@ import {
   Menu,
   Moon,
   PanelLeft,
+  ShieldCheck,
   Sparkles,
   Sun,
   UserCircle,
@@ -30,6 +31,7 @@ import { CursorGlow } from "@/components/CursorGlow";
 const nav = [
   { href: "/admindashboard", label: "Overview", icon: LayoutDashboard, end: true },
   { href: "/admindashboard/users", label: "Users", icon: Users },
+  { href: "/admindashboard/verification", label: "Email Verification", icon: ShieldCheck },
   { href: "/admindashboard/content", label: "Content studio", icon: FileStack },
   { href: "/admindashboard/spotlight", label: "Spotlight CMS", icon: Sparkles },
   { href: "/admindashboard/academy", label: "Academy CMS", icon: GraduationCap },

@@ -2,7 +2,7 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
-import { Clapperboard, Quote, Sparkles, Layers, Compass, ArrowRight, Zap, Play, CheckCircle, Clock, Activity, Cpu, Wand2 } from "lucide-react";
+import { Clapperboard, Compass, ArrowRight, Play, Clock } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FeatureShowcase } from "@/components/FeatureShowcase";
 import { SpotlightHeroGraphic } from "@/components/marketing/SpotlightHeroGraphic";
@@ -10,12 +10,6 @@ import type { SiteContent } from "@/backend/site-content/types";
 import { SITE_CONTAINER } from "@/lib/site-layout";
 
 const POINTER_ZERO = { x: 0, y: 0 };
-
-const directorsNote = {
-  quote:
-    "The best reels aren’t the loudest—they’re the ones that survive the Monday-morning review. We built Spotlight to show motion and messaging that still makes sense after the hype fades.",
-  attribution: "Product narrative, RUHGEN",
-};
 
 export function SpotlightPageContent({ content }: { content: SiteContent }) {
   const reduce = useReducedMotion() === true;

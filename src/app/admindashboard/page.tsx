@@ -1,7 +1,7 @@
 "use client";
  
 import { motion, useReducedMotion } from "framer-motion";
-import { Inbox, Settings, Sparkles, Users, BookOpen, Clapperboard, Activity } from "lucide-react";
+import { CreditCard, Inbox, MessageSquare, Settings, Sparkles, Users, BookOpen, Clapperboard, Activity } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -49,6 +49,18 @@ const tiles = [
     desc: "Update frequently asked questions and categories.",
     href: "/admindashboard/faq",
     icon: "sparkles" as const,
+  },
+  {
+    title: "Payments",
+    desc: "View all transactions, Razorpay payments, revenue analytics, and credit purchases.",
+    href: "/admindashboard/payments",
+    icon: "creditCard" as const,
+  },
+  {
+    title: "Support Tickets",
+    desc: "Manage user support tickets, reply to members, and track resolution status.",
+    href: "/admindashboard/support",
+    icon: "messageSquare" as const,
   },
   {
     title: "Contact inbox",
@@ -173,6 +185,10 @@ export default function DashboardPage() {
                     <Clapperboard className="h-5 w-5" strokeWidth={1.75} style={{ color: "#FFB000" }} />
                   ) : t.icon === "bookOpen" ? (
                     <BookOpen className="h-5 w-5" strokeWidth={1.75} style={{ color: "#00E575" }} />
+                  ) : t.icon === "creditCard" ? (
+                    <CreditCard className="h-5 w-5" strokeWidth={1.75} style={{ color: "#00D4FF" }} />
+                  ) : t.icon === "messageSquare" ? (
+                    <MessageSquare className="h-5 w-5" strokeWidth={1.75} style={{ color: "#7B61FF" }} />
                   ) : (
                     <Sparkles className="h-5 w-5" strokeWidth={1.75} style={{ color: "var(--text-muted)" }} />
                   )}

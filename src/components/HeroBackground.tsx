@@ -1,7 +1,12 @@
 "use client";
 
 import { motion, useScroll, useTransform, useSpring, useMotionValue } from "framer-motion";
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useRef, useMemo, useSyncExternalStore } from "react";
+
+const emptySubscribe = () => () => {};
+function useIsMounted() {
+  return useSyncExternalStore(emptySubscribe, () => true, () => false);
+}
 import Image from "next/image";
 import type { HeroBackgroundConfig, HeroBackgroundMedia } from "@/backend/site-content/types";
 import { useTheme } from "@/components/ThemeProvider";
@@ -18,7 +23,7 @@ const TRACK_HEIGHTS = [
 const TRACK_SPEEDS = [0.05, 0.08, 0.06]; // Relative speeds for parallax
 
 export function HeroBackground({ config }: HeroBackgroundProps) {
-  const [mounted, setMounted] = useState(false);
+  const mounted = useIsMounted();
   const [isMobile, setIsMobile] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
@@ -33,8 +38,6 @@ export function HeroBackground({ config }: HeroBackgroundProps) {
   const springY = useSpring(mouseY, { damping: 60, stiffness: 80 });
 
   useEffect(() => {
-    setMounted(true);
-    
     // Check if device is mobile to optimize tracks
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);

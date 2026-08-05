@@ -67,12 +67,12 @@ export function CommunityShareModal({
   const { user, ready } = useAuth();
   const reduce = useReducedMotion();
 
-  const [mediaUrl, setMediaUrl] = useState("");
-  const [kind, setKind] = useState<CommunityKind>("image");
-  const [title, setTitle] = useState("");
-  const [prompt, setPrompt] = useState("");
+  const [mediaUrl, setMediaUrl] = useState(() => initial?.mediaUrl || "");
+  const [kind, setKind] = useState<CommunityKind>(() => initial?.kind || (initial?.mediaUrl ? detectKindFromUrl(initial.mediaUrl) : null) || "image");
+  const [title, setTitle] = useState(() => initial?.title || "");
+  const [prompt, setPrompt] = useState(() => initial?.prompt || "");
   const [tagInput, setTagInput] = useState("");
-  const [tags, setTags] = useState<string[]>([]);
+  const [tags, setTags] = useState<string[]>(() => Array.isArray(initial?.tags) ? initial!.tags!.slice(0, 8) : []);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -84,10 +84,7 @@ export function CommunityShareModal({
   const [recentLoading, setRecentLoading] = useState(false);
 
   useEffect(() => {
-    if (!open || !user || hideRecent) {
-      setRecent([]);
-      return;
-    }
+    if (!open || !user || hideRecent) return;
     let active = true;
     async function loadRecent() {
       setRecentLoading(true);
@@ -105,19 +102,10 @@ export function CommunityShareModal({
 
   useEffect(() => {
     if (!open) return;
-    setSuccess(false);
-    setError(null);
-    setSubmitting(false);
-    setMediaUrl(initial?.mediaUrl || "");
-    setKind(initial?.kind || (initial?.mediaUrl ? detectKindFromUrl(initial.mediaUrl) : null) || "image");
-    setTitle(initial?.title || "");
-    setPrompt(initial?.prompt || "");
-    setTags(Array.isArray(initial?.tags) ? initial!.tags!.slice(0, 8) : []);
-    setTagInput("");
     requestAnimationFrame(() => {
       closeBtnRef.current?.focus();
     });
-  }, [open, initial]);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;

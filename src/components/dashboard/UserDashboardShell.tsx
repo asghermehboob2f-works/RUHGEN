@@ -11,6 +11,7 @@ import {
   Menu,
   Moon,
   Settings,
+  ShieldCheck,
   Sparkles,
   Sun,
   Video,
@@ -19,13 +20,15 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { useAuth } from "@/components/AuthProvider";
 import { useTheme } from "@/components/ThemeProvider";
+import { VerificationBanner } from "@/components/dashboard/VerificationBanner";
 
 const workspaceNav = [
   { href: "/dashboard", label: "Overview", icon: Home, end: true as const },
+  { href: "/dashboard/verify", label: "Verify Email", icon: ShieldCheck },
   { href: "/community", label: "Community", icon: Sparkles },
   { href: "/academy", label: "Academy", icon: BookOpen },
   { href: "/dashboard/billing", label: "Billing", icon: CreditCard },
@@ -93,6 +96,12 @@ export function UserDashboardShell({ children }: { children: React.ReactNode }) 
   const reduce = useReducedMotion();
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  const isVerified = !!user?.emailVerified || user?.verificationStatus === "verified";
+  const activeWorkspaceNav = useMemo(
+    () => workspaceNav.filter((item) => item.href !== "/dashboard/verify" || !isVerified),
+    [isVerified]
+  );
+
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
     return () => {
@@ -148,7 +157,7 @@ export function UserDashboardShell({ children }: { children: React.ReactNode }) 
               Workspace
             </p>
             <nav className="mt-3 flex flex-col gap-1.5" aria-label="Workspace">
-              {workspaceNav.map((item) => (
+              {activeWorkspaceNav.map((item) => (
                 <SidebarNavLink key={item.href} item={item} pathname={pathname} />
               ))}
             </nav>
@@ -337,6 +346,17 @@ export function UserDashboardShell({ children }: { children: React.ReactNode }) 
               : "mx-auto w-full max-w-[1200px] flex-1 px-4 pb-16 pt-6 sm:px-6 sm:pt-8 lg:px-10"
           }
         >
+          {/* Verification Banner — shown to unverified users across all dashboard pages */}
+          {ready && user && !pathname.startsWith("/dashboard/generate/") && (
+            <div className="mb-6">
+              <VerificationBanner
+                emailVerified={!!user.emailVerified}
+                verificationDeadline={user.verificationDeadline ?? null}
+                verificationStatus={user.verificationStatus ?? "pending"}
+                suspended={!!user.suspended}
+              />
+            </div>
+          )}
           {children}
         </main>
       </div>
@@ -392,7 +412,7 @@ export function UserDashboardShell({ children }: { children: React.ReactNode }) 
                     Workspace
                   </p>
                   <nav className="mt-3 flex flex-col gap-1.5" aria-label="Workspace mobile">
-                    {workspaceNav.map((item) => (
+                    {activeWorkspaceNav.map((item) => (
                       <SidebarNavLink key={item.href} item={item} pathname={pathname} onNavigate={() => setMobileOpen(false)} />
                     ))}
                   </nav>

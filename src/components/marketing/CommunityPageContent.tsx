@@ -179,7 +179,7 @@ export function CommunityPageContent() {
 
   const loadFeed = useCallback(
     async (opts: { silent?: boolean } = {}) => {
-      if (!opts.silent) setLoading(true);
+      if (!opts.silent && posts.length > 0) setLoading(true);
       setRefreshing(opts.silent ?? false);
       setError(null);
       try {
@@ -204,7 +204,7 @@ export function CommunityPageContent() {
         }
       }
     },
-    [type, sort, tag, search]
+    [type, sort, tag, search, posts.length]
   );
 
   const loadMore = useCallback(async () => {
@@ -254,12 +254,58 @@ export function CommunityPageContent() {
   }, []);
 
   useEffect(() => {
-    void loadFeed();
-  }, [loadFeed]);
+    let active = true;
+    async function initFeed() {
+      try {
+        const r = await fetchFeed({
+          type,
+          sort,
+          tag: tag || undefined,
+          q: search || undefined,
+          limit: PAGE_SIZE,
+          offset: 0,
+        });
+        if (!active) return;
+        setPosts(r.posts);
+        setTotalPostsCount(r.total);
+      } catch (e) {
+        if (!active) return;
+        setError(e instanceof Error ? e.message : "Couldn't load the feed.");
+      } finally {
+        if (active) {
+          setLoading(false);
+          setRefreshing(false);
+        }
+      }
+    }
+    void initFeed();
+    return () => {
+      active = false;
+    };
+  }, [type, sort, tag, search]);
 
   useEffect(() => {
-    void loadAux();
-  }, [loadAux]);
+    let active = true;
+    async function initAux() {
+      try {
+        const [s, t, c] = await Promise.all([
+          fetchStats().catch(() => null),
+          fetchTags(18).catch(() => [] as CommunityTag[]),
+          fetchCreators(8).catch(() => [] as CommunityCreator[]),
+        ]);
+        if (!active) return;
+        if (s) setStats(s);
+        setTags(t);
+        setCreators(c);
+      } catch {
+        /* aux is best-effort */
+      }
+    }
+    void initAux();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     const onFocus = () => {
@@ -2040,31 +2086,29 @@ function PostLightbox({
 
   useEffect(() => {
     if (!post) return;
-    setComments([]);
-    setCommentBody("");
-    setCommentsLoading(true);
-    setShareNote(null);
-    setCopied(false);
-    setConfirmDelete(false);
-    setActionError(null);
-    void recordView(post.id)
+    const postId = post.id;
+    let active = true;
+    void recordView(postId)
       .then((r) => {
-        if (!aliveRef.current || !post) return;
+        if (!active) return;
         if (r.views && r.views !== post.views) {
-          onUpdate(post.id, { views: r.views });
+          onUpdate(postId, { views: r.views });
         }
       })
       .catch(() => {});
-    void fetchComments(post.id)
+    void fetchComments(postId)
       .then((c) => {
-        if (!aliveRef.current) return;
+        if (!active) return;
         setComments(c);
       })
       .catch(() => {})
       .finally(() => {
-        if (aliveRef.current) setCommentsLoading(false);
+        if (active) setCommentsLoading(false);
       });
-  }, [post?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+    return () => {
+      active = false;
+    };
+  }, [post?.id]);
 
   useEffect(() => {
     if (!post) return;

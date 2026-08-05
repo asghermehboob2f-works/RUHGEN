@@ -329,8 +329,20 @@ function mountStudioRoutes(app, options) {
     if (!prompt || prompt.length < 2) {
       return res.status(400).json({ ok: false, error: "Enter a prompt (at least 2 characters)." });
     }
+    const qualityRaw = typeof req.body?.quality === "string" ? req.body.quality.trim().toLowerCase() : "";
     const modelRaw = typeof req.body?.model === "string" ? req.body.model.trim() : "";
-    const model = modelRaw || "Qubico/flux1-dev";
+    let quality = "Quality";
+    let model = "Qubico/flux1-dev";
+    if (qualityRaw === "standard" || qualityRaw === "fast" || modelRaw.includes("schnell")) {
+      quality = "Standard";
+      model = "Qubico/flux1-schnell";
+    } else if (qualityRaw === "ultra") {
+      quality = "Ultra Quality";
+      model = "Qubico/flux1-dev";
+    } else {
+      quality = "Quality";
+      model = "Qubico/flux1-dev";
+    }
     let width = Number(req.body?.width);
     let height = Number(req.body?.height);
     if (!Number.isFinite(width) || width <= 0) width = 1024;
@@ -350,16 +362,16 @@ function mountStudioRoutes(app, options) {
     let guidanceScale = Number(req.body?.guidance_scale);
     if (!Number.isFinite(guidanceScale) || guidanceScale < 1 || guidanceScale > 20) guidanceScale = 3.5;
 
-    // Engine specific credit costs
+    // Quality specific credit costs
     let costKey = "credits_per_image";
-    if (model.includes("schnell")) {
+    if (quality === "Standard" || model.includes("schnell")) {
       costKey = "cost_image_schnell";
-    } else if (model.includes("dev")) {
+    } else {
       costKey = "cost_image_dev";
     }
     const costSetting = db.prepare("SELECT value FROM credit_settings WHERE key = ?").get(costKey)
       || db.prepare("SELECT value FROM credit_settings WHERE key = 'credits_per_image'").get();
-    const finalCost = costSetting ? Number(costSetting.value) : (model.includes("dev") ? 3 : 2);
+    const finalCost = costSetting ? Number(costSetting.value) : (quality === "Standard" ? 2 : 3);
 
     // Validate balance and eligibility
     const userRow = db.prepare("SELECT credits, suspended, generation_disabled FROM users WHERE id = ?").get(req.user.sub);
@@ -436,7 +448,7 @@ function mountStudioRoutes(app, options) {
         new Date().toISOString(),
         JSON.stringify({
           prompt,
-          model,
+          quality,
           width: w,
           height: h,
           image_url: imageRefRaw,
@@ -465,13 +477,23 @@ function mountStudioRoutes(app, options) {
     const dur = duration === 10 ? 10 : 5;
     const aspectRaw = typeof req.body?.aspect_ratio === "string" ? req.body.aspect_ratio.trim() : "16:9";
     const aspect_ratio = ["16:9", "9:16", "1:1"].includes(aspectRaw) ? aspectRaw : "16:9";
-    const modeRaw = typeof req.body?.mode === "string" ? req.body.mode.trim().toLowerCase() : "std";
-    let mode = modeRaw === "pro" ? "pro" : "std";
-    const verRaw = typeof req.body?.version === "string" ? req.body.version.trim() : "2.6";
-    const allowedVer = new Set(["1.5", "1.6", "2.1", "2.1-master", "2.5", "2.6"]);
-    let version = allowedVer.has(verRaw) ? verRaw : "2.6";
-    if (version === "2.1-master" && mode !== "pro") {
+    const qualityRaw = typeof req.body?.quality === "string" ? req.body.quality.trim().toLowerCase() : "";
+    const modeRaw = typeof req.body?.mode === "string" ? req.body.mode.trim().toLowerCase() : "";
+    let quality = "Quality";
+    let mode = "std";
+    let version = "2.6";
+    if (qualityRaw === "standard" || modeRaw === "std" || qualityRaw === "fast") {
+      quality = "Standard";
+      mode = "std";
+      version = "2.6";
+    } else if (qualityRaw === "ultra" || modeRaw === "pro") {
+      quality = "Ultra Quality";
       mode = "pro";
+      version = "2.6";
+    } else {
+      quality = "Quality";
+      mode = "std";
+      version = "2.6";
     }
     const negative_prompt =
       typeof req.body?.negative_prompt === "string" ? req.body.negative_prompt.trim().slice(0, 2500) : "";
@@ -484,7 +506,7 @@ function mountStudioRoutes(app, options) {
     const klingModel = String(process.env.STUDIO_KLING_MODEL || "kling-turbo").trim().toLowerCase();
     const useTurbo = klingModel !== "kling";
 
-    // Engine specific credit costs
+    // Quality specific credit costs
     let costKey = mode === "pro" ? "cost_video_pro" : "cost_video_std";
     const costSetting = db.prepare("SELECT value FROM credit_settings WHERE key = ?").get(costKey)
       || db.prepare("SELECT value FROM credit_settings WHERE key = 'credits_per_video_second'").get();
@@ -582,8 +604,7 @@ function mountStudioRoutes(app, options) {
           prompt,
           duration: dur,
           aspect_ratio,
-          mode,
-          version,
+          quality,
           negative_prompt,
           image_url,
           kind: "video"
@@ -620,12 +641,26 @@ function mountStudioRoutes(app, options) {
           details = JSON.parse(dbTask.details_json);
         } catch (e) {}
         const urls = details.urls || [];
+        let cleanOutput = details.output || {};
+        if (cleanOutput && typeof cleanOutput === "object" && !Array.isArray(cleanOutput)) {
+          const c = { ...cleanOutput };
+          delete c.model;
+          delete c.provider;
+          delete c.engine;
+          delete c.checkpoint;
+          cleanOutput = c;
+        }
+        let cleanError = null;
+        if (details.error) {
+          const errMsg = typeof details.error?.message === "string" ? details.error.message.replace(/(kling|flux|qubico|piapi|checkpoint|provider)/gi, "Generation engine") : "Generation error.";
+          cleanError = { message: errMsg };
+        }
         return res.json({
           ok: true,
           status: dbTask.status,
           urls,
-          output: details.output || {},
-          error: details.error || null
+          output: cleanOutput,
+          error: cleanError
         });
       }
 
@@ -676,13 +711,29 @@ function mountStudioRoutes(app, options) {
         );
       }
 
+      let cleanOutput = data.output || {};
+      if (cleanOutput && typeof cleanOutput === "object" && !Array.isArray(cleanOutput)) {
+        const c = { ...cleanOutput };
+        delete c.model;
+        delete c.provider;
+        delete c.engine;
+        delete c.checkpoint;
+        cleanOutput = c;
+      }
+      let cleanError = null;
+      if (data.error) {
+        const errMsg = typeof data.error?.message === "string" ? data.error.message.replace(/(kling|flux|qubico|piapi|checkpoint|provider)/gi, "Generation engine") : "Generation error.";
+        cleanError = { message: errMsg };
+      }
+      const cleanMsg = typeof r.json?.message === "string" ? r.json.message.replace(/(kling|flux|qubico|piapi|checkpoint|provider)/gi, "Generation engine") : undefined;
+
       return res.json({
         ok: true,
         status: status,
         urls,
-        output: data.output,
-        error: data.error,
-        message: r.json?.message,
+        output: cleanOutput,
+        error: cleanError,
+        message: cleanMsg,
       });
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Server error.";
@@ -808,6 +859,19 @@ function mountStudioRoutes(app, options) {
         try {
           details = JSON.parse(t.details_json);
         } catch (e) {}
+        let q = details.quality;
+        if (!q) {
+          if (t.type === "image") {
+            q = (details.model && details.model.includes("schnell")) ? "Standard" : "Quality";
+          } else {
+            q = (details.mode === "pro" || details.quality === "Ultra Quality") ? "Ultra Quality" : "Quality";
+          }
+        }
+        let cleanErr = null;
+        if (details.error) {
+          const errMsg = typeof details.error?.message === "string" ? details.error.message.replace(/(kling|flux|qubico|piapi|checkpoint|provider)/gi, "Generation engine") : "Generation error.";
+          cleanErr = { message: errMsg };
+        }
         return {
           id: t.id,
           type: t.type,
@@ -815,8 +879,8 @@ function mountStudioRoutes(app, options) {
           status: t.status,
           createdAt: t.created_at,
           prompt: details.prompt || "",
-          model: details.model || "",
-          error: details.error || null,
+          quality: q,
+          error: cleanErr,
           urls: details.urls || []
         };
       });

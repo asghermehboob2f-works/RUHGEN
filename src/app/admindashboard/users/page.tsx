@@ -21,7 +21,7 @@ export type PlatformUserRow = {
   role?: string;
 };
 
-const PLAN_PRESETS = ["free", "starter", "pro", "enterprise"] as const;
+const PLAN_PRESETS = ["free", "pro", "pro_yearly", "pro_plus", "pro_plus_yearly", "custom"] as const;
 const STATUS_PRESETS = ["active", "paused", "cancelled", "past_due"] as const;
 
 export default function AdminUsersPage() {
@@ -397,7 +397,7 @@ function UserDetailPanel({
           value={plan}
           onChange={(e) => setPlan(e.target.value)}
           list="admin-user-plan-presets"
-          placeholder="free, starter, pro…"
+          placeholder="free, pro, pro_plus…"
           className="min-h-[44px] rounded-lg border px-3 py-2 text-sm font-medium normal-case outline-none focus:ring-2 focus:ring-[#7B61FF]/40"
           style={{ borderColor: "var(--border-subtle)", background: "var(--rich-black)", color: "var(--text-primary)" }}
         />

@@ -13,29 +13,38 @@ export default function SignInPage() {
   const { user, ready, signIn } = useAuth();
   const router = useRouter();
   const reduce = useReducedMotion();
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        return localStorage.getItem("ruhgen_remember_email") || "";
+      } catch {
+        return "";
+      }
+    }
+    return "";
+  });
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
   const [remember, setRemember] = useState(true);
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
 
-  useEffect(() => {
-    if (!ready || !user) return;
-    const q = new URLSearchParams(window.location.search).get("next");
-    router.replace(q && q.startsWith("/") ? q : "/dashboard");
-  }, [ready, user, router]);
+  const searchQuery = typeof window !== "undefined" ? window.location.search : "";
 
   useEffect(() => {
-    queueMicrotask(() => {
-      try {
-        const r = localStorage.getItem("ruhgen_remember_email");
-        if (r) setEmail(r);
-      } catch {
-        /* ignore */
-      }
-    });
-  }, []);
+    if (!ready || !user) return;
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get("next");
+    const plan = params.get("plan");
+    const billing = params.get("billing") || "monthly";
+    if (q && q.startsWith("/")) {
+      router.replace(q);
+    } else if (plan) {
+      router.replace(`/dashboard/billing/checkout?plan=${plan}&billing=${billing}`);
+    } else {
+      router.replace("/dashboard");
+    }
+  }, [ready, user, router]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,8 +62,17 @@ export default function SignInPage() {
     } catch {
       /* ignore */
     }
-    const q = new URLSearchParams(window.location.search).get("next");
-    router.push(q && q.startsWith("/") ? q : "/dashboard");
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get("next");
+    const plan = params.get("plan");
+    const billing = params.get("billing") || "monthly";
+    if (q && q.startsWith("/")) {
+      router.push(q);
+    } else if (plan) {
+      router.push(`/dashboard/billing/checkout?plan=${plan}&billing=${billing}`);
+    } else {
+      router.push("/dashboard");
+    }
   };
 
   if (!ready) {
@@ -70,7 +88,7 @@ export default function SignInPage() {
       footer={
         <>
           Don&apos;t have an account?{" "}
-          <Link href="/sign-up" className="font-semibold text-[#7B61FF] hover:underline">
+          <Link href={`/sign-up${searchQuery}`} className="font-semibold text-[#7B61FF] hover:underline">
             Create one
           </Link>
         </>

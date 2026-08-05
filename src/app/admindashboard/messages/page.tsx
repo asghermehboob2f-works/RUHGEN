@@ -1,11 +1,30 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
-import { Inbox, Mail, MessageSquare, Sparkles } from "lucide-react";
+import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
+import { 
+  Inbox, 
+  Mail, 
+  MessageSquare, 
+  Sparkles, 
+  CornerUpLeft, 
+  Trash2, 
+  CheckCircle2, 
+  Circle, 
+  ExternalLink,
+  ChevronDown,
+  ChevronUp
+} from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAdminAuth } from "@/components/AdminAuthProvider";
-import type { ContactMessage } from "@/backend/contact/types";
+
+export type ContactMessage = {
+  id: string;
+  name: string;
+  email: string;
+  message: string;
+  submittedAt: string;
+};
 
 function initials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -30,6 +49,31 @@ export default function ContactMessagesAdminPage() {
   const reduce = useReducedMotion();
   const [rows, setRows] = useState<ContactMessage[] | null>(null);
   const [status, setStatus] = useState("");
+  
+  // Custom Admin States
+  const [activeReplyId, setActiveReplyId] = useState<string | null>(null);
+  const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
+  const [resolvedIds, setResolvedIds] = useState<Record<string, boolean>>({});
+  const [filter, setFilter] = useState<"all" | "pending" | "resolved">("all");
+
+  // Load Resolved Statuses from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("ruhgen_resolved_messages");
+    if (saved) {
+      try {
+        setResolvedIds(JSON.parse(saved));
+      } catch (e) {
+        console.error("Failed to parse resolved messages", e);
+      }
+    }
+  }, []);
+
+  const toggleResolved = (id: string) => {
+    const updated = { ...resolvedIds, [id]: !resolvedIds[id] };
+    setResolvedIds(updated);
+    localStorage.setItem("ruhgen_resolved_messages", JSON.stringify(updated));
+    setStatus(updated[id] ? "Message marked as resolved." : "Message marked as pending.");
+  };
 
   const load = useCallback(async () => {
     const h = authHeaders();
@@ -62,6 +106,68 @@ export default function ContactMessagesAdminPage() {
     }, 0);
     return () => window.clearTimeout(t);
   }, [ready, admin, load]);
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to permanently delete this message from the database?")) {
+      return;
+    }
+    
+    const h = authHeaders();
+    try {
+      const res = await fetch(`/api/admin/contact-messages/${id}`, {
+        method: "DELETE",
+        headers: h,
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        alert(data.error || "Failed to delete message.");
+        return;
+      }
+      setRows(prev => prev ? prev.filter(r => r.id !== id) : null);
+      setStatus("Message permanently deleted.");
+      if (activeReplyId === id) setActiveReplyId(null);
+    } catch {
+      alert("Network error. Could not delete message.");
+    }
+  };
+
+  const startDraft = (id: string, name: string) => {
+    if (activeReplyId === id) {
+      setActiveReplyId(null);
+    } else {
+      setActiveReplyId(id);
+      if (!replyDrafts[id]) {
+        const defaultDraft = `Dear ${name},\n\nThank you for contacting RUHGEN. \n\n[Write your message here]\n\nBest regards,\nRUHGEN Admin`;
+        setReplyDrafts(prev => ({ ...prev, [id]: defaultDraft }));
+      }
+    }
+  };
+
+  const handleLaunchEmailClient = (m: ContactMessage) => {
+    const draftText = replyDrafts[m.id] || "";
+    const subject = `Re: Your RUHGEN Inquiry`;
+    
+    // Professionally quote original inquiry details
+    const body = `${draftText}\n\n---\nOriginal Message:\nFrom: ${m.name} (${m.email})\nDate: ${formatWhen(m.submittedAt)}\n\n${m.message}`;
+    
+    const mailtoUri = `mailto:${encodeURIComponent(m.email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailtoUri;
+    
+    // Auto mark resolved on launch as it's been handled
+    if (!resolvedIds[m.id]) {
+      toggleResolved(m.id);
+    }
+  };
+
+  const filteredRows = useMemo(() => {
+    if (!rows) return null;
+    return rows.filter(row => {
+      const isResolved = !!resolvedIds[row.id];
+      if (filter === "pending") return !isResolved;
+      if (filter === "resolved") return isResolved;
+      return true;
+    });
+  }, [rows, filter, resolvedIds]);
 
   const exportJson = useMemo(() => {
     if (!rows?.length) return "";
@@ -115,6 +221,7 @@ export default function ContactMessagesAdminPage() {
 
   return (
     <div className="relative flex-1 overflow-x-clip px-4 pb-20 pt-8 sm:px-6 sm:pt-10 lg:px-10">
+      {/* Ambient backgrounds */}
       <div
         className="pointer-events-none absolute -right-24 top-10 h-72 w-72 rounded-full opacity-20 blur-[100px]"
         style={{ background: "#7B61FF" }}
@@ -127,6 +234,7 @@ export default function ContactMessagesAdminPage() {
       />
 
       <div className="relative mx-auto max-w-[1080px]">
+        {/* Header Hero banner */}
         <motion.div
           initial={reduce ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -211,7 +319,7 @@ export default function ContactMessagesAdminPage() {
               </button>
             </div>
             {status && (
-              <p className="max-w-md text-xs lg:text-right" style={{ color: "var(--text-muted)" }}>
+              <p className="max-w-md text-xs lg:text-right font-medium text-[#00D4FF]" style={{ color: "var(--text-muted)" }}>
                 {status}
               </p>
             )}
@@ -220,7 +328,30 @@ export default function ContactMessagesAdminPage() {
 
         {rows && (
           <div className="mt-10">
-            {rows.length === 0 ? (
+            {/* Filter Tabs */}
+            <div className="flex border-b mb-6 gap-6 text-sm" style={{ borderColor: "var(--border-subtle)" }}>
+              {[
+                { id: "all", label: "All Messages", count: rows.length },
+                { id: "pending", label: "Pending", count: rows.filter(r => !resolvedIds[r.id]).length },
+                { id: "resolved", label: "Resolved", count: rows.filter(r => !!resolvedIds[r.id]).length }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setFilter(tab.id as any)}
+                  className={`pb-3 font-semibold relative transition-colors ${filter === tab.id ? "text-white" : "text-neutral-400 hover:text-white"}`}
+                >
+                  {tab.label} ({tab.count})
+                  {filter === tab.id && (
+                    <motion.div 
+                      layoutId="activeTabIndicator"
+                      className="absolute bottom-0 inset-x-0 h-0.5 bg-[#7B61FF]" 
+                    />
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {filteredRows && filteredRows.length === 0 ? (
               <motion.div
                 initial={reduce ? false : { opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -234,86 +365,168 @@ export default function ContactMessagesAdminPage() {
                   <MessageSquare className="h-7 w-7" strokeWidth={1.75} style={{ color: "var(--text-muted)" }} />
                 </div>
                 <p className="font-display text-lg font-bold" style={{ color: "var(--text-primary)" }}>
-                  Inbox is empty
+                  No messages found
                 </p>
                 <p className="mt-2 max-w-sm px-4 text-sm" style={{ color: "var(--text-muted)" }}>
-                  When visitors submit the form on{" "}
-                  <Link href="/contact" className="font-semibold text-[#00D4FF] hover:underline">
-                    /contact
-                  </Link>
-                  , messages will appear here.
+                  There are no messages matching the select filter.
                 </p>
               </motion.div>
             ) : (
-              <ul className="grid gap-4 sm:grid-cols-2">
-                {rows.map((m, i) => (
-                  <motion.li
-                    key={m.id}
-                    initial={reduce ? false : { opacity: 0, y: 18 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: reduce ? 0 : 0.04 * Math.min(i, 12), duration: 0.35 }}
-                    className="premium-ring group relative flex flex-col overflow-hidden rounded-2xl border p-5 sm:p-6"
-                    style={{
-                      borderColor: "var(--border-subtle)",
-                      background:
-                        "linear-gradient(165deg, color-mix(in srgb, var(--glass) 88%, transparent) 0%, var(--soft-black) 100%)",
-                      backdropFilter: "blur(20px)",
-                    }}
-                  >
-                    <div
-                      className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full opacity-15 blur-3xl transition-opacity duration-500 group-hover:opacity-30"
+              <ul className="grid gap-6">
+                {filteredRows?.map((m, i) => {
+                  const isResolved = !!resolvedIds[m.id];
+                  const isReplying = activeReplyId === m.id;
+
+                  return (
+                    <motion.li
+                      key={m.id}
+                      initial={reduce ? false : { opacity: 0, y: 18 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: reduce ? 0 : 0.04 * Math.min(i, 12), duration: 0.35 }}
+                      className="premium-ring group relative flex flex-col overflow-hidden rounded-2xl border p-5 sm:p-6 transition-all duration-300"
                       style={{
-                        background: "linear-gradient(135deg, #7B61FF, #00D4FF)",
-                      }}
-                      aria-hidden
-                    />
-                    <div className="relative flex items-start gap-4">
-                      <div
-                        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border text-sm font-bold text-white"
-                        style={{
-                          borderColor: "rgba(255,255,255,0.12)",
-                          background: "linear-gradient(145deg, #7B61FF 0%, #00D4FF 100%)",
-                          boxShadow: "0 12px 32px -14px rgba(123,97,255,0.7)",
-                        }}
-                      >
-                        {initials(m.name)}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h2
-                          className="font-display text-lg font-bold leading-tight sm:text-xl"
-                          style={{ color: "var(--text-primary)" }}
-                        >
-                          {m.name}
-                        </h2>
-                        <p className="mt-1 text-xs font-medium sm:text-sm" style={{ color: "var(--text-subtle)" }}>
-                          {formatWhen(m.submittedAt)}
-                        </p>
-                        <a
-                          href={`mailto:${encodeURIComponent(m.email)}?subject=${encodeURIComponent("Re: Your message to RUHGEN")}`}
-                          className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-[#00D4FF] transition-opacity hover:opacity-80"
-                        >
-                          <Mail className="h-3.5 w-3.5 shrink-0" />
-                          <span className="truncate font-mono text-[13px]">{m.email}</span>
-                        </a>
-                      </div>
-                      <Sparkles
-                        className="mt-0.5 h-4 w-4 shrink-0 opacity-40 transition-opacity group-hover:opacity-70"
-                        style={{ color: "#7B61FF" }}
-                        aria-hidden
-                      />
-                    </div>
-                    <div
-                      className="relative mt-5 rounded-xl border px-4 py-3.5 text-[15px] leading-relaxed"
-                      style={{
-                        borderColor: "var(--border-subtle)",
-                        background: "color-mix(in srgb, var(--deep-black) 85%, transparent)",
-                        color: "var(--text-muted)",
+                        borderColor: isResolved ? "var(--border-subtle)" : "color-mix(in srgb, var(--border-subtle) 70%, rgba(123,97,255,0.2))",
+                        background: isResolved 
+                          ? "rgba(255, 255, 255, 0.01)" 
+                          : "linear-gradient(165deg, rgba(255, 255, 255, 0.02) 0%, var(--soft-black) 100%)",
+                        opacity: isResolved ? 0.65 : 1,
                       }}
                     >
-                      <p className="whitespace-pre-wrap break-words">{m.message}</p>
-                    </div>
-                  </motion.li>
-                ))}
+                      <div className="relative flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                        <div className="flex items-start gap-4">
+                          <div
+                            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border text-sm font-bold text-white"
+                            style={{
+                              borderColor: "rgba(255,255,255,0.12)",
+                              background: isResolved
+                                ? "linear-gradient(145deg, #4b5563, #374151)"
+                                : "linear-gradient(145deg, #7B61FF 0%, #00D4FF 100%)",
+                              boxShadow: isResolved ? "none" : "0 8px 24px -10px rgba(123,97,255,0.5)",
+                            }}
+                          >
+                            {initials(m.name)}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2.5 flex-wrap">
+                              <h2
+                                className="font-display text-lg font-bold leading-tight sm:text-xl text-[var(--text-primary)]"
+                              >
+                                {m.name}
+                              </h2>
+                              {isResolved ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 border border-emerald-500/25 px-2 py-0.5 rounded-full">
+                                  <CheckCircle2 className="h-3 w-3" />
+                                  Resolved
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-amber-400 bg-amber-500/10 border border-amber-500/25 px-2 py-0.5 rounded-full">
+                                  <Circle className="h-2 w-2 fill-current" />
+                                  Pending
+                                </span>
+                              )}
+                            </div>
+                            <p className="mt-1 text-xs text-[var(--text-subtle)]">
+                              {formatWhen(m.submittedAt)}
+                            </p>
+                            <a
+                              href={`mailto:${m.email}`}
+                              className="mt-2.5 inline-flex items-center gap-1.5 text-xs font-semibold text-[#00D4FF] hover:underline"
+                            >
+                              <Mail className="h-3.5 w-3.5 shrink-0" />
+                              <span className="truncate font-mono">{m.email}</span>
+                            </a>
+                          </div>
+                        </div>
+
+                        {/* Controls Header */}
+                        <div className="flex flex-wrap gap-2 sm:self-start">
+                          <button
+                            onClick={() => startDraft(m.id, m.name)}
+                            className="inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-xs font-bold transition-all hover:bg-white/5 text-[var(--text-primary)] border-[var(--border-subtle)]"
+                          >
+                            <CornerUpLeft className="h-3.5 w-3.5" />
+                            {isReplying ? "Close Draft" : "Reply"}
+                          </button>
+                          <button
+                            onClick={() => toggleResolved(m.id)}
+                            className={`inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-xs font-bold transition-all border-[var(--border-subtle)] ${
+                              isResolved 
+                                ? "text-neutral-400 hover:text-white" 
+                                : "text-emerald-400 hover:bg-emerald-500/5 hover:border-emerald-500/35"
+                            }`}
+                          >
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                            {isResolved ? "Mark Pending" : "Mark Resolved"}
+                          </button>
+                          <button
+                            onClick={() => handleDelete(m.id)}
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border-subtle)] text-neutral-400 hover:text-red-400 hover:bg-red-500/5 hover:border-red-500/35 transition-all"
+                            title="Delete Message"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Message Content */}
+                      <div
+                        className="relative mt-5 rounded-xl border px-4 py-3.5 text-sm leading-relaxed"
+                        style={{
+                          borderColor: "var(--border-subtle)",
+                          background: "rgba(0,0,0,0.15)",
+                          color: "var(--text-muted)",
+                        }}
+                      >
+                        <p className="whitespace-pre-wrap break-words">{m.message}</p>
+                      </div>
+
+                      {/* Reply Composer Block */}
+                      <AnimatePresence>
+                        {isReplying && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="overflow-hidden mt-4 pt-4 border-t"
+                            style={{ borderColor: "var(--border-subtle)" }}
+                          >
+                            <div className="flex flex-col gap-3.5">
+                              <div>
+                                <label className="block text-[11px] font-bold uppercase tracking-wider text-neutral-400">
+                                  Draft Email Response
+                                </label>
+                                <p className="text-[11px] text-neutral-500 mt-0.5">
+                                  Compose your email below. When satisfied, click &quot;Open in Mail Client&quot; to transfer the content.
+                                </p>
+                              </div>
+
+                              <textarea
+                                value={replyDrafts[m.id] || ""}
+                                onChange={(e) => setReplyDrafts(prev => ({ ...prev, [m.id]: e.target.value }))}
+                                rows={6}
+                                className="w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all duration-200 text-[var(--text-primary)] placeholder:text-neutral-500 focus:ring-2 focus:ring-[#7B61FF]/20 focus:border-[#7B61FF]/50 bg-black/30 border-[var(--border-subtle)]"
+                              />
+
+                              <div className="flex items-center justify-between gap-4 flex-wrap">
+                                <p className="text-[11px] text-neutral-500">
+                                  Recipients: <span className="font-mono text-neutral-400">{m.email}</span>
+                                </p>
+                                <button
+                                  onClick={() => handleLaunchEmailClient(m)}
+                                  className="inline-flex h-10 items-center justify-center gap-2 rounded-xl px-4 text-xs font-bold text-white btn-gradient"
+                                >
+                                  <ExternalLink className="h-3.5 w-3.5" />
+                                  Open in Mail Client to Send
+                                </button>
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.li>
+                  );
+                })}
               </ul>
             )}
           </div>

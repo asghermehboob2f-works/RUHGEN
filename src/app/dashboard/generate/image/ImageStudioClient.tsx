@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import {
   ArrowUp,
   BookmarkPlus,
+  Check,
   Copy,
   Download,
   ExternalLink,
@@ -19,6 +20,7 @@ import {
   Trash2,
   Wand2,
   X,
+  Zap,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -31,9 +33,10 @@ import { useAuth } from "@/components/AuthProvider";
 import { readUserToken } from "@/lib/auth-storage";
 import { createImageTask, pollPiApiTask, uploadStudioReferenceImage } from "@/lib/piapi-client";
 
-const MODELS = [
-  { id: "Qubico/flux1-dev", label: "Quality" },
-  { id: "Qubico/flux1-schnell", label: "Fast" },
+const QUALITY_OPTIONS = [
+  { id: "standard", label: "Standard", sub: "Fast generation", icon: Zap },
+  { id: "quality", label: "Quality", sub: "High fidelity", icon: Wand2 },
+  { id: "ultra", label: "Ultra Quality", sub: "Maximum detail", icon: Sparkles },
 ] as const;
 
 const SIZES = [
@@ -61,7 +64,8 @@ const PROMPT_CHIPS = [
 type ImagePreset = {
   id: string;
   name: string;
-  model: string;
+  quality: string;
+  model?: string;
   sizeIdx: number;
   negativePrompt: string;
 };
@@ -218,7 +222,7 @@ export default function ImageStudioClient() {
   const refFileInput = useRef<HTMLInputElement>(null);
   const [prompt, setPrompt] = useState("");
   const [negativePrompt, setNegativePrompt] = useState("");
-  const [model, setModel] = useState<string>(MODELS[0].id);
+  const [quality, setQuality] = useState<string>(QUALITY_OPTIONS[1].id);
   const [sizeIdx, setSizeIdx] = useState(0);
   const [busy, setBusy] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
@@ -240,7 +244,7 @@ export default function ImageStudioClient() {
 
   const costImageDev = rates.cost_image_dev ?? 3;
   const costImageSchnell = rates.cost_image_schnell ?? rates.credits_per_image ?? 2;
-  const currentCost = model.includes("schnell") ? costImageSchnell : costImageDev;
+  const currentCost = quality === "standard" ? costImageSchnell : costImageDev;
 
   useEffect(() => {
     if (ready && !user) router.replace("/sign-in?next=/dashboard/generate/image");
@@ -317,7 +321,11 @@ export default function ImageStudioClient() {
   }, []);
 
   const applyPreset = useCallback((pr: ImagePreset) => {
-    setModel(pr.model);
+    if (pr.quality) {
+      setQuality(pr.quality);
+    } else if (pr.model) {
+      setQuality(pr.model.includes("schnell") ? "standard" : "quality");
+    }
     setSizeIdx(pr.sizeIdx);
     setNegativePrompt(pr.negativePrompt);
   }, []);
@@ -327,9 +335,9 @@ export default function ImageStudioClient() {
     if (!name?.trim()) return;
     const id = crypto.randomUUID();
     setSavedPresets((prev) =>
-      [{ id, name: name.trim(), model, sizeIdx, negativePrompt }, ...prev.filter((p) => p.name !== name.trim())].slice(0, 24),
+      [{ id, name: name.trim(), quality, sizeIdx, negativePrompt }, ...prev.filter((p) => p.name !== name.trim())].slice(0, 24),
     );
-  }, [model, sizeIdx, negativePrompt]);
+  }, [quality, sizeIdx, negativePrompt]);
 
   const galleryItems = useMemo(() => {
     const out: { key: string; src: string; msgId: string; idx: number }[] = [];
@@ -469,18 +477,18 @@ export default function ImageStudioClient() {
   const run = useCallback(async () => {
     const p = prompt.trim();
     if (p.length < 2 || busy) return;
-    const modelId = model;
+    const qualityId = quality;
     const { w, h } = SIZES[sizeIdx];
-    const modelLabel = MODELS.find((m) => m.id === modelId)?.label ?? modelId;
+    const qualityLabel = QUALITY_OPTIONS.find((q) => q.id === qualityId)?.label ?? "Quality";
     const sizeLabel = SIZES[sizeIdx].label;
     const refUrl = referenceImageUrl?.trim() || null;
     const negTxt = negativePrompt.trim();
     let meta: string;
     if (refUrl) {
-      meta = `Edit · ${Math.round(editDenoise * 100)}% · guidance ${guidanceScale.toFixed(1)} · ${modelLabel}`;
+      meta = `Edit · ${Math.round(editDenoise * 100)}% · guidance ${guidanceScale.toFixed(1)} · ${qualityLabel}`;
       if (editNegative.trim()) meta += " · negative";
     } else {
-      meta = `${modelLabel} · ${sizeLabel} (${w}×${h})`;
+      meta = `${qualityLabel} · ${sizeLabel} (${w}×${h})`;
       if (negTxt) meta += " · negative prompt";
     }
     const userId = crypto.randomUUID();
@@ -496,7 +504,7 @@ export default function ImageStudioClient() {
     try {
       const { taskId } = await createImageTask({
         prompt: p,
-        model: modelId,
+        quality: qualityId,
         ...(refUrl
           ? {
               image_url: refUrl,
@@ -539,7 +547,7 @@ export default function ImageStudioClient() {
       setBusy(false);
       void refreshUser();
     }
-  }, [prompt, model, sizeIdx, busy, referenceImageUrl, editDenoise, editNegative, negativePrompt, guidanceScale]);
+  }, [prompt, quality, sizeIdx, busy, referenceImageUrl, editDenoise, editNegative, negativePrompt, guidanceScale]);
 
   const copyText = async (text: string, label: string) => {
     try {
@@ -575,7 +583,7 @@ export default function ImageStudioClient() {
                 </span>
                 <div className="min-w-0">
                   <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[var(--text-subtle)]">Control deck</p>
-                  <p className="truncate font-display text-sm font-bold text-[var(--text-primary)]">Diffusion pipeline</p>
+                  <p className="truncate font-display text-sm font-bold text-[var(--text-primary)]">Image studio</p>
                 </div>
               </div>
               {isEdit ? (
@@ -586,7 +594,7 @@ export default function ImageStudioClient() {
             </div>
 
             <div className="space-y-3">
-              <StudioCollapsible title="Canvas & model" subtitle="Aspect, resolution, and render engine" defaultOpen>
+              <StudioCollapsible title="Canvas & quality" subtitle="Aspect, resolution, and quality profile" defaultOpen>
                 <div className="space-y-3.5">
                   <div>
                     <div className="mb-2 flex items-end justify-between gap-2">
@@ -642,28 +650,53 @@ export default function ImageStudioClient() {
                     </div>
                   </div>
                   <div>
-                    <label htmlFor="img-model" className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--text-subtle)]">
-                      Render engine
+                    <label className="mb-2 block text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--text-subtle)]">
+                      Quality profile
                     </label>
-                    <div className="relative">
-                      <span aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2">
-                        <Sparkles className="h-3.5 w-3.5 text-violet-300/80" strokeWidth={2} />
-                      </span>
-                      <select
-                        id="img-model"
-                        value={model}
-                        onChange={(e) => setModel(e.target.value)}
-                        disabled={busy}
-                        className={`${selectCls} rounded-xl pl-8.5 pr-8`}
-                        style={{ color: "var(--text-primary)" }}
-                      >
-                        {MODELS.map((m) => (
-                          <option key={m.id} value={m.id}>
-                            {m.label}
-                          </option>
-                        ))}
-                      </select>
+                    <div
+                      className="grid grid-cols-3 gap-1.5 rounded-xl border border-white/[0.06] bg-black/30 p-1.5"
+                      role="radiogroup"
+                      aria-label="Quality profile"
+                    >
+                      {QUALITY_OPTIONS.map((opt) => {
+                        const Icon = opt.icon;
+                        const on = quality === opt.id;
+                        return (
+                          <button
+                            key={opt.id}
+                            type="button"
+                            role="radio"
+                            aria-checked={on}
+                            disabled={busy}
+                            onClick={() => setQuality(opt.id)}
+                            className="flex min-h-[38px] items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-center transition-all duration-200 enabled:hover:text-[var(--text-primary)] disabled:opacity-45 cursor-pointer"
+                            style={{
+                              background: on
+                                ? "linear-gradient(135deg, color-mix(in srgb, var(--primary-purple) 25%, transparent), color-mix(in srgb, var(--primary-purple) 10%, rgba(0,0,0,0.5)))"
+                                : "transparent",
+                              border: on
+                                ? "1px solid color-mix(in srgb, var(--primary-purple) 55%, transparent)"
+                                : "1px solid transparent",
+                              boxShadow: on
+                                ? "0 4px 12px -4px color-mix(in srgb, var(--primary-purple) 65%, transparent)"
+                                : "none",
+                              color: on ? "#fff" : "var(--text-muted)",
+                            }}
+                          >
+                            <Icon
+                              className="h-3.5 w-3.5 shrink-0 transition-transform duration-200"
+                              style={{ color: on ? "var(--primary-purple)" : "var(--text-subtle)" }}
+                            />
+                            <span className="font-display text-[11.5px] font-bold tracking-tight truncate">
+                              {opt.id === "ultra" ? "Ultra Quality" : opt.label}
+                            </span>
+                          </button>
+                        );
+                      })}
                     </div>
+                    <p className="mt-2 text-[11px] leading-relaxed text-[var(--text-subtle)] px-0.5">
+                      {QUALITY_OPTIONS.find((q) => q.id === quality)?.sub}
+                    </p>
                   </div>
                 </div>
                 <div className="mt-3.5 space-y-2 border-t border-white/[0.05] pt-3.5">
@@ -866,9 +899,9 @@ export default function ImageStudioClient() {
         {/* Cost Preview Panel */}
         <div className="mb-2.5 flex items-center justify-between rounded-xl border border-border/50 bg-[color-mix(in_srgb,var(--text-primary)_3%,transparent)] px-3 py-1.5 text-xs">
           <div className="flex items-center gap-1.5 text-[var(--text-muted)]">
-            <span className="font-semibold text-[var(--text-primary)]">Engine:</span>
+            <span className="font-semibold text-[var(--text-primary)]">Quality:</span>
             <span className="font-mono bg-[#7B61FF]/10 border border-[#7B61FF]/20 px-1.5 py-0.5 rounded text-[10px] text-[#7B61FF] dark:text-purple-200">
-              {model.split("/").pop()}
+              {QUALITY_OPTIONS.find((q) => q.id === quality)?.label ?? "Quality"}
             </span>
           </div>
           <div className="flex items-center gap-4 text-[var(--text-muted)]">
@@ -1470,7 +1503,7 @@ export default function ImageStudioClient() {
         mode="image"
         eyebrow="Still frames"
         title="Image generation"
-        subtitle="Luxury glass workspace · diffusion-native pipeline · tuned for cinema-grade stills."
+        subtitle="Luxury glass workspace · quality-tiered rendering · tuned for cinema-grade stills."
         mobilePane={mobileStudioPane}
         onMobilePaneChange={setMobileStudioPane}
         topActions={

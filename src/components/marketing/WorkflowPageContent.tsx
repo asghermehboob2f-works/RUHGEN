@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
-import { GitBranch, MessageSquare, Rocket, Wand2, CheckCircle2, ChevronRight, Sparkles, ArrowRight, Zap } from "lucide-react";
+import { GitBranch, MessageSquare, Rocket, Wand2, CheckCircle2, ChevronRight, Sparkles, ArrowRight } from "lucide-react";
 import { SITE_CONTAINER } from "@/lib/site-layout";
 
 const journey = [

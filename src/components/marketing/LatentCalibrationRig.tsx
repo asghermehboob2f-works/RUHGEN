@@ -53,21 +53,20 @@ const ARCHETYPES: CalibrationArchetype[] = [
 ];
 
 export function LatentCalibrationRig() {
-  const reduce = useReducedMotion() === true;
-  
   // Interactive Slider States
   const [focal, setFocal] = useState(50); // 18mm to 200mm
   const [aperture, setAperture] = useState(1.8); // 0.95 to 16
   const [steps, setSteps] = useState(30); // 10 to 150
   
   const [activeArchId, setActiveArchId] = useState("");
-  const activeArchetype = ARCHETYPES.find(a => a.id === activeArchId);
+  const activeArchetype = ARCHETYPES.find(
+    a => a.id === activeArchId && a.focal === focal && a.aperture === aperture && a.steps === steps
+  );
   
   // Custom interactive grid state
   const gridRef = useRef<HTMLDivElement>(null);
   const [mousePos, setMousePos] = useState({ x: 50, y: 50 }); // percentages
   const [isHovered, setIsHovered] = useState(false);
-  const [lastCalibrationTime, setLastCalibrationTime] = useState("0s ago");
   const [triggerFlash, setTriggerFlash] = useState(false);
 
   // Apply archetype settings
@@ -88,19 +87,6 @@ export function LatentCalibrationRig() {
     const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
     setMousePos({ x, y });
   };
-
-  useEffect(() => {
-    // Reset active archetype if user manually adjusts sliders away from the archetype bounds
-    if (activeArchetype) {
-      if (
-        focal !== activeArchetype.focal || 
-        aperture !== activeArchetype.aperture || 
-        steps !== activeArchetype.steps
-      ) {
-        setActiveArchId("");
-      }
-    }
-  }, [focal, aperture, steps, activeArchetype]);
 
   // Derived styling constants
   const currentAccent = activeArchetype ? activeArchetype.accent : "#7B61FF";

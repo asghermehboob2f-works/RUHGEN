@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
-import { Server, Cpu, Shield, Radio, ChevronRight, Activity, Terminal, ArrowRight, Sparkles } from "lucide-react";
+import { Server, Radio, ChevronRight, Activity, Terminal, ArrowRight, Sparkles } from "lucide-react";
 import { BentoHighlights } from "@/components/BentoHighlights";
 import { SecurityAndGuardrails } from "@/components/SecurityAndGuardrails";
 import { SITE_CONTAINER } from "@/lib/site-layout";

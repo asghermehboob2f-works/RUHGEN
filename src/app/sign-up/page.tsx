@@ -40,9 +40,21 @@ export default function SignUpPage() {
     return "Excellent";
   }, [password, score]);
 
+  const searchQuery = typeof window !== "undefined" ? window.location.search : "";
+
   useEffect(() => {
     if (!ready || !user) return;
-    router.replace("/dashboard");
+    const params = new URLSearchParams(window.location.search);
+    const next = params.get("next");
+    const plan = params.get("plan");
+    const billing = params.get("billing") || "monthly";
+    if (next && next.startsWith("/")) {
+      router.replace(next);
+    } else if (plan) {
+      router.replace(`/dashboard/billing/checkout?plan=${plan}&billing=${billing}`);
+    } else {
+      router.replace("/dashboard");
+    }
   }, [ready, user, router]);
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -63,7 +75,17 @@ export default function SignUpPage() {
       setError(result.error);
       return;
     }
-    router.push("/dashboard");
+    const params = new URLSearchParams(window.location.search);
+    const next = params.get("next");
+    const plan = params.get("plan");
+    const billing = params.get("billing") || "monthly";
+    if (next && next.startsWith("/")) {
+      router.push(next);
+    } else if (plan) {
+      router.push(`/dashboard/billing/checkout?plan=${plan}&billing=${billing}`);
+    } else {
+      router.push("/dashboard");
+    }
   };
 
   if (!ready) {
@@ -75,11 +97,11 @@ export default function SignUpPage() {
   return (
     <AuthChrome
       title="Create your workspace"
-      subtitle="Free tier included—upgrade when you’re ready for Pro or Studio."
+      subtitle="Free tier included—upgrade when you&apos;re ready for Pro or Studio."
       footer={
         <>
           Already have an account?{" "}
-          <Link href="/sign-in" className="font-semibold text-[#7B61FF] hover:underline">
+          <Link href={`/sign-in${searchQuery}`} className="font-semibold text-[#7B61FF] hover:underline">
             Sign in
           </Link>
         </>

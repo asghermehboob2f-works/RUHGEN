@@ -16,7 +16,6 @@ export function useActiveSection(
       .map((id) => document.getElementById(id))
       .filter(Boolean) as HTMLElement[];
     if (elements.length === 0) {
-      setActiveId(DEFAULT_ID);
       return;
     }
 

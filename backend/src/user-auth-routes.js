@@ -1,5 +1,16 @@
 const crypto = require("node:crypto");
 const { hashPassword, signUserToken, verifyUserToken } = require("./auth");
+const { sendMail } = require("./email-service");
+const { verificationEmail } = require("./email-templates");
+
+const GRACE_DAYS = Number(process.env.VERIFY_GRACE_DAYS) || 7;
+const LINK_TTL_HOURS = Number(process.env.VERIFY_LINK_TTL_HOURS) || 72;
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
+function hashToken(t) {
+  return crypto.createHash("sha256").update(t).digest("hex");
+}
+function addMs(ms) { return new Date(Date.now() + ms).toISOString(); }
 
 function getBearer(req) {
   const auth = String(req.headers.authorization || "").trim();
@@ -37,10 +48,29 @@ function mountUserAuthRoutes(app, { db }) {
       const id = crypto.randomUUID();
       const password_hash = hashPassword(password);
       const created_at = new Date().toISOString();
+      const verification_deadline = addMs(GRACE_DAYS * 86400 * 1000);
+      // Generate verification token
+      const rawToken = crypto.randomBytes(48).toString("hex");
+      const tokenHash = hashToken(rawToken);
+      const tokenExpiry = addMs(LINK_TTL_HOURS * 3600 * 1000);
+      const otp = String(Math.floor(100000 + crypto.randomInt(900000))).padStart(6, "0");
+      const otpHash = hashToken(otp);
+      const otpExpiry = addMs(15 * 60 * 1000);
+
       db.prepare(
-        "INSERT INTO users (id, email, name, password_hash, created_at) VALUES (?, ?, ?, ?, ?)"
-      ).run(id, email, name, password_hash, created_at);
-      const user = { id, email, name, credits: 120 };
+        `INSERT INTO users (id, email, name, password_hash, created_at,
+          verification_status, verification_deadline, verification_token_hash,
+          verification_token_expiry, otp_hash, otp_expiry)
+         VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?)`
+      ).run(id, email, name, password_hash, created_at,
+        verification_deadline, tokenHash, tokenExpiry, otpHash, otpExpiry);
+
+      // Send verification email (non-blocking)
+      const verifyUrl = `${SITE_URL}/api/verify-email?token=${rawToken}`;
+      sendMail({ to: email, ...verificationEmail({ name, verifyUrl, expiresHours: LINK_TTL_HOURS, otp }) })
+        .catch(e => console.error("[auth] verification email failed:", e.message));
+
+      const user = { id, email, name, credits: 120, emailVerified: false, verificationStatus: "pending" };
       let token;
       try {
         token = signUserToken(user);
@@ -106,13 +136,17 @@ function mountUserAuthRoutes(app, { db }) {
       }
       const row = db
         .prepare(
-          "SELECT id, email, name, suspended, subscription_plan, subscription_status, credits, generation_disabled, special_access, role FROM users WHERE id = ?"
+          `SELECT id, email, name, suspended, subscription_plan, subscription_status, credits,
+           generation_disabled, special_access, role,
+           email_verified, email_verified_at, verification_status, verification_deadline
+           FROM users WHERE id = ?`
         )
         .get(payload.sub);
       if (!row) {
         return res.status(401).json({ ok: false, error: "Unauthorized." });
       }
-      if (row.suspended) {
+      // Suspended users who ARE verified get blocked; unverified-suspended get a specific message
+      if (row.suspended && row.email_verified) {
         return res.status(403).json({ ok: false, error: "This account has been suspended." });
       }
 
@@ -132,6 +166,11 @@ function mountUserAuthRoutes(app, { db }) {
         generationDisabled: row.generation_disabled === 1,
         specialAccess: row.special_access === 1,
         role: row.role,
+        emailVerified: !!row.email_verified,
+        emailVerifiedAt: row.email_verified_at || null,
+        verificationStatus: row.verification_status || "pending",
+        verificationDeadline: row.verification_deadline || null,
+        suspended: !!row.suspended,
       };
       return res.json({ ok: true, user });
     } catch (e) {

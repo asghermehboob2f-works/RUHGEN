@@ -87,7 +87,7 @@ export function Testimonials({ quotes }: { quotes?: TestimonialItem[] }) {
                   <blockquote
                     className="mt-6 flex-1 text-[12px] sm:text-xs leading-relaxed font-normal tracking-wide text-muted-foreground/60 group-hover:text-muted-foreground/90 transition-colors duration-700"
                   >
-                    "{q.body}"
+                    &ldquo;{q.body}&rdquo;
                   </blockquote>
                 </div>
 

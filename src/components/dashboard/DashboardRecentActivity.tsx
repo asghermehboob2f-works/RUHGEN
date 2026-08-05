@@ -83,27 +83,30 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
     [myPosts]
   );
 
-  const loadMyPosts = useCallback(async () => {
-    if (!readUserToken()) {
-      setMyPosts([]);
-      setPostsLoading(false);
-      return;
-    }
-    setPostsLoading(true);
-    setPostsError(null);
-    try {
-      const posts = await fetchMyPosts();
-      setMyPosts(posts);
-    } catch (e) {
-      setPostsError(e instanceof Error ? e.message : "Couldn't load your posts.");
-    } finally {
-      setPostsLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    void loadMyPosts();
-  }, [loadMyPosts, focusBump]);
+    let active = true;
+    async function load() {
+      if (!readUserToken()) {
+        if (active) {
+          setMyPosts([]);
+          setPostsLoading(false);
+        }
+        return;
+      }
+      try {
+        const posts = await fetchMyPosts();
+        if (active) setMyPosts(posts);
+      } catch (e) {
+        if (active) setPostsError(e instanceof Error ? e.message : "Couldn't load your posts.");
+      } finally {
+        if (active) setPostsLoading(false);
+      }
+    }
+    void load();
+    return () => {
+      active = false;
+    };
+  }, [focusBump]);
 
   const copyPrompt = useCallback(async (prompt: string, id: string) => {
     try {
@@ -394,7 +397,7 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
                 Your community posts
               </h4>
               <p className="mt-0.5 text-xs text-[var(--text-muted)]">
-                Track engagement on work you've shared with the feed.
+                Track engagement on work you&apos;ve shared with the feed.
               </p>
             </div>
             <Link
@@ -427,7 +430,7 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
                 background: "color-mix(in srgb, var(--deep-black) 40%, transparent)",
               }}
             >
-              You haven't shared anything yet. Pick a generation above and tap{" "}
+              You haven&apos;t shared anything yet. Pick a generation above and tap{" "}
               <span className="font-bold text-[var(--text-primary)]">Share</span>.
             </p>
           ) : (

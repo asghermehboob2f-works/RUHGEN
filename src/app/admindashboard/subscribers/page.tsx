@@ -3,7 +3,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useAdminAuth } from "@/components/AdminAuthProvider";
-import type { NewsletterSubscriber } from "@/backend/newsletter/types";
+
+export type NewsletterSubscriber = {
+  email: string;
+  subscribedAt: string;
+  source: string;
+};
 
 export default function SubscribersAdminPage() {
   const { admin, ready, authHeaders } = useAdminAuth();

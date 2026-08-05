@@ -419,23 +419,29 @@ const CREATIVE_ENGINES: CreativeEngine[] = [
   }
 ];
 
+type EngineParticle = {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  targetX: number;
+  targetY: number;
+  size: number;
+  color: string;
+  alpha: number;
+  noiseOffset: number;
+  angle: number;
+  speed: number;
+};
+
 function EngineOrchestrationHub() {
   const [activeEngineIdx, setActiveEngineIdx] = useState<number>(0);
   const engine = CREATIVE_ENGINES[activeEngineIdx];
   
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const particlesRef = useRef<any[]>([]);
+  const particlesRef = useRef<EngineParticle[]>([]);
   const mouseRef = useRef({ x: -1000, y: -1000 });
   const activeIdxRef = useRef(activeEngineIdx);
-
-  // Sync ref to avoid stale closures in frame loops
-  useEffect(() => {
-    activeIdxRef.current = activeEngineIdx;
-    if (canvasRef.current) {
-      const rect = canvasRef.current.getBoundingClientRect();
-      updateTargets(activeEngineIdx, rect.width, rect.height);
-    }
-  }, [activeEngineIdx]);
 
   // Decoupled coordinate shape logic
   const updateTargets = (idx: number, w: number, h: number) => {
@@ -515,6 +521,15 @@ function EngineOrchestrationHub() {
     }
   };
 
+  // Sync ref to avoid stale closures in frame loops
+  useEffect(() => {
+    activeIdxRef.current = activeEngineIdx;
+    if (canvasRef.current) {
+      const rect = canvasRef.current.getBoundingClientRect();
+      updateTargets(activeEngineIdx, rect.width, rect.height);
+    }
+  }, [activeEngineIdx]);
+
   // Start HTML Canvas 3D Particle morph engine
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -577,7 +592,7 @@ function EngineOrchestrationHub() {
       ctx.stroke();
 
       // Lazy load particles if empty
-      let particles = particlesRef.current;
+      const particles = particlesRef.current;
       if (particles.length === 0) {
         const colors = ["#7B61FF", "#00D4FF", "#FF2E9A", "#AA99FF"];
         const count = 500;
@@ -754,7 +769,7 @@ function EngineOrchestrationHub() {
                   {engine.name}
                 </h3>
                 <span className="text-[9px] font-mono text-neutral-400 tracking-wider block mt-0.5 uppercase">
-                  {engine.version} // {engine.subtitle}
+                  {engine.version} {"//"} {engine.subtitle}
                 </span>
               </div>
 
@@ -934,13 +949,13 @@ export function AboutPageContent() {
                 >
                   RUHGEN
                 </span>{" "}
-                with a singular recognition: professional creative tools shouldn't feel like toys. The gap in visual creation workflows is massive. Not every model is good at everything, yet design teams are currently forced to operate within highly fragmented pipelines.
+                with a singular recognition: professional creative tools shouldn&apos;t feel like toys. The gap in visual creation workflows is massive. Not every model is good at everything, yet design teams are currently forced to operate within highly fragmented pipelines.
               </p>
               
               <p className="text-[var(--text-muted)] text-xs sm:text-sm">
                 We engineered an elite, low-overhead orchestration framework to{" "}
                 <span style={{ fontFamily: "var(--font-calsans)" }} className="text-[#7B61FF] font-bold tracking-wide">
-                  unify the world's most powerful AI engines
+                  unify the world&apos;s most powerful AI engines
                 </span>{" "}
                 under one fluid timeline. Aligned strictly to{" "}
                 <span style={{ fontFamily: "var(--font-ningetan)" }} className="text-[var(--text-primary)] italic text-base sm:text-lg">

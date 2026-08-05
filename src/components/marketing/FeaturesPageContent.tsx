@@ -33,7 +33,7 @@ import {
   Gauge
 } from "lucide-react";
 import { SITE_CONTAINER } from "@/lib/site-layout";
-import type { SiteContent } from "@/backend/site-content/types";
+import type { SiteContent, FeaturesCalibrationConfig } from "@/backend/site-content/types";
 
 // ==========================================
 // UTILITY: LATTICE NOISE GRADIENT OVERLAY
@@ -58,7 +58,7 @@ function PremiumBackgroundLattice() {
 // ==========================================
 type AspectRatioKey = "cinema" | "landscape" | "square" | "portrait";
 
-function AspectCalibrationRig({ featuresCalibration }: { featuresCalibration?: any }) {
+function AspectCalibrationRig({ featuresCalibration }: { featuresCalibration?: FeaturesCalibrationConfig }) {
   const [activeAspect, setActiveAspect] = useState<AspectRatioKey>("landscape");
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const viewportRef = useRef<HTMLDivElement | null>(null);

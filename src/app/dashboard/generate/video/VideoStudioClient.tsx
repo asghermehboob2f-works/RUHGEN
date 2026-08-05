@@ -38,7 +38,11 @@ import { useAuth } from "@/components/AuthProvider";
 import { readUserToken } from "@/lib/auth-storage";
 import { createVideoTask, pollPiApiTask, uploadStudioReferenceImage } from "@/lib/piapi-client";
 
-const VERSIONS = ["2.6", "2.5", "2.1", "1.6", "1.5", "2.1-master"] as const;
+const QUALITY_OPTIONS = [
+  { id: "standard", label: "Standard", sub: "Fast render", icon: Zap },
+  { id: "quality", label: "Quality", sub: "Balanced high fidelity", icon: Film },
+  { id: "ultra", label: "Ultra Quality", sub: "Cinema grade", icon: Sparkles },
+] as const;
 const CHAT_STORAGE_PREFIX = "ruhgen-video-studio-chat-v1:";
 const PRESET_STORAGE_PREFIX = "ruhgen-video-studio-presets-v1:";
 
@@ -56,8 +60,9 @@ type VideoPreset = {
   name: string;
   duration: 5 | 10;
   aspect: "16:9" | "9:16" | "1:1";
-  mode: "std" | "pro";
-  version: string;
+  quality: string;
+  mode?: "std" | "pro";
+  version?: string;
   negativePrompt: string;
 };
 
@@ -93,16 +98,15 @@ function hydrateMessages(raw: PersistedChat["messages"]): ChatMsg[] {
 function metaLine(opts: {
   duration: number;
   aspect: string;
-  mode: string;
-  version: string;
+  quality: string;
   hasNegative: boolean;
   hasImage: boolean;
 }) {
+  const qualityLabel = QUALITY_OPTIONS.find((q) => q.id === opts.quality)?.label ?? "Quality";
   const parts = [
     `${opts.duration}s`,
     opts.aspect,
-    opts.mode === "pro" ? "Pro" : "Standard",
-    `v${opts.version}`,
+    qualityLabel,
   ];
   if (opts.hasNegative) parts.push("negative");
   if (opts.hasImage) parts.push("image ref");
@@ -227,8 +231,7 @@ export default function VideoStudioClient() {
   const [negativePrompt, setNegativePrompt] = useState("");
   const [duration, setDuration] = useState<5 | 10>(5);
   const [aspect, setAspect] = useState<"16:9" | "9:16" | "1:1">("16:9");
-  const [mode, setMode] = useState<"std" | "pro">("std");
-  const [version, setVersion] = useState<string>("2.6");
+  const [quality, setQuality] = useState<string>("quality");
   const [imageUrl, setImageUrl] = useState("");
   const [refUploading, setRefUploading] = useState(false);
   const [refUploadError, setRefUploadError] = useState<string | null>(null);
@@ -244,7 +247,7 @@ export default function VideoStudioClient() {
   const [lightbox, setLightbox] = useState<{ src: string } | null>(null);
   const [savedPresets, setSavedPresets] = useState<VideoPreset[]>([]);
 
-  const costPerSecond = mode === "pro" ? (rates.cost_video_pro ?? 8) : (rates.cost_video_std ?? rates.credits_per_video_second ?? 5);
+  const costPerSecond = quality === "ultra" ? (rates.cost_video_pro ?? 8) : (rates.cost_video_std ?? rates.credits_per_video_second ?? 5);
   const currentCost = costPerSecond * duration;
 
   useEffect(() => {
@@ -267,7 +270,7 @@ export default function VideoStudioClient() {
       if (typeof d.prompt === "string" && d.prompt.trim()) setPrompt(d.prompt.trim());
       if (d.duration === 10 || d.duration === 5) setDuration(d.duration);
       if (d.aspect === "16:9" || d.aspect === "9:16" || d.aspect === "1:1") setAspect(d.aspect);
-      if (d.mode === "std" || d.mode === "pro") setMode(d.mode);
+      if (d.mode === "std" || d.mode === "pro") setQuality(d.mode === "pro" ? "ultra" : "quality");
     } catch {
       /* ignore */
     }
@@ -346,8 +349,11 @@ export default function VideoStudioClient() {
   const applyPreset = useCallback((pr: VideoPreset) => {
     setDuration(pr.duration);
     setAspect(pr.aspect);
-    setMode(pr.mode);
-    setVersion(pr.version);
+    if (pr.quality) {
+      setQuality(pr.quality);
+    } else if (pr.mode) {
+      setQuality(pr.mode === "pro" ? "ultra" : "quality");
+    }
     setNegativePrompt(pr.negativePrompt);
   }, []);
 
@@ -357,11 +363,11 @@ export default function VideoStudioClient() {
     const id = crypto.randomUUID();
     setSavedPresets((prev) =>
       [
-        { id, name: name.trim(), duration, aspect, mode, version, negativePrompt },
+        { id, name: name.trim(), duration, aspect, quality, negativePrompt },
         ...prev.filter((p) => p.name !== name.trim()),
       ].slice(0, 24),
     );
-  }, [duration, aspect, mode, version, negativePrompt]);
+  }, [duration, aspect, quality, negativePrompt]);
 
   const galleryItems = useMemo(() => {
     const out: { key: string; src: string; msgId: string; vidx: number }[] = [];
@@ -485,10 +491,6 @@ export default function VideoStudioClient() {
     return () => window.removeEventListener("keydown", onKey);
   }, [lightbox]);
 
-  useEffect(() => {
-    if (version === "2.1-master" && mode !== "pro") setMode("pro");
-  }, [version, mode]);
-
   const run = useCallback(async () => {
     const p = prompt.trim();
     if (p.length < 2 || busy) return;
@@ -497,8 +499,7 @@ export default function VideoStudioClient() {
     const meta = metaLine({
       duration,
       aspect,
-      mode,
-      version,
+      quality,
       hasNegative: neg.length > 0,
       hasImage: img.length > 0,
     });
@@ -516,8 +517,7 @@ export default function VideoStudioClient() {
         prompt: p,
         duration,
         aspect_ratio: aspect,
-        mode,
-        version,
+        quality,
         negative_prompt: neg || undefined,
         image_url: img || undefined,
       });
@@ -550,7 +550,7 @@ export default function VideoStudioClient() {
       setBusy(false);
       void refreshUser();
     }
-  }, [prompt, negativePrompt, duration, aspect, mode, version, imageUrl, busy]);
+  }, [prompt, negativePrompt, duration, aspect, quality, imageUrl, busy, refreshUser]);
 
   const clearChatHistory = useCallback(() => {
     prevLenForSnapRef.current = null;
@@ -600,12 +600,12 @@ export default function VideoStudioClient() {
               </span>
               <div className="min-w-0">
                 <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--text-subtle)]">Motion deck</p>
-                <p className="truncate font-display text-sm font-bold text-[var(--text-primary)]">Temporal engine</p>
+                <p className="truncate font-display text-sm font-bold text-[var(--text-primary)]">Video studio</p>
               </div>
             </div>
 
             <div className="space-y-3">
-              <StudioCollapsible title="Timeline & engine" subtitle="Duration, quality mode, and model version" defaultOpen>
+              <StudioCollapsible title="Timeline & quality" subtitle="Duration, aspect ratio, and quality tier" defaultOpen>
                 <div className="space-y-4">
                   <div>
                     <div className="mb-2 flex items-end justify-between gap-2">
@@ -685,128 +685,53 @@ export default function VideoStudioClient() {
                   </div>
 
                   <div>
-                    <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--text-subtle)]">Quality profile</p>
+                    <label className="mb-2 block text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--text-subtle)]">
+                      Quality profile
+                    </label>
                     <div
-                      className="grid grid-cols-2 gap-1.5 rounded-2xl border border-white/[0.07] bg-black/35 p-1.5"
+                      className="grid grid-cols-3 gap-1.5 rounded-xl border border-white/[0.06] bg-black/30 p-1.5"
                       role="radiogroup"
                       aria-label="Quality profile"
                     >
-                      {[
-                        { value: "std" as const, label: "Standard", sub: "Fast render", icon: Zap },
-                        { value: "pro" as const, label: "Professional", sub: "Cinema grade", icon: Sparkles },
-                      ].map((opt) => {
+                      {QUALITY_OPTIONS.map((opt) => {
                         const Icon = opt.icon;
-                        const on = mode === opt.value;
+                        const on = quality === opt.id;
                         return (
                           <button
-                            key={opt.value}
+                            key={opt.id}
                             type="button"
                             role="radio"
                             aria-checked={on}
                             disabled={busy}
-                            onClick={() => setMode(opt.value)}
-                            className="group relative flex min-h-[52px] items-center gap-2.5 overflow-hidden rounded-xl px-3 py-2 text-left transition-all duration-300 enabled:hover:-translate-y-[1px] disabled:opacity-45 cursor-pointer"
+                            onClick={() => setQuality(opt.id)}
+                            className="flex min-h-[38px] items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-center transition-all duration-200 enabled:hover:text-[var(--text-primary)] disabled:opacity-45 cursor-pointer"
                             style={{
+                              background: on
+                                ? "linear-gradient(135deg, color-mix(in srgb, var(--primary-cyan) 25%, transparent), color-mix(in srgb, var(--primary-cyan) 10%, rgba(0,0,0,0.5)))"
+                                : "transparent",
                               border: on
                                 ? "1px solid color-mix(in srgb, var(--primary-cyan) 55%, transparent)"
-                                : "1px solid color-mix(in srgb, white 7%, transparent)",
-                              background: on
-                                ? "linear-gradient(180deg, color-mix(in srgb, var(--primary-cyan) 18%, transparent) 0%, color-mix(in srgb, var(--primary-cyan) 6%, rgba(0,0,0,0.5)) 100%)"
-                                : "rgba(0,0,0,0.28)",
+                                : "1px solid transparent",
                               boxShadow: on
-                                ? "0 10px 28px -14px color-mix(in srgb, var(--primary-cyan) 75%, transparent), inset 0 1px 0 rgba(255,255,255,0.06)"
-                                : "inset 0 1px 0 rgba(255,255,255,0.03)",
-                              color: "var(--text-primary)",
-                            }}
-                          >
-                            <span
-                              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors"
-                              style={{
-                                background: on
-                                  ? "linear-gradient(135deg, color-mix(in srgb, var(--primary-cyan) 40%, transparent), color-mix(in srgb, var(--primary-cyan) 15%, transparent))"
-                                  : "rgba(255,255,255,0.05)",
-                                boxShadow: on
-                                  ? "inset 0 0 8px color-mix(in srgb, var(--primary-cyan) 25%, transparent)"
-                                  : "none",
-                              }}
-                            >
-                              <Icon
-                                className="h-4 w-4"
-                                strokeWidth={1.9}
-                                style={{ color: on ? "var(--primary-cyan)" : "var(--text-muted)" }}
-                              />
-                            </span>
-                            <div className="min-w-0 flex-1">
-                              <div className="font-display text-[13px] font-bold leading-none">{opt.label}</div>
-                              <div className="mt-0.5 truncate text-[10px] font-medium tracking-wide text-[var(--text-subtle)]">{opt.sub}</div>
-                            </div>
-                            {on ? (
-                              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-cyan-400/20 ring-1 ring-cyan-300/40">
-                                <Check className="h-3 w-3 text-cyan-100" strokeWidth={2.5} />
-                              </span>
-                            ) : null}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="mb-2 flex items-end justify-between gap-2">
-                      <div>
-                        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--text-subtle)]">Model engine</p>
-                        <p className="mt-0.5 text-[10px] text-[var(--text-subtle)]/80">Select diffusion checkpoint</p>
-                      </div>
-                      <span className="rounded-full border border-cyan-400/25 bg-cyan-500/10 px-2 py-0.5 font-display text-[10px] font-bold tabular-nums text-cyan-100">
-                        v{version}
-                      </span>
-                    </div>
-                    <div
-                      className="flex flex-wrap gap-1.5 rounded-2xl border border-white/[0.07] bg-black/35 p-1.5"
-                      role="radiogroup"
-                      aria-label="Model engine"
-                    >
-                      {VERSIONS.map((v) => {
-                        const on = version === v;
-                        const isLatest = v === VERSIONS[0];
-                        const isMaster = v.includes("master");
-                        return (
-                          <button
-                            key={v}
-                            type="button"
-                            role="radio"
-                            aria-checked={on}
-                            disabled={busy}
-                            onClick={() => setVersion(v)}
-                            className="relative inline-flex min-h-[34px] items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide transition-all duration-300 enabled:hover:-translate-y-[1px] disabled:opacity-45 cursor-pointer"
-                            style={{
-                              border: on
-                                ? "1px solid color-mix(in srgb, var(--primary-cyan) 60%, transparent)"
-                                : "1px solid color-mix(in srgb, white 7%, transparent)",
-                              background: on
-                                ? "linear-gradient(135deg, color-mix(in srgb, var(--primary-cyan) 22%, transparent), color-mix(in srgb, var(--primary-cyan) 8%, rgba(0,0,0,0.4)))"
-                                : "rgba(0,0,0,0.3)",
-                              boxShadow: on
-                                ? "0 8px 22px -12px color-mix(in srgb, var(--primary-cyan) 70%, transparent)"
+                                ? "0 4px 12px -4px color-mix(in srgb, var(--primary-cyan) 65%, transparent)"
                                 : "none",
-                              color: on ? "white" : "var(--text-muted)",
+                              color: on ? "#fff" : "var(--text-muted)",
                             }}
                           >
-                            <span className="tabular-nums">v{v.replace("-master", "")}</span>
-                            {isMaster ? (
-                              <span className="rounded-md bg-cyan-400/20 px-1.5 py-[2px] text-[8px] font-bold tracking-[0.12em] text-cyan-100 ring-1 ring-cyan-400/20">
-                                MASTER
-                              </span>
-                            ) : null}
-                            {isLatest ? (
-                              <span className="rounded-md bg-emerald-400/15 px-1.5 py-[2px] text-[8px] font-bold tracking-[0.12em] text-emerald-200 ring-1 ring-emerald-400/20">
-                                NEW
-                              </span>
-                            ) : null}
+                            <Icon
+                              className="h-3.5 w-3.5 shrink-0 transition-transform duration-200"
+                              style={{ color: on ? "var(--primary-cyan)" : "var(--text-subtle)" }}
+                            />
+                            <span className="font-display text-[11.5px] font-bold tracking-tight truncate">
+                              {opt.id === "ultra" ? "Ultra Quality" : opt.label}
+                            </span>
                           </button>
                         );
                       })}
                     </div>
+                    <p className="mt-2 text-[11px] leading-relaxed text-[var(--text-subtle)] px-0.5">
+                      {QUALITY_OPTIONS.find((q) => q.id === quality)?.sub}
+                    </p>
                   </div>
                 </div>
                 <div className="mt-3.5 space-y-2 border-t border-white/[0.05] pt-3.5">
@@ -1005,9 +930,9 @@ export default function VideoStudioClient() {
         {/* Cost Preview Panel */}
         <div className="mb-2.5 flex items-center justify-between rounded-xl border border-border/50 bg-[color-mix(in_srgb,var(--text-primary)_3%,transparent)] px-3 py-1.5 text-xs">
           <div className="flex items-center gap-1.5 text-[var(--text-muted)]">
-            <span className="font-semibold text-[var(--text-primary)]">Engine:</span>
+            <span className="font-semibold text-[var(--text-primary)]">Quality:</span>
             <span className="font-mono bg-[#00D4FF]/10 border border-[#00D4FF]/20 px-1.5 py-0.5 rounded text-[10px] text-[#00D4FF] dark:text-cyan-200">
-              Kling {mode === "pro" ? "Pro" : "Std"} ({duration}s)
+              {QUALITY_OPTIONS.find((q) => q.id === quality)?.label ?? "Quality"} ({duration}s)
             </span>
           </div>
           <div className="flex items-center gap-4 text-[var(--text-muted)]">
@@ -1235,7 +1160,7 @@ export default function VideoStudioClient() {
                   <div className="max-w-md space-y-2 px-2">
                     <p className="font-display text-xl font-bold tracking-tight text-[var(--text-primary)]">Motion stage primed</p>
                     <p className="text-sm leading-relaxed text-[var(--text-muted)]">
-                      Dial duration, aspect, and engine, then describe camera and energy. Clips stream into this canvas as they finish.
+                      Dial duration, aspect, and quality profile, then describe camera and energy. Clips stream into this canvas as they finish.
                     </p>
                   </div>
                 </div>
@@ -1542,7 +1467,7 @@ export default function VideoStudioClient() {
         mode="video"
         eyebrow="Motion"
         title="Video studio"
-        subtitle="Luxury glass workspace · motion-native pipeline · tuned for cinema-grade clips."
+        subtitle="Luxury glass workspace · quality-tiered rendering · tuned for cinema-grade clips."
         mobilePane={mobileStudioPane}
         onMobilePaneChange={setMobileStudioPane}
         topActions={

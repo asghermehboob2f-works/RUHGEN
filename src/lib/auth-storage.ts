@@ -23,6 +23,12 @@ export type SessionUser = {
   generationDisabled?: boolean;
   specialAccess?: boolean;
   role?: string;
+  // Email verification fields (populated by /api/auth/me)
+  emailVerified?: boolean;
+  emailVerifiedAt?: string | null;
+  verificationStatus?: string;
+  verificationDeadline?: string | null;
+  suspended?: boolean;
 };
 
 export async function hashPassword(password: string): Promise<string> {

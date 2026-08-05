@@ -120,7 +120,7 @@ export type PricingPlan = {
 };
 
 export type SiteContent = {
-  hero: {};
+  hero: Record<string, unknown>;
   heroBackground: HeroBackgroundConfig;
   gallery: { items: GalleryItem[] };
   showcase: { slides: ShowcaseSlide[] };
