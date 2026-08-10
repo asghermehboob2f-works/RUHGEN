@@ -1,6 +1,14 @@
 const path = require("node:path");
 const fs = require("node:fs/promises");
-const { hashPassword, signAdminToken } = require("./auth");
+const {
+  hashPassword,
+  verifyPassword,
+  validatePasswordStrength,
+  checkRateLimit,
+  recordFailedAttempt,
+  clearFailedAttempts,
+  signAdminToken,
+} = require("./auth");
 const { deleteMediaUrl, extractMediaPaths } = require("./media-cleanup");
 
 function isValidEmail(v) {
@@ -19,10 +27,41 @@ function mountAdminContentRoutes(app, { db, requireAdmin, upload, dataDir, proje
       if (!email || !password) {
         return res.status(400).json({ ok: false, error: "Email and password are required." });
       }
+
+      const ipKey = `admin-login-ip:${req.ip || "unknown"}`;
+      const emailKey = `admin-login-email:${email}`;
+      const ipLock = checkRateLimit(ipKey);
+      if (ipLock.locked) {
+        return res.status(429).json({ ok: false, error: `Too many failed login attempts. Try again in ${ipLock.minutesLeft} minute(s).` });
+      }
+
       const row = db.prepare("SELECT id, email, name, password_hash FROM admins WHERE email = ?").get(email);
-      if (!row || hashPassword(password) !== row.password_hash) {
+      if (!row) {
+        recordFailedAttempt(ipKey);
+        recordFailedAttempt(emailKey);
         return res.status(401).json({ ok: false, error: "Invalid email or password." });
       }
+
+      const { isValid, isLegacy } = verifyPassword(password, row.password_hash);
+      if (!isValid) {
+        recordFailedAttempt(ipKey);
+        recordFailedAttempt(emailKey);
+        return res.status(401).json({ ok: false, error: "Invalid email or password." });
+      }
+
+      clearFailedAttempts(ipKey);
+      clearFailedAttempts(emailKey);
+
+      // Auto-upgrade legacy SHA256 hashes to PBKDF2
+      if (isLegacy) {
+        try {
+          const updatedHash = hashPassword(password);
+          db.prepare("UPDATE admins SET password_hash = ? WHERE id = ?").run(updatedHash, row.id);
+        } catch (upgradeErr) {
+          console.error("[admin-auth] Transparent hash upgrade failed:", upgradeErr);
+        }
+      }
+
       const admin = { id: row.id, email: row.email, name: row.name || "" };
       const token = signAdminToken(admin);
       return res.json({ ok: true, token, admin });
@@ -50,14 +89,16 @@ function mountAdminContentRoutes(app, { db, requireAdmin, upload, dataDir, proje
       const id = req.admin.sub;
       const currentPassword = typeof req.body?.currentPassword === "string" ? req.body.currentPassword : "";
       if (!currentPassword) {
-        return res.status(400).json({ ok: false, error: "Current password is required." });
+        return res.status(400).json({ ok: false, error: "Current password is required to save changes." });
       }
 
       const row = db.prepare("SELECT id, email, name, password_hash FROM admins WHERE id = ?").get(id);
       if (!row) {
         return res.status(404).json({ ok: false, error: "Admin not found." });
       }
-      if (hashPassword(currentPassword) !== row.password_hash) {
+
+      const { isValid: curValid, isLegacy: curLegacy } = verifyPassword(currentPassword, row.password_hash);
+      if (!curValid) {
         return res.status(400).json({ ok: false, error: "Current password is incorrect." });
       }
 
@@ -70,16 +111,22 @@ function mountAdminContentRoutes(app, { db, requireAdmin, upload, dataDir, proje
       }
       const other = db.prepare("SELECT id FROM admins WHERE email = ? AND id != ?").get(email, id);
       if (other) {
-        return res.status(400).json({ ok: false, error: "That email is already in use." });
+        return res.status(400).json({ ok: false, error: "That email is already in use by another admin." });
       }
 
       const newPassword = typeof req.body?.newPassword === "string" ? req.body.newPassword : "";
       let password_hash = row.password_hash;
       if (newPassword.length > 0) {
-        if (newPassword.length < 8) {
-          return res.status(400).json({ ok: false, error: "New password must be at least 8 characters." });
+        const passCheck = validatePasswordStrength(newPassword);
+        if (!passCheck.ok) {
+          return res.status(400).json({ ok: false, error: passCheck.error });
+        }
+        if (verifyPassword(newPassword, row.password_hash).isValid) {
+          return res.status(400).json({ ok: false, error: "New password must be different from current password." });
         }
         password_hash = hashPassword(newPassword);
+      } else if (curLegacy) {
+        password_hash = hashPassword(currentPassword);
       }
 
       db.prepare("UPDATE admins SET email = ?, name = ?, password_hash = ? WHERE id = ?").run(

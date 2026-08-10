@@ -338,6 +338,71 @@ function mountAdminUsersRoutes(app, { db }) {
       return res.status(500).json({ ok: false, error: e.message || "Database error." });
     }
   });
+
+  // Comprehensive Admin Overview Stats Endpoint
+  app.get("/api/admin/overview-stats", requireAdmin, (req, res) => {
+    try {
+      // User counts
+      const totalUsers = db.prepare("SELECT COUNT(*) as c FROM users").get().c;
+      const suspendedUsers = db.prepare("SELECT COUNT(*) as c FROM users WHERE suspended = 1").get().c;
+      const unverifiedUsers = db.prepare("SELECT COUNT(*) as c FROM users WHERE email_verified = 0").get().c;
+      const activeUsers = totalUsers - suspendedUsers;
+
+      // Revenue stats from payments table
+      let totalRevenueINR = 0;
+      let successfulPaymentsCount = 0;
+      try {
+        const payRow = db.prepare("SELECT COALESCE(SUM(amount), 0) as total, COUNT(*) as c FROM payments WHERE status = 'captured' OR status = 'paid' OR status = 'success'").get();
+        totalRevenueINR = payRow?.total || 0;
+        successfulPaymentsCount = payRow?.c || 0;
+      } catch {}
+
+      // Support tickets stats
+      let openTickets = 0;
+      let urgentTickets = 0;
+      let unreadSupportReplies = 0;
+      try {
+        openTickets = db.prepare("SELECT COUNT(*) as c FROM support_tickets WHERE status IN ('open', 'in_progress')").get().c;
+        urgentTickets = db.prepare("SELECT COUNT(*) as c FROM support_tickets WHERE priority IN ('urgent', 'high') AND status IN ('open', 'in_progress')").get().c;
+        unreadSupportReplies = db.prepare("SELECT COUNT(DISTINCT ticket_id) as c FROM support_replies WHERE is_admin = 0 AND read_by_admin = 0").get().c;
+      } catch {}
+
+      // Messages and newsletter
+      let unreadContactMessages = 0;
+      try {
+        unreadContactMessages = db.prepare("SELECT COUNT(*) as c FROM contact_messages WHERE read = 0").get().c;
+      } catch {}
+
+      let newsletterSubscribers = 0;
+      try {
+        newsletterSubscribers = db.prepare("SELECT COUNT(*) as c FROM newsletter_subscribers").get().c;
+      } catch {}
+
+      // Recent audit activity (last 6 actions)
+      let recentAuditLogs = [];
+      try {
+        recentAuditLogs = db.prepare(`
+          SELECT a.id, a.actor_email as actorEmail, a.action_type as actionType, a.timestamp, u.email as targetEmail
+          FROM audit_logs a
+          LEFT JOIN users u ON a.target_user_id = u.id
+          ORDER BY a.timestamp DESC
+          LIMIT 6
+        `).all();
+      } catch {}
+
+      return res.json({
+        ok: true,
+        users: { total: totalUsers, active: activeUsers, suspended: suspendedUsers, unverified: unverifiedUsers },
+        financials: { totalRevenueINR, successfulPaymentsCount },
+        support: { openTickets, urgentTickets, unreadSupportReplies },
+        communications: { unreadContactMessages, newsletterSubscribers },
+        recentActivity: recentAuditLogs,
+      });
+    } catch (e) {
+      console.error("[admin/overview-stats] error:", e);
+      return res.status(500).json({ ok: false, error: "Failed to load overview stats." });
+    }
+  });
 }
 
 module.exports = { mountAdminUsersRoutes };

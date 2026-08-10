@@ -83,7 +83,7 @@ mountAcademyRoutes(app, { db, projectRoot });
 mountFaqRoutes(app, { db });
 mountAdminUsersRoutes(app, { db });
 mountPaymentRoutes(app, { db, verifyAdminToken });
-mountSupportRoutes(app, { db, verifyAdminToken, upload });
+mountSupportRoutes(app, { db, verifyAdminToken, upload, dataDir });
 
 // --- Central Error & 404 Handlers ---
 app.use(notFoundHandler);

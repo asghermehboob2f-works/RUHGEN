@@ -1,5 +1,14 @@
 const crypto = require("node:crypto");
-const { hashPassword, signUserToken, verifyUserToken } = require("./auth");
+const {
+  hashPassword,
+  verifyPassword,
+  validatePasswordStrength,
+  checkRateLimit,
+  recordFailedAttempt,
+  clearFailedAttempts,
+  signUserToken,
+  verifyUserToken,
+} = require("./auth");
 const { sendMail } = require("./email-service");
 const { verificationEmail } = require("./email-templates");
 
@@ -35,11 +44,12 @@ function mountUserAuthRoutes(app, { db }) {
       if (!name || !email || !password) {
         return res.status(400).json({ ok: false, error: "Please fill in all fields." });
       }
-      if (password.length < 8) {
-        return res.status(400).json({ ok: false, error: "Password must be at least 8 characters." });
-      }
       if (!isValidEmail(email)) {
         return res.status(400).json({ ok: false, error: "Invalid email address." });
+      }
+      const passCheck = validatePasswordStrength(password);
+      if (!passCheck.ok) {
+        return res.status(400).json({ ok: false, error: passCheck.error });
       }
       const existing = db.prepare("SELECT id FROM users WHERE email = ?").get(email);
       if (existing) {
@@ -92,18 +102,52 @@ function mountUserAuthRoutes(app, { db }) {
       if (!email || !password) {
         return res.status(400).json({ ok: false, error: "Email and password are required." });
       }
+
+      // Check rate limit lockouts
+      const ipKey = `login-ip:${req.ip || "unknown"}`;
+      const emailKey = `login-email:${email}`;
+      const ipLock = checkRateLimit(ipKey);
+      if (ipLock.locked) {
+        return res.status(429).json({ ok: false, error: `Too many failed attempts. Please try again in ${ipLock.minutesLeft} minute(s).` });
+      }
+      const emailLock = checkRateLimit(emailKey);
+      if (emailLock.locked) {
+        return res.status(429).json({ ok: false, error: `Too many failed attempts on this account. Please try again in ${emailLock.minutesLeft} minute(s).` });
+      }
+
       const row = db
         .prepare("SELECT id, email, name, password_hash, suspended, credits FROM users WHERE email = ?")
         .get(email);
       if (!row) {
+        recordFailedAttempt(ipKey);
+        recordFailedAttempt(emailKey);
         return res.status(401).json({ ok: false, error: "Invalid email or password." });
       }
       if (row.suspended) {
         return res.status(403).json({ ok: false, error: "This account has been suspended." });
       }
-      if (hashPassword(password) !== row.password_hash) {
+
+      const { isValid, isLegacy } = verifyPassword(password, row.password_hash);
+      if (!isValid) {
+        recordFailedAttempt(ipKey);
+        recordFailedAttempt(emailKey);
         return res.status(401).json({ ok: false, error: "Invalid email or password." });
       }
+
+      // Clear failed rate limit counters on success
+      clearFailedAttempts(ipKey);
+      clearFailedAttempts(emailKey);
+
+      // Auto-upgrade legacy SHA256 hashes to PBKDF2 transparently
+      if (isLegacy) {
+        try {
+          const updatedHash = hashPassword(password);
+          db.prepare("UPDATE users SET password_hash = ? WHERE id = ?").run(updatedHash, row.id);
+        } catch (upgradeErr) {
+          console.error("[auth] Transparent hash upgrade failed:", upgradeErr);
+        }
+      }
+
       const user = { id: row.id, email: row.email, name: row.name, credits: row.credits };
       let token;
       try {
@@ -145,12 +189,10 @@ function mountUserAuthRoutes(app, { db }) {
       if (!row) {
         return res.status(401).json({ ok: false, error: "Unauthorized." });
       }
-      // Suspended users who ARE verified get blocked; unverified-suspended get a specific message
       if (row.suspended && row.email_verified) {
         return res.status(403).json({ ok: false, error: "This account has been suspended." });
       }
 
-      // Calculate pending credits and available credits
       const pendingRow = db.prepare("SELECT COALESCE(SUM(credits), 0) as pending FROM studio_tasks WHERE user_id = ? AND status = 'pending'").get(payload.sub);
       const pending_credits = pendingRow?.pending || 0;
 
@@ -195,18 +237,39 @@ function mountUserAuthRoutes(app, { db }) {
         return res.status(401).json({ ok: false, error: "Unauthorized." });
       }
       const id = payload.sub;
+
       const currentPassword =
         typeof req.body?.currentPassword === "string" ? req.body.currentPassword : "";
       if (!currentPassword) {
-        return res.status(400).json({ ok: false, error: "Current password is required." });
+        return res.status(400).json({ ok: false, error: "Current password is required to save changes." });
       }
+
+      const ipKey = `profile-ip:${req.ip || "unknown"}`;
+      const userKey = `profile-user:${id}`;
+      const ipLock = checkRateLimit(ipKey);
+      if (ipLock.locked) {
+        return res.status(429).json({ ok: false, error: `Too many failed attempts. Please try again in ${ipLock.minutesLeft} minute(s).` });
+      }
+      const userLock = checkRateLimit(userKey);
+      if (userLock.locked) {
+        return res.status(429).json({ ok: false, error: `Too many failed attempts on this account. Please try again in ${userLock.minutesLeft} minute(s).` });
+      }
+
       const row = db.prepare("SELECT id, email, name, password_hash FROM users WHERE id = ?").get(id);
       if (!row) {
         return res.status(404).json({ ok: false, error: "Account not found." });
       }
-      if (hashPassword(currentPassword) !== row.password_hash) {
+
+      const { isValid: curValid, isLegacy: curLegacy } = verifyPassword(currentPassword, row.password_hash);
+      if (!curValid) {
+        recordFailedAttempt(ipKey);
+        recordFailedAttempt(userKey);
         return res.status(400).json({ ok: false, error: "Current password is incorrect." });
       }
+
+      clearFailedAttempts(ipKey);
+      clearFailedAttempts(userKey);
+
       const nameIn = typeof req.body?.name === "string" ? req.body.name.trim().slice(0, 120) : row.name;
       const name = nameIn || row.name;
       let email =
@@ -216,22 +279,32 @@ function mountUserAuthRoutes(app, { db }) {
       }
       const other = db.prepare("SELECT id FROM users WHERE email = ? AND id != ?").get(email, id);
       if (other) {
-        return res.status(400).json({ ok: false, error: "That email is already in use." });
+        return res.status(400).json({ ok: false, error: "That email is already in use by another account." });
       }
+
       const newPassword = typeof req.body?.newPassword === "string" ? req.body.newPassword : "";
       let password_hash = row.password_hash;
+
       if (newPassword.length > 0) {
-        if (newPassword.length < 8) {
-          return res.status(400).json({ ok: false, error: "New password must be at least 8 characters." });
+        const passCheck = validatePasswordStrength(newPassword);
+        if (!passCheck.ok) {
+          return res.status(400).json({ ok: false, error: passCheck.error });
+        }
+        if (verifyPassword(newPassword, row.password_hash).isValid) {
+          return res.status(400).json({ ok: false, error: "New password must be different from your current password." });
         }
         password_hash = hashPassword(newPassword);
+      } else if (curLegacy) {
+        password_hash = hashPassword(currentPassword);
       }
+
       db.prepare("UPDATE users SET email = ?, name = ?, password_hash = ? WHERE id = ?").run(
         email,
         name,
         password_hash,
         id
       );
+
       const user = { id, email, name };
       let token;
       try {

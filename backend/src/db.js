@@ -391,12 +391,28 @@ function openDb(projectRoot) {
       id TEXT PRIMARY KEY,
       ticket_id TEXT NOT NULL,
       filename TEXT NOT NULL,
+      original_name TEXT NOT NULL DEFAULT '',
       size INTEGER NOT NULL DEFAULT 0,
       mimetype TEXT NOT NULL DEFAULT '',
       created_at TEXT NOT NULL,
       FOREIGN KEY (ticket_id) REFERENCES support_tickets(id) ON DELETE CASCADE
     );
   `);
+
+  // Support tickets table migrations for priority and internal notes
+  const ticketCols = db.pragma("table_info(support_tickets)");
+  if (!ticketCols.some(c => c.name === "priority")) {
+    db.exec("ALTER TABLE support_tickets ADD COLUMN priority TEXT NOT NULL DEFAULT 'medium'");
+  }
+  if (!ticketCols.some(c => c.name === "internal_notes")) {
+    db.exec("ALTER TABLE support_tickets ADD COLUMN internal_notes TEXT NOT NULL DEFAULT ''");
+  }
+
+  // Support attachments migration
+  const attachCols = db.pragma("table_info(support_attachments)");
+  if (!attachCols.some(c => c.name === "original_name")) {
+    db.exec("ALTER TABLE support_attachments ADD COLUMN original_name TEXT NOT NULL DEFAULT ''");
+  }
 
   // Seed default rates if not present
   const stmtSetting = db.prepare("INSERT OR IGNORE INTO credit_settings (key, value) VALUES (?, ?)");

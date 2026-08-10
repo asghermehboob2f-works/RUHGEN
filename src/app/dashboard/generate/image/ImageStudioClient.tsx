@@ -242,9 +242,17 @@ export default function ImageStudioClient() {
   const [lightbox, setLightbox] = useState<{ src: string } | null>(null);
   const [savedPresets, setSavedPresets] = useState<ImagePreset[]>([]);
 
+  const [generationMode, setGenerationMode] = useState<"txt2img" | "img2img" | "inpaint" | "upscale">("txt2img");
+  const [selectedStyle, setSelectedStyle] = useState<string>("none");
+  const [cfgScale, setCfgScale] = useState<number>(7.5);
+  const [steps, setSteps] = useState<number>(30);
+  const [seed, setSeed] = useState<string>("");
+  const [sampler, setSampler] = useState<string>("dpmpp_2m_karras");
+
   const costImageDev = rates.cost_image_dev ?? 3;
   const costImageSchnell = rates.cost_image_schnell ?? rates.credits_per_image ?? 2;
   const currentCost = quality === "standard" ? costImageSchnell : costImageDev;
+  const isEdit = Boolean(referenceImageUrl);
 
   useEffect(() => {
     if (ready && !user) router.replace("/sign-in?next=/dashboard/generate/image");
@@ -428,7 +436,6 @@ export default function ImageStudioClient() {
     snapCanvasToEnd("auto");
     const timeouts = [0, 50, 120, 280].map((ms) => window.setTimeout(() => snapCanvasToEnd("auto"), ms));
     return () => timeouts.forEach(clearTimeout);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- only when switching to Canvas on mobile
   }, [mobileStudioPane, snapCanvasToEnd]);
 
   useEffect(() => {
@@ -547,7 +554,7 @@ export default function ImageStudioClient() {
       setBusy(false);
       void refreshUser();
     }
-  }, [prompt, quality, sizeIdx, busy, referenceImageUrl, editDenoise, editNegative, negativePrompt, guidanceScale]);
+  }, [prompt, quality, sizeIdx, busy, referenceImageUrl, editDenoise, editNegative, negativePrompt, guidanceScale, refreshUser]);
 
   const copyText = async (text: string, label: string) => {
     try {
@@ -558,55 +565,127 @@ export default function ImageStudioClient() {
     }
   };
 
-  if (!ready) return <DashboardLoading label="Loading image studio…" />;
-  if (!user) return null;
-  const selectCls =
-    "min-h-[38px] w-full cursor-pointer rounded-xl border px-3 py-2 text-xs font-bold outline-none transition-all duration-300 bg-card border-border focus:border-[#7B61FF]/60 focus:ring-2 focus:ring-[#7B61FF]/15 hover:border-border/80 sm:min-h-[40px] sm:text-[13px]";
-  const isEdit = Boolean(referenceImageUrl);
-
   const leftPanel = (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
       <p className="sr-only">Press Enter to generate. Shift+Enter for a new line.</p>
       <div className="studio-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain p-2.5 sm:p-3">
-        <div className="border-gradient-premium rounded-[1.15rem] p-[1px] shadow-[0_20px_60px_-40px_rgba(123,97,255,0.55)]">
+        <div className="border-gradient-premium rounded-[1.25rem] p-[1px] shadow-[0_24px_64px_-36px_rgba(123,97,255,0.55)]">
           <div
-            className="rounded-[1.1rem] p-3.5 sm:p-4"
+            className="rounded-[1.2rem] p-3.5 sm:p-4"
             style={{
               background:
-                "linear-gradient(180deg, color-mix(in srgb, var(--primary-purple) 8%, var(--deep-black)) 0%, color-mix(in srgb, var(--rich-black) 96%, transparent) 100%)",
+                "linear-gradient(180deg, color-mix(in srgb, var(--primary-purple) 9%, var(--deep-black)) 0%, color-mix(in srgb, var(--rich-black) 96%, transparent) 100%)",
             }}
           >
-            <div className="mb-3.5 flex items-center justify-between gap-2 border-b border-white/[0.07] pb-3.5">
-              <div className="flex min-w-0 items-center gap-2">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-400/30 to-[var(--primary-purple)]/40 ring-1 ring-white/15 shadow-[0_4px_12px_-4px_rgba(123,97,255,0.5)]">
-                  <Wand2 className="h-4 w-4 text-violet-100" strokeWidth={2} />
+            {/* Header Title */}
+            <div className="mb-3 flex items-center justify-between gap-2 border-b border-white/[0.08] pb-3">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-400/35 to-[var(--primary-purple)]/45 ring-1 ring-white/20 shadow-[0_4px_16px_-4px_rgba(123,97,255,0.6)]">
+                  <Wand2 className="h-4.5 w-4.5 text-violet-100" strokeWidth={2} />
                 </span>
                 <div className="min-w-0">
-                  <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[var(--text-subtle)]">Control deck</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[var(--text-subtle)]">Control deck</p>
+                    <span className="h-1 w-1 rounded-full bg-[var(--primary-purple)] animate-pulse" />
+                  </div>
                   <p className="truncate font-display text-sm font-bold text-[var(--text-primary)]">Image studio</p>
                 </div>
               </div>
-              {isEdit ? (
-                <span className="shrink-0 rounded-full border border-violet-400/25 bg-violet-500/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-violet-200">
-                  Edit
+              {referenceImageUrl ? (
+                <span className="shrink-0 rounded-full border border-violet-400/30 bg-violet-500/15 px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-violet-200">
+                  Img-2-Img Active
                 </span>
               ) : null}
             </div>
 
+            {/* Mode Tabs */}
+            <div className="mb-4">
+              <p className="mb-1.5 px-0.5 text-[9px] font-bold uppercase tracking-[0.16em] text-[var(--text-subtle)]">Creation mode</p>
+              <div className="grid grid-cols-4 gap-1 rounded-xl border border-white/[0.08] bg-black/40 p-1">
+                {[
+                  { id: "txt2img", label: "Text 2 Img", icon: Sparkles },
+                  { id: "img2img", label: "Img 2 Img", icon: ImagePlus },
+                  { id: "inpaint", label: "Inpaint", icon: Wand2 },
+                  { id: "upscale", label: "Upscale HD", icon: Zap },
+                ].map((m) => {
+                  const Icon = m.icon;
+                  const active = generationMode === m.id;
+                  return (
+                    <button
+                      key={m.id}
+                      type="button"
+                      disabled={busy}
+                      onClick={() => {
+                        setGenerationMode(m.id as any);
+                        if (m.id === "img2img" && !referenceImageUrl) {
+                          refFileInput.current?.click();
+                        }
+                      }}
+                      className={`flex flex-col items-center justify-center gap-1 rounded-lg py-1.5 text-center transition-all duration-200 cursor-pointer ${
+                        active
+                          ? "bg-gradient-to-b from-[var(--primary-purple)]/30 to-[var(--primary-purple)]/10 border border-[var(--primary-purple)]/60 text-white shadow-[0_4px_12px_-4px_rgba(123,97,255,0.5)]"
+                          : "border border-transparent text-[var(--text-muted)] hover:text-white hover:bg-white/[0.04]"
+                      }`}
+                    >
+                      <Icon className={`h-3.5 w-3.5 ${active ? "text-[var(--primary-cyan)]" : "opacity-70"}`} strokeWidth={1.75} />
+                      <span className="text-[10px] font-bold tracking-tight">{m.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <div className="space-y-3">
-              <StudioCollapsible title="Canvas & quality" subtitle="Aspect, resolution, and quality profile" defaultOpen>
+              {/* Style Presets Bar */}
+              <StudioCollapsible title="Aesthetic styles" subtitle="Artistic directions & rendering engines" defaultOpen>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                  {[
+                    { id: "none", label: "Raw / Natural", icon: "🎨", tag: "" },
+                    { id: "cinematic", label: "Cinematic 35mm", icon: "🎬", tag: "cinematic lighting, 35mm film grain, 85mm anamorphic lens" },
+                    { id: "photorealistic", label: "8K Realistic", icon: "📷", tag: "ultra-photorealistic, 8k resolution, studio lighting, highly detailed" },
+                    { id: "anime", label: "Anime Art", icon: "✨", tag: "anime artwork, Makoto Shinkai style, vibrant colors, detailed illustration" },
+                    { id: "cyberpunk", label: "Cyberpunk", icon: "🏙️", tag: "cyberpunk neon lights, high contrast, futuristic aesthetic, volumetric fog" },
+                    { id: "product", label: "Commercial", icon: "🛍️", tag: "commercial product photography, softbox studio lighting, clean background" },
+                    { id: "architectural", label: "Architecture", icon: "🏛️", tag: "architectural Digest photograph, modern ambient light, 4k interior" },
+                    { id: "3drender", label: "Octane 3D", icon: "💎", tag: "Unreal Engine 5 render, Octane render, raytracing, PBR materials" },
+                  ].map((st) => {
+                    const active = selectedStyle === st.id;
+                    return (
+                      <button
+                        key={st.id}
+                        type="button"
+                        disabled={busy}
+                        onClick={() => {
+                          setSelectedStyle(st.id);
+                          if (st.tag) {
+                            appendPromptChip(st.tag);
+                          }
+                        }}
+                        className={`flex items-center gap-1.5 rounded-lg border px-2 py-1.5 text-left transition-all duration-200 cursor-pointer ${
+                          active
+                            ? "border-[var(--primary-purple)] bg-[var(--primary-purple)]/20 text-white shadow-[0_2px_8px_rgba(123,97,255,0.4)]"
+                            : "border-white/[0.06] bg-white/[0.02] text-[var(--text-muted)] hover:border-white/20 hover:text-white"
+                        }`}
+                      >
+                        <span className="text-xs">{st.icon}</span>
+                        <span className="truncate text-[10px] font-bold tracking-tight">{st.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </StudioCollapsible>
+
+              {/* Canvas Geometry & Quality */}
+              <StudioCollapsible title="Canvas & quality" subtitle="Aspect ratio, resolution, and quality profile" defaultOpen>
                 <div className="space-y-3.5">
                   <div>
                     <div className="mb-2 flex items-end justify-between gap-2">
-                      <div>
-                        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--text-subtle)]">Frame</p>
-                      </div>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--text-subtle)]">Aspect ratio</p>
+                      <span className="text-[10px] font-mono text-[var(--primary-cyan)]">
+                        {SIZES[sizeIdx].w} × {SIZES[sizeIdx].h}px
+                      </span>
                     </div>
-                    <div
-                      className="grid grid-cols-2 gap-1.5"
-                      role="radiogroup"
-                      aria-label="Frame"
-                    >
+                    <div className="grid grid-cols-3 gap-1.5" role="radiogroup" aria-label="Aspect Ratio">
                       {SIZES.map((s, i) => {
                         const on = sizeIdx === i;
                         const disabled = busy || isEdit;
@@ -616,48 +695,30 @@ export default function ImageStudioClient() {
                             type="button"
                             role="radio"
                             aria-checked={on}
-                            aria-label={`${s.label} ${s.sub}`}
                             disabled={disabled}
                             onClick={() => setSizeIdx(i)}
-                            className="group relative flex min-h-[36px] flex-col items-center justify-center rounded-xl border px-3 py-1 text-center transition-all duration-300 enabled:hover:-translate-y-[1px] disabled:opacity-45 cursor-pointer overflow-hidden"
+                            className="group relative flex min-h-[38px] flex-col items-center justify-center rounded-xl border px-2 py-1 text-center transition-all duration-200 disabled:opacity-45 cursor-pointer"
                             style={{
-                              borderColor: on ? "var(--primary-purple)" : "rgba(255,255,255,0.07)",
-                              background: on 
-                                ? "linear-gradient(180deg, color-mix(in srgb, var(--primary-purple) 15%, transparent) 0%, color-mix(in srgb, var(--primary-purple) 4%, rgba(0,0,0,0.5)) 100%)" 
+                              borderColor: on ? "var(--primary-purple)" : "rgba(255,255,255,0.08)",
+                              background: on
+                                ? "linear-gradient(180deg, color-mix(in srgb, var(--primary-purple) 20%, transparent) 0%, color-mix(in srgb, var(--primary-purple) 5%, rgba(0,0,0,0.5)) 100%)"
                                 : "rgba(255,255,255,0.02)",
-                              boxShadow: on 
-                                ? "0 6px 16px -8px color-mix(in srgb, var(--primary-purple) 50%, transparent), inset 0 1px 0 rgba(255,255,255,0.06)" 
-                                : "inset 0 1px 0 rgba(255,255,255,0.02)",
+                              boxShadow: on ? "0 4px 14px -6px color-mix(in srgb, var(--primary-purple) 60%, transparent)" : "none",
                             }}
                           >
-                            {on && (
-                              <div 
-                                className="absolute inset-x-0 top-0 h-[1.5px] opacity-85"
-                                style={{
-                                  background: "linear-gradient(90deg, transparent, var(--primary-purple), transparent)"
-                                }}
-                              />
-                            )}
-                            <span className="font-display text-[11px] font-bold tracking-wide transition-colors" style={{ color: on ? "white" : "var(--text-primary)" }}>
-                              {s.label}
-                            </span>
-                            <span className="text-[9px] mt-0.5 font-medium transition-colors" style={{ color: on ? "color-mix(in srgb, var(--primary-purple) 90%, white)" : "var(--text-muted)" }}>
-                              {s.sub}
-                            </span>
+                            <span className="font-display text-[11px] font-bold text-white tracking-tight">{s.label}</span>
+                            <span className="text-[9px] font-semibold text-[var(--text-muted)]">{s.sub}</span>
                           </button>
                         );
                       })}
                     </div>
                   </div>
+
                   <div>
                     <label className="mb-2 block text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--text-subtle)]">
                       Quality profile
                     </label>
-                    <div
-                      className="grid grid-cols-3 gap-1.5 rounded-xl border border-white/[0.06] bg-black/30 p-1.5"
-                      role="radiogroup"
-                      aria-label="Quality profile"
-                    >
+                    <div className="grid grid-cols-3 gap-1.5 rounded-xl border border-white/[0.08] bg-black/40 p-1.5">
                       {QUALITY_OPTIONS.map((opt) => {
                         const Icon = opt.icon;
                         const on = quality === opt.id;
@@ -665,50 +726,33 @@ export default function ImageStudioClient() {
                           <button
                             key={opt.id}
                             type="button"
-                            role="radio"
-                            aria-checked={on}
                             disabled={busy}
                             onClick={() => setQuality(opt.id)}
-                            className="flex min-h-[38px] items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-center transition-all duration-200 enabled:hover:text-[var(--text-primary)] disabled:opacity-45 cursor-pointer"
-                            style={{
-                              background: on
-                                ? "linear-gradient(135deg, color-mix(in srgb, var(--primary-purple) 25%, transparent), color-mix(in srgb, var(--primary-purple) 10%, rgba(0,0,0,0.5)))"
-                                : "transparent",
-                              border: on
-                                ? "1px solid color-mix(in srgb, var(--primary-purple) 55%, transparent)"
-                                : "1px solid transparent",
-                              boxShadow: on
-                                ? "0 4px 12px -4px color-mix(in srgb, var(--primary-purple) 65%, transparent)"
-                                : "none",
-                              color: on ? "#fff" : "var(--text-muted)",
-                            }}
+                            className={`flex min-h-[36px] items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-center transition-all duration-200 cursor-pointer ${
+                              on
+                                ? "border border-[var(--primary-purple)]/60 bg-[var(--primary-purple)]/25 text-white shadow-[0_4px_12px_-4px_rgba(123,97,255,0.5)]"
+                                : "border border-transparent text-[var(--text-muted)] hover:text-white"
+                            }`}
                           >
-                            <Icon
-                              className="h-3.5 w-3.5 shrink-0 transition-transform duration-200"
-                              style={{ color: on ? "var(--primary-purple)" : "var(--text-subtle)" }}
-                            />
-                            <span className="font-display text-[11.5px] font-bold tracking-tight truncate">
-                              {opt.id === "ultra" ? "Ultra Quality" : opt.label}
-                            </span>
+                            <Icon className={`h-3.5 w-3.5 ${on ? "text-[var(--primary-cyan)]" : "text-[var(--text-subtle)]"}`} />
+                            <span className="font-display text-[11px] font-bold truncate">{opt.label}</span>
                           </button>
                         );
                       })}
                     </div>
-                    <p className="mt-2 text-[11px] leading-relaxed text-[var(--text-subtle)] px-0.5">
-                      {QUALITY_OPTIONS.find((q) => q.id === quality)?.sub}
-                    </p>
                   </div>
                 </div>
-                <div className="mt-3.5 space-y-2 border-t border-white/[0.05] pt-3.5">
+
+                <div className="mt-3.5 space-y-2 border-t border-white/[0.06] pt-3">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">Presets</span>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">Saved presets</span>
                     <button
                       type="button"
                       disabled={busy}
                       onClick={saveCurrentPreset}
-                      className="inline-flex items-center gap-1 rounded-lg border border-[#7B61FF]/30 bg-[#7B61FF]/10 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-violet-100 transition-all duration-300 hover:bg-[#7B61FF]/20 hover:border-[#7B61FF]/50 disabled:opacity-40 cursor-pointer"
+                      className="inline-flex items-center gap-1 rounded-lg border border-[#7B61FF]/30 bg-[#7B61FF]/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-violet-100 transition-all hover:bg-[#7B61FF]/20 cursor-pointer"
                     >
-                      <BookmarkPlus className="h-2.5 w-2.5" strokeWidth={2.5} />
+                      <BookmarkPlus className="h-2.5 w-2.5" />
                       Save
                     </button>
                   </div>
@@ -720,168 +764,197 @@ export default function ImageStudioClient() {
                           type="button"
                           disabled={busy}
                           onClick={() => applyPreset(pr)}
-                          className="max-w-[160px] truncate rounded-lg border border-white/[0.06] bg-white/[0.02] px-2.5 py-1 text-[10px] font-bold text-[var(--text-muted)] transition-all duration-300 hover:border-[#7B61FF]/50 hover:bg-[#7B61FF]/5 hover:text-white disabled:opacity-40 cursor-pointer"
+                          className="max-w-[150px] truncate rounded-lg border border-white/[0.08] bg-white/[0.02] px-2 py-1 text-[10px] font-bold text-[var(--text-muted)] hover:border-[#7B61FF]/50 hover:text-white cursor-pointer"
                         >
                           {pr.name}
                         </button>
                       ))}
-                      {savedPresets.length > 6 ? (
-                        <span className="self-center text-[10px] text-[var(--text-subtle)]">+{savedPresets.length - 6}</span>
-                      ) : null}
                     </div>
                   ) : (
-                    <p className="text-[10px] leading-snug text-[var(--text-subtle)]">No presets yet. Save the current setup to reuse later.</p>
+                    <p className="text-[10px] text-[var(--text-subtle)]">Save custom presets for 1-click retrieval.</p>
                   )}
                 </div>
               </StudioCollapsible>
 
-              <StudioCollapsible title="Prompt intelligence" subtitle="Curated tokens — tap to append" defaultOpen>
+              {/* Prompt Intelligence */}
+              <StudioCollapsible title="Prompt intelligence" subtitle="Magic enhancers and curated visual descriptors" defaultOpen>
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">Descriptor chips</span>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => appendPromptChip("cinematic lighting, ultra-photorealistic, 8k resolution, volumetric fog, octane render")}
+                    className="inline-flex items-center gap-1 text-[10px] font-bold text-[var(--primary-cyan)] hover:underline cursor-pointer"
+                  >
+                    <Wand2 className="h-2.5 w-2.5" />
+                    Magic Enhance
+                  </button>
+                </div>
                 <StudioPromptChips labels={PROMPT_CHIPS} onPick={appendPromptChip} disabled={busy} tone="purple" />
               </StudioCollapsible>
 
-              {!isEdit ? (
-                <StudioCollapsible title="Negative & reference" subtitle="Constraints and optional image conditioning" defaultOpen={false}>
-                  <div className="space-y-3.5">
-                    <div>
-                      <label htmlFor="img-neg-create" className="mb-1.5 flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
-                        <span>Negative prompt <span className="font-normal opacity-70 normal-case">(optional)</span></span>
-                        <span className="tabular-nums">{negativePrompt.length}/2000</span>
-                      </label>
-                      <textarea
-                        id="img-neg-create"
-                        value={negativePrompt}
-                        onChange={(e) => setNegativePrompt(e.target.value.slice(0, 2000))}
-                        disabled={busy}
-                        placeholder="Elements to suppress…"
-                        rows={2}
-                        className="w-full resize-none rounded-xl border border-border bg-card/60 px-3.5 py-2.5 text-xs outline-none transition-all duration-300 focus:border-[#7B61FF]/50 focus:ring-2 focus:ring-[#7B61FF]/15 sm:text-[13px]"
-                        style={{ color: "var(--text-primary)", minHeight: "3.5rem" }}
-                      />
-                    </div>
-                    <div className="rounded-2xl border border-violet-500/15 bg-violet-500/[0.03] p-3 shadow-inner">
-                      <div className="mb-2 flex items-center justify-between">
-                        <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--text-subtle)]">Reference image</span>
-                        {referenceImageUrl ? (
-                          <button
-                            type="button"
-                            disabled={busy}
-                            onClick={() => {
-                              setReferenceImageUrl(null);
-                              setRefUploadError(null);
-                            }}
-                            className="inline-flex h-6 items-center gap-1 rounded-lg border border-border px-2 text-[9px] font-bold uppercase tracking-wider text-[var(--text-muted)] transition-all duration-200 hover:bg-card/85 hover:text-[var(--text-primary)] cursor-pointer"
-                          >
-                            <X className="h-2.5 w-2.5" />
-                            Clear
-                          </button>
-                        ) : null}
-                      </div>
-                      <input
-                        ref={refFileInput}
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp"
-                        className="sr-only"
-                        tabIndex={-1}
-                        disabled={busy || refUploading}
-                        onChange={(e) => {
-                          const f = e.target.files?.[0];
-                          e.target.value = "";
-                          if (!f) return;
-                          setRefUploadError(null);
-                          setRefUploading(true);
-                          void uploadStudioReferenceImage(f)
-                            .then(({ url }) => setReferenceImageUrl(url))
-                            .catch((err: unknown) => setRefUploadError(err instanceof Error ? err.message : "Upload failed."))
-                            .finally(() => setRefUploading(false));
-                        }}
-                      />
-                      <div className="flex items-center gap-3">
-                        {referenceImageUrl ? (
-                          <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-border bg-card">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={referenceImageUrl} alt="" className="h-full w-full object-cover" />
-                          </div>
-                        ) : null}
+              {/* Negative & Reference Image Conditioning */}
+              <StudioCollapsible title="Negative & reference conditioning" subtitle="Image-to-image inputs and negative prompts" defaultOpen={false}>
+                <div className="space-y-3">
+                  <div>
+                    <label htmlFor="img-neg-create" className="mb-1 flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
+                      <span>Negative prompt</span>
+                      <span className="tabular-nums text-[9px]">{negativePrompt.length}/2000</span>
+                    </label>
+                    <textarea
+                      id="img-neg-create"
+                      value={negativePrompt}
+                      onChange={(e) => setNegativePrompt(e.target.value.slice(0, 2000))}
+                      disabled={busy}
+                      placeholder="What to avoid (e.g. text, watermarks, blurry, deformed hands)…"
+                      rows={2}
+                      className="w-full resize-none rounded-xl border border-border bg-card/60 px-3 py-2 text-xs outline-none transition-all focus:border-[#7B61FF]/50 focus:ring-2 focus:ring-[#7B61FF]/15"
+                      style={{ color: "var(--text-primary)", minHeight: "3.2rem" }}
+                    />
+                  </div>
+
+                  {/* Reference Image Dropzone */}
+                  <div className="rounded-xl border border-violet-500/20 bg-violet-500/[0.04] p-3">
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--text-subtle)]">Reference Image</span>
+                      {referenceImageUrl ? (
                         <button
                           type="button"
-                          disabled={busy || refUploading}
-                          onClick={() => refFileInput.current?.click()}
-                          className="inline-flex min-h-[42px] flex-1 items-center justify-center gap-1.5 rounded-xl border border-border bg-card/40 px-3 text-[12px] font-bold text-[var(--text-primary)] shadow-sm transition-all duration-300 hover:bg-card/85 hover:border-[#7B61FF]/45 disabled:opacity-40 cursor-pointer"
+                          disabled={busy}
+                          onClick={() => {
+                            setReferenceImageUrl(null);
+                            setRefUploadError(null);
+                          }}
+                          className="inline-flex h-5 items-center gap-1 rounded-md border border-border px-1.5 text-[9px] font-bold uppercase text-[var(--text-muted)] hover:bg-card hover:text-white cursor-pointer"
                         >
-                          {refUploading ? <Loader2 className="h-4 w-4 animate-spin text-[#7B61FF]" /> : <ImagePlus className="h-4 w-4 text-[#a78bfa]" strokeWidth={2} />}
-                          {refUploading ? "Uploading…" : referenceImageUrl ? "Replace image" : "Upload reference"}
+                          <X className="h-2.5 w-2.5" />
+                          Remove
                         </button>
-                      </div>
-                      {refUploadError ? <p className="mt-1.5 text-[11px] text-rose-200">{refUploadError}</p> : null}
+                      ) : null}
                     </div>
-                  </div>
-                </StudioCollapsible>
-              ) : (
-                <StudioCollapsible title="Edit controls" subtitle="Strength, guidance, and edit negatives" defaultOpen>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div>
-                      <label htmlFor="img-denoise" className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
-                        Strength {Math.round(editDenoise * 100)}%
-                      </label>
-                      <input
-                        id="img-denoise"
-                        type="range"
-                        min={35}
-                        max={85}
-                        step={5}
-                        value={Math.round(editDenoise * 100)}
-                        onChange={(e) => setEditDenoise(Number(e.target.value) / 100)}
-                        disabled={busy}
-                        className="studio-range-premium mt-2 w-full"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="img-guidance" className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
-                        Guidance {guidanceScale.toFixed(1)}
-                      </label>
-                      <input
-                        id="img-guidance"
-                        type="range"
-                        min={10}
-                        max={120}
-                        step={5}
-                        value={Math.round(guidanceScale * 10)}
-                        onChange={(e) => setGuidanceScale(Number(e.target.value) / 10)}
-                        disabled={busy}
-                        className="studio-range-premium mt-2 w-full"
-                      />
-                    </div>
-                    <div className="sm:col-span-2">
-                      <label htmlFor="img-neg-edit" className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
-                        Negative
-                      </label>
-                      <input
-                        id="img-neg-edit"
-                        type="text"
-                        value={editNegative}
-                        onChange={(e) => setEditNegative(e.target.value.slice(0, 2000))}
-                        disabled={busy}
-                        placeholder="What to avoid…"
-                        className="min-h-[40px] w-full rounded-xl border border-border bg-card/60 px-3.5 py-2.5 text-xs outline-none transition-all duration-300 focus:border-[#7B61FF]/50 focus:ring-2 focus:ring-[#7B61FF]/15"
-                        style={{ color: "var(--text-primary)" }}
-                      />
-                    </div>
-                    {referenceImageUrl ? (
-                      <div className="flex items-center gap-3 sm:col-span-2">
+                    <input
+                      ref={refFileInput}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="sr-only"
+                      tabIndex={-1}
+                      disabled={busy || refUploading}
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        e.target.value = "";
+                        if (!f) return;
+                        setRefUploadError(null);
+                        setRefUploading(true);
+                        void uploadStudioReferenceImage(f)
+                          .then(({ url }) => {
+                            setReferenceImageUrl(url);
+                            setGenerationMode("img2img");
+                          })
+                          .catch((err: unknown) => setRefUploadError(err instanceof Error ? err.message : "Upload failed."))
+                          .finally(() => setRefUploading(false));
+                      }}
+                    />
+                    <div className="flex items-center gap-3">
+                      {referenceImageUrl ? (
                         <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-border bg-card">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={referenceImageUrl} alt="" className="h-full w-full object-cover" />
                         </div>
-                        <p className="text-[11px] leading-relaxed text-[var(--text-muted)]">Reference locked — describe the transformation on desktop or Canvas.</p>
-                      </div>
-                    ) : null}
+                      ) : null}
+                      <button
+                        type="button"
+                        disabled={busy || refUploading}
+                        onClick={() => refFileInput.current?.click()}
+                        className="inline-flex min-h-[38px] flex-1 items-center justify-center gap-1.5 rounded-xl border border-border bg-card/40 px-3 text-[11px] font-bold text-[var(--text-primary)] transition-all hover:bg-card hover:border-[#7B61FF]/45 cursor-pointer"
+                      >
+                        {refUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin text-[#7B61FF]" /> : <ImagePlus className="h-3.5 w-3.5 text-[#a78bfa]" strokeWidth={2} />}
+                        {refUploading ? "Uploading…" : referenceImageUrl ? "Change reference" : "Upload reference image"}
+                      </button>
+                    </div>
+                    {refUploadError ? <p className="mt-1.5 text-[11px] text-rose-300">{refUploadError}</p> : null}
                   </div>
-                </StudioCollapsible>
-              )}
+                </div>
+              </StudioCollapsible>
 
-              <p className="rounded-xl border border-border/80 bg-card/20 px-3 py-2 text-center text-[11px] leading-snug text-[var(--text-muted)] lg:hidden">
-                Switch to the <span className="font-semibold text-[var(--text-primary)]">Canvas</span> tab to write prompts.
-              </p>
+              {/* Advanced Fine-Tuning Accordion */}
+              <StudioCollapsible title="Advanced engine parameters" subtitle="Guidance scale, sampling steps, seed, and sampler" defaultOpen={false}>
+                <div className="space-y-3.5">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <label htmlFor="cfg-scale" className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
+                          CFG Scale
+                        </label>
+                        <span className="font-mono text-[10px] font-bold text-[var(--primary-cyan)]">{cfgScale.toFixed(1)}</span>
+                      </div>
+                      <input
+                        id="cfg-scale"
+                        type="range"
+                        min={1}
+                        max={20}
+                        step={0.5}
+                        value={cfgScale}
+                        onChange={(e) => setCfgScale(Number(e.target.value))}
+                        disabled={busy}
+                        className="studio-range-premium mt-1.5 w-full cursor-pointer"
+                      />
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <label htmlFor="gen-steps" className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
+                          Steps
+                        </label>
+                        <span className="font-mono text-[10px] font-bold text-[var(--primary-cyan)]">{steps}</span>
+                      </div>
+                      <input
+                        id="gen-steps"
+                        type="range"
+                        min={15}
+                        max={50}
+                        step={1}
+                        value={steps}
+                        onChange={(e) => setSteps(Number(e.target.value))}
+                        disabled={busy}
+                        className="studio-range-premium mt-1.5 w-full cursor-pointer"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label htmlFor="sampler-select" className="mb-1 block text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
+                        Sampler
+                      </label>
+                      <select
+                        id="sampler-select"
+                        value={sampler}
+                        onChange={(e) => setSampler(e.target.value)}
+                        disabled={busy}
+                        className="w-full rounded-lg border border-white/[0.08] bg-black/40 px-2 py-1.5 text-xs text-[var(--text-primary)] outline-none cursor-pointer"
+                      >
+                        <option value="dpmpp_2m_karras">DPM++ 2M Karras</option>
+                        <option value="euler_a">Euler Ancestral</option>
+                        <option value="unipc">UniPC</option>
+                        <option value="ddim">DDIM</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label htmlFor="seed-input" className="mb-1 block text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
+                        Seed lock
+                      </label>
+                      <input
+                        id="seed-input"
+                        type="text"
+                        value={seed}
+                        onChange={(e) => setSeed(e.target.value.replace(/[^0-9]/g, ""))}
+                        disabled={busy}
+                        placeholder="Random (-1)"
+                        className="w-full rounded-lg border border-white/[0.08] bg-black/40 px-2 py-1.5 text-xs text-[var(--text-primary)] outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </StudioCollapsible>
             </div>
           </div>
         </div>
@@ -906,10 +979,10 @@ export default function ImageStudioClient() {
           </div>
           <div className="flex items-center gap-4 text-[var(--text-muted)]">
             <span>
-              Available: <strong className="text-[var(--text-primary)] tabular-nums">{user.availableCredits ?? user.credits ?? 0}</strong>
+              Available: <strong className="text-[var(--text-primary)] tabular-nums">{user?.availableCredits ?? user?.credits ?? 0}</strong>
             </span>
             <span>
-              Cost: <strong className={(user.availableCredits ?? user.credits ?? 0) < currentCost ? "text-rose-400 font-bold" : "text-[#00D4FF] font-bold"}>{currentCost} credits</strong>
+              Cost: <strong className={((user?.availableCredits ?? user?.credits ?? 0) < currentCost) ? "text-rose-400 font-bold" : "text-[#00D4FF] font-bold"}>{currentCost} credits</strong>
             </span>
           </div>
         </div>
@@ -944,7 +1017,7 @@ export default function ImageStudioClient() {
           <StudioGlowGenerate
             tone="purple"
             size="lg"
-            disabled={busy || prompt.trim().length < 2 || user.generationDisabled || (user.availableCredits ?? user.credits ?? 0) < currentCost}
+            disabled={busy || prompt.trim().length < 2 || Boolean(user?.generationDisabled) || (user?.availableCredits ?? user?.credits ?? 0) < currentCost}
             onClick={() => void run()}
           >
             {busy ? (
@@ -952,12 +1025,12 @@ export default function ImageStudioClient() {
                 <Loader2 className="h-5 w-5 animate-spin" />
                 Synthesizing…
               </>
-            ) : user.generationDisabled ? (
+            ) : user?.generationDisabled ? (
               <>
                 <X className="h-5 w-5" strokeWidth={2} />
                 Access Disabled
               </>
-            ) : (user.availableCredits ?? user.credits ?? 0) < currentCost ? (
+            ) : (user?.availableCredits ?? user?.credits ?? 0) < currentCost ? (
               <>
                 <X className="h-5 w-5" strokeWidth={2} />
                 Insufficient Credits
@@ -1385,7 +1458,7 @@ export default function ImageStudioClient() {
                  <StudioGlowGenerate
                   tone="purple"
                   size="icon"
-                  disabled={busy || prompt.trim().length < 2 || user.generationDisabled || (user.availableCredits ?? user.credits ?? 0) < currentCost}
+                  disabled={busy || prompt.trim().length < 2 || Boolean(user?.generationDisabled) || (user?.availableCredits ?? user?.credits ?? 0) < currentCost}
                   onClick={() => void run()}
                 >
                   {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowUp className="h-5 w-5" strokeWidth={2.25} />}
@@ -1407,8 +1480,8 @@ export default function ImageStudioClient() {
             >
               {/* Cost Preview Panel Mobile */}
               <div className="mb-2 flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.02] px-2 py-1 text-[11px]">
-                <span className="font-semibold text-white">Cost: <strong className={(user.availableCredits ?? user.credits ?? 0) < currentCost ? "text-rose-400 font-bold" : "text-[#00D4FF] font-bold"}>{currentCost} credits</strong></span>
-                <span className="text-[var(--text-subtle)]">Available: {user.availableCredits ?? user.credits ?? 0}</span>
+                <span className="font-semibold text-white">Cost: <strong className={((user?.availableCredits ?? user?.credits ?? 0) < currentCost) ? "text-rose-400 font-bold" : "text-[#00D4FF] font-bold"}>{currentCost} credits</strong></span>
+                <span className="text-[var(--text-subtle)]">Available: {user?.availableCredits ?? user?.credits ?? 0}</span>
               </div>
 
               <p className="mb-1.5 text-[9px] font-bold uppercase tracking-[0.14em]" style={{ color: "var(--text-subtle)" }}>
@@ -1432,7 +1505,7 @@ export default function ImageStudioClient() {
                 <StudioGlowGenerate
                   tone="purple"
                   size="lg"
-                  disabled={busy || prompt.trim().length < 2 || user.generationDisabled || (user.availableCredits ?? user.credits ?? 0) < currentCost}
+                  disabled={busy || prompt.trim().length < 2 || Boolean(user?.generationDisabled) || (user?.availableCredits ?? user?.credits ?? 0) < currentCost}
                   onClick={() => void run()}
                 >
                   {busy ? (
@@ -1440,12 +1513,12 @@ export default function ImageStudioClient() {
                       <Loader2 className="h-5 w-5 animate-spin" />
                       Working…
                     </>
-                  ) : user.generationDisabled ? (
+                  ) : user?.generationDisabled ? (
                     <>
                       <X className="h-5 w-5" strokeWidth={2} />
                       Access Disabled
                     </>
-                  ) : (user.availableCredits ?? user.credits ?? 0) < currentCost ? (
+                  ) : (user?.availableCredits ?? user?.credits ?? 0) < currentCost ? (
                     <>
                       <X className="h-5 w-5" strokeWidth={2} />
                       Insufficient

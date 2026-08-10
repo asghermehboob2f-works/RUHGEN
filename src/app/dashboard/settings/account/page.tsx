@@ -38,9 +38,27 @@ function UserAccountForm({ user }: { user: SessionUser }) {
       setStatus("Enter your current password to save changes.");
       return;
     }
-    if (newPassword && newPassword !== confirmPassword) {
-      setStatus("New password and confirmation do not match.");
-      return;
+    if (newPassword) {
+      if (newPassword !== confirmPassword) {
+        setStatus("New password and confirmation do not match.");
+        return;
+      }
+      if (newPassword.length < 8) {
+        setStatus("New password must be at least 8 characters long.");
+        return;
+      }
+      if (!/[a-z]/.test(newPassword) || !/[A-Z]/.test(newPassword)) {
+        setStatus("New password must contain both uppercase and lowercase letters.");
+        return;
+      }
+      if (!/[0-9]/.test(newPassword) && !/[^a-zA-Z0-9]/.test(newPassword)) {
+        setStatus("New password must include at least one number or special character.");
+        return;
+      }
+      if (newPassword === currentPassword) {
+        setStatus("New password must be different from your current password.");
+        return;
+      }
     }
     setPending(true);
     const nm = name.trim();

@@ -54,9 +54,9 @@ next-env.d.ts
 *.db-journal
 *.db-wal
 *.db-shm
-/data/*.sqlite
-/data/*.sqlite-*
-/backend/data/*.sqlite
-/backend/data/*.sqlite-*
-/backend/data/*.db
+*.sqlite
+*.sqlite-*
+**/data/
+**/support_attachments/
+
 

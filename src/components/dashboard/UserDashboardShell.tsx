@@ -17,6 +17,7 @@ import {
   Video,
   X,
   BookOpen,
+  Headphones,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -40,6 +41,10 @@ const createNav = [
   { href: "/dashboard/generate/video", label: "Video studio", icon: Video },
 ] as const;
 
+const supportNav = [
+  { href: "/dashboard/support", label: "Support & Help", icon: Headphones },
+] as const;
+
 function initials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   const a = parts[0]?.[0] ?? "?";
@@ -56,32 +61,40 @@ function SidebarNavLink({
   item,
   pathname,
   onNavigate,
+  slimmer = false,
 }: {
   item: { href: string; label: string; icon: typeof Home; end?: boolean };
   pathname: string;
   onNavigate?: () => void;
+  slimmer?: boolean;
 }) {
   const on = navActive(pathname, item.href, "end" in item ? item.end : false);
   return (
     <Link
       href={item.href}
       onClick={onNavigate}
-      className="group flex min-h-[46px] items-center gap-3 rounded-xl border px-3 py-2 text-sm font-semibold transition-colors"
+      className={`group flex items-center rounded-xl border transition-all duration-200 ${
+        slimmer
+          ? "min-h-[36px] gap-2 px-2.5 py-1.5 text-xs font-semibold"
+          : "min-h-[40px] gap-2.5 px-3 py-2 text-xs sm:text-sm font-semibold"
+      }`}
       style={{
-        borderColor: on ? "color-mix(in srgb, var(--primary-purple) 38%, var(--border-subtle))" : "var(--border-subtle)",
-        background: on ? "color-mix(in srgb, var(--primary-purple) 8%, var(--deep-black))" : "var(--soft-black)",
+        borderColor: on ? "color-mix(in srgb, var(--primary-purple) 42%, var(--border-subtle))" : "var(--border-subtle)",
+        background: on ? "color-mix(in srgb, var(--primary-purple) 10%, var(--deep-black))" : "var(--soft-black)",
         color: on ? "var(--text-primary)" : "var(--text-muted)",
-        boxShadow: on ? "0 0 0 1px color-mix(in srgb, var(--primary-purple) 22%, transparent)" : undefined,
+        boxShadow: on ? "0 0 14px -3px color-mix(in srgb, var(--primary-purple) 25%, transparent)" : undefined,
       }}
     >
       <span
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border transition-colors"
+        className={`flex shrink-0 items-center justify-center rounded-lg border transition-colors ${
+          slimmer ? "h-7 w-7" : "h-8 w-8"
+        }`}
         style={{
           borderColor: "var(--border-subtle)",
           background: on ? "var(--glass)" : "var(--deep-black)",
         }}
       >
-        <item.icon className="h-[18px] w-[18px]" strokeWidth={1.75} />
+        <item.icon className={slimmer ? "h-3.5 w-3.5" : "h-4 w-4"} style={{ color: on ? "var(--primary-cyan)" : undefined }} strokeWidth={1.75} />
       </span>
       <span className="min-w-0 truncate">{item.label}</span>
     </Link>
@@ -141,60 +154,80 @@ export function UserDashboardShell({ children }: { children: React.ReactNode }) 
       />
 
       <aside
-        className="fixed bottom-0 left-0 top-0 z-40 hidden w-[280px] flex-col border-r pt-[env(safe-area-inset-top)] lg:flex"
+        className="fixed bottom-0 left-0 top-0 z-40 hidden w-[270px] xl:w-[280px] flex-col border-r pt-[env(safe-area-inset-top)] lg:flex"
         style={{
           borderColor: "var(--border-subtle)",
           background: "color-mix(in srgb, var(--rich-black) 96%, transparent)",
-          backdropFilter: "blur(12px)",
+          backdropFilter: "blur(16px)",
         }}
       >
-        <div className="flex h-[4.25rem] shrink-0 items-center border-b px-5" style={{ borderColor: "var(--border-subtle)" }}>
+        {/* Sidebar Header */}
+        <div className="flex h-14 shrink-0 items-center border-b px-4" style={{ borderColor: "var(--border-subtle)" }}>
           <BrandLogo size="md" showWordmark href="/" className="min-w-0" />
         </div>
-        <div className="flex flex-1 flex-col gap-8 overflow-y-auto px-4 py-6">
+
+        {/* Sidebar Body with high-end custom scrollbar */}
+        <div className="studio-scrollbar flex flex-1 flex-col gap-4 overflow-y-auto px-3.5 py-4">
           <div>
-            <p className="px-1 text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: "var(--text-subtle)" }}>
+            <p className="px-1 text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--text-subtle)" }}>
               Workspace
             </p>
-            <nav className="mt-3 flex flex-col gap-1.5" aria-label="Workspace">
+            <nav className="mt-2 flex flex-col gap-1.5" aria-label="Workspace">
               {activeWorkspaceNav.map((item) => (
                 <SidebarNavLink key={item.href} item={item} pathname={pathname} />
               ))}
             </nav>
           </div>
+
           <div>
-            <p className="px-1 text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: "var(--text-subtle)" }}>
+            <p className="px-1 text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--text-subtle)" }}>
               Create
             </p>
-            <nav className="mt-3 flex flex-col gap-1.5" aria-label="Create">
+            <nav className="mt-2 flex flex-col gap-1.5" aria-label="Create">
               {createNav.map((item) => (
                 <SidebarNavLink key={item.href} item={item} pathname={pathname} />
               ))}
             </nav>
           </div>
-          <div className="mt-auto rounded-2xl border p-4" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider" style={{ color: "var(--text-subtle)" }}>
-              <Coins className="h-3.5 w-3.5" style={{ color: "var(--primary-cyan)" }} strokeWidth={2} />
-              Credits
-            </div>
-            <p className="mt-2 text-sm leading-snug" style={{ color: "var(--text-muted)" }}>
-              Usage and plans are managed under Billing.
+
+          <div>
+            <p className="px-1 text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--text-subtle)" }}>
+              Support
             </p>
-            <Link
-              href="/dashboard/billing"
-              className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--primary-cyan)] transition-opacity hover:opacity-90"
-            >
-              Open billing
-              <span aria-hidden>→</span>
-            </Link>
+            <nav className="mt-2 flex flex-col gap-1.5" aria-label="Support">
+              {supportNav.map((item) => (
+                <SidebarNavLink key={item.href} item={item} pathname={pathname} />
+              ))}
+            </nav>
+          </div>
+
+          {/* Credits Box Card */}
+          <div className="mt-auto rounded-xl border p-3 transition-all duration-300" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider" style={{ color: "var(--text-subtle)" }}>
+                <Coins className="h-3.5 w-3.5" style={{ color: "var(--primary-cyan)" }} strokeWidth={2} />
+                <span>Credits</span>
+              </div>
+              <Link
+                href="/dashboard/billing"
+                className="text-xs font-semibold text-[var(--primary-cyan)] transition-opacity hover:opacity-90 hover:underline"
+              >
+                Billing →
+              </Link>
+            </div>
+            <p className="mt-1.5 text-xs leading-snug" style={{ color: "var(--text-muted)" }}>
+              Manage plans and credit balance under billing.
+            </p>
           </div>
         </div>
-        <div className="shrink-0 border-t p-4" style={{ borderColor: "var(--border-subtle)" }}>
+
+        {/* Sidebar Footer */}
+        <div className="shrink-0 border-t p-3.5 space-y-2.5" style={{ borderColor: "var(--border-subtle)" }}>
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={toggle}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-colors"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border transition-colors hover:bg-white/10"
               style={{
                 borderColor: "var(--border-subtle)",
                 background: "var(--glass)",
@@ -202,7 +235,7 @@ export function UserDashboardShell({ children }: { children: React.ReactNode }) 
               }}
               aria-label={theme === "dark" ? "Light mode" : "Dark mode"}
             >
-              {theme === "dark" ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
             {ready && user ? (
               <div
@@ -210,7 +243,7 @@ export function UserDashboardShell({ children }: { children: React.ReactNode }) 
                 style={{ borderColor: "var(--border-subtle)", background: "var(--glass)" }}
               >
                 <span
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold text-white"
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold text-white"
                   style={{
                     background: "linear-gradient(135deg, var(--primary-purple), var(--primary-cyan))",
                   }}
@@ -228,7 +261,7 @@ export function UserDashboardShell({ children }: { children: React.ReactNode }) 
                 signOut();
                 router.push("/");
               }}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-colors"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border transition-colors hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400"
               style={{
                 borderColor: "var(--border-subtle)",
                 background: "var(--glass)",
@@ -236,12 +269,12 @@ export function UserDashboardShell({ children }: { children: React.ReactNode }) 
               }}
               aria-label="Sign out"
             >
-              <LogOut className="h-[18px] w-[18px]" strokeWidth={1.75} />
+              <LogOut className="h-4 w-4" strokeWidth={1.75} />
             </button>
           </div>
           <Link
             href="/"
-            className="mt-3 flex min-h-[40px] items-center justify-center gap-2 rounded-xl border text-xs font-semibold transition-colors"
+            className="flex min-h-[36px] items-center justify-center gap-2 rounded-xl border text-xs font-semibold transition-colors hover:bg-white/5"
             style={{
               borderColor: "var(--border-subtle)",
               background: "var(--soft-black)",
@@ -254,7 +287,7 @@ export function UserDashboardShell({ children }: { children: React.ReactNode }) 
         </div>
       </aside>
 
-      <div className="flex min-h-[100dvh] flex-col lg:pl-[280px]">
+      <div className="flex min-h-[100dvh] flex-col lg:pl-[260px] xl:pl-[270px]">
         <header
           className="sticky top-0 z-50 border-b pt-[env(safe-area-inset-top)] lg:hidden"
           style={{
@@ -424,6 +457,16 @@ export function UserDashboardShell({ children }: { children: React.ReactNode }) 
                   <nav className="mt-3 flex flex-col gap-1.5" aria-label="Create mobile">
                     {createNav.map((item) => (
                       <SidebarNavLink key={item.href} item={item} pathname={pathname} onNavigate={() => setMobileOpen(false)} />
+                    ))}
+                  </nav>
+                </div>
+                <div>
+                  <p className="px-1 text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: "var(--text-subtle)" }}>
+                    Support
+                  </p>
+                  <nav className="mt-3 flex flex-col gap-1.5" aria-label="Support mobile">
+                    {supportNav.map((item) => (
+                      <SidebarNavLink key={item.href} item={item} pathname={pathname} onNavigate={() => setMobileOpen(false)} slimmer />
                     ))}
                   </nav>
                 </div>

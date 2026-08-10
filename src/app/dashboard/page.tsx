@@ -2,10 +2,12 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import {
+  Activity,
   ArrowRight,
   Coins,
   HelpCircle,
   Image as ImageIcon,
+  RefreshCw,
   Settings,
   Sparkles,
   TrendingUp,
@@ -15,9 +17,10 @@ import {
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { DashboardLoading } from "@/components/dashboard/DashboardLoading";
 import { useAuth } from "@/components/AuthProvider";
+import { readUserToken } from "@/lib/auth-storage";
 
 const DashboardRecentActivity = dynamic(
   () => import("@/components/dashboard/DashboardRecentActivity").then((m) => m.DashboardRecentActivity),
@@ -52,9 +55,57 @@ export default function DashboardPage() {
   const router = useRouter();
   const reduce = useReducedMotion();
 
+  const [metrics, setMetrics] = useState<{
+    credits: number;
+    availableCredits: number;
+    pendingCredits: number;
+    pendingCount: number;
+    thisMonthCount: number;
+    subscriptionPlan: string;
+  } | null>(null);
+  const [loadingMetrics, setLoadingMetrics] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
   useEffect(() => {
     if (ready && !user) router.replace("/sign-in?next=/dashboard");
   }, [ready, user, router]);
+
+  const fetchDashboardMetrics = async (showSpin = false) => {
+    if (!user) return;
+    if (showSpin) setIsRefreshing(true);
+    try {
+      const token = readUserToken();
+      const res = await fetch("/api/credits/dashboard", {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      const data = await res.json();
+      if (data?.ok && data?.metrics) {
+        setMetrics(data.metrics);
+      }
+    } catch (err) {
+      console.error("Failed to load dashboard metrics:", err);
+    } finally {
+      setLoadingMetrics(false);
+      if (showSpin) {
+        setTimeout(() => setIsRefreshing(false), 500);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (!user) return;
+    fetchDashboardMetrics();
+    const interval = setInterval(() => fetchDashboardMetrics(), 8000);
+    return () => clearInterval(interval);
+  }, [user]);
+
+  const greeting = useMemo(() => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return "Good morning";
+    if (hour >= 12 && hour < 17) return "Good afternoon";
+    if (hour >= 17 && hour < 22) return "Good evening";
+    return "Welcome back";
+  }, []);
 
   if (!ready) {
     return <DashboardLoading label="Loading your studio…" className="min-h-[50vh]" />;
@@ -62,145 +113,192 @@ export default function DashboardPage() {
 
   if (!user) return null;
 
-  const firstName = user.name.split(" ")[0] || "creator";
-  const credits = user.credits ?? 0;
+  const firstName = user.name.split(" ")[0] || "Creator";
+  const availableCreds = metrics ? metrics.availableCredits : (user.availableCredits ?? user.credits ?? 0);
+  const pendingHold = metrics ? metrics.pendingCredits : (user.pendingCredits ?? 0);
+  const pendingJobsCount = metrics ? metrics.pendingCount : 0;
+  const monthlyCount = metrics ? metrics.thisMonthCount : 0;
+  const rawPlan = metrics?.subscriptionPlan || user.subscriptionPlan || "Free";
+  const planDisplay = rawPlan.charAt(0).toUpperCase() + rawPlan.slice(1);
+
+  const stats = [
+    {
+      label: "Credits",
+      value: loadingMetrics ? "..." : String(availableCreds),
+      hint: pendingHold > 0 ? `${user.credits || availableCreds} total (${pendingHold} hold)` : "Available balance",
+      icon: Coins,
+      color: "#00D4FF",
+      href: "/dashboard/billing",
+      badge: pendingHold > 0 ? `${pendingHold} hold` : null,
+      badgeColor: "#7B61FF",
+    },
+    {
+      label: "This Month",
+      value: loadingMetrics ? "..." : String(monthlyCount),
+      hint: "Generations completed",
+      icon: TrendingUp,
+      color: "#7B61FF",
+      href: "/dashboard/generate/image",
+      badge: "Real-time",
+      badgeColor: "#7B61FF",
+    },
+    {
+      label: "Studio Queue",
+      value: loadingMetrics ? "..." : pendingJobsCount > 0 ? `${pendingJobsCount} Active` : "Idle",
+      isLiveProcessing: pendingJobsCount > 0,
+      hint: pendingJobsCount > 0 ? "Jobs generating now" : "No jobs waiting",
+      icon: Zap,
+      color: pendingJobsCount > 0 ? "#FFAB00" : "#FF2E9A",
+      href: "/dashboard/generate/image",
+      badge: pendingJobsCount > 0 ? "LIVE" : null,
+      badgeColor: "#FFAB00",
+    },
+    {
+      label: "Active Plan",
+      value: planDisplay,
+      hint: rawPlan.toLowerCase() === "free" ? "Upgrade for higher limits" : "Pro workspace",
+      icon: Sparkles,
+      color: "#00E676",
+      href: "/dashboard/billing",
+      badge: rawPlan.toUpperCase(),
+      badgeColor: "#00E676",
+    },
+  ];
 
   return (
     <div className="space-y-8 sm:space-y-10">
       {/* Banner / Studio Overview Section */}
       <motion.section
-        initial={reduce ? false : { opacity: 0, y: 16 }}
+        initial={reduce ? false : { opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="relative overflow-hidden rounded-2xl border p-4 sm:p-5 lg:p-6"
+        transition={{ duration: 0.4 }}
+        className="relative overflow-hidden rounded-xl border p-3.5 sm:p-4 lg:p-5"
         style={{
-          borderColor: "transparent",
+          borderColor: "rgba(255, 255, 255, 0.08)",
           background:
-            "linear-gradient(var(--soft-black), var(--soft-black)) padding-box, linear-gradient(135deg, rgba(123,97,255,0.4), rgba(0,212,255,0.25), rgba(255,46,154,0.15)) border-box",
-          boxShadow: "0 0 50px -15px rgba(123,97,255,0.25), inset 0 1px 0 rgba(255,255,255,0.08)",
+            "linear-gradient(135deg, color-mix(in srgb, var(--soft-black) 94%, transparent) 0%, color-mix(in srgb, var(--deep-black) 98%, transparent) 100%)",
+          boxShadow: "0 10px 30px -15px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06)",
         }}
       >
         {/* Subtle grid pattern background */}
         <div
-          className="absolute inset-0 opacity-[0.06] mix-blend-overlay pointer-events-none"
+          className="absolute inset-0 opacity-[0.05] mix-blend-overlay pointer-events-none"
           style={{
             backgroundImage: "radial-gradient(var(--primary-purple) 1px, transparent 0)",
-            backgroundSize: "24px 24px",
+            backgroundSize: "20px 20px",
           }}
         />
 
-        {/* Subtle decorative glow points */}
+        {/* Subtle ambient light glows */}
         <div
-          className="pointer-events-none absolute -right-24 -top-24 h-44 w-44 rounded-full opacity-30 blur-3xl"
+          className="pointer-events-none absolute -right-20 -top-20 h-36 w-36 rounded-full opacity-20 blur-2xl"
           style={{ background: "var(--primary-purple)" }}
           aria-hidden
         />
         <div
-          className="pointer-events-none absolute -bottom-20 left-1/3 h-36 w-36 rounded-full opacity-20 blur-3xl"
+          className="pointer-events-none absolute -bottom-16 left-1/4 h-32 w-32 rounded-full opacity-15 blur-2xl"
           style={{ background: "var(--primary-cyan)" }}
           aria-hidden
         />
 
-        <div className="relative grid gap-5 lg:grid-cols-12 lg:items-center">
-          {/* Left Column: Greeting & Actions */}
-          <div className="lg:col-span-7 flex flex-col justify-center">
-            <div className="inline-flex w-fit items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em] text-[var(--primary-cyan)]">
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--primary-cyan)] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[var(--primary-cyan)]"></span>
-              </span>
-              Studio overview
+        <div className="relative grid gap-4 lg:grid-cols-12 lg:items-center">
+          {/* Left Column: Compact Greeting & Status */}
+          <div className="lg:col-span-6 flex flex-col justify-center">
+            <div className="-mt-1 mb-1 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => fetchDashboardMetrics(true)}
+                title="Refresh real-time workspace stats"
+                className="group inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-[9px] font-medium text-[var(--text-muted)] transition-all hover:bg-white/10 hover:border-white/20 hover:text-white active:scale-95"
+              >
+                <RefreshCw className={`h-2.5 w-2.5 transition-transform ${isRefreshing ? "animate-spin text-white" : "group-hover:rotate-180 duration-500"}`} />
+                <span>Live sync</span>
+              </button>
             </div>
             
-            <h1 className="font-display mt-2.5 text-xl font-extrabold tracking-tight sm:text-2xl lg:text-3xl">
-              Hello, <span className="text-gradient-primary">{firstName}</span>
+            <h1 className="font-display mt-2 text-xl font-extrabold tracking-tight sm:text-2xl lg:text-3xl text-[var(--text-primary)]">
+              {greeting},{" "}
+              <span className="bg-gradient-to-r from-[#7B61FF] via-[#00D4FF] to-[#FF2E9A] bg-clip-text text-transparent">
+                {firstName}
+              </span>
             </h1>
             
-            <p className="mt-1.5 max-w-xl text-xs sm:text-sm leading-relaxed text-[var(--text-muted)]">
-              Your workspace is ready. Jump into image or video generation, track credits, and tune preferences anytime.
+            <p className="mt-1 max-w-lg text-xs leading-relaxed text-[var(--text-muted)]">
+              Your workspace is synchronized. Monitor credits, track active job queues, and access pipelines.
             </p>
-            
-            <div className="flex flex-wrap gap-2.5 mt-4">
-              <Link
-                href="/dashboard/generate/image"
-                className="inline-flex min-h-[36px] items-center justify-center gap-1.5 rounded-lg px-4 text-xs font-bold text-white shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.99]"
-                style={{
-                  background: "linear-gradient(135deg, var(--primary-purple) 0%, var(--primary-cyan) 100%)",
-                  boxShadow: "0 6px 20px -6px rgba(123,97,255,0.45)",
-                }}
-              >
-                New generation
-                <ArrowRight className="h-3 w-3" strokeWidth={2.5} />
-              </Link>
-              <Link
-                href="/dashboard/settings"
-                className="inline-flex min-h-[36px] items-center justify-center rounded-lg border px-4 text-xs font-bold transition-all duration-300 hover:bg-white/5"
-                style={{
-                  borderColor: "var(--border-subtle)",
-                  background: "var(--glass)",
-                  color: "var(--text-primary)",
-                }}
-              >
-                Preferences
-              </Link>
-            </div>
           </div>
 
-          {/* Right Column: Statistics Grid */}
-          <div className="lg:col-span-5 grid grid-cols-2 gap-2">
-            {[
-              { label: "Credits", value: String(credits), hint: "Available now", icon: Coins, color: "var(--primary-cyan)" },
-              { label: "This month", value: "24", hint: "Generations", icon: TrendingUp, color: "var(--primary-purple)" },
-              { label: "Queue", value: "Idle", hint: "No jobs waiting", icon: Zap, color: "var(--accent-pink)" },
-              { label: "Plan", value: "Creator", hint: "Upgrade anytime", icon: Sparkles, color: "var(--primary-cyan)" },
-            ].map((stat, i) => (
+          {/* Right Column: Slim Statistics Cards */}
+          <div className="lg:col-span-6 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-2 sm:gap-2.5">
+            {stats.map((stat, i) => (
               <motion.div
                 key={stat.label}
-                initial={reduce ? false : { opacity: 0, y: 10 }}
+                initial={reduce ? false : { opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: reduce ? 0 : 0.08 + i * 0.04, duration: 0.3 }}
+                transition={{ delay: reduce ? 0 : 0.05 + i * 0.03, duration: 0.25 }}
                 whileHover={{ y: -2 }}
-                className="group relative overflow-hidden rounded-xl border p-3.5 transition-all duration-300"
-                style={{
-                  borderColor: "rgba(255, 255, 255, 0.08)",
-                  background: "linear-gradient(135deg, color-mix(in srgb, var(--deep-black) 92%, transparent) 0%, color-mix(in srgb, var(--soft-black) 60%, transparent) 100%)",
-                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03), 0 4px 20px -12px rgba(0,0,0,0.5)",
-                }}
               >
-                {/* Subtle border glow on hover */}
-                <div 
-                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                <Link
+                  href={stat.href}
+                  className="group relative block overflow-hidden rounded-lg border p-2.5 sm:p-3 transition-all duration-300"
                   style={{
-                    border: `1px solid color-mix(in srgb, ${stat.color} 25%, transparent)`,
-                    borderRadius: "11px",
+                    borderColor: stat.isLiveProcessing
+                      ? "rgba(255, 171, 0, 0.4)"
+                      : "rgba(255, 255, 255, 0.07)",
+                    background: stat.isLiveProcessing
+                      ? "linear-gradient(135deg, rgba(255,171,0,0.1) 0%, color-mix(in srgb, var(--deep-black) 95%, transparent) 100%)"
+                      : "linear-gradient(135deg, color-mix(in srgb, var(--deep-black) 95%, transparent) 0%, color-mix(in srgb, var(--soft-black) 70%, transparent) 100%)",
+                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03)",
                   }}
-                />
-                {/* Ambient glow behind icon on hover */}
-                <div
-                  className="absolute -right-8 -top-8 h-16 w-16 rounded-full opacity-0 group-hover:opacity-10 transition-all duration-500 blur-xl pointer-events-none"
-                  style={{ background: stat.color }}
-                />
+                >
+                  {/* Subtle border glow on hover */}
+                  <div
+                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-400 pointer-events-none rounded-lg"
+                    style={{
+                      border: `1px solid color-mix(in srgb, ${stat.color} 30%, transparent)`,
+                    }}
+                  />
 
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)] group-hover:text-[var(--text-muted)] transition-colors">
-                    {stat.label}
-                  </p>
-                  <div 
-                    className="flex h-6.5 w-6.5 items-center justify-center rounded-lg border border-white/5 bg-white/[0.02] transition-all duration-300 group-hover:scale-105 group-hover:border-white/10 group-hover:bg-white/[0.06]"
-                  >
-                    <stat.icon 
-                      className="h-3.5 w-3.5 transition-transform duration-300" 
-                      style={{ color: stat.color }} 
-                      strokeWidth={2} 
-                    />
+                  <div className="flex items-center justify-between gap-1.5">
+                    <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)] group-hover:text-[var(--text-muted)] transition-colors">
+                      {stat.label}
+                    </p>
+                    <div
+                      className="flex h-5.5 w-5.5 items-center justify-center rounded-md border border-white/5 bg-white/[0.02] transition-all duration-300 group-hover:scale-105 group-hover:bg-white/[0.06]"
+                    >
+                      <stat.icon
+                        className={`h-3 w-3 transition-transform duration-300 ${
+                          stat.isLiveProcessing ? "animate-pulse" : ""
+                        }`}
+                        style={{ color: stat.color }}
+                        strokeWidth={2}
+                      />
+                    </div>
                   </div>
-                </div>
-                <p className="font-display mt-1 text-lg font-extrabold tracking-tight tabular-nums text-[var(--text-primary)]">
-                  {stat.value}
-                </p>
-                <p className="text-[9px] text-[var(--text-muted)] mt-0.5">
-                  {stat.hint}
-                </p>
+
+                  <div className="mt-1 flex items-baseline justify-between gap-1.5">
+                    <p className="font-display text-base sm:text-lg font-extrabold tracking-tight tabular-nums text-[var(--text-primary)] group-hover:text-white transition-colors">
+                      {stat.value}
+                    </p>
+
+                    {stat.badge && (
+                      <span
+                        className="rounded-full px-1.5 py-0.2 text-[8px] font-extrabold tracking-wider uppercase"
+                        style={{
+                          background: `color-mix(in srgb, ${stat.badgeColor} 15%, transparent)`,
+                          color: stat.badgeColor,
+                          border: `1px solid color-mix(in srgb, ${stat.badgeColor} 25%, transparent)`,
+                        }}
+                      >
+                        {stat.badge}
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="text-[9px] text-[var(--text-muted)] mt-0.5 truncate">
+                    {stat.hint}
+                  </p>
+                </Link>
               </motion.div>
             ))}
           </div>

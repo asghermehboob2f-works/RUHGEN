@@ -885,7 +885,13 @@ function mountStudioRoutes(app, options) {
         };
       });
 
-      // 5. Monthly Stats
+      // 5. Monthly Stats & Current Month Count
+      const thisMonthGenRow = db.prepare(`
+        SELECT COUNT(*) as cnt FROM studio_tasks 
+        WHERE user_id = ? AND strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now')
+      `).get(userId);
+      const thisMonthCount = thisMonthGenRow ? thisMonthGenRow.cnt : 0;
+
       const monthlyStats = db.prepare(`
         SELECT STRFTIME('%Y-%m', timestamp) as month, SUM(credits_deducted) as totalDeducted
         FROM credit_transactions
@@ -903,7 +909,9 @@ function mountStudioRoutes(app, options) {
           availableCredits,
           lifetimeUsed: lifetimeDeducted,
           lifetimeAdded,
-          pendingCount
+          pendingCount,
+          thisMonthCount,
+          subscriptionPlan: user.subscription_plan || "Free",
         },
         transactions,
         generations,

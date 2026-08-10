@@ -65,7 +65,15 @@ export default function SignUpPage() {
       return;
     }
     if (password.length < 8) {
-      setError("Password must be at least 8 characters.");
+      setError("Password must be at least 8 characters long.");
+      return;
+    }
+    if (!/[a-z]/.test(password) || !/[A-Z]/.test(password)) {
+      setError("Password must contain both uppercase and lowercase letters.");
+      return;
+    }
+    if (!/[0-9]/.test(password) && !/[^a-zA-Z0-9]/.test(password)) {
+      setError("Password must include at least one number or special character.");
       return;
     }
     setPending(true);

@@ -28,6 +28,15 @@ const links = [
   { href: "/faq", label: "FAQ", id: "faq" },
 ] as const;
 
+function getInitials(name?: string) {
+  if (!name) return "U";
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "U";
+  const first = parts[0][0] || "";
+  const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
+  return (first + last).toUpperCase() || "U";
+}
+
 type DesktopNavItem =
   | {
       kind: "section";
@@ -231,10 +240,10 @@ export function Navbar() {
                 >
                   <Link
                     href="/dashboard"
-                    className={`inline-flex min-h-9 items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-colors duration-200 lg:px-3 lg:text-sm ${
+                    className={`inline-flex min-h-9 items-center gap-2 rounded-xl border px-2.5 py-1 text-xs font-semibold transition-all duration-200 lg:px-3 lg:text-sm ${
                       pathname === "/dashboard" ||
                       pathname.startsWith("/dashboard/")
-                        ? "border-[#7B61FF]/40"
+                        ? "border-[#7B61FF]/40 bg-[#7B61FF]/10 text-[#00D4FF]"
                         : ""
                     }`}
                     style={{
@@ -246,12 +255,19 @@ export function Navbar() {
                       color:
                         pathname === "/dashboard" ||
                         pathname.startsWith("/dashboard/")
-                          ? "#7B61FF"
+                          ? "#00D4FF"
                           : "var(--text-primary)",
                       background: "var(--glass)",
                     }}
                   >
-                    <LayoutDashboard className="h-[15px] w-[15px] shrink-0 lg:h-4 lg:w-4" />
+                    <span
+                      className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-extrabold text-white shadow-sm ring-1 ring-white/20"
+                      style={{
+                        background: "linear-gradient(135deg, #7B61FF 0%, #00D4FF 100%)",
+                      }}
+                    >
+                      {getInitials(user.name)}
+                    </span>
                     <span className="max-w-[88px] truncate lg:max-w-[120px]">
                       {user.name}
                     </span>
