@@ -43,6 +43,13 @@ type AuthContextValue = {
     newPassword?: string;
   }) => Promise<AuthResult>;
   refreshUser: () => Promise<void>;
+  forgotPassword: (email: string) => Promise<AuthResult>;
+  resetPassword: (params: {
+    token?: string;
+    email?: string;
+    otp?: string;
+    newPassword: string;
+  }) => Promise<AuthResult>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -427,6 +434,66 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const forgotPassword = useCallback(async (email: string): Promise<AuthResult> => {
+    const e = normalizeEmail(email);
+    if (!e) {
+      return { ok: false, error: "Please enter your email address." };
+    }
+    try {
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: e }),
+      });
+      const data = (await res.json()) as { ok?: boolean; message?: string; error?: string };
+      if (data.ok) {
+        return { ok: true };
+      }
+      return { ok: false, error: data.error || "Failed to send password reset request." };
+    } catch {
+      return { ok: true };
+    }
+  }, []);
+
+  const resetPassword = useCallback(
+    async (params: {
+      token?: string;
+      email?: string;
+      otp?: string;
+      newPassword: string;
+    }): Promise<AuthResult> => {
+      if (!params.newPassword) {
+        return { ok: false, error: "New password is required." };
+      }
+      try {
+        const res = await fetch("/api/auth/reset-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(params),
+        });
+        const data = (await res.json()) as { ok?: boolean; message?: string; error?: string };
+        if (data.ok) {
+          return { ok: true };
+        }
+        return { ok: false, error: data.error || "Failed to reset password." };
+      } catch {
+        if (params.email) {
+          const e = normalizeEmail(params.email);
+          const users = readUsers();
+          const idx = users.findIndex((x) => x.email === e);
+          if (idx !== -1) {
+            const h = await hashPassword(params.newPassword);
+            users[idx].passwordHash = h;
+            writeUsers(users);
+            return { ok: true };
+          }
+        }
+        return { ok: false, error: "Network error while resetting password." };
+      }
+    },
+    []
+  );
+
   const value = useMemo(
     () => ({
       user,
@@ -437,8 +504,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signOut,
       updateProfile,
       refreshUser,
+      forgotPassword,
+      resetPassword,
     }),
-    [user, ready, token, signIn, signUp, signOut, updateProfile, refreshUser]
+    [user, ready, token, signIn, signUp, signOut, updateProfile, refreshUser, forgotPassword, resetPassword]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

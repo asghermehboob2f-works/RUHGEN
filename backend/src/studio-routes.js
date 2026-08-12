@@ -1,12 +1,11 @@
 /**
- * PiAPI studio: image (txt2img / img2img), video (Kling), task polling, reference uploads, downloads.
- * Requires PI_API_KEY (or pi_api_key / PIAPI_KEY) and verifyUserToken from auth.
+ * RUHGEN Studio: image generation (Qwen / NVIDIA GenAI Engine), video generation, task polling, reference uploads, downloads.
+ * Requires QWEN_API_KEY in environment and verifyUserToken from auth.
  */
 
 const crypto = require("node:crypto");
 const path = require("node:path");
 const { verifyUserToken } = require("./auth");
-const { createTask, getTask, extractMediaUrls } = require("./piapi");
 
 const STUDIO_REF_TTL_MS = 2 * 60 * 60 * 1000;
 
@@ -77,7 +76,7 @@ function studioUpstreamError(json) {
 }
 
 function studioConfigError() {
-  return "Studio is not configured. Set PI_API_KEY (PiAPI) in the server environment.";
+  return "Studio is not configured. Set QWEN_API_KEY in environment.";
 }
 
 function normalizePiStatus(status) {
@@ -86,6 +85,111 @@ function normalizePiStatus(status) {
     .toLowerCase();
   if (s === "complete" || s === "succeeded" || s === "success") return "completed";
   return s;
+}
+
+function snapToNvidiaDim(val) {
+  const allowed = [768, 832, 896, 960, 1024, 1088, 1152, 1216, 1280, 1344];
+  let best = allowed[0];
+  let minDiff = Math.abs(val - best);
+  for (const a of allowed) {
+    const diff = Math.abs(val - a);
+    if (diff < minDiff) {
+      minDiff = diff;
+      best = a;
+    }
+  }
+  return best;
+}
+
+function getFreshStudioKey() {
+  const fs = require("node:fs");
+  const path = require("node:path");
+  try {
+    const envPath = path.resolve(__dirname, "..", "..", ".env");
+    if (fs.existsSync(envPath)) {
+      const content = fs.readFileSync(envPath, "utf8");
+      const lines = content.split("\n");
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (
+          trimmed.startsWith("QWEN_API_KEY=") ||
+          trimmed.startsWith("STUDIO_QWEN_API_KEY=") ||
+          trimmed.startsWith("STUDIO_IMAGE_API_KEY=")
+        ) {
+          const parts = trimmed.split("=");
+          const val = parts.slice(1).join("=").trim().replace(/^["']|["']$/g, "");
+          if (val) return val;
+        }
+      }
+    }
+  } catch (e) {}
+
+  return (
+    process.env.QWEN_API_KEY ||
+    process.env.STUDIO_QWEN_API_KEY ||
+    process.env.STUDIO_IMAGE_API_KEY ||
+    process.env.NVIDIA_GENAI_API_KEY ||
+    process.env.NVIDIA_API_KEY ||
+    process.env.NVAPI_KEY ||
+    ""
+  ).trim();
+}
+
+async function generateNvidiaImage({ prompt, width, height }) {
+  const key = getFreshStudioKey();
+  if (!key) throw new Error("No Qwen / Studio API key configured.");
+
+  const nvW = snapToNvidiaDim(width || 1024);
+  const nvH = snapToNvidiaDim(height || 1024);
+
+  const res = await fetch("https://ai.api.nvidia.com/v1/genai/black-forest-labs/flux.2-klein-4b", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${key}`,
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      prompt,
+      width: nvW,
+      height: nvH,
+      seed: Math.floor(Math.random() * 1000000),
+      steps: 4,
+    }),
+  });
+
+  const text = await res.text();
+  if (!res.ok) {
+    let detail = text.slice(0, 300);
+    try {
+      const j = JSON.parse(text);
+      if (j.message) detail = j.message;
+    } catch {}
+    throw new Error(`NVIDIA GenAI returned HTTP ${res.status}: ${detail}`);
+  }
+
+  const json = JSON.parse(text);
+
+  if (Array.isArray(json.artifacts) && json.artifacts.length > 0) {
+    const art = json.artifacts[0];
+    if (art.finishReason === "CONTENT_FILTERED") {
+      throw new Error("The prompt was blocked by safety filters. Please refine your prompt and try again.");
+    }
+    if (art.base64) {
+      return art.base64.startsWith("data:") ? art.base64 : `data:image/jpeg;base64,${art.base64}`;
+    }
+    if (art.b64_json) {
+      return art.b64_json.startsWith("data:") ? art.b64_json : `data:image/jpeg;base64,${art.b64_json}`;
+    }
+  }
+
+  if (json.b64_json) {
+    return json.b64_json.startsWith("data:") ? json.b64_json : `data:image/jpeg;base64,${json.b64_json}`;
+  }
+
+  const finish = json.artifacts?.[0]?.finishReason;
+  const detail = finish ? `Filter status: ${finish}` : (json.message || json.detail || text.slice(0, 150));
+  throw new Error(`Generation service returned no valid image (${detail}).`);
 }
 
 /**
@@ -396,69 +500,48 @@ function mountStudioRoutes(app, options) {
     }
 
     try {
-      let r;
-      if (useImg2Img) {
-        const neg =
-          typeof req.body?.negative_prompt === "string" ? req.body.negative_prompt.trim().slice(0, 2000) : "";
-        const input = {
-          prompt,
-          image: imageRefRaw,
-          denoise,
-          guidance_scale: guidanceScale,
-        };
-        if (neg) input.negative_prompt = neg;
-        r = await createTask({
-          model,
-          task_type: "img2img",
-          input,
-        });
-      } else {
-        const negTxt =
-          typeof req.body?.negative_prompt === "string" ? req.body.negative_prompt.trim().slice(0, 2000) : "";
-        const input = {
-          prompt,
-          width: w,
-          height: h,
-        };
-        if (negTxt) input.negative_prompt = negTxt;
-        r = await createTask({
-          model,
-          task_type: "txt2img",
-          input,
-        });
+      // Check for NVIDIA / Qwen API Key first for direct high-speed generation
+      const nvidiaKey = getFreshStudioKey();
+
+      if (nvidiaKey && !useImg2Img) {
+        try {
+          const imageDataUrl = await generateNvidiaImage({ prompt, width: w, height: h });
+          const taskId = "nv-" + crypto.randomUUID();
+
+          db.prepare(`
+            INSERT INTO studio_tasks (id, user_id, type, credits, status, created_at, details_json)
+            VALUES (?, ?, 'image', ?, 'completed', ?, ?)
+          `).run(
+            taskId,
+            req.user.sub,
+            finalCost,
+            new Date().toISOString(),
+            JSON.stringify({
+              prompt,
+              quality,
+              width: w,
+              height: h,
+              image_url: imageRefRaw,
+              urls: [imageDataUrl],
+              kind: "image"
+            })
+          );
+
+          deductCredits(req.user.sub, finalCost, "image_generation", "Image generation (NVIDIA Engine)", { taskId });
+
+          return res.json({ ok: true, taskId });
+        } catch (nvErr) {
+          const msg = nvErr instanceof Error ? nvErr.message : "Image generation failed.";
+          return res.status(502).json({ ok: false, error: msg });
+        }
       }
 
-      if (!r.ok || !r.json?.data?.task_id) {
-        const errorMsg = r.ok ? "No task id returned from generation service." : studioUpstreamError(r.json);
-        return res.status(r.ok ? 502 : (r.status >= 400 && r.status < 600 ? r.status : 502)).json({
-          ok: false,
-          error: errorMsg,
-          details: safeUpstreamDetails(r.json),
-        });
-      }
-
-      const taskId = r.json.data.task_id;
-      db.prepare(`
-        INSERT INTO studio_tasks (id, user_id, type, credits, status, created_at, details_json)
-        VALUES (?, ?, 'image', ?, 'pending', ?, ?)
-      `).run(
-        taskId,
-        req.user.sub,
-        finalCost,
-        new Date().toISOString(),
-        JSON.stringify({
-          prompt,
-          quality,
-          width: w,
-          height: h,
-          image_url: imageRefRaw,
-          denoise,
-          guidance_scale: guidanceScale,
-          negative_prompt: req.body?.negative_prompt || "",
-          kind: "image"
-        })
-      );
-      return res.json({ ok: true, taskId });
+      throw new Error("No image generation API key configured. Please set QWEN_API_KEY in .env.");
+      return res.status(r?.status >= 400 && r?.status < 600 ? r.status : 502).json({
+        ok: false,
+        error: errorMsg,
+        details: r ? safeUpstreamDetails(r.json) : {},
+      });
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Server error.";
       if (msg === "STUDIO_CONFIG_MISSING") {
@@ -652,7 +735,7 @@ function mountStudioRoutes(app, options) {
         }
         let cleanError = null;
         if (details.error) {
-          const errMsg = typeof details.error?.message === "string" ? details.error.message.replace(/(kling|flux|qubico|piapi|checkpoint|provider)/gi, "Generation engine") : "Generation error.";
+          const errMsg = typeof details.error?.message === "string" ? details.error.message.replace(/(kling|flux|qubico|checkpoint|provider)/gi, "Generation engine") : "Generation error.";
           cleanError = { message: errMsg };
         }
         return res.json({
@@ -722,10 +805,10 @@ function mountStudioRoutes(app, options) {
       }
       let cleanError = null;
       if (data.error) {
-        const errMsg = typeof data.error?.message === "string" ? data.error.message.replace(/(kling|flux|qubico|piapi|checkpoint|provider)/gi, "Generation engine") : "Generation error.";
+        const errMsg = typeof data.error?.message === "string" ? data.error.message.replace(/(kling|flux|qubico|checkpoint|provider)/gi, "Generation engine") : "Generation error.";
         cleanError = { message: errMsg };
       }
-      const cleanMsg = typeof r.json?.message === "string" ? r.json.message.replace(/(kling|flux|qubico|piapi|checkpoint|provider)/gi, "Generation engine") : undefined;
+      const cleanMsg = typeof r.json?.message === "string" ? r.json.message.replace(/(kling|flux|qubico|checkpoint|provider)/gi, "Generation engine") : undefined;
 
       return res.json({
         ok: true,
@@ -869,7 +952,7 @@ function mountStudioRoutes(app, options) {
         }
         let cleanErr = null;
         if (details.error) {
-          const errMsg = typeof details.error?.message === "string" ? details.error.message.replace(/(kling|flux|qubico|piapi|checkpoint|provider)/gi, "Generation engine") : "Generation error.";
+          const errMsg = typeof details.error?.message === "string" ? details.error.message.replace(/(kling|flux|qubico|checkpoint|provider)/gi, "Generation engine") : "Generation error.";
           cleanErr = { message: errMsg };
         }
         return {

@@ -21,6 +21,7 @@ type FluxResponseBody = {
 
 function resolveGenAiKey(): string | null {
   const k =
+    process.env.DEMO_NVIDIA_API_KEY?.trim() ||
     process.env.NVIDIA_GENAI_API_KEY?.trim() ||
     process.env.NVIDIA_API_KEY?.trim() ||
     process.env.NGC_API_KEY?.trim();

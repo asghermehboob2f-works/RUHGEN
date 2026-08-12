@@ -10,7 +10,7 @@ const {
   verifyUserToken,
 } = require("./auth");
 const { sendMail } = require("./email-service");
-const { verificationEmail } = require("./email-templates");
+const { verificationEmail, passwordResetEmail } = require("./email-templates");
 
 const GRACE_DAYS = Number(process.env.VERIFY_GRACE_DAYS) || 7;
 const LINK_TTL_HOURS = Number(process.env.VERIFY_LINK_TTL_HOURS) || 72;
@@ -319,6 +319,163 @@ function mountUserAuthRoutes(app, { db }) {
       return res.status(500).json({ ok: false, error: msg });
     }
   });
+
+  app.post("/api/auth/forgot-password", (req, res) => {
+    try {
+      const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
+      if (!email || !isValidEmail(email)) {
+        return res.status(400).json({ ok: false, error: "Please enter a valid email address." });
+      }
+
+      const ipKey = `forgot-ip:${req.ip || "unknown"}`;
+      const emailKey = `forgot-email:${email}`;
+      const ipLock = checkRateLimit(ipKey, 5, 15 * 60 * 1000);
+      if (ipLock.locked) {
+        return res.status(429).json({ ok: false, error: `Too many password reset requests. Please try again in ${ipLock.minutesLeft} minute(s).` });
+      }
+      const emailLock = checkRateLimit(emailKey, 3, 15 * 60 * 1000);
+      if (emailLock.locked) {
+        return res.status(429).json({ ok: false, error: `Too many reset requests for this email. Please try again in ${emailLock.minutesLeft} minute(s).` });
+      }
+
+      const row = db.prepare("SELECT id, email, name, suspended FROM users WHERE email = ?").get(email);
+      
+      // Standard generic response regardless of whether user exists to prevent email enumeration
+      const genericMsg = "If an account with this email exists, we have sent a password reset link and verification code.";
+
+      if (!row) {
+        recordFailedAttempt(ipKey, 5, 15 * 60 * 1000);
+        recordFailedAttempt(emailKey, 3, 15 * 60 * 1000);
+        return res.json({ ok: true, message: genericMsg });
+      }
+
+      if (row.suspended) {
+        return res.status(403).json({ ok: false, error: "This account has been suspended." });
+      }
+
+      // Generate reset token & OTP
+      const rawToken = crypto.randomBytes(48).toString("hex");
+      const tokenHash = hashToken(rawToken);
+      const otp = String(Math.floor(100000 + crypto.randomInt(900000))).padStart(6, "0");
+      const otpHash = hashToken(otp);
+      const resetExpiry = addMs(30 * 60 * 1000); // 30 minutes TTL
+
+      db.prepare(
+        `UPDATE users 
+         SET reset_token_hash = ?, reset_token_expiry = ?, reset_otp_hash = ?, reset_otp_expiry = ? 
+         WHERE id = ?`
+      ).run(tokenHash, resetExpiry, otpHash, resetExpiry, row.id);
+
+      const resetUrl = `${SITE_URL}/reset-password?token=${rawToken}`;
+      sendMail({
+        to: row.email,
+        ...passwordResetEmail({ name: row.name, resetUrl, otp, expiresMinutes: 30 })
+      }).catch(e => console.error("[auth] password reset email failed:", e.message));
+
+      return res.json({ ok: true, message: genericMsg });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Server error.";
+      return res.status(500).json({ ok: false, error: msg });
+    }
+  });
+
+  app.post("/api/auth/verify-reset", (req, res) => {
+    try {
+      const token = typeof req.body?.token === "string" ? req.body.token.trim() : "";
+      const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
+      const otp = typeof req.body?.otp === "string" ? req.body.otp.trim() : "";
+
+      const now = new Date().toISOString();
+
+      if (token) {
+        const tokenHash = hashToken(token);
+        const user = db.prepare("SELECT id, email, name, reset_token_expiry FROM users WHERE reset_token_hash = ?").get(tokenHash);
+        if (!user || (user.reset_token_expiry && user.reset_token_expiry < now)) {
+          return res.status(400).json({ ok: false, error: "Invalid or expired password reset token." });
+        }
+        return res.json({ ok: true, valid: true, email: user.email });
+      }
+
+      if (email && otp) {
+        if (!isValidEmail(email)) {
+          return res.status(400).json({ ok: false, error: "Invalid email address." });
+        }
+        const otpHash = hashToken(otp);
+        const user = db.prepare("SELECT id, email, name, reset_otp_expiry FROM users WHERE email = ? AND reset_otp_hash = ?").get(email, otpHash);
+        if (!user || (user.reset_otp_expiry && user.reset_otp_expiry < now)) {
+          return res.status(400).json({ ok: false, error: "Invalid or expired 6-digit OTP code." });
+        }
+        return res.json({ ok: true, valid: true, email: user.email });
+      }
+
+      return res.status(400).json({ ok: false, error: "Missing token or email and OTP code." });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Server error.";
+      return res.status(500).json({ ok: false, error: msg });
+    }
+  });
+
+  app.post("/api/auth/reset-password", (req, res) => {
+    try {
+      const token = typeof req.body?.token === "string" ? req.body.token.trim() : "";
+      const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
+      const otp = typeof req.body?.otp === "string" ? req.body.otp.trim() : "";
+      const newPassword = typeof req.body?.newPassword === "string" ? req.body.newPassword : "";
+
+      if (!newPassword) {
+        return res.status(400).json({ ok: false, error: "Please enter a new password." });
+      }
+
+      const passCheck = validatePasswordStrength(newPassword);
+      if (!passCheck.ok) {
+        return res.status(400).json({ ok: false, error: passCheck.error });
+      }
+
+      const now = new Date().toISOString();
+      let userId = null;
+
+      if (token) {
+        const tokenHash = hashToken(token);
+        const user = db.prepare("SELECT id, password_hash, reset_token_expiry FROM users WHERE reset_token_hash = ?").get(tokenHash);
+        if (!user || (user.reset_token_expiry && user.reset_token_expiry < now)) {
+          return res.status(400).json({ ok: false, error: "Invalid or expired password reset link." });
+        }
+        if (verifyPassword(newPassword, user.password_hash).isValid) {
+          return res.status(400).json({ ok: false, error: "New password must be different from your current password." });
+        }
+        userId = user.id;
+      } else if (email && otp) {
+        if (!isValidEmail(email)) {
+          return res.status(400).json({ ok: false, error: "Invalid email address." });
+        }
+        const otpHash = hashToken(otp);
+        const user = db.prepare("SELECT id, password_hash, reset_otp_expiry FROM users WHERE email = ? AND reset_otp_hash = ?").get(email, otpHash);
+        if (!user || (user.reset_otp_expiry && user.reset_otp_expiry < now)) {
+          return res.status(400).json({ ok: false, error: "Invalid or expired 6-digit verification code." });
+        }
+        if (verifyPassword(newPassword, user.password_hash).isValid) {
+          return res.status(400).json({ ok: false, error: "New password must be different from your current password." });
+        }
+        userId = user.id;
+      } else {
+        return res.status(400).json({ ok: false, error: "Reset token or email and verification code are required." });
+      }
+
+      const newPasswordHash = hashPassword(newPassword);
+
+      db.prepare(
+        `UPDATE users 
+         SET password_hash = ?, reset_token_hash = NULL, reset_token_expiry = NULL, reset_otp_hash = NULL, reset_otp_expiry = NULL 
+         WHERE id = ?`
+      ).run(newPasswordHash, userId);
+
+      return res.json({ ok: true, message: "Password updated successfully. You can now sign in with your new password." });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Server error.";
+      return res.status(500).json({ ok: false, error: msg });
+    }
+  });
 }
 
 module.exports = { mountUserAuthRoutes };
+

@@ -180,9 +180,17 @@ function UserAccountForm({ user }: { user: SessionUser }) {
           </div>
 
           <div>
-            <ProLabel htmlFor="acc-cur-pass" required>
-              Current password
-            </ProLabel>
+            <div className="flex items-center justify-between">
+              <ProLabel htmlFor="acc-cur-pass" required>
+                Current password
+              </ProLabel>
+              <Link
+                href="/forgot-password"
+                className="mb-1 text-xs font-medium text-[#00D4FF] hover:underline"
+              >
+                Forgot password?
+              </Link>
+            </div>
             <div className="relative">
               <input
                 id="acc-cur-pass"

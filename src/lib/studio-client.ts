@@ -1,10 +1,12 @@
 import { readUserToken } from "@/lib/auth-storage";
 
-export type PiApiTaskPollResult = {
+export type StudioTaskPollResult = {
   status: string;
   urls: string[];
   output?: unknown;
 };
+
+
 
 async function authFetch(path: string, init?: RequestInit): Promise<Response> {
   const token = readUserToken();
@@ -88,7 +90,7 @@ export async function createVideoTask(body: {
 }
 
 /** Provider may return status in different casings / synonyms. */
-function normalizePiStatus(status: string | undefined): string {
+function normalizeTaskStatus(status: string | undefined): string {
   const s = (status ?? "").trim().toLowerCase();
   if (s === "complete" || s === "succeeded" || s === "success") return "completed";
   return s;
@@ -106,7 +108,7 @@ function collectResultUrls(data: {
     const o = out as Record<string, unknown>;
     for (const key of ["image_url", "video_url", "video", "url"] as const) {
       const v = o[key];
-      if (typeof v === "string" && /^https?:\/\//i.test(v) && !seen.has(v)) {
+      if (typeof v === "string" && /^(https?:\/\/|data:image\/)/i.test(v) && !seen.has(v)) {
         seen.add(v);
         list.push(v);
       }
@@ -116,14 +118,14 @@ function collectResultUrls(data: {
 }
 
 /** Poll until completed / failed / timeout. */
-export async function pollPiApiTask(
+export async function pollStudioTask(
   taskId: string,
   options?: {
     intervalMs?: number;
     maxAttempts?: number;
     onStatus?: (status: string) => void;
   }
-): Promise<PiApiTaskPollResult> {
+): Promise<StudioTaskPollResult> {
   const intervalMs = options?.intervalMs ?? 2500;
   const maxAttempts = options?.maxAttempts ?? 150;
 
@@ -147,7 +149,7 @@ export async function pollPiApiTask(
     }
     const statusRaw = data.status ?? "";
     options?.onStatus?.(statusRaw);
-    const status = normalizePiStatus(statusRaw);
+    const status = normalizeTaskStatus(statusRaw);
 
     if (status === "completed") {
       return {
@@ -172,3 +174,5 @@ export async function pollPiApiTask(
 
   throw new Error("Timed out. Try again later.");
 }
+
+

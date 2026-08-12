@@ -250,6 +250,10 @@ function openDb(projectRoot) {
     ["resend_day", "TEXT DEFAULT NULL"],
     ["last_reminder_at", "TEXT DEFAULT NULL"],
     ["reminder_count", "INTEGER NOT NULL DEFAULT 0"],
+    ["reset_token_hash", "TEXT DEFAULT NULL"],
+    ["reset_token_expiry", "TEXT DEFAULT NULL"],
+    ["reset_otp_hash", "TEXT DEFAULT NULL"],
+    ["reset_otp_expiry", "TEXT DEFAULT NULL"],
   ];
   for (const [col, def] of verCols) {
     if (!tableInfo.some(c => c.name === col)) {

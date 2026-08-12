@@ -119,17 +119,12 @@ export default function SignInPage() {
             <label htmlFor="si-pass" className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
               Password
             </label>
-            <button
-              type="button"
+            <Link
+              href="/forgot-password"
               className="text-xs font-medium text-[#00D4FF] hover:underline"
-              onClick={() =>
-                window.alert(
-                  "Password reset: connect Resend, Postmark, or your IdP in production."
-                )
-              }
             >
               Forgot password?
-            </button>
+            </Link>
           </div>
           <div className="relative">
             <input

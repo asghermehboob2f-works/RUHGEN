@@ -83,16 +83,18 @@ export function LuxuryStudioLayout({
   const accent =
     mode === "image"
       ? {
-          tabOn: "color-mix(in srgb, var(--primary-purple) 24%, transparent)",
-          tabGlow: "0 0 32px -6px color-mix(in srgb, var(--primary-purple) 50%, transparent)",
-          line: "linear-gradient(90deg, var(--primary-purple), var(--primary-cyan))",
-          ring: "rgba(123, 97, 255, 0.35)",
+          tabOn: "linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)",
+          tabGlow: "0 4px 16px rgba(99, 102, 241, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.35)",
+          tabBorder: "rgba(165, 180, 252, 0.45)",
+          line: "linear-gradient(90deg, rgba(99, 102, 241, 0.7), rgba(124, 58, 237, 0.3), transparent)",
+          ring: "rgba(99, 102, 241, 0.4)",
         }
       : {
-          tabOn: "color-mix(in srgb, var(--primary-cyan) 20%, transparent)",
-          tabGlow: "0 0 32px -6px color-mix(in srgb, var(--primary-cyan) 45%, transparent)",
-          line: "linear-gradient(90deg, var(--primary-cyan), var(--primary-purple))",
-          ring: "rgba(0, 212, 255, 0.32)",
+          tabOn: "linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%)",
+          tabGlow: "0 4px 16px rgba(14, 165, 233, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.35)",
+          tabBorder: "rgba(125, 211, 252, 0.45)",
+          line: "linear-gradient(90deg, rgba(14, 165, 233, 0.7), rgba(2, 132, 199, 0.3), transparent)",
+          ring: "rgba(14, 165, 233, 0.4)",
         };
 
   return (
@@ -111,79 +113,70 @@ export function LuxuryStudioLayout({
         <div className="pointer-events-none absolute inset-0 z-[1] opacity-[0.035] app-grain" aria-hidden />
 
         <header className="relative z-10 mb-2 shrink-0 lg:mb-3">
-          <div
-            className="flex items-center gap-2 rounded-2xl border p-2 shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl sm:gap-3 sm:p-2.5 lg:rounded-xl lg:pl-3"
-            style={{
-              borderColor: "color-mix(in srgb, var(--text-primary) 9%, transparent)",
-              background:
-                "linear-gradient(165deg, color-mix(in srgb, var(--text-primary) 3%, transparent) 0%, color-mix(in srgb, var(--rich-black) 96%, transparent) 100%)",
-            }}
-          >
+          <div className="flex items-center gap-2 rounded-2xl border border-white/15 bg-[#0D0F18]/90 p-2 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.18)] backdrop-blur-3xl sm:gap-3 sm:p-2.5 lg:rounded-2xl lg:pl-3.5">
             <span
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-white ring-1 ring-border sm:h-9 sm:w-9"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white ring-1 ring-white/35 sm:h-10 sm:w-10 shadow-lg transition-transform hover:scale-105"
               style={{
                 background:
                   mode === "image"
-                    ? "linear-gradient(135deg, #a78bfa 0%, var(--primary-purple) 50%, #5b21b6 100%)"
-                    : "linear-gradient(135deg, #67e8f9 0%, var(--primary-cyan) 50%, #0e7490 100%)",
+                    ? "linear-gradient(135deg, #6366F1 0%, #4F46E5 50%, #3730A3 100%)"
+                    : "linear-gradient(135deg, #0EA5E9 0%, #0284C7 50%, #075985 100%)",
                 boxShadow:
                   mode === "image"
-                    ? "0 8px 28px -12px rgba(123, 97, 255, 0.5)"
-                    : "0 8px 28px -12px rgba(0, 212, 255, 0.4)",
+                    ? "0 0 24px rgba(99, 102, 241, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.4)"
+                    : "0 0 24px rgba(14, 165, 233, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.4)",
               }}
             >
-              <Sparkles className="h-4 w-4" strokeWidth={1.75} />
+              <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-white drop-shadow-md" strokeWidth={2} />
             </span>
 
             <div className="min-w-0 flex-1 overflow-hidden">
-              <p className="text-[9px] font-bold uppercase leading-none tracking-[0.22em]" style={{ color: "var(--text-subtle)" }}>
+              <p className="font-mono text-[9px] font-bold uppercase leading-none tracking-[0.26em] text-indigo-200/90">
                 {eyebrow}
               </p>
-              <div className="mt-0.5 flex min-w-0 items-baseline gap-x-2">
-                <h1 className="truncate font-display text-[15px] font-bold leading-tight tracking-tight sm:text-lg" style={{ color: "var(--text-primary)" }}>
+              <div className="mt-1 flex min-w-0 items-baseline gap-x-2.5">
+                <h1 className="truncate font-display text-[15px] sm:text-lg font-black leading-tight tracking-tight text-white drop-shadow-sm">
                   {title}
                 </h1>
-                <p className="hidden min-w-0 max-w-[min(100%,26rem)] truncate text-[11px] leading-snug lg:block" style={{ color: "var(--text-muted)" }}>
+                <p className="hidden min-w-0 max-w-[min(100%,28rem)] truncate text-[11px] font-medium leading-snug text-slate-400 lg:block">
                   {subtitle}
                 </p>
               </div>
             </div>
 
             <nav
-              className="ml-auto flex shrink-0 gap-0.5 rounded-xl border border-border p-0.5 bg-card/60"
+              className="ml-auto flex shrink-0 gap-1 rounded-full border border-white/15 bg-black/70 p-1 backdrop-blur-xl shadow-inner"
               aria-label="Studio mode"
             >
               <Link
                 href="/dashboard/generate/image"
-                className={tabBase}
-                style={{
-                  background: pathname.startsWith("/dashboard/generate/image") ? accent.tabOn : "transparent",
-                  color: pathname.startsWith("/dashboard/generate/image") ? "var(--text-primary)" : "var(--text-muted)",
-                  boxShadow: pathname.startsWith("/dashboard/generate/image") ? accent.tabGlow : undefined,
-                }}
+                className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                  pathname.startsWith("/dashboard/generate/image")
+                    ? "bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/25 border border-white/25"
+                    : "text-slate-400 hover:text-white"
+                }`}
               >
-                <ImageIcon className="h-3.5 w-3.5 shrink-0 opacity-90 sm:h-4 sm:w-4" strokeWidth={1.75} />
+                <ImageIcon className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
                 <span className="hidden sm:inline">Image</span>
               </Link>
               <Link
                 href="/dashboard/generate/video"
-                className={tabBase}
-                style={{
-                  background: pathname.startsWith("/dashboard/generate/video") ? accent.tabOn : "transparent",
-                  color: pathname.startsWith("/dashboard/generate/video") ? "var(--text-primary)" : "var(--text-muted)",
-                  boxShadow: pathname.startsWith("/dashboard/generate/video") ? accent.tabGlow : undefined,
-                }}
+                className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                  pathname.startsWith("/dashboard/generate/video")
+                    ? "bg-gradient-to-r from-sky-600 via-sky-500 to-cyan-600 text-white shadow-lg shadow-sky-500/25 border border-white/25"
+                    : "text-slate-400 hover:text-white"
+                }`}
               >
-                <Video className="h-3.5 w-3.5 shrink-0 opacity-90 sm:h-4 sm:w-4" strokeWidth={1.75} />
+                <Video className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
                 <span className="hidden sm:inline">Video</span>
               </Link>
             </nav>
 
             {topActions ? (
-              <div className="flex shrink-0 items-center gap-1 sm:gap-1.5">{topActions}</div>
+              <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">{topActions}</div>
             ) : null}
           </div>
-          <div className="pointer-events-none mt-1.5 h-px w-full opacity-70" style={{ background: accent.line }} aria-hidden />
+          <div className="pointer-events-none mt-1 h-[1px] w-full opacity-30" style={{ background: accent.line }} aria-hidden />
         </header>
 
         <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -241,14 +234,7 @@ export function LuxuryStudioLayout({
               } ${collapsed ? "lg:hidden" : "lg:flex"}`}
               aria-label="Generation controls"
             >
-              <div
-                className="flex min-h-[0] flex-1 flex-col overflow-hidden rounded-2xl border backdrop-blur-2xl lg:h-full lg:max-h-full lg:overflow-hidden dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] light:shadow-sm"
-                style={{
-                  borderColor: "color-mix(in srgb, var(--text-primary) 8%, transparent)",
-                  background:
-                    "linear-gradient(180deg, color-mix(in srgb, var(--text-primary) 3%, transparent) 0%, color-mix(in srgb, var(--deep-black) 92%, transparent) 100%)",
-                }}
-              >
+              <div className="flex min-h-[0] flex-1 flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#11131C] shadow-lg backdrop-blur-2xl lg:h-full lg:max-h-full lg:overflow-hidden">
                 {leftPanel}
               </div>
             </motion.aside>

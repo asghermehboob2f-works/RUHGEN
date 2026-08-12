@@ -133,7 +133,7 @@ graph TD
     end
     
     subgraph External Services
-        Backend -->|Task Generation| GenerationAPI[PiAPI Generation Engine]
+        Backend -->|Task Generation| GenerationAPI[RUHGEN Studio Engine]
         Backend -->|Order Verification| Razorpay[Razorpay Gateway]
     end
 ```
@@ -204,7 +204,7 @@ cp .env.example .env
 | `NEXT_PUBLIC_SITE_URL` | String | Yes | Public canonical URL for links | `http://localhost:3000` |
 | `ADMIN_JWT_SECRET` | String | Yes | JWT secret key for Admin sessions | *Configurable* |
 | `USER_JWT_SECRET` | String | Yes | JWT secret key for User sessions | *Configurable* |
-| `PI_API_KEY` | String | No | Upstream PiAPI key for live AI studio | *Optional* |
+| `QWEN_API_KEY` | String | Yes | Qwen / NVIDIA GenAI API Key for Image Studio | *Configurable* |
 | `SMTP_HOST` | String | No | Mail server hostname | `mail.ruhgen.in` |
 | `SMTP_PORT` | Number | No | SMTP port (465 SSL or 587 TLS) | `465` |
 | `SMTP_USER` | String | No | SMTP authentication username | `verify@ruhgen.in` |

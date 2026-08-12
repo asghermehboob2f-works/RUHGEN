@@ -223,4 +223,43 @@ function otpEmail({ name, otp, expiryMinutes = 15 }) {
   return { subject: `${otp} is your RUHGEN verification code`, html: baseLayout("Verification Code — RUHGEN", body) };
 }
 
-module.exports = { verificationEmail, reminderEmail, suspensionEmail, successEmail, otpEmail };
+/**
+ * Password Reset Email
+ */
+function passwordResetEmail({ name, resetUrl, otp, expiresMinutes = 30 }) {
+  const firstName = (name || "there").split(" ")[0];
+  const body = `
+    <div class="badge" style="background: rgba(123,97,255,0.12); border-color: rgba(123,97,255,0.3); color: #7B61FF;">Password Reset</div>
+    <div class="title">Reset your RUHGEN password</div>
+    <div class="subtitle">
+      Hi ${firstName}, we received a request to reset the password for your RUHGEN account. Click the button below to choose a new password, or use the 6-digit verification code.
+    </div>
+    <div class="btn-center">
+      <a href="${resetUrl}" class="btn">Reset Password</a>
+    </div>
+    <hr class="divider" />
+    <div class="countdown-info">
+      <p>⏱ This reset link and code will expire in <strong>${expiresMinutes} minutes</strong>.</p>
+    </div>
+    ${otp ? `
+    <div style="margin-top: 20px;">
+      <p style="font-size: 13px; color: ${BRAND.textMuted}; margin-bottom: 12px;">
+        <strong style="color: ${BRAND.textPrimary};">Prefer using a verification code?</strong> Enter this 6-digit OTP on the password reset page:
+      </p>
+      <div class="otp-box">
+        <div class="otp-code">${otp}</div>
+        <div class="otp-hint">6-digit OTP code · Valid for ${expiresMinutes} minutes</div>
+      </div>
+    </div>` : ""}
+    <hr class="divider" />
+    <p class="small">
+      If the button doesn't work, copy and paste this link into your browser:
+    </p>
+    <div class="link-box">${resetUrl}</div>
+    <p class="small" style="margin-top: 16px;">If you did not request a password reset, you can safely ignore this email. Your account remains secure.</p>
+  `;
+  return { subject: "Reset your RUHGEN password", html: baseLayout("Reset Password — RUHGEN", body) };
+}
+
+module.exports = { verificationEmail, reminderEmail, suspensionEmail, successEmail, otpEmail, passwordResetEmail };
+

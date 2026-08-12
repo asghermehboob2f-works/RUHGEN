@@ -424,7 +424,7 @@ html.light .premium-ring {
     0 20px 50px -20px rgba(0, 0, 0, 0.08);
 }
 
-/* Dashboard image / video studio — full-bleed pages (no outer card) */
+/* Dashboard image / video studio — full-bleed pages (clean, classic, high-end) */
 .studio-page {
   position: relative;
   border: none;
@@ -440,9 +440,8 @@ html.light .premium-ring {
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 85% 55% at 0% -5%, color-mix(in srgb, var(--primary-purple) 22%, transparent), transparent 58%),
-    radial-gradient(ellipse 70% 50% at 100% 105%, color-mix(in srgb, var(--primary-cyan) 6%, transparent), transparent 55%),
-    radial-gradient(ellipse 50% 40% at 50% 50%, transparent 40%, color-mix(in srgb, var(--deep-black) 88%, transparent) 100%);
+    radial-gradient(ellipse 70% 45% at 20% 0%, rgba(99, 102, 241, 0.07), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 100%, rgba(124, 58, 237, 0.05), transparent 60%);
 }
 
 .studio-page--video::before {
@@ -452,9 +451,8 @@ html.light .premium-ring {
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 80% 55% at 100% -8%, color-mix(in srgb, var(--primary-cyan) 20%, transparent), transparent 58%),
-    radial-gradient(ellipse 65% 48% at 0% 100%, color-mix(in srgb, var(--primary-purple) 8%, transparent), transparent 52%),
-    radial-gradient(ellipse 55% 45% at 30% 40%, transparent 50%, color-mix(in srgb, var(--deep-black) 90%, transparent) 100%);
+    radial-gradient(ellipse 70% 45% at 80% 0%, rgba(14, 165, 233, 0.07), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 20% 100%, rgba(2, 132, 199, 0.05), transparent 60%);
 }
 
 .studio-page--image > *,
@@ -465,7 +463,7 @@ html.light .premium-ring {
 
 html.light .studio-page--image::before,
 html.light .studio-page--video::before {
-  opacity: 0.65;
+  opacity: 0.4;
 }
 
 .studio-output {
@@ -493,17 +491,17 @@ html.light .studio-page--video::before {
 }
 
 .studio-prompt-focus-image:focus-within {
-  border-color: color-mix(in srgb, var(--primary-purple) 45%, var(--border-subtle)) !important;
+  border-color: rgba(99, 102, 241, 0.4) !important;
   box-shadow:
-    0 0 0 3px color-mix(in srgb, var(--primary-purple) 18%, transparent),
-    inset 0 1px 0 0 color-mix(in srgb, white 6%, transparent);
+    0 0 0 3px rgba(99, 102, 241, 0.12),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
 }
 
 .studio-prompt-focus-video:focus-within {
-  border-color: color-mix(in srgb, var(--primary-cyan) 45%, var(--border-subtle)) !important;
+  border-color: rgba(14, 165, 233, 0.4) !important;
   box-shadow:
-    0 0 0 3px color-mix(in srgb, var(--primary-cyan) 18%, transparent),
-    inset 0 1px 0 0 color-mix(in srgb, white 6%, transparent);
+    0 0 0 3px rgba(14, 165, 233, 0.12),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
 }
 
 /* Fused output + composer column */
@@ -514,15 +512,11 @@ html.light .studio-page--video::before {
   flex: 1 1 0%;
   overflow: hidden;
   border-radius: 1.25rem;
-  border: 1px solid var(--border-subtle);
-  background: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--soft-black) 100%, transparent) 0%,
-    color-mix(in srgb, var(--deep-black) 94%, transparent) 100%
-  );
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #10121a;
   box-shadow:
-    0 28px 72px -36px rgba(0, 0, 0, 0.72),
-    inset 0 1px 0 0 color-mix(in srgb, white 5%, transparent);
+    0 24px 64px -32px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
 }
 
 .studio-session-shell .studio-output {
@@ -536,13 +530,9 @@ html.light .studio-page--video::before {
 .studio-session-shell .studio-composer-dock {
   border: none;
   border-radius: 0;
-  border-top: 1px solid var(--border-subtle);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: none;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--rich-black) 100%, transparent) 0%,
-    color-mix(in srgb, var(--deep-black) 98%, transparent) 100%
-  );
+  background: #141622;
 }
 
 html.light .studio-session-shell {
@@ -552,72 +542,52 @@ html.light .studio-session-shell {
 }
 
 .studio-session-shell--image {
-  border-color: color-mix(in srgb, var(--primary-purple) 28%, var(--border-subtle));
-  background: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--primary-purple) 7%, var(--soft-black)) 0%,
-    color-mix(in srgb, var(--deep-black) 100%, transparent) 100%
-  );
+  border-color: rgba(99, 102, 241, 0.2);
+  background: #10121a;
   box-shadow:
-    0 32px 80px -40px rgba(123, 97, 255, 0.35),
-    inset 0 1px 0 0 color-mix(in srgb, white 6%, transparent);
+    0 24px 64px -32px rgba(99, 102, 241, 0.15),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
 }
 
 .studio-session-shell--video {
-  border-color: color-mix(in srgb, var(--primary-cyan) 30%, var(--border-subtle));
-  background: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--primary-cyan) 8%, var(--soft-black)) 0%,
-    color-mix(in srgb, var(--deep-black) 100%, transparent) 100%
-  );
+  border-color: rgba(14, 165, 233, 0.2);
+  background: #10121a;
   box-shadow:
-    0 32px 80px -40px rgba(0, 212, 255, 0.22),
-    inset 0 1px 0 0 color-mix(in srgb, white 6%, transparent);
+    0 24px 64px -32px rgba(14, 165, 233, 0.12),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
 }
 
 .studio-composer-dock {
   border-radius: 1.25rem 1.25rem 0 0;
-  border: 1px solid color-mix(in srgb, var(--border-subtle) 90%, transparent);
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--soft-black) 100%, transparent) 0%,
-    color-mix(in srgb, var(--rich-black) 100%, transparent) 100%
-  );
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #141622;
   box-shadow:
     0 -24px 64px -32px rgba(0, 0, 0, 0.65),
-    inset 0 1px 0 0 color-mix(in srgb, white 6%, transparent);
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
 }
 
 .studio-composer-dock--image {
-  border-color: color-mix(in srgb, var(--primary-purple) 22%, var(--border-subtle));
+  border-color: rgba(99, 102, 241, 0.2);
   box-shadow:
-    0 -28px 72px -36px rgba(123, 97, 255, 0.22),
-    inset 0 1px 0 0 color-mix(in srgb, white 7%, transparent);
+    0 -24px 64px -32px rgba(99, 102, 241, 0.15),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
 }
 
 .studio-composer-dock--video {
-  border-color: color-mix(in srgb, var(--primary-cyan) 24%, var(--border-subtle));
+  border-color: rgba(14, 165, 233, 0.2);
   box-shadow:
-    0 -28px 72px -36px rgba(0, 212, 255, 0.18),
-    inset 0 1px 0 0 color-mix(in srgb, white 7%, transparent);
+    0 -24px 64px -32px rgba(14, 165, 233, 0.15),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
 }
 
 .studio-session-shell--image .studio-composer,
 .studio-session-shell--image .studio-composer-dock {
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--primary-purple) 4%, var(--rich-black)) 0%,
-    color-mix(in srgb, var(--deep-black) 100%, transparent) 100%
-  );
+  background: #141622;
 }
 
 .studio-session-shell--video .studio-composer,
 .studio-session-shell--video .studio-composer-dock {
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--primary-cyan) 4%, var(--rich-black)) 0%,
-    color-mix(in srgb, var(--deep-black) 100%, transparent) 100%
-  );
+  background: #141622;
 }
 
 @keyframes shimmer-move {
@@ -662,37 +632,19 @@ html.light .surface-card {
     inset 0 1px 0 rgba(255, 255, 255, 0.85);
 }
 
-/* Gradient frame + glass fill — works across engines without mask hacks */
+/* Clean, classic high-end studio card frame */
 .border-gradient-premium {
   border-radius: 1.25rem;
-  border: 1px solid transparent;
-  background:
-    linear-gradient(var(--glass), var(--glass)) padding-box,
-    linear-gradient(
-        135deg,
-        rgba(123, 97, 255, 0.5),
-        rgba(0, 212, 255, 0.3),
-        rgba(255, 46, 154, 0.22)
-      )
-      border-box;
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #11131c;
   box-shadow:
-    0 4px 36px -10px rgba(0, 0, 0, 0.55),
-    0 0 48px -28px rgba(123, 97, 255, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+    0 16px 48px -24px rgba(0, 0, 0, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 html.light .border-gradient-premium {
-  background:
-    linear-gradient(var(--glass), var(--glass)) padding-box,
-    linear-gradient(
-        135deg,
-        rgba(123, 97, 255, 0.35),
-        rgba(0, 212, 255, 0.24),
-        rgba(255, 46, 154, 0.14)
-      )
-    border-box;
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.08);
   box-shadow:
     0 4px 36px -10px rgba(0, 0, 0, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.9);
@@ -741,32 +693,33 @@ html.light .footer-ambient-glow {
 .luxury-aurora-blob {
   position: absolute;
   border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.45;
+  filter: blur(120px);
+  opacity: 0.22;
+  transition: opacity 0.3s ease;
 }
 
 .luxury-aurora-blob--a {
-  width: min(70vw, 420px);
-  height: min(70vw, 420px);
+  width: min(70vw, 480px);
+  height: min(70vw, 480px);
   left: -15%;
   top: -10%;
-  background: radial-gradient(circle, rgba(123, 97, 255, 0.35), transparent 70%);
+  background: radial-gradient(circle, #6366F1, transparent 70%);
 }
 
 .luxury-aurora-blob--b {
-  width: min(60vw, 360px);
-  height: min(60vw, 360px);
+  width: min(60vw, 400px);
+  height: min(60vw, 400px);
   right: -10%;
-  top: 20%;
-  background: radial-gradient(circle, rgba(0, 212, 255, 0.22), transparent 70%);
+  top: 15%;
+  background: radial-gradient(circle, #0EA5E9, transparent 70%);
 }
 
 .luxury-aurora-blob--c {
-  width: min(50vw, 320px);
-  height: min(50vw, 320px);
-  left: 30%;
+  width: min(50vw, 360px);
+  height: min(50vw, 360px);
+  left: 35%;
   bottom: -5%;
-  background: radial-gradient(circle, rgba(255, 46, 154, 0.12), transparent 70%);
+  background: radial-gradient(circle, #7C3AED, transparent 70%);
 }
 
 .luxury-glass-panel {
@@ -858,35 +811,56 @@ html.light .luxury-glass-panel {
   transform: scale(0.95);
 }
 
-/* Thin, luxurious scrollbar for studio panes */
+/* Thin, luxurious scrollbar for studio panes & textareas */
 .studio-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--primary-purple) 30%, transparent) transparent;
+  scrollbar-color: rgba(99, 102, 241, 0.4) transparent;
 }
 .studio-scrollbar::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 .studio-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 999px;
+  margin: 2px;
 }
 .studio-scrollbar::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--text-primary) 12%, transparent);
+  background: rgba(255, 255, 255, 0.18);
   border-radius: 999px;
-  border: 2px solid transparent;
-  background-clip: padding-box;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 .studio-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in srgb, var(--text-primary) 22%, transparent);
-  background-clip: padding-box;
+  background: rgba(99, 102, 241, 0.5);
 }
 [data-studio-mode="image"] .studio-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in srgb, var(--primary-purple) 38%, transparent);
-  background-clip: padding-box;
+  background: rgba(99, 102, 241, 0.6);
 }
 [data-studio-mode="video"] .studio-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in srgb, var(--primary-cyan) 38%, transparent);
-  background-clip: padding-box;
+  background: rgba(14, 165, 233, 0.6);
+}
+
+/* Global Dark Glass Scrollbar override for textareas & inputs */
+textarea {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(99, 102, 241, 0.45) rgba(0, 0, 0, 0.25);
+}
+textarea::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+textarea::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 999px;
+  margin: 3px 0;
+}
+textarea::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(99, 102, 241, 0.45) 0%, rgba(79, 70, 229, 0.55) 100%);
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+textarea::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(129, 140, 248, 0.75) 0%, rgba(99, 102, 241, 0.85) 100%);
 }
 
 /* Animated SVG Sine Wave for Latent Calibration Rig */
@@ -902,6 +876,51 @@ html.light .luxury-glass-panel {
   100% {
     stroke-dashoffset: -40;
   }
+}
+
+/* High-End Subtle Light Crystal Slider Dot */
+.studio-range-premium::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ffffff 0%, #e2e8f0 70%, #cbd5e1 100%);
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5), inset 0 1px 1px #ffffff;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+}
+
+.studio-range-premium::-webkit-slider-thumb:hover {
+  transform: scale(1.25);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6), 0 0 6px rgba(255, 255, 255, 0.3), inset 0 1px 1px #ffffff;
+}
+
+.studio-range-premium::-webkit-slider-thumb:active {
+  transform: scale(1.35);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.7), 0 0 8px rgba(255, 255, 255, 0.4), inset 0 1px 1px #ffffff;
+}
+
+.studio-range-premium::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ffffff 0%, #e2e8f0 70%, #cbd5e1 100%);
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5), inset 0 1px 1px #ffffff;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+}
+
+.studio-range-premium::-moz-range-thumb:hover {
+  transform: scale(1.25);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6), 0 0 6px rgba(255, 255, 255, 0.3), inset 0 1px 1px #ffffff;
+}
+
+.studio-range-premium::-moz-range-thumb:active {
+  transform: scale(1.35);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.7), 0 0 8px rgba(255, 255, 255, 0.4), inset 0 1px 1px #ffffff;
 }
 
 
