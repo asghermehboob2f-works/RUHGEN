@@ -35,19 +35,6 @@ export function Hero() {
     },
   };
 
-  const badgeReveal: Variants = {
-    hidden: { opacity: 0, scale: 0.9, filter: "blur(5px)" },
-    visible: { 
-      opacity: 1, 
-      scale: 1,
-      filter: "blur(0px)",
-      transition: { 
-        duration: 1, 
-        ease: "easeOut"
-      } 
-    },
-  };
-
   return (
     <section
       id="hero"
@@ -76,51 +63,34 @@ export function Hero() {
       </div>
 
       <motion.div 
-        className={`relative z-10 ${SITE_CONTAINER} flex flex-col items-center text-center px-6`}
+        className={`relative z-10 ${SITE_CONTAINER} flex flex-col items-center justify-center text-center px-6 my-auto`}
         variants={container}
         initial="hidden"
         animate="visible"
       >
-        <motion.div
-          className="relative mb-20 inline-flex"
-          variants={badgeReveal}
-        >
-          <div className="relative group flex items-center justify-center rounded-none border border-[var(--border-subtle)] bg-[color-mix(in_srgb,var(--text-primary)_4%,transparent)] px-8 py-2 backdrop-blur-3xl transition-all duration-1000 hover:border-[var(--text-primary)]/40 hover:bg-[color-mix(in_srgb,var(--text-primary)_10%,transparent)]">
-            {/* Precision corner accents */}
-            <div className="absolute top-0 left-0 w-1.5 h-1.5 border-t border-l border-[var(--text-primary)]/40 transition-all duration-700 group-hover:border-[var(--text-primary)]/70" />
-            <div className="absolute top-0 right-0 w-1.5 h-1.5 border-t border-r border-[var(--text-primary)]/40 transition-all duration-700 group-hover:border-[var(--text-primary)]/70" />
-            <div className="absolute bottom-0 left-0 w-1.5 h-1.5 border-b border-l border-[var(--text-primary)]/40 transition-all duration-700 group-hover:border-[var(--text-primary)]/70" />
-            <div className="absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r border-[var(--text-primary)]/40 transition-all duration-700 group-hover:border-[var(--text-primary)]/70" />
-            
-            <span className="relative z-10 bg-gradient-to-r from-[var(--text-primary)]/60 via-[var(--text-primary)] to-[var(--text-primary)]/60 bg-clip-text text-[8px] font-medium uppercase tracking-[1em] text-transparent drop-shadow-sm ml-[1em]">
-              Ultimate AI Generation
-            </span>
-          </div>
-        </motion.div>
-
         {/* 1. HERO HEADING - Classic & High-End */}
         <motion.div
-          className="mb-24 flex flex-col items-center text-center"
+          className="mb-10 sm:mb-12 flex flex-col items-center text-center max-w-5xl"
           variants={fadeUpBlur}
         >
-          <h1 className="font-display text-[clamp(48px,9vw,110px)] font-light leading-[0.95] tracking-tightest text-[var(--text-primary)] selection:bg-[var(--text-primary)]/10">
-            <span className="block bg-gradient-to-b from-[var(--text-primary)] via-[var(--text-primary)] to-[var(--text-primary)]/60 bg-clip-text text-transparent drop-shadow-2xl">Where imagination</span>
-            <span className="block mt-2 premium-text-shimmer bg-gradient-to-b from-[var(--text-primary)]/90 via-[var(--text-primary)] to-[var(--text-primary)]/30 bg-clip-text text-transparent">becomes reality.</span>
+          <h1 className="font-display text-[clamp(44px,7.5vw,96px)] font-light leading-[0.98] tracking-tightest text-[var(--text-primary)] selection:bg-[var(--text-primary)]/10 drop-shadow-[0_4px_24px_rgba(0,0,0,0.7)]">
+            <span className="block bg-gradient-to-b from-[var(--text-primary)] via-[var(--text-primary)] to-[var(--text-primary)]/80 bg-clip-text text-transparent">Where imagination</span>
+            <span className="block mt-2 premium-text-shimmer bg-gradient-to-b from-[var(--text-primary)] via-[var(--text-primary)] to-[var(--text-primary)]/60 bg-clip-text text-transparent">becomes reality.</span>
           </h1>
           
           <motion.div 
-            className="mt-6 flex items-center justify-center"
+            className="mt-5 flex items-center justify-center"
             variants={fadeUpBlur}
           >
-            <span className="font-shooting-star text-[clamp(18px,2.2vw,24px)] font-normal tracking-[0.15em] text-[var(--text-muted)] lowercase">
+            <span className="font-shooting-star text-[clamp(18px,2vw,24px)] font-normal tracking-[0.15em] text-[var(--text-muted)] lowercase">
               — instantly.
             </span>
           </motion.div>
         </motion.div>
 
-        {/* 3 & 4. FRESH BUTTONS REDESIGN - Simple Clean Gradient */}
+        {/* 2. BUTTONS - Centered Action Deck */}
         <motion.div
-          className="flex flex-col gap-6 sm:flex-row sm:items-center"
+          className="flex flex-col gap-5 sm:flex-row sm:items-center justify-center"
           variants={fadeUpBlur}
         >
           {/* PRIMARY: Bluish Gradient */}
@@ -129,7 +99,7 @@ export function Hero() {
             className="group relative"
           >
             <motion.div 
-              className="relative z-10 flex items-center justify-center rounded-full px-12 py-4 overflow-hidden transition-all duration-700 btn-gradient"
+              className="relative z-10 flex items-center justify-center rounded-full px-10 py-3.5 overflow-hidden transition-all duration-700 btn-gradient"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -145,7 +115,7 @@ export function Hero() {
             className="group relative"
           >
             <motion.div 
-              className="relative z-10 flex items-center justify-center gap-3 rounded-full px-10 py-4 overflow-hidden transition-all duration-700 bg-[var(--glass)] backdrop-blur-xl border border-[var(--border-subtle)] hover:border-[var(--text-primary)]/30 hover:bg-[color-mix(in_srgb,var(--text-primary)_10%,transparent)]"
+              className="relative z-10 flex items-center justify-center gap-3 rounded-full px-9 py-3.5 overflow-hidden transition-all duration-700 bg-[var(--glass)] backdrop-blur-xl border border-[var(--border-subtle)] hover:border-[var(--text-primary)]/30 hover:bg-[color-mix(in_srgb,var(--text-primary)_10%,transparent)]"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -157,17 +127,17 @@ export function Hero() {
           </Link>
         </motion.div>
 
-        {/* 6. SCROLL INDICATOR - Even More Minimal */}
+        {/* 3. SCROLL INDICATOR */}
         <motion.div
-          className="mt-28 flex flex-col items-center gap-6"
+          className="mt-14 sm:mt-16 flex flex-col items-center gap-4"
           variants={fadeUpBlur}
         >
           <div className="relative flex flex-col items-center">
-            <div className="h-12 w-px bg-gradient-to-b from-[var(--border-subtle)] to-transparent" />
+            <div className="h-10 w-px bg-gradient-to-b from-[var(--border-subtle)] to-transparent" />
             <motion.div 
-              className="absolute top-0 w-px h-6 bg-[var(--text-muted)]"
+              className="absolute top-0 w-px h-5 bg-[var(--text-muted)]"
               animate={{
-                y: [0, 24, 0],
+                y: [0, 20, 0],
                 opacity: [0, 1, 0]
               }}
               transition={{

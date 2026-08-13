@@ -6,6 +6,8 @@
 const crypto = require("node:crypto");
 const path = require("node:path");
 const { verifyUserToken } = require("./auth");
+const { ImageGenerationService } = require("./services/image-generation-service");
+const { VideoGenerationService } = require("./services/video-generation-service");
 
 const STUDIO_REF_TTL_MS = 2 * 60 * 60 * 1000;
 
@@ -52,8 +54,34 @@ function publicBaseUrlFromRequest(req) {
   return `${proto}://${host}`.replace(/\/$/, "");
 }
 
+function isSafeExternalUrl(urlStr) {
+  if (typeof urlStr !== "string" || !urlStr.trim()) return false;
+  try {
+    const parsed = new URL(urlStr.trim());
+    if (parsed.protocol !== "https:") return false;
+    const host = parsed.hostname.toLowerCase();
+    if (
+      host === "localhost" ||
+      host.endsWith(".local") ||
+      host.endsWith(".internal") ||
+      host === "127.0.0.1" ||
+      host === "0.0.0.0" ||
+      host === "::1" ||
+      host.startsWith("169.254.") ||
+      host.startsWith("10.") ||
+      host.startsWith("192.168.") ||
+      /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(host)
+    ) {
+      return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function isAcceptableStudioImageReferenceUrl(url) {
-  return typeof url === "string" && /^https:\/\//i.test(url.trim());
+  return isSafeExternalUrl(url);
 }
 
 function safeUpstreamDetails(json) {
@@ -500,54 +528,42 @@ function mountStudioRoutes(app, options) {
     }
 
     try {
-      // Check for NVIDIA / Qwen API Key first for direct high-speed generation
-      const nvidiaKey = getFreshStudioKey();
-
-      if (nvidiaKey && !useImg2Img) {
-        try {
-          const imageDataUrl = await generateNvidiaImage({ prompt, width: w, height: h });
-          const taskId = "nv-" + crypto.randomUUID();
-
-          db.prepare(`
-            INSERT INTO studio_tasks (id, user_id, type, credits, status, created_at, details_json)
-            VALUES (?, ?, 'image', ?, 'completed', ?, ?)
-          `).run(
-            taskId,
-            req.user.sub,
-            finalCost,
-            new Date().toISOString(),
-            JSON.stringify({
-              prompt,
-              quality,
-              width: w,
-              height: h,
-              image_url: imageRefRaw,
-              urls: [imageDataUrl],
-              kind: "image"
-            })
-          );
-
-          deductCredits(req.user.sub, finalCost, "image_generation", "Image generation (NVIDIA Engine)", { taskId });
-
-          return res.json({ ok: true, taskId });
-        } catch (nvErr) {
-          const msg = nvErr instanceof Error ? nvErr.message : "Image generation failed.";
-          return res.status(502).json({ ok: false, error: msg });
-        }
-      }
-
-      throw new Error("No image generation API key configured. Please set QWEN_API_KEY in .env.");
-      return res.status(r?.status >= 400 && r?.status < 600 ? r.status : 502).json({
-        ok: false,
-        error: errorMsg,
-        details: r ? safeUpstreamDetails(r.json) : {},
+      const imgRes = await ImageGenerationService.generateImage({
+        prompt,
+        tier: quality,
+        width: w,
+        height: h,
+        image_url: imageRefRaw,
       });
+
+      const taskId = "img-" + crypto.randomUUID();
+
+      db.prepare(`
+        INSERT INTO studio_tasks (id, user_id, type, credits, status, created_at, details_json)
+        VALUES (?, ?, 'image', ?, 'completed', ?, ?)
+      `).run(
+        taskId,
+        req.user.sub,
+        finalCost,
+        new Date().toISOString(),
+        JSON.stringify({
+          prompt,
+          quality,
+          width: w,
+          height: h,
+          image_url: imageRefRaw,
+          urls: [imgRes.imageDataUrl],
+          configUsed: imgRes.configUsed,
+          kind: "image"
+        })
+      );
+
+      deductCredits(req.user.sub, finalCost, "image_generation", `Image generation (${imgRes.configUsed.tier})`, { taskId });
+
+      return res.json({ ok: true, taskId });
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Server error.";
-      if (msg === "STUDIO_CONFIG_MISSING") {
-        return res.status(503).json({ ok: false, error: studioConfigError() });
-      }
-      return res.status(500).json({ ok: false, error: msg });
+      const msg = e instanceof Error ? e.message : "Image generation failed.";
+      return res.status(502).json({ ok: false, error: msg });
     }
   });
 
@@ -562,22 +578,17 @@ function mountStudioRoutes(app, options) {
     const aspect_ratio = ["16:9", "9:16", "1:1"].includes(aspectRaw) ? aspectRaw : "16:9";
     const qualityRaw = typeof req.body?.quality === "string" ? req.body.quality.trim().toLowerCase() : "";
     const modeRaw = typeof req.body?.mode === "string" ? req.body.mode.trim().toLowerCase() : "";
-    let quality = "Quality";
+    
+    let quality = "quality";
     let mode = "std";
-    let version = "2.6";
     if (qualityRaw === "standard" || modeRaw === "std" || qualityRaw === "fast") {
-      quality = "Standard";
+      quality = "standard";
       mode = "std";
-      version = "2.6";
-    } else if (qualityRaw === "ultra" || modeRaw === "pro") {
-      quality = "Ultra Quality";
-      mode = "pro";
-      version = "2.6";
     } else {
-      quality = "Quality";
-      mode = "std";
-      version = "2.6";
+      quality = "quality";
+      mode = "pro";
     }
+
     const negative_prompt =
       typeof req.body?.negative_prompt === "string" ? req.body.negative_prompt.trim().slice(0, 2500) : "";
 
@@ -585,9 +596,6 @@ function mountStudioRoutes(app, options) {
     if (image_url && !isAcceptableStudioImageReferenceUrl(image_url)) {
       return res.status(400).json({ ok: false, error: "Invalid reference image URL (use HTTPS, public URL)." });
     }
-
-    const klingModel = String(process.env.STUDIO_KLING_MODEL || "kling-turbo").trim().toLowerCase();
-    const useTurbo = klingModel !== "kling";
 
     // Quality specific credit costs
     let costKey = mode === "pro" ? "cost_video_pro" : "cost_video_std";
@@ -619,62 +627,17 @@ function mountStudioRoutes(app, options) {
     }
 
     try {
-      let taskPayload;
-      if (useTurbo) {
-        const turboVer = version === "2.6" ? "2.6-turbo" : "2.5-turbo";
-        const turboInput = {
-          prompt,
-          negative_prompt: negative_prompt || "",
-          start_image_url: image_url || "",
-          end_image_url: "",
-          duration: dur,
-          aspect_ratio,
-          mode,
-          version: turboVer,
-        };
-        taskPayload = {
-          model: "kling-turbo",
-          task_type: "video_generation",
-          input: turboInput,
-          config: {
-            service_mode: "public",
-            webhook_config: { endpoint: "", secret: "" },
-          },
-        };
-      } else {
-        const input = {
-          prompt,
-          cfg_scale: "0.5",
-          duration: dur,
-          aspect_ratio,
-          mode,
-          version,
-        };
-        if (negative_prompt) {
-          input.negative_prompt = negative_prompt;
-        }
-        if (image_url) {
-          input.image_url = image_url;
-        }
-        taskPayload = {
-          model: "kling",
-          task_type: "video_generation",
-          input,
-        };
-      }
+      const taskResult = await VideoGenerationService.createVideoTask({
+        prompt,
+        duration: dur,
+        aspect_ratio,
+        tier: quality,
+        mode,
+        negative_prompt,
+        image_url,
+      });
 
-      const r = await createTask(taskPayload);
-
-      if (!r.ok || !r.json?.data?.task_id) {
-        const errorMsg = r.ok ? "No task id returned from generation service." : studioUpstreamError(r.json);
-        return res.status(r.ok ? 502 : (r.status >= 400 && r.status < 600 ? r.status : 502)).json({
-          ok: false,
-          error: errorMsg,
-          details: safeUpstreamDetails(r.json),
-        });
-      }
-
-      const taskId = r.json.data.task_id;
+      const taskId = taskResult.taskId;
       db.prepare(`
         INSERT INTO studio_tasks (id, user_id, type, credits, status, created_at, details_json)
         VALUES (?, ?, 'video', ?, 'pending', ?, ?)
@@ -688,17 +651,19 @@ function mountStudioRoutes(app, options) {
           duration: dur,
           aspect_ratio,
           quality,
+          tier: taskResult.tier,
+          model: taskResult.model,
           negative_prompt,
           image_url,
           kind: "video"
         })
       );
+
+      deductCredits(req.user.sub, finalCost, "video_generation", `Video generation (${taskResult.tier})`, { taskId });
+
       return res.json({ ok: true, taskId });
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Server error.";
-      if (msg === "STUDIO_CONFIG_MISSING") {
-        return res.status(503).json({ ok: false, error: studioConfigError() });
-      }
       return res.status(500).json({ ok: false, error: msg });
     }
   });
@@ -718,111 +683,60 @@ function mountStudioRoutes(app, options) {
         return res.status(403).json({ ok: false, error: "Access denied." });
       }
 
+      let dbDetails = {};
+      try {
+        dbDetails = JSON.parse(dbTask.details_json);
+      } catch (e) {}
+
       if (dbTask.status === "completed" || dbTask.status === "failed") {
-        let details = {};
-        try {
-          details = JSON.parse(dbTask.details_json);
-        } catch (e) {}
-        const urls = details.urls || [];
-        let cleanOutput = details.output || {};
-        if (cleanOutput && typeof cleanOutput === "object" && !Array.isArray(cleanOutput)) {
-          const c = { ...cleanOutput };
-          delete c.model;
-          delete c.provider;
-          delete c.engine;
-          delete c.checkpoint;
-          cleanOutput = c;
-        }
+        const urls = dbDetails.urls || [];
         let cleanError = null;
-        if (details.error) {
-          const errMsg = typeof details.error?.message === "string" ? details.error.message.replace(/(kling|flux|qubico|checkpoint|provider)/gi, "Generation engine") : "Generation error.";
+        if (dbDetails.error) {
+          const errMsg = typeof dbDetails.error?.message === "string" ? dbDetails.error.message.replace(/(kling|flux|qubico|checkpoint|provider)/gi, "Generation engine") : "Generation error.";
           cleanError = { message: errMsg };
         }
         return res.json({
           ok: true,
           status: dbTask.status,
           urls,
-          output: cleanOutput,
           error: cleanError
         });
       }
 
-      const r = await getTask(taskId);
-      if (!r.ok) {
-        return res.json({
-          ok: true,
-          status: "pending",
-          urls: [],
-          error: { message: "Failed to fetch status from upstream. Will retry." }
-        });
-      }
-      const data = r.json?.data;
-      if (!data) {
-        return res.json({ ok: true, status: "pending", urls: [] });
-      }
-      const statusRaw = data.status ?? "";
-      const status = normalizePiStatus(statusRaw);
-      const urls = extractMediaUrls(data.output);
+      const statusResult = await VideoGenerationService.getTaskStatus(taskId, dbDetails);
+      const status = statusResult.status;
+      const urls = statusResult.urls || [];
 
       if (status === "completed") {
-        let details = {};
-        try {
-          details = JSON.parse(dbTask.details_json);
-        } catch (e) {}
-        details.urls = urls;
-        details.output = data.output;
+        dbDetails.urls = urls;
         db.prepare("UPDATE studio_tasks SET status = 'completed', details_json = ? WHERE id = ?").run(
-          JSON.stringify(details),
+          JSON.stringify(dbDetails),
           taskId
         );
-      } else if (status === "failed" || status === "cancelled") {
-        let details = {};
-        try {
-          details = JSON.parse(dbTask.details_json);
-        } catch (e) {}
-        details.error = data.error || { message: "Task failed upstream." };
+      } else if (status === "failed") {
+        dbDetails.error = { message: statusResult.error || "Video generation failed." };
         db.prepare("UPDATE studio_tasks SET status = 'failed', details_json = ? WHERE id = ?").run(
-          JSON.stringify(details),
+          JSON.stringify(dbDetails),
           taskId
         );
         refundCredits(
           dbTask.user_id,
           dbTask.credits,
-          dbTask.type === "image" ? "image_generation" : "video_generation",
-          `Refund: Task failed/cancelled`,
+          "video_generation",
+          "Refund: Video generation failed",
           { taskId }
         );
       }
 
-      let cleanOutput = data.output || {};
-      if (cleanOutput && typeof cleanOutput === "object" && !Array.isArray(cleanOutput)) {
-        const c = { ...cleanOutput };
-        delete c.model;
-        delete c.provider;
-        delete c.engine;
-        delete c.checkpoint;
-        cleanOutput = c;
-      }
-      let cleanError = null;
-      if (data.error) {
-        const errMsg = typeof data.error?.message === "string" ? data.error.message.replace(/(kling|flux|qubico|checkpoint|provider)/gi, "Generation engine") : "Generation error.";
-        cleanError = { message: errMsg };
-      }
-      const cleanMsg = typeof r.json?.message === "string" ? r.json.message.replace(/(kling|flux|qubico|checkpoint|provider)/gi, "Generation engine") : undefined;
-
       return res.json({
         ok: true,
-        status: status,
+        status,
         urls,
-        output: cleanOutput,
-        error: cleanError,
-        message: cleanMsg,
+        progress: statusResult.progress || (status === "completed" ? 100 : 50),
+        error: statusResult.error ? { message: statusResult.error } : null,
       });
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Server error.";
-      if (msg === "STUDIO_CONFIG_MISSING") {
-        return res.status(503).json({ ok: false, error: studioConfigError() });
-      }
       return res.status(500).json({ ok: false, error: msg });
     }
   });
@@ -1008,8 +922,8 @@ function mountStudioRoutes(app, options) {
   async function proxyDownload(req, res, fallbackName, fallbackCt) {
     try {
       const url = typeof req.body?.url === "string" ? req.body.url.trim() : "";
-      if (!/^https:\/\//i.test(url)) {
-        return res.status(400).json({ ok: false, error: "Invalid URL (HTTPS required)." });
+      if (!isSafeExternalUrl(url)) {
+        return res.status(400).json({ ok: false, error: "Invalid or unsafe URL." });
       }
       const upstream = await fetch(url);
       if (!upstream.ok) {
@@ -1023,8 +937,7 @@ function mountStudioRoutes(app, options) {
       res.setHeader("Content-Disposition", `attachment; filename="${name.replace(/[^a-zA-Z0-9._-]/g, "_")}"`);
       return res.send(buf);
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Download failed.";
-      return res.status(500).json({ ok: false, error: msg });
+      return res.status(500).json({ ok: false, error: "Download failed." });
     }
   }
 

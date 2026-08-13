@@ -18,14 +18,14 @@ const crypto = require("node:crypto");
 const { verifyUserToken, verifyAdminToken } = require("./auth");
 const { sendMail } = require("./email-service");
 const { verificationEmail, reminderEmail, otpEmail, successEmail, suspensionEmail } = require("./email-templates");
+const { getAppUrl, parseExpiryMs } = require("./config");
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 const GRACE_DAYS = Number(process.env.VERIFY_GRACE_DAYS) || 7;
-const LINK_TTL_HOURS = Number(process.env.VERIFY_LINK_TTL_HOURS) || 72;
+const LINK_TTL_HOURS = Math.round(parseExpiryMs(process.env.EMAIL_VERIFICATION_TOKEN_EXPIRY, 72 * 3600 * 1000) / (3600 * 1000));
 const OTP_TTL_MINUTES = Number(process.env.VERIFY_OTP_TTL_MINUTES) || 15;
 const MAX_RESEND_PER_DAY = Number(process.env.VERIFY_MAX_RESEND_PER_DAY) || 5;
 const RESEND_COOLDOWN_MINUTES = Number(process.env.VERIFY_RESEND_COOLDOWN_MINUTES) || 2;
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || process.env.BACKEND_URL?.replace(":4000", ":3000") || "http://localhost:3000";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function getBearer(req) {
@@ -121,13 +121,14 @@ function mountVerificationRoutes(app, { db }) {
   // ── GET /api/verify-email?token=… (one-click link) ────────────────────────
   app.get("/api/verify-email", async (req, res) => {
     const raw = String(req.query.token || "").trim();
-    if (!raw) return res.redirect(`${SITE_URL}/verify?error=missing_token`);
+    const appUrl = getAppUrl("base");
+    if (!raw) return res.redirect(`${appUrl}/verify?error=missing_token`);
     const hash = hashToken(raw);
     const user = db.prepare("SELECT id, email, name, email_verified, verification_token_expiry, verification_status FROM users WHERE verification_token_hash = ?").get(hash);
-    if (!user) return res.redirect(`${SITE_URL}/verify?error=invalid_token`);
-    if (user.email_verified) return res.redirect(`${SITE_URL}/verify?status=already_verified`);
+    if (!user) return res.redirect(`${appUrl}/verify?error=invalid_token`);
+    if (user.email_verified) return res.redirect(`${appUrl}/verify?status=already_verified`);
     if (user.verification_token_expiry && new Date(user.verification_token_expiry) < new Date())
-      return res.redirect(`${SITE_URL}/verify?error=expired_token&uid=${user.id}`);
+      return res.redirect(`${appUrl}/verify?error=expired_token&uid=${user.id}`);
 
     db.prepare(`UPDATE users SET
       email_verified = 1, email_verified_at = ?, verification_status = 'verified',
@@ -137,7 +138,29 @@ function mountVerificationRoutes(app, { db }) {
 
     logAudit(db, { target: user.id, action: "email_verified_link", details: { method: "link" } });
     sendMail({ to: user.email, ...successEmail({ name: user.name }) }).catch(() => {});
-    return res.redirect(`${SITE_URL}/verify?status=verified`);
+    return res.redirect(`${appUrl}/verify?status=verified`);
+  });
+
+  // ── POST /api/auth/verify-email (API token verification) ─────────────────
+  app.post("/api/auth/verify-email", async (req, res) => {
+    const raw = String(req.body?.token || "").trim();
+    if (!raw) return res.status(400).json({ ok: false, error: "Verification token is required." });
+    const hash = hashToken(raw);
+    const user = db.prepare("SELECT id, email, name, email_verified, verification_token_expiry FROM users WHERE verification_token_hash = ?").get(hash);
+    if (!user) return res.status(400).json({ ok: false, error: "Invalid verification token." });
+    if (user.email_verified) return res.json({ ok: true, message: "Email is already verified." });
+    if (user.verification_token_expiry && new Date(user.verification_token_expiry) < new Date())
+      return res.status(400).json({ ok: false, error: "Verification token has expired." });
+
+    db.prepare(`UPDATE users SET
+      email_verified = 1, email_verified_at = ?, verification_status = 'verified',
+      verification_token_hash = NULL, verification_token_expiry = NULL,
+      otp_hash = NULL, otp_expiry = NULL, suspended = 0
+      WHERE id = ?`).run(nowIso(), user.id);
+
+    logAudit(db, { target: user.id, action: "email_verified_api", details: { method: "api" } });
+    sendMail({ to: user.email, ...successEmail({ name: user.name }) }).catch(() => {});
+    return res.json({ ok: true, message: "Email verified successfully." });
   });
 
   // ── GET /api/auth/verification-status ─────────────────────────────────────
@@ -175,7 +198,7 @@ function mountVerificationRoutes(app, { db }) {
     bumpResendCount(db, userId);
     logAudit(db, { target: userId, action: "resend_verification", details: { method: "user_request" } });
 
-    const verifyUrl = `${SITE_URL}/api/verify-email?token=${rawToken}`;
+    const verifyUrl = getAppUrl("verification", rawToken);
     const emailData = verificationEmail({ name: user.name, verifyUrl, expiresHours: LINK_TTL_HOURS, otp });
     const result = await sendMail({ to: user.email, ...emailData });
     if (!result.ok) return res.status(500).json({ ok: false, error: "Failed to send email. Please try again." });

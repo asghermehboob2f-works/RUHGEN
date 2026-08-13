@@ -7,6 +7,7 @@ const express = require("express");
 const multer = require("multer");
 
 const { openDb } = require("./db");
+const { validateConfig } = require("./config");
 const { verifyAdminToken } = require("./auth");
 const { requireAdmin } = require("./middleware/adminAuth");
 const { requestLogger } = require("./middleware/requestLogger");
@@ -31,6 +32,7 @@ const PORT = Number(process.env.BACKEND_PORT || process.env.PORT || 4000, 10);
 const projectRoot = path.resolve(__dirname, "..", "..");
 
 const { db, dataDir } = openDb(projectRoot);
+validateConfig();
 
 const MEDIA_ROOT = path.join(projectRoot, "media");
 const PUBLIC_MEDIA_ROOT = path.join(projectRoot, "public", "media");
@@ -42,6 +44,15 @@ const upload = multer({
 });
 
 const app = express();
+app.disable("x-powered-by");
+
+// --- Security Headers Middleware ---
+app.use((_req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("X-XSS-Protection", "1; mode=block");
+  next();
+});
 
 // --- Standard Security & Utility Middlewares ---
 app.use(

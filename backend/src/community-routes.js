@@ -49,6 +49,9 @@ async function storeCommunityMedia(url) {
       buffer = Buffer.from(base64Data, "base64");
     } else {
       // Regular URL download
+      if (!isSafeExternalUrl(url)) {
+        throw new Error("Invalid or unsafe media URL.");
+      }
       const parsed = new URL(url);
       ext = path.extname(parsed.pathname) || ".jpg";
       // Remove query parameters or hash from extension
@@ -116,11 +119,34 @@ function requireUser(req, res, next) {
   next();
 }
 
+function isSafeExternalUrl(urlStr) {
+  if (typeof urlStr !== "string" || !urlStr.trim()) return false;
+  try {
+    const parsed = new URL(urlStr.trim());
+    if (parsed.protocol !== "https:") return false;
+    const host = parsed.hostname.toLowerCase();
+    if (
+      host === "localhost" ||
+      host.endsWith(".local") ||
+      host.endsWith(".internal") ||
+      host === "127.0.0.1" ||
+      host === "0.0.0.0" ||
+      host === "::1" ||
+      host.startsWith("169.254.") ||
+      host.startsWith("10.") ||
+      host.startsWith("192.168.") ||
+      /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(host)
+    ) {
+      return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function isHttpsUrl(value) {
-  if (typeof value !== "string") return false;
-  const v = value.trim();
-  if (!v) return false;
-  return /^https:\/\//i.test(v) || /^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?\//i.test(v);
+  return isSafeExternalUrl(value);
 }
 
 function isAcceptableMediaUrl(value) {

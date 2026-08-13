@@ -1,30 +1,32 @@
 /**
- * RUHGEN Email Service
- * SMTP: mail.ruhgen.in:465 with SSL/TLS
- * All credentials loaded from environment variables.
+ * RUHGEN Email Service & SMTP Transport Module
+ * Configurable exclusively via environment variables.
+ * Supports MAIL_* and fallback SMTP_* variables.
+ * Never hardcodes production credentials or domains.
  */
 
 const nodemailer = require("nodemailer");
+const { getSmtpConfig } = require("./config");
 
 let _transporter = null;
 
 function getTransporter() {
   if (_transporter) return _transporter;
 
-  const host = process.env.SMTP_HOST || "mail.ruhgen.in";
-  const port = Number(process.env.SMTP_PORT) || 465;
-  const user = process.env.SMTP_USER || process.env.SMTP_FROM_EMAIL || "verify@ruhgen.in";
-  const pass = process.env.SMTP_PASS;
+  const config = getSmtpConfig();
 
-  if (!pass) {
-    console.warn("[email] SMTP_PASS not set — email sending will fail.");
+  if (!config.password) {
+    console.warn("[email] MAIL_PASSWORD / SMTP_PASS not set — email delivery will fail until set in .env.");
   }
 
   _transporter = nodemailer.createTransport({
-    host,
-    port,
-    secure: true, // SSL/TLS on port 465
-    auth: { user, pass: pass || "" },
+    host: config.host,
+    port: config.port,
+    secure: config.secure,
+    auth: {
+      user: config.username,
+      pass: config.password,
+    },
     tls: {
       rejectUnauthorized: process.env.NODE_ENV === "production",
     },
@@ -36,18 +38,21 @@ function getTransporter() {
   return _transporter;
 }
 
-const FROM_EMAIL = process.env.SMTP_FROM_EMAIL || "verify@ruhgen.in";
-const FROM_NAME = process.env.SMTP_FROM_NAME || "RUHGEN";
-const FROM = `"${FROM_NAME}" <${FROM_EMAIL}>`;
+function getFromHeader() {
+  const config = getSmtpConfig();
+  return `"${config.fromName}" <${config.fromAddress}>`;
+}
 
 /**
- * Send an email. Returns { ok: true } or { ok: false, error }.
+ * Send an email using configured SMTP transport.
+ * Returns { ok: true } or { ok: false, error }.
  */
 async function sendMail({ to, subject, html, text }) {
   try {
     const transporter = getTransporter();
+    const from = getFromHeader();
     await transporter.sendMail({
-      from: FROM,
+      from,
       to,
       subject,
       html,
@@ -56,13 +61,13 @@ async function sendMail({ to, subject, html, text }) {
     console.log(`[email] Sent "${subject}" to ${to}`);
     return { ok: true };
   } catch (err) {
-    console.error("[email] Send failed:", err.message);
-    return { ok: false, error: err.message };
+    console.error("[email] Delivery failed:", err instanceof Error ? err.message : String(err));
+    return { ok: false, error: err instanceof Error ? err.message : "Email delivery failed." };
   }
 }
 
 /**
- * Verify SMTP connection (used at startup / health check).
+ * Verify SMTP connection state (used at server startup).
  */
 async function verifyConnection() {
   try {
@@ -71,7 +76,7 @@ async function verifyConnection() {
     console.log("[email] SMTP connection verified ✓");
     return true;
   } catch (err) {
-    console.warn("[email] SMTP connection failed:", err.message);
+    console.warn("[email] SMTP connection warning:", err instanceof Error ? err.message : String(err));
     return false;
   }
 }

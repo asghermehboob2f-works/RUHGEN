@@ -113,51 +113,87 @@ export function WorkflowPageContent() {
               </div>
             </motion.div>
 
-            {/* Right side live milestone tracker widget */}
+            {/* Right side live milestone tracker widget — theme-aware, sleek & professional */}
             <motion.div
               initial={reduce ? false : { opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="premium-ring rounded-3xl border p-6 sm:p-8 relative overflow-hidden"
+              className="rounded-2xl border p-6 relative overflow-hidden shadow-2xl"
               style={{
                 borderColor: "var(--border-subtle)",
-                background: "linear-gradient(165deg, var(--glass-elevated), var(--glass))",
+                background: "var(--glass-elevated)",
                 backdropFilter: "blur(24px) saturate(180%)",
-                boxShadow: "0 32px 60px -16px rgba(0,0,0,0.35), inset 0 1px 0 var(--border-subtle)"
+                boxShadow: "0 24px 60px -16px rgba(0,0,0,0.25)"
               }}
             >
-              <div className="absolute top-0 right-0 w-24 h-24 rounded-full blur-3xl" style={{ background: "rgba(255,46,154,0.1)" }} />
-
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] mb-5" style={{ color: "#FF2E9A" }}>
-                Active Project Milestones
-              </p>
-
-              <div className="space-y-4">
-                <div className="flex items-center gap-3.5 border p-3 rounded-2xl" style={{ background: "var(--glass)", borderColor: "var(--border-subtle)" }}>
-                  <CheckCircle2 className="w-5 h-5 text-green-400 shrink-0" style={{ filter: "drop-shadow(0 0 8px rgba(74,222,128,0.3))" }} />
-                  <div>
-                    <div className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>Creative Brief Locked</div>
-                    <div className="text-[9px] font-mono" style={{ color: "var(--text-subtle)" }}>AP-East Node Verified</div>
+              {/* Card Header */}
+              <div className="flex items-center justify-between pb-4 mb-5 border-b" style={{ borderColor: "var(--border-subtle)" }}>
+                <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400/80" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-cyan-400/50" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-purple-400/50" />
                   </div>
+                  <span className="text-xs font-semibold tracking-wide ml-1" style={{ color: "var(--text-primary)" }}>Workflow Milestones</span>
                 </div>
 
-                <div className="flex items-center gap-3.5 border p-3 rounded-2xl" style={{ background: "var(--glass)", borderColor: "var(--border-subtle)" }}>
-                  <CheckCircle2 className="w-5 h-5 text-green-400 shrink-0" style={{ filter: "drop-shadow(0 0 8px rgba(74,222,128,0.3))" }} />
-                  <div>
-                    <div className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>Visual Style Branched</div>
-                    <div className="text-[9px] font-mono" style={{ color: "var(--text-subtle)" }}>3 distinct styles comparable</div>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-medium text-emerald-400">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  Active Stream
+                </span>
+              </div>
+
+              {/* Milestone Steps List */}
+              <div className="space-y-3 mb-5">
+                {/* Step 1 */}
+                <div className="flex items-center justify-between p-3.5 rounded-xl border" style={{ background: "var(--glass)", borderColor: "var(--border-subtle)" }}>
+                  <div className="flex items-center gap-3">
+                    <CheckCircle2 className="w-4.5 h-4.5 text-emerald-400 shrink-0" />
+                    <div>
+                      <div className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>Creative Brief Locked</div>
+                      <div className="text-[11px] font-light mt-0.5" style={{ color: "var(--text-muted)" }}>Reference ledger aligned & verified</div>
+                    </div>
                   </div>
+                  <span className="text-[10px] font-medium text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                    Done
+                  </span>
                 </div>
 
-                <div className="flex items-center gap-3.5 border p-3 rounded-2xl" style={{ borderColor: "rgba(255,46,154,0.2)", background: "rgba(255,46,154,0.05)" }}>
-                  <div className="w-5 h-5 rounded-full border flex items-center justify-center shrink-0" style={{ borderColor: "#FF2E9A" }}>
-                    <span className="w-2 h-2 rounded-full animate-ping" style={{ background: "#FF2E9A" }} />
+                {/* Step 2 */}
+                <div className="flex items-center justify-between p-3.5 rounded-xl border" style={{ background: "var(--glass)", borderColor: "var(--border-subtle)" }}>
+                  <div className="flex items-center gap-3">
+                    <CheckCircle2 className="w-4.5 h-4.5 text-emerald-400 shrink-0" />
+                    <div>
+                      <div className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>Visual Style Branched</div>
+                      <div className="text-[11px] font-light mt-0.5" style={{ color: "var(--text-muted)" }}>3 parallel directions compared</div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>Export Assembly Complete</div>
-                    <div className="text-[9px] font-mono" style={{ color: "#FF2E9A" }}>Compiling ProRes proxy...</div>
-                  </div>
+                  <span className="text-[10px] font-medium text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                    Done
+                  </span>
                 </div>
+
+                {/* Step 3 */}
+                <div className="flex items-center justify-between p-3.5 rounded-xl border border-purple-500/30 bg-purple-500/10">
+                  <div className="flex items-center gap-3">
+                    <div className="w-4.5 h-4.5 rounded-full border border-purple-400 flex items-center justify-center shrink-0">
+                      <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
+                    </div>
+                    <div>
+                      <div className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>Production Plate Handoff</div>
+                      <div className="text-[11px] font-light mt-0.5 text-purple-400">Compiling VFX-ready ProRes & EXR</div>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-medium text-purple-400 bg-purple-500/15 px-2 py-0.5 rounded border border-purple-500/30">
+                    Compiling
+                  </span>
+                </div>
+              </div>
+
+              {/* Progress Footer */}
+              <div className="pt-3 border-t flex items-center justify-between text-[11px]" style={{ borderColor: "var(--border-subtle)", color: "var(--text-subtle)" }}>
+                <span>Phase Progress</span>
+                <span className="font-semibold" style={{ color: "var(--text-primary)" }}>2 / 3 Steps Completed</span>
               </div>
             </motion.div>
 

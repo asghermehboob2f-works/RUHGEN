@@ -4,12 +4,17 @@
  */
 function errorHandler(err, req, res, _next) {
   const status = typeof err.status === "number" && err.status >= 400 && err.status < 600 ? err.status : 500;
-  const message = err.message || "Internal server error.";
-
+  
   console.error(`[Express Error] [${req.method} ${req.originalUrl || req.url}]`, err);
 
   if (res.headersSent) {
     return;
+  }
+
+  // Prevent internal stack traces, DB errors, or path disclosure in production
+  let message = err.message || "Internal server error.";
+  if (status === 500 && process.env.NODE_ENV !== "development") {
+    message = "An unexpected error occurred. Please try again later.";
   }
 
   return res.status(status).json({

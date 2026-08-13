@@ -150,22 +150,22 @@ export function HeroBackground({ config }: HeroBackgroundProps) {
 
       {/* Cinematic Overlays */}
       <div className="absolute inset-0 pointer-events-none z-20">
-        {/* Very Subtle Vignette */}
+        {/* Soft Luminous Vignette */}
         <div 
           className="absolute inset-0 transition-colors duration-700" 
           style={{
             background: isLight 
-              ? "radial-gradient(circle at center, transparent 80%, var(--deep-black) 100%)"
-              : "radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.4) 100%)"
+              ? "radial-gradient(circle at center, transparent 70%, rgba(255,255,255,0.3) 100%)"
+              : "radial-gradient(circle at center, transparent 60%, rgba(0,0,0,0.35) 100%)"
           }}
         />
         
-        {/* Edge Gradual Fades (Ultra-Soft) */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[var(--deep-black)]/40 via-transparent to-[var(--deep-black)]/40" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[var(--deep-black)]/40 via-transparent to-[var(--deep-black)]/40" />
+        {/* Edge Gradual Fades */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[var(--deep-black)]/30 via-transparent to-[var(--deep-black)]/30" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[var(--deep-black)]/30 via-transparent to-[var(--deep-black)]/30" />
 
-        {/* Dynamic Shadow Layer (Reduced) */}
-        <div className={`absolute inset-0 transition-colors duration-700 ${isLight ? 'bg-white/10' : 'bg-black/20 backdrop-blur-[0.5px]'}`} />
+        {/* Ultra-Light Shadow Layer */}
+        <div className={`absolute inset-0 transition-colors duration-700 ${isLight ? 'bg-white/5' : 'bg-black/10'}`} />
       </div>
 
       {/* Fine Film Grain */}
