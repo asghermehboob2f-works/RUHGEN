@@ -103,7 +103,7 @@
       "id": "test-1",
       "body": "We replaced a week of mood-board iteration with one RUHGEN session. The team finally stopped fighting over references and started shipping.",
       "name": "ruh",
-      "role": "Creative Director",
+      "role": "Developer",
       "avatarColor": "from-brand-purple to-indigo-950/40",
       "hoverColor": "group-hover:text-brand-purple/70",
       "initials": "R"
@@ -112,7 +112,7 @@
       "id": "test-2",
       "body": "Latency is honestly wild. I can iterate on a shot while the director is still in the room—feels like a realtime renderer for ideas.",
       "name": "asgr",
-      "role": "Developer",
+      "role": "Head of Platform",
       "avatarColor": "from-brand-cyan to-teal-950/40",
       "hoverColor": "group-hover:text-brand-cyan/70",
       "initials": "AR"
@@ -120,11 +120,11 @@
     {
       "id": "test-3",
       "body": "The API slots straight into our asset pipeline. Webhooks fire when renders finish; our DAM ingests frames without anyone touching FTP.",
-      "name": "lilu singh",
-      "role": "Head of Platform",
+      "name": "Mukhtar ",
+      "role": "Research manager",
       "avatarColor": "from-brand-pink to-rose-950/40",
       "hoverColor": "group-hover:text-brand-pink/70",
-      "initials": "L"
+      "initials": "ML"
     }
   ],
   "spotlightFeatures": [],

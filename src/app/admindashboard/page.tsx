@@ -7,6 +7,7 @@ import {
   BookOpen,
   CheckCircle2,
   Clapperboard,
+  Coins,
   CreditCard,
   ExternalLink,
   GraduationCap,
@@ -329,7 +330,7 @@ export default function DashboardPage() {
             <div className="flex items-center gap-2 border-b pb-2" style={{ borderColor: "var(--border-subtle)" }}>
               <CreditCard className="h-4 w-4 text-emerald-400" />
               <h2 className="text-xs font-extrabold uppercase tracking-[0.2em]" style={{ color: "var(--text-primary)" }}>
-                Financials & Transactions
+                Financials & Credit Operations
               </h2>
             </div>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -351,6 +352,28 @@ export default function DashboardPage() {
                 </div>
                 <div className="mt-4 flex items-center justify-between text-xs font-semibold text-emerald-400">
                   <span>View Payments</span>
+                  <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </Link>
+
+              <Link
+                href="/admindashboard/credits"
+                className="group flex flex-col justify-between rounded-2xl border p-5 transition-all hover:border-[#FFB800]/40 hover:bg-white/[0.02]"
+                style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}
+              >
+                <div className="space-y-2">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#FFB800]/30 bg-[#FFB800]/10 text-[#FFB800]">
+                    <Coins className="h-5 w-5" />
+                  </div>
+                  <h3 className="font-display text-base font-bold text-white group-hover:text-[#FFB800] transition-colors">
+                    Credit Rates Matrix
+                  </h3>
+                  <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+                    Configure single-source generation cost rates for Standard/Premium Image &amp; Video AI engines.
+                  </p>
+                </div>
+                <div className="mt-4 flex items-center justify-between text-xs font-semibold text-[#FFB800]">
+                  <span>Manage Credit Costs</span>
                   <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </div>
               </Link>

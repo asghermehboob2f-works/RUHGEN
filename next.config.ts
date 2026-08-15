@@ -31,6 +31,20 @@ const nextConfig: NextConfig = {
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
         ],
       },
+      {
+        source: "/media/:path*.mov",
+        headers: [
+          { key: "Content-Type", value: "video/mp4" },
+          { key: "Access-Control-Allow-Origin", value: "*" },
+        ],
+      },
+      {
+        source: "/media/:path*",
+        headers: [
+          { key: "Access-Control-Allow-Origin", value: "*" },
+          { key: "Access-Control-Allow-Methods", value: "GET, HEAD, OPTIONS" },
+        ],
+      },
     ];
   },
   async rewrites() {
@@ -38,6 +52,10 @@ const nextConfig: NextConfig = {
       {
         source: "/api/:path*",
         destination: `${backend}/api/:path*`,
+      },
+      {
+        source: "/media/:path*",
+        destination: `${backend}/media/:path*`,
       },
     ];
   },

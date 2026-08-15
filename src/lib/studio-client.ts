@@ -49,22 +49,32 @@ export async function createImageTask(body: {
 
 /** Upload a reference image for image-to-video; returns a short-lived HTTPS URL the API can fetch. */
 export async function uploadStudioReferenceImage(file: File): Promise<{ url: string }> {
+  const res = await uploadStudioReference(file);
+  return { url: res.url };
+}
+
+/** Upload a reference image or video for video generation; returns temporary URL and reference type. */
+export async function uploadStudioReference(file: File): Promise<{ url: string; type: "image" | "video" }> {
   const token = readUserToken();
   if (!token) {
     throw new Error("Sign in required.");
   }
   const fd = new FormData();
+  fd.append("file", file);
   fd.append("image", file);
+  fd.append("video", file);
+  fd.append("reference", file);
   const res = await fetch("/api/studio/reference-upload", {
     method: "POST",
     headers: { Authorization: `Bearer ${token}` },
     body: fd,
   });
-  const data = (await res.json()) as { ok?: boolean; url?: string; error?: string };
+  const data = (await res.json()) as { ok?: boolean; url?: string; type?: "image" | "video"; error?: string };
   if (!res.ok || !data.ok || !data.url) {
-    throw new Error(data.error || "Could not upload reference image.");
+    throw new Error(data.error || "Could not upload reference file.");
   }
-  return { url: data.url };
+  const type = data.type || (file.type.startsWith("video/") ? "video" : "image");
+  return { url: data.url, type };
 }
 
 /** Create video task (via backend only). */
@@ -77,6 +87,9 @@ export async function createVideoTask(body: {
   version?: string;
   negative_prompt?: string;
   image_url?: string;
+  video_url?: string;
+  reference_url?: string;
+  reference_type?: "image" | "video";
 }): Promise<{ taskId: string }> {
   const res = await authFetch("/api/studio/video", {
     method: "POST",

@@ -58,6 +58,20 @@ class ImageGenerationService {
 
     // Call Provider Adapter (NVIDIA / Generic OpenAI-compatible Image API)
     try {
+      const reqBody = {
+        prompt,
+        width: nvW,
+        height: nvH,
+        seed: Math.floor(Math.random() * 1000000),
+        steps: 4,
+        ...(image_url ? { image_url } : {}),
+      };
+
+      // Include model in body only if API URL doesn't already contain model path (NVIDIA endpoints reject extra body fields)
+      if (config.model && !config.apiUrl.includes("nvidia.com") && !config.apiUrl.includes(config.model)) {
+        reqBody.model = config.model;
+      }
+
       const response = await fetch(config.apiUrl, {
         method: "POST",
         headers: {
@@ -65,15 +79,7 @@ class ImageGenerationService {
           Accept: "application/json",
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          prompt,
-          width: nvW,
-          height: nvH,
-          model: config.model,
-          seed: Math.floor(Math.random() * 1000000),
-          steps: 4,
-          ...(image_url ? { image_url } : {}),
-        }),
+        body: JSON.stringify(reqBody),
       });
 
       const responseText = await response.text();
@@ -82,10 +88,13 @@ class ImageGenerationService {
         let detail = "Upstream provider error.";
         try {
           const parsed = JSON.parse(responseText);
-          if (parsed.message) detail = parsed.message;
+          if (typeof parsed.detail === "string") detail = parsed.detail;
+          else if (Array.isArray(parsed.detail) && parsed.detail[0]?.msg) detail = parsed.detail[0].msg;
+          else if (parsed.message) detail = parsed.message;
           else if (parsed.error?.message) detail = parsed.error.message;
+          else if (typeof parsed.error === "string") detail = parsed.error;
         } catch {
-          /* ignore */
+          if (responseText && responseText.length < 200) detail = responseText;
         }
         // Sanitize error detail to never leak API keys
         const cleanDetail = detail.replace(/nvapi-[a-zA-Z0-9_-]+/g, "[REDACTED_KEY]");

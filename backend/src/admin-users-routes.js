@@ -208,12 +208,12 @@ function mountAdminUsersRoutes(app, { db }) {
       for (const r of rows) {
         rates[r.key] = Number(r.value);
       }
-      if (rates.credits_per_image === undefined) rates.credits_per_image = 2;
-      if (rates.credits_per_video_second === undefined) rates.credits_per_video_second = 5;
       if (rates.cost_image_schnell === undefined) rates.cost_image_schnell = 2;
       if (rates.cost_image_dev === undefined) rates.cost_image_dev = 3;
       if (rates.cost_video_std === undefined) rates.cost_video_std = 5;
       if (rates.cost_video_pro === undefined) rates.cost_video_pro = 8;
+      if (rates.credits_per_image === undefined) rates.credits_per_image = rates.cost_image_schnell;
+      if (rates.credits_per_video_second === undefined) rates.credits_per_video_second = rates.cost_video_std;
       return res.json({ ok: true, rates });
     } catch (e) {
       return res.status(500).json({ ok: false, error: e.message || "Database error." });
@@ -223,15 +223,42 @@ function mountAdminUsersRoutes(app, { db }) {
   // Update credit settings (admin view)
   app.post("/api/admin/credits/rates", requireAdmin, (req, res) => {
     try {
-      const { credits_per_image, credits_per_video_second, cost_image_schnell, cost_image_dev, cost_video_std, cost_video_pro } = req.body;
+      const {
+        credits_per_image,
+        credits_per_video_second,
+        cost_image_schnell,
+        cost_image_dev,
+        cost_video_std,
+        cost_video_pro,
+        costImageSchnell,
+        costImageDev,
+        costVideoStd,
+        costVideoPro,
+        imageRate,
+        videoRate,
+      } = req.body;
+
+      const imgSchnell = cost_image_schnell ?? costImageSchnell ?? imageRate;
+      const imgDev = cost_image_dev ?? costImageDev;
+      const vidStd = cost_video_std ?? costVideoStd ?? videoRate;
+      const vidPro = cost_video_pro ?? costVideoPro;
+
       const stmt = db.prepare("INSERT OR REPLACE INTO credit_settings (key, value) VALUES (?, ?)");
-      
-      if (credits_per_image !== undefined && credits_per_image !== null) stmt.run("credits_per_image", String(credits_per_image));
-      if (credits_per_video_second !== undefined && credits_per_video_second !== null) stmt.run("credits_per_video_second", String(credits_per_video_second));
-      if (cost_image_schnell !== undefined && cost_image_schnell !== null) stmt.run("cost_image_schnell", String(cost_image_schnell));
-      if (cost_image_dev !== undefined && cost_image_dev !== null) stmt.run("cost_image_dev", String(cost_image_dev));
-      if (cost_video_std !== undefined && cost_video_std !== null) stmt.run("cost_video_std", String(cost_video_std));
-      if (cost_video_pro !== undefined && cost_video_pro !== null) stmt.run("cost_video_pro", String(cost_video_pro));
+
+      if (imgSchnell !== undefined && imgSchnell !== null) {
+        stmt.run("cost_image_schnell", String(imgSchnell));
+        stmt.run("credits_per_image", String(imgSchnell));
+      }
+      if (imgDev !== undefined && imgDev !== null) {
+        stmt.run("cost_image_dev", String(imgDev));
+      }
+      if (vidStd !== undefined && vidStd !== null) {
+        stmt.run("cost_video_std", String(vidStd));
+        stmt.run("credits_per_video_second", String(vidStd));
+      }
+      if (vidPro !== undefined && vidPro !== null) {
+        stmt.run("cost_video_pro", String(vidPro));
+      }
 
       return res.json({ ok: true });
     } catch (e) {
@@ -250,13 +277,13 @@ function mountAdminUsersRoutes(app, { db }) {
       return res.json({
         ok: true,
         rates: {
-          credits_per_image: rates.credits_per_image ?? 2,
-          credits_per_video_second: rates.credits_per_video_second ?? 5,
           cost_image_schnell: rates.cost_image_schnell ?? 2,
           cost_image_dev: rates.cost_image_dev ?? 3,
           cost_video_std: rates.cost_video_std ?? 5,
-          cost_video_pro: rates.cost_video_pro ?? 8
-        }
+          cost_video_pro: rates.cost_video_pro ?? 8,
+          credits_per_image: rates.cost_image_schnell ?? rates.credits_per_image ?? 2,
+          credits_per_video_second: rates.cost_video_std ?? rates.credits_per_video_second ?? 5,
+        },
       });
     } catch (e) {
       return res.status(500).json({ ok: false, error: e.message || "Database error." });
@@ -265,15 +292,42 @@ function mountAdminUsersRoutes(app, { db }) {
 
   app.post("/api/admin/rates", requireAdmin, (req, res) => {
     try {
-      const { imageRate, videoRate, costImageSchnell, costImageDev, costVideoStd, costVideoPro } = req.body;
+      const {
+        credits_per_image,
+        credits_per_video_second,
+        cost_image_schnell,
+        cost_image_dev,
+        cost_video_std,
+        cost_video_pro,
+        costImageSchnell,
+        costImageDev,
+        costVideoStd,
+        costVideoPro,
+        imageRate,
+        videoRate,
+      } = req.body;
+
+      const imgSchnell = cost_image_schnell ?? costImageSchnell ?? imageRate;
+      const imgDev = cost_image_dev ?? costImageDev;
+      const vidStd = cost_video_std ?? costVideoStd ?? videoRate;
+      const vidPro = cost_video_pro ?? costVideoPro;
+
       const stmt = db.prepare("INSERT OR REPLACE INTO credit_settings (key, value) VALUES (?, ?)");
-      
-      if (imageRate !== undefined && imageRate !== null) stmt.run("credits_per_image", String(imageRate));
-      if (videoRate !== undefined && videoRate !== null) stmt.run("credits_per_video_second", String(videoRate));
-      if (costImageSchnell !== undefined && costImageSchnell !== null) stmt.run("cost_image_schnell", String(costImageSchnell));
-      if (costImageDev !== undefined && costImageDev !== null) stmt.run("cost_image_dev", String(costImageDev));
-      if (costVideoStd !== undefined && costVideoStd !== null) stmt.run("cost_video_std", String(costVideoStd));
-      if (costVideoPro !== undefined && costVideoPro !== null) stmt.run("cost_video_pro", String(costVideoPro));
+
+      if (imgSchnell !== undefined && imgSchnell !== null) {
+        stmt.run("cost_image_schnell", String(imgSchnell));
+        stmt.run("credits_per_image", String(imgSchnell));
+      }
+      if (imgDev !== undefined && imgDev !== null) {
+        stmt.run("cost_image_dev", String(imgDev));
+      }
+      if (vidStd !== undefined && vidStd !== null) {
+        stmt.run("cost_video_std", String(vidStd));
+        stmt.run("credits_per_video_second", String(vidStd));
+      }
+      if (vidPro !== undefined && vidPro !== null) {
+        stmt.run("cost_video_pro", String(vidPro));
+      }
 
       return res.json({ ok: true });
     } catch (e) {
@@ -348,14 +402,16 @@ function mountAdminUsersRoutes(app, { db }) {
       const unverifiedUsers = db.prepare("SELECT COUNT(*) as c FROM users WHERE email_verified = 0").get().c;
       const activeUsers = totalUsers - suspendedUsers;
 
-      // Revenue stats from payments table
+      // Revenue stats from payments table (only actual captured Razorpay gateway payments, excluding simulated test data)
       let totalRevenueINR = 0;
       let successfulPaymentsCount = 0;
       try {
-        const payRow = db.prepare("SELECT COALESCE(SUM(amount), 0) as total, COUNT(*) as c FROM payments WHERE status = 'captured' OR status = 'paid' OR status = 'success'").get();
-        totalRevenueINR = payRow?.total || 0;
+        const payRow = db.prepare("SELECT COALESCE(SUM(amount_paise), 0) as total_paise, COUNT(*) as c FROM payments WHERE LOWER(status) IN ('captured', 'credited', 'verified', 'paid', 'success') AND razorpay_payment_id IS NOT NULL AND razorpay_payment_id != '' AND razorpay_payment_id NOT LIKE 'pay_sim_%'").get();
+        totalRevenueINR = Math.round((payRow?.total_paise || 0) / 100);
         successfulPaymentsCount = payRow?.c || 0;
-      } catch {}
+      } catch (err) {
+        console.error("[admin/overview-stats] revenue query error:", err.message);
+      }
 
       // Support tickets stats
       let openTickets = 0;

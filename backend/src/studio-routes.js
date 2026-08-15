@@ -6,6 +6,7 @@
 const crypto = require("node:crypto");
 const path = require("node:path");
 const { verifyUserToken } = require("./auth");
+const { getImageConfig, getVideoConfig } = require("./config");
 const { ImageGenerationService } = require("./services/image-generation-service");
 const { VideoGenerationService } = require("./services/video-generation-service");
 
@@ -56,32 +57,30 @@ function publicBaseUrlFromRequest(req) {
 
 function isSafeExternalUrl(urlStr) {
   if (typeof urlStr !== "string" || !urlStr.trim()) return false;
+  const trimmed = urlStr.trim();
+  if (trimmed.startsWith("data:") || trimmed.startsWith("/")) return true;
   try {
-    const parsed = new URL(urlStr.trim());
-    if (parsed.protocol !== "https:") return false;
-    const host = parsed.hostname.toLowerCase();
-    if (
-      host === "localhost" ||
-      host.endsWith(".local") ||
-      host.endsWith(".internal") ||
-      host === "127.0.0.1" ||
-      host === "0.0.0.0" ||
-      host === "::1" ||
-      host.startsWith("169.254.") ||
-      host.startsWith("10.") ||
-      host.startsWith("192.168.") ||
-      /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(host)
-    ) {
-      return false;
-    }
-    return true;
+    const parsed = new URL(trimmed);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function isAcceptableStudioReferenceUrl(urlStr) {
+  if (typeof urlStr !== "string" || !urlStr.trim()) return false;
+  const trimmed = urlStr.trim();
+  if (trimmed.startsWith("data:") || trimmed.startsWith("/")) return true;
+  try {
+    const parsed = new URL(trimmed);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
   } catch {
     return false;
   }
 }
 
 function isAcceptableStudioImageReferenceUrl(url) {
-  return isSafeExternalUrl(url);
+  return isAcceptableStudioReferenceUrl(url);
 }
 
 function safeUpstreamDetails(json) {
@@ -129,96 +128,7 @@ function snapToNvidiaDim(val) {
   return best;
 }
 
-function getFreshStudioKey() {
-  const fs = require("node:fs");
-  const path = require("node:path");
-  try {
-    const envPath = path.resolve(__dirname, "..", "..", ".env");
-    if (fs.existsSync(envPath)) {
-      const content = fs.readFileSync(envPath, "utf8");
-      const lines = content.split("\n");
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (
-          trimmed.startsWith("QWEN_API_KEY=") ||
-          trimmed.startsWith("STUDIO_QWEN_API_KEY=") ||
-          trimmed.startsWith("STUDIO_IMAGE_API_KEY=")
-        ) {
-          const parts = trimmed.split("=");
-          const val = parts.slice(1).join("=").trim().replace(/^["']|["']$/g, "");
-          if (val) return val;
-        }
-      }
-    }
-  } catch (e) {}
 
-  return (
-    process.env.QWEN_API_KEY ||
-    process.env.STUDIO_QWEN_API_KEY ||
-    process.env.STUDIO_IMAGE_API_KEY ||
-    process.env.NVIDIA_GENAI_API_KEY ||
-    process.env.NVIDIA_API_KEY ||
-    process.env.NVAPI_KEY ||
-    ""
-  ).trim();
-}
-
-async function generateNvidiaImage({ prompt, width, height }) {
-  const key = getFreshStudioKey();
-  if (!key) throw new Error("No Qwen / Studio API key configured.");
-
-  const nvW = snapToNvidiaDim(width || 1024);
-  const nvH = snapToNvidiaDim(height || 1024);
-
-  const res = await fetch("https://ai.api.nvidia.com/v1/genai/black-forest-labs/flux.2-klein-4b", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${key}`,
-      "Accept": "application/json",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      prompt,
-      width: nvW,
-      height: nvH,
-      seed: Math.floor(Math.random() * 1000000),
-      steps: 4,
-    }),
-  });
-
-  const text = await res.text();
-  if (!res.ok) {
-    let detail = text.slice(0, 300);
-    try {
-      const j = JSON.parse(text);
-      if (j.message) detail = j.message;
-    } catch {}
-    throw new Error(`NVIDIA GenAI returned HTTP ${res.status}: ${detail}`);
-  }
-
-  const json = JSON.parse(text);
-
-  if (Array.isArray(json.artifacts) && json.artifacts.length > 0) {
-    const art = json.artifacts[0];
-    if (art.finishReason === "CONTENT_FILTERED") {
-      throw new Error("The prompt was blocked by safety filters. Please refine your prompt and try again.");
-    }
-    if (art.base64) {
-      return art.base64.startsWith("data:") ? art.base64 : `data:image/jpeg;base64,${art.base64}`;
-    }
-    if (art.b64_json) {
-      return art.b64_json.startsWith("data:") ? art.b64_json : `data:image/jpeg;base64,${art.b64_json}`;
-    }
-  }
-
-  if (json.b64_json) {
-    return json.b64_json.startsWith("data:") ? json.b64_json : `data:image/jpeg;base64,${json.b64_json}`;
-  }
-
-  const finish = json.artifacts?.[0]?.finishReason;
-  const detail = finish ? `Filter status: ${finish}` : (json.message || json.detail || text.slice(0, 150));
-  throw new Error(`Generation service returned no valid image (${detail}).`);
-}
 
 /**
  * @param {import("express").Express} app
@@ -411,35 +321,80 @@ function mountStudioRoutes(app, options) {
 
   setInterval(checkPendingTasks, 15000).unref?.();
 
-  app.post("/api/studio/reference-upload", requireUser, upload.single("image"), (req, res) => {
-    try {
-      const file = req.file;
-      if (!file?.buffer) {
-        return res.status(400).json({ ok: false, error: "Missing image file." });
+  app.post(
+    "/api/studio/reference-upload",
+    requireUser,
+    upload.fields([
+      { name: "file", maxCount: 1 },
+      { name: "image", maxCount: 1 },
+      { name: "video", maxCount: 1 },
+      { name: "reference", maxCount: 1 },
+    ]),
+    (req, res) => {
+      try {
+        const file =
+          req.file ||
+          req.files?.file?.[0] ||
+          req.files?.image?.[0] ||
+          req.files?.video?.[0] ||
+          req.files?.reference?.[0];
+
+        if (!file?.buffer) {
+          return res.status(400).json({ ok: false, error: "Missing reference file." });
+        }
+        const origName = String(file.originalname || "").toLowerCase();
+        let mime = String(file.mimetype || "").toLowerCase();
+
+        if (mime === "application/octet-stream" || !mime) {
+          if (/\.(jpg|jpeg)$/.test(origName)) mime = "image/jpeg";
+          else if (/\.png$/.test(origName)) mime = "image/png";
+          else if (/\.webp$/.test(origName)) mime = "image/webp";
+          else if (/\.mp4$/.test(origName)) mime = "video/mp4";
+          else if (/\.webm$/.test(origName)) mime = "video/webm";
+          else if (/\.(mov|qt)$/.test(origName)) mime = "video/quicktime";
+        }
+
+        let refType = null;
+        if (/^image\/(jpeg|jpg|png|webp)$/.test(mime)) {
+          refType = "image";
+        } else if (/^video\/(mp4|webm|quicktime|x-matroska|mpeg|avi)$/.test(mime)) {
+          refType = "video";
+        } else {
+          return res.status(400).json({
+            ok: false,
+            error: "Unsupported file format. Please upload a valid image (JPEG, PNG, WebP) or video (MP4, WebM, MOV).",
+          });
+        }
+
+        const maxImgSize = 20 * 1024 * 1024;
+        const maxVidSize = 50 * 1024 * 1024;
+        if (refType === "image" && file.size > maxImgSize) {
+          return res.status(400).json({ ok: false, error: "Image reference file exceeds 20MB limit." });
+        }
+        if (refType === "video" && file.size > maxVidSize) {
+          return res.status(400).json({ ok: false, error: "Video reference file exceeds 50MB limit." });
+        }
+
+        const id = crypto.randomBytes(24).toString("hex");
+        const expires = Date.now() + STUDIO_REF_TTL_MS;
+        studioReferenceImages.set(id, { buffer: file.buffer, mime, type: refType, expires });
+        const base = publicBaseUrlFromRequest(req);
+        if (!base) {
+          studioReferenceImages.delete(id);
+          return res.status(503).json({
+            ok: false,
+            error:
+              "Could not determine public URL for this upload. Set PUBLIC_BASE_URL (e.g. https://yourdomain.com) for production.",
+          });
+        }
+        const url = `${base}/api/studio/reference/${id}`;
+        return res.json({ ok: true, url, type: refType });
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "Server error.";
+        return res.status(500).json({ ok: false, error: msg });
       }
-      const mime = String(file.mimetype || "");
-      if (!/^image\/(jpeg|png|webp)$/.test(mime)) {
-        return res.status(400).json({ ok: false, error: "Only JPEG, PNG, or WebP are allowed." });
-      }
-      const id = crypto.randomBytes(24).toString("hex");
-      const expires = Date.now() + STUDIO_REF_TTL_MS;
-      studioReferenceImages.set(id, { buffer: file.buffer, mime, expires });
-      const base = publicBaseUrlFromRequest(req);
-      if (!base) {
-        studioReferenceImages.delete(id);
-        return res.status(503).json({
-          ok: false,
-          error:
-            "Could not determine public URL for this upload. Set PUBLIC_BASE_URL (e.g. https://yourdomain.com) for production.",
-        });
-      }
-      const url = `${base}/api/studio/reference/${id}`;
-      return res.json({ ok: true, url });
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "Server error.";
-      return res.status(500).json({ ok: false, error: msg });
     }
-  });
+  );
 
   app.get("/api/studio/reference/:id", (req, res) => {
     const id = String(req.params.id || "");
@@ -504,6 +459,16 @@ function mountStudioRoutes(app, options) {
     const costSetting = db.prepare("SELECT value FROM credit_settings WHERE key = ?").get(costKey)
       || db.prepare("SELECT value FROM credit_settings WHERE key = 'credits_per_image'").get();
     const finalCost = costSetting ? Number(costSetting.value) : (quality === "Standard" ? 2 : 3);
+
+    const targetTier = (qualityRaw === "standard" || qualityRaw === "fast" || modelRaw.includes("schnell")) ? "standard" : "premium";
+    const engineConfig = getImageConfig(targetTier);
+
+    if (!engineConfig.apiKey) {
+      return res.status(503).json({
+        ok: false,
+        error: `RUHGEN ${engineConfig.tier === 'standard' ? 'Standard' : 'Premium'} Image Engine is currently undergoing maintenance. Please try again shortly.`
+      });
+    }
 
     // Validate balance and eligibility
     const userRow = db.prepare("SELECT credits, suspended, generation_disabled FROM users WHERE id = ?").get(req.user.sub);
@@ -593,8 +558,13 @@ function mountStudioRoutes(app, options) {
       typeof req.body?.negative_prompt === "string" ? req.body.negative_prompt.trim().slice(0, 2500) : "";
 
     const image_url = typeof req.body?.image_url === "string" ? req.body.image_url.trim() : "";
-    if (image_url && !isAcceptableStudioImageReferenceUrl(image_url)) {
-      return res.status(400).json({ ok: false, error: "Invalid reference image URL (use HTTPS, public URL)." });
+    const video_url = typeof req.body?.video_url === "string" ? req.body.video_url.trim() : "";
+    const reference_url = typeof req.body?.reference_url === "string" ? req.body.reference_url.trim() : "";
+    const reference_type = typeof req.body?.reference_type === "string" ? req.body.reference_type.trim().toLowerCase() : "";
+
+    const activeRefUrl = video_url || image_url || reference_url;
+    if (activeRefUrl && !isAcceptableStudioReferenceUrl(activeRefUrl)) {
+      return res.status(400).json({ ok: false, error: "Invalid reference URL (use HTTPS, public URL)." });
     }
 
     // Quality specific credit costs
@@ -603,6 +573,16 @@ function mountStudioRoutes(app, options) {
       || db.prepare("SELECT value FROM credit_settings WHERE key = 'credits_per_video_second'").get();
     const perSecond = costSetting ? Number(costSetting.value) : (mode === "pro" ? 8 : 5);
     const finalCost = perSecond * dur;
+
+    const targetTier = (qualityRaw === "standard" || modeRaw === "std" || qualityRaw === "fast") ? "standard" : "premium";
+    const engineConfig = getVideoConfig(targetTier);
+
+    if (!engineConfig.apiKey || !engineConfig.apiUrl) {
+      return res.status(503).json({
+        ok: false,
+        error: `RUHGEN ${engineConfig.tier === 'standard' ? 'Standard' : 'Premium'} Video Engine is currently undergoing maintenance. Please try again shortly.`
+      });
+    }
 
     // Validate balance and eligibility
     const userRow = db.prepare("SELECT credits, suspended, generation_disabled FROM users WHERE id = ?").get(req.user.sub);
@@ -635,28 +615,41 @@ function mountStudioRoutes(app, options) {
         mode,
         negative_prompt,
         image_url,
+        video_url,
+        reference_url,
+        reference_type,
       });
 
       const taskId = taskResult.taskId;
+      const initialStatus = taskResult.syncUrls ? "completed" : "pending";
+      const details = {
+        prompt,
+        duration: dur,
+        aspect_ratio,
+        quality,
+        tier: taskResult.tier,
+        model: taskResult.model,
+        negative_prompt,
+        image_url,
+        video_url,
+        reference_url,
+        reference_type,
+        kind: "video",
+      };
+      if (taskResult.syncUrls) {
+        details.urls = taskResult.syncUrls;
+      }
+
       db.prepare(`
         INSERT INTO studio_tasks (id, user_id, type, credits, status, created_at, details_json)
-        VALUES (?, ?, 'video', ?, 'pending', ?, ?)
+        VALUES (?, ?, 'video', ?, ?, ?, ?)
       `).run(
         taskId,
         req.user.sub,
         finalCost,
+        initialStatus,
         new Date().toISOString(),
-        JSON.stringify({
-          prompt,
-          duration: dur,
-          aspect_ratio,
-          quality,
-          tier: taskResult.tier,
-          model: taskResult.model,
-          negative_prompt,
-          image_url,
-          kind: "video"
-        })
+        JSON.stringify(details)
       );
 
       deductCredits(req.user.sub, finalCost, "video_generation", `Video generation (${taskResult.tier})`, { taskId });
@@ -921,17 +914,56 @@ function mountStudioRoutes(app, options) {
 
   async function proxyDownload(req, res, fallbackName, fallbackCt) {
     try {
-      const url = typeof req.body?.url === "string" ? req.body.url.trim() : "";
-      if (!isSafeExternalUrl(url)) {
-        return res.status(400).json({ ok: false, error: "Invalid or unsafe URL." });
+      const rawUrl = typeof req.body?.url === "string" ? req.body.url.trim() : "";
+      if (!rawUrl) {
+        return res.status(400).json({ ok: false, error: "Missing media URL." });
       }
-      const upstream = await fetch(url);
+
+      // 1. Handle base64 Data URIs directly
+      if (rawUrl.startsWith("data:")) {
+        const match = /^data:([^;]+);base64,(.+)$/.exec(rawUrl);
+        if (!match) {
+          return res.status(400).json({ ok: false, error: "Invalid base64 payload." });
+        }
+        const mime = match[1] || fallbackCt;
+        const buf = Buffer.from(match[2], "base64");
+        res.setHeader("Content-Type", mime);
+        res.setHeader("Content-Disposition", `attachment; filename="${fallbackName}"`);
+        return res.send(buf);
+      }
+
+      // 2. Resolve relative URLs or absolute URLs
+      let fetchUrl = rawUrl;
+      if (rawUrl.startsWith("/")) {
+        const base = publicBaseUrlFromRequest(req) || "http://localhost:4000";
+        fetchUrl = `${base}${rawUrl}`;
+      } else {
+        try {
+          const parsed = new URL(rawUrl);
+          if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+            return res.status(400).json({ ok: false, error: "Invalid URL scheme." });
+          }
+        } catch {
+          return res.status(400).json({ ok: false, error: "Invalid URL format." });
+        }
+      }
+
+      const upstream = await fetch(fetchUrl);
       if (!upstream.ok) {
         return res.status(502).json({ ok: false, error: "Could not fetch remote file." });
       }
       const buf = Buffer.from(await upstream.arrayBuffer());
-      let name = path.basename(new URL(url).pathname) || fallbackName;
-      if (!/\.[a-zA-Z0-9]{2,8}$/.test(name)) name = fallbackName;
+      let name = fallbackName;
+      try {
+        const pathName = new URL(fetchUrl).pathname;
+        const baseSeg = path.basename(pathName);
+        if (baseSeg && /\.[a-zA-Z0-9]{2,8}$/.test(baseSeg)) {
+          name = baseSeg;
+        }
+      } catch {
+        /* ignore */
+      }
+
       const ct = upstream.headers.get("content-type") || fallbackCt;
       res.setHeader("Content-Type", ct);
       res.setHeader("Content-Disposition", `attachment; filename="${name.replace(/[^a-zA-Z0-9._-]/g, "_")}"`);

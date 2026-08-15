@@ -1,3 +1,4 @@
+// Reloaded with Live Razorpay Credentials
 require("dotenv").config({ path: require("node:path").join(__dirname, "..", "..", ".env") });
 require("dotenv").config({ path: require("node:path").join(__dirname, "..", "..", ".env.local") });
 
@@ -40,7 +41,7 @@ const MAX_SHOWCASE_VIDEO_BYTES = 22 * 1024 * 1024;
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 50 * 1024 * 1024 },
+  limits: { fileSize: 500 * 1024 * 1024 }, // 500 MB for video uploads
 });
 
 const app = express();
@@ -61,12 +62,38 @@ app.use(
     credentials: true,
   })
 );
-app.use(express.json({ limit: "4mb" }));
+app.use(
+  express.json({
+    limit: "4mb",
+    verify: (req, _res, buf) => {
+      req.rawBody = buf ? buf.toString("utf8") : "";
+    },
+  })
+);
 app.use(requestLogger);
 app.use("/api/", apiLimiter);
 app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/register", authLimiter);
 app.use("/api/admin/auth/login", authLimiter);
+
+// --- Static Media Serving with Video Streaming Header Support ---
+const mediaStaticOptions = {
+  acceptRanges: true,
+  setHeaders: (res, filePath) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Range, Authorization");
+    const lower = filePath.toLowerCase();
+    if (lower.endsWith(".mov") || lower.endsWith(".mp4") || lower.endsWith(".m4v") || lower.endsWith(".mkv")) {
+      res.setHeader("Content-Type", "video/mp4");
+    } else if (lower.endsWith(".webm")) {
+      res.setHeader("Content-Type", "video/webm");
+    }
+  },
+};
+
+app.use("/media", express.static(MEDIA_ROOT, mediaStaticOptions));
+app.use("/media", express.static(PUBLIC_MEDIA_ROOT, mediaStaticOptions));
 
 // --- Health Check ---
 app.get("/api/health", (_req, res) => {

@@ -92,6 +92,7 @@ type ChatMsg = UserMsg | AssistantMsg;
 
 type PersistedChat = {
   v: 1;
+  timestamp?: number;
   messages: Array<
     | (Omit<UserMsg, "role"> & { role: "user" })
     | (Omit<AssistantMsg, "loading"> & { role: "assistant"; loading: false })
@@ -273,14 +274,12 @@ export default function ImageStudioClient() {
   useEffect(() => {
     if (!user?.id || typeof window === "undefined") return;
     try {
-      const raw = localStorage.getItem(`${CHAT_STORAGE_PREFIX}${user.id}`);
-      if (raw) {
-        const parsed = JSON.parse(raw) as PersistedChat;
-        if (parsed?.v === 1 && Array.isArray(parsed.messages)) setMessages(hydrateMessages(parsed.messages));
-      }
+      const key = `${CHAT_STORAGE_PREFIX}${user.id}`;
+      localStorage.removeItem(key);
     } catch {
       /* ignore */
     }
+    setMessages([]);
     setHistoryLoaded(true);
   }, [user?.id]);
 
@@ -296,21 +295,6 @@ export default function ImageStudioClient() {
       }
     }
   }, []);
-
-  useEffect(() => {
-    if (!user?.id || !historyLoaded) return;
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => {
-      try {
-        localStorage.setItem(`${CHAT_STORAGE_PREFIX}${user.id}`, JSON.stringify({ v: 1, messages: sanitizeForStorage(messages) }));
-      } catch {
-        /* quota */
-      }
-    }, 400);
-    return () => {
-      if (saveTimer.current) clearTimeout(saveTimer.current);
-    };
-  }, [messages, user?.id, historyLoaded]);
 
   const galleryItems = useMemo(() => {
     const out: { key: string; src: string; msgId: string; idx: number }[] = [];

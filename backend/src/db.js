@@ -14,7 +14,7 @@ const { hashPassword } = require("./auth");
 function resolveDataDirs(projectRoot) {
   const backendRoot = path.resolve(__dirname, "..");
   const fromEnv = process.env.DATA_DIR && String(process.env.DATA_DIR).trim();
-  const dataDir = fromEnv ? path.resolve(fromEnv) : path.join(backendRoot, "data");
+  const dataDir = fromEnv ? path.resolve(projectRoot, fromEnv) : path.join(backendRoot, "data");
   return { dataDir, backendRoot };
 }
 
@@ -190,6 +190,61 @@ function openDb(projectRoot) {
       created_at TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS academy_courses (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      description TEXT NOT NULL DEFAULT '',
+      thumbnail_url TEXT NOT NULL DEFAULT '',
+      category TEXT NOT NULL DEFAULT '',
+      subcategory TEXT NOT NULL DEFAULT '',
+      tags TEXT NOT NULL DEFAULT '[]',
+      difficulty TEXT NOT NULL DEFAULT 'Beginner',
+      premium INTEGER NOT NULL DEFAULT 0,
+      status TEXT NOT NULL DEFAULT 'published',
+      display_order INTEGER NOT NULL DEFAULT 0,
+      instructor TEXT NOT NULL DEFAULT 'RUHGEN Masterclass',
+      views INTEGER NOT NULL DEFAULT 0,
+      likes INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS academy_categories (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      slug TEXT NOT NULL UNIQUE,
+      description TEXT DEFAULT '',
+      display_order INTEGER DEFAULT 0,
+      created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS academy_subcategories (
+      id TEXT PRIMARY KEY,
+      category_id TEXT NOT NULL,
+      name TEXT NOT NULL,
+      slug TEXT NOT NULL,
+      description TEXT DEFAULT '',
+      display_order INTEGER DEFAULT 0,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (category_id) REFERENCES academy_categories(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS academy_views (
+      content_id TEXT NOT NULL,
+      content_type TEXT NOT NULL DEFAULT 'tutorial',
+      viewer_key TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      PRIMARY KEY (content_id, content_type, viewer_key)
+    );
+
+    CREATE TABLE IF NOT EXISTS academy_likes (
+      content_id TEXT NOT NULL,
+      content_type TEXT NOT NULL DEFAULT 'tutorial',
+      viewer_key TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      PRIMARY KEY (content_id, content_type, viewer_key)
+    );
+
     CREATE TABLE IF NOT EXISTS faqs (
       id TEXT PRIMARY KEY,
       category TEXT NOT NULL,
@@ -326,24 +381,122 @@ function openDb(projectRoot) {
     -- ── Razorpay Payment Records ─────────────────────────────────────────
     CREATE TABLE IF NOT EXISTS payments (
       id TEXT PRIMARY KEY,
+      internal_transaction_id TEXT DEFAULT NULL,
       user_id TEXT NOT NULL,
       razorpay_order_id TEXT NOT NULL UNIQUE,
-      razorpay_payment_id TEXT DEFAULT NULL,
+      razorpay_payment_id TEXT UNIQUE DEFAULT NULL,
+      razorpay_signature TEXT DEFAULT NULL,
       plan_id TEXT NOT NULL,
+      plan_name_snapshot TEXT NOT NULL DEFAULT '',
       amount_paise INTEGER NOT NULL,
       currency TEXT NOT NULL DEFAULT 'INR',
-      status TEXT NOT NULL DEFAULT 'created',
+      credits_to_grant INTEGER NOT NULL DEFAULT 0,
+      status TEXT NOT NULL DEFAULT 'CREATED',
+      payment_method TEXT DEFAULT NULL,
+      payment_method_metadata TEXT DEFAULT '{}',
+      failure_reason TEXT DEFAULT NULL,
+      failure_code TEXT DEFAULT NULL,
       created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      paid_at TEXT DEFAULT NULL,
+      verified_at TEXT DEFAULT NULL,
+      credited_at TEXT DEFAULT NULL,
       captured_at TEXT DEFAULT NULL,
       metadata_json TEXT NOT NULL DEFAULT '{}',
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
+  `);
+
+  // Migrate payments table columns if existing DB schema is older
+  const payCols = db.pragma("table_info(payments)");
+  const addPayCol = (name, def) => {
+    if (!payCols.some((c) => c.name === name)) {
+      try {
+        db.exec(`ALTER TABLE payments ADD COLUMN ${name} ${def}`);
+        console.log(`[db] Added ${name} column to payments table`);
+      } catch (err) {
+        console.error(`[db] Failed to add ${name} to payments:`, err.message);
+      }
+    }
+  };
+
+  addPayCol("internal_transaction_id", "TEXT DEFAULT NULL");
+  addPayCol("plan_name_snapshot", "TEXT NOT NULL DEFAULT ''");
+  addPayCol("credits_to_grant", "INTEGER NOT NULL DEFAULT 0");
+  addPayCol("razorpay_signature", "TEXT DEFAULT NULL");
+  addPayCol("payment_method", "TEXT DEFAULT NULL");
+  addPayCol("payment_method_metadata", "TEXT DEFAULT '{}'");
+  addPayCol("failure_reason", "TEXT DEFAULT NULL");
+  addPayCol("failure_code", "TEXT DEFAULT NULL");
+  addPayCol("updated_at", "TEXT DEFAULT ''");
+  addPayCol("paid_at", "TEXT DEFAULT NULL");
+  addPayCol("verified_at", "TEXT DEFAULT NULL");
+  addPayCol("credited_at", "TEXT DEFAULT NULL");
+
+  // Backfill internal_transaction_id for legacy records
+  const legacyNoTx = db
+    .prepare("SELECT id, created_at FROM payments WHERE internal_transaction_id IS NULL OR internal_transaction_id = ''")
+    .all();
+  if (legacyNoTx.length > 0) {
+    const stmt = db.prepare("UPDATE payments SET internal_transaction_id = ?, updated_at = ? WHERE id = ?");
+    for (const r of legacyNoTx) {
+      const txId = `TXN-${Date.now()}-${r.id.slice(0, 8).toUpperCase()}`;
+      stmt.run(txId, new Date().toISOString(), r.id);
+    }
+    console.log(`[db] Backfilled internal_transaction_id for ${legacyNoTx.length} legacy payment records`);
+  }
+
+  // Create payment indexes safely
+  db.exec(`
     CREATE INDEX IF NOT EXISTS idx_payments_user_created
       ON payments (user_id, created_at DESC);
     CREATE INDEX IF NOT EXISTS idx_payments_status_created
       ON payments (status, created_at DESC);
     CREATE INDEX IF NOT EXISTS idx_payments_order_id
       ON payments (razorpay_order_id);
+    CREATE INDEX IF NOT EXISTS idx_payments_payment_id
+      ON payments (razorpay_payment_id);
+    CREATE INDEX IF NOT EXISTS idx_payments_internal_tx
+      ON payments (internal_transaction_id);
+
+    -- ── Webhook Events (Idempotency & Reconciliation) ────────────────────
+    CREATE TABLE IF NOT EXISTS webhook_events (
+      event_id TEXT PRIMARY KEY,
+      event_type TEXT NOT NULL,
+      received_at TEXT NOT NULL,
+      payload_hash TEXT NOT NULL DEFAULT '',
+      processing_status TEXT NOT NULL DEFAULT 'processed',
+      processing_result TEXT NOT NULL DEFAULT '',
+      payment_id TEXT DEFAULT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_webhook_events_received
+      ON webhook_events (received_at DESC);
+
+    -- ── Audit Logs for Payment & Admin Operations ───────────────────────
+    CREATE TABLE IF NOT EXISTS payment_audit_logs (
+      id TEXT PRIMARY KEY,
+      actor_id TEXT NOT NULL,
+      actor_type TEXT NOT NULL DEFAULT 'system',
+      action TEXT NOT NULL,
+      target_type TEXT NOT NULL DEFAULT 'payment',
+      target_id TEXT NOT NULL DEFAULT '',
+      transaction_id TEXT DEFAULT NULL,
+      timestamp TEXT NOT NULL,
+      ip_address TEXT DEFAULT NULL,
+      user_agent TEXT DEFAULT NULL,
+      details_json TEXT NOT NULL DEFAULT '{}'
+    );
+    CREATE INDEX IF NOT EXISTS idx_payment_audit_ts
+      ON payment_audit_logs (timestamp DESC);
+    CREATE INDEX IF NOT EXISTS idx_payment_audit_tx
+      ON payment_audit_logs (transaction_id);
+
+    -- ── Admin Payment Configuration Storage ──────────────────────────────
+    CREATE TABLE IF NOT EXISTS admin_payment_settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
 
     -- ── Payment Security / Fraud Logs ────────────────────────────────────
     CREATE TABLE IF NOT EXISTS payment_security_logs (
@@ -403,8 +556,18 @@ function openDb(projectRoot) {
     );
   `);
 
+  // Migrate credit_transactions table columns
+  const credCols = db.pragma("table_info(credit_transactions)");
+  if (!credCols.some((c) => c.name === "reference_type")) {
+    db.exec("ALTER TABLE credit_transactions ADD COLUMN reference_type TEXT NOT NULL DEFAULT 'PAYMENT'");
+  }
+  if (!credCols.some((c) => c.name === "reference_id")) {
+    db.exec("ALTER TABLE credit_transactions ADD COLUMN reference_id TEXT NOT NULL DEFAULT ''");
+  }
+
   // Support tickets table migrations for priority and internal notes
   const ticketCols = db.pragma("table_info(support_tickets)");
+
   if (!ticketCols.some(c => c.name === "priority")) {
     db.exec("ALTER TABLE support_tickets ADD COLUMN priority TEXT NOT NULL DEFAULT 'medium'");
   }
@@ -417,6 +580,26 @@ function openDb(projectRoot) {
   if (!attachCols.some(c => c.name === "original_name")) {
     db.exec("ALTER TABLE support_attachments ADD COLUMN original_name TEXT NOT NULL DEFAULT ''");
   }
+
+  // Academy tutorials column migrations
+  const acadCols = db.pragma("table_info(academy_tutorials)");
+  const addAcadCol = (name, def) => {
+    if (!acadCols.some((c) => c.name === name)) {
+      try {
+        db.exec(`ALTER TABLE academy_tutorials ADD COLUMN ${name} ${def}`);
+        console.log(`[db] Added ${name} column to academy_tutorials table`);
+      } catch (err) {
+        console.error(`[db] Failed to add ${name} to academy_tutorials:`, err.message);
+      }
+    }
+  };
+  addAcadCol("course_id", "TEXT DEFAULT NULL");
+  addAcadCol("video_source", "TEXT NOT NULL DEFAULT 'external'");
+  addAcadCol("subcategory", "TEXT NOT NULL DEFAULT ''");
+  addAcadCol("tags", "TEXT NOT NULL DEFAULT '[]'");
+  addAcadCol("status", "TEXT NOT NULL DEFAULT 'published'");
+  addAcadCol("display_order", "INTEGER NOT NULL DEFAULT 0");
+  addAcadCol("updated_at", "TEXT DEFAULT NULL");
 
   // Seed default rates if not present
   const stmtSetting = db.prepare("INSERT OR IGNORE INTO credit_settings (key, value) VALUES (?, ?)");
@@ -431,6 +614,7 @@ function openDb(projectRoot) {
   migrateLegacyJsonIfEmpty(db, dataDir, projectRoot);
   syncSiteContentFromSeedFile(db, dataDir, projectRoot);
   seedAcademyTutorialsIfEmpty(db);
+  seedAcademyCategoriesAndCoursesIfEmpty(db);
   seedFaqsIfEmpty(db);
   upgradeExistingSiteContent(db);
   ensureAdminFromEnv(db);
@@ -916,7 +1100,7 @@ function upgradeExistingSiteContent(db) {
     data.upcomingFeatures = [];
     changed = true;
   }
-  if (!data.plans || !Array.isArray(data.plans) || data.plans.length < 4 || !data.plans.some(p => p.id === "custom")) {
+  if (!data.plans || !Array.isArray(data.plans) || data.plans.length === 0) {
     data.plans = [
       {
         id: "free",
@@ -1108,6 +1292,86 @@ function seedAcademyTutorialsIfEmpty(db) {
     );
   }
   console.log(`[db] Seeded ${tutorials.length} default tutorials into academy_tutorials.`);
+}
+
+function seedAcademyCategoriesAndCoursesIfEmpty(db) {
+  const now = new Date().toISOString();
+
+  // 1. Seed Categories & Subcategories
+  const catCount = db.prepare("SELECT COUNT(*) AS c FROM academy_categories").get().c;
+  if (catCount === 0) {
+    const categories = [
+      { id: "cat-features", name: "Feature Understanding", slug: "features", description: "Deep dives into core platform capabilities and settings.", order: 1 },
+      { id: "cat-courses", name: "Courses", slug: "courses", description: "Comprehensive, multi-lesson structured learning paths.", order: 2 },
+      { id: "cat-masterclasses", name: "Masterclasses", slug: "masterclasses", description: "Advanced techniques taught by industry experts.", order: 3 },
+      { id: "cat-workflows", name: "Advanced Workflows", slug: "workflows", description: "End-to-end multi-step pipelines and production blueprints.", order: 4 },
+    ];
+
+    const stmtCat = db.prepare("INSERT INTO academy_categories (id, name, slug, description, display_order, created_at) VALUES (?, ?, ?, ?, ?, ?)");
+    for (const c of categories) {
+      stmtCat.run(c.id, c.name, c.slug, c.description, c.order, now);
+    }
+
+    const subcategories = [
+      { id: "sub-feat-1", category_id: "cat-features", name: "Prompt Engineering", slug: "prompt-engineering", order: 1 },
+      { id: "sub-feat-2", category_id: "cat-features", name: "Aspect Ratios", slug: "aspect-ratios", order: 2 },
+      { id: "sub-feat-3", category_id: "cat-features", name: "Model Selection", slug: "model-selection", order: 3 },
+      { id: "sub-crs-1", category_id: "cat-courses", name: "Generative Fundamentals", slug: "generative-fundamentals", order: 1 },
+      { id: "sub-crs-2", category_id: "cat-courses", name: "Character Design", slug: "character-design", order: 2 },
+      { id: "sub-crs-3", category_id: "cat-courses", name: "Lighting & Composition", slug: "lighting-composition", order: 3 },
+      { id: "sub-mst-1", category_id: "cat-masterclasses", name: "Spatial Rendering", slug: "spatial-rendering", order: 1 },
+      { id: "sub-mst-2", category_id: "cat-masterclasses", name: "Motion & Animation", slug: "motion-animation", order: 2 },
+      { id: "sub-mst-3", category_id: "cat-masterclasses", name: "VFX Pipelines", slug: "vfx-pipelines", order: 3 },
+      { id: "sub-wf-1", category_id: "cat-workflows", name: "Node Automation", slug: "node-automation", order: 1 },
+      { id: "sub-wf-2", category_id: "cat-workflows", name: "Film Production", slug: "film-production", order: 2 },
+      { id: "sub-wf-3", category_id: "cat-workflows", name: "Upscaling & Export", slug: "upscaling-export", order: 3 },
+    ];
+
+    const stmtSub = db.prepare("INSERT INTO academy_subcategories (id, category_id, name, slug, description, display_order, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    for (const s of subcategories) {
+      stmtSub.run(s.id, s.category_id, s.name, s.slug, s.description || "", s.order, now);
+    }
+    console.log("[db] Seeded default academy categories and subcategories.");
+  }
+
+  // 2. Seed Courses
+  const courseCount = db.prepare("SELECT COUNT(*) AS c FROM academy_courses").get().c;
+  if (courseCount === 0) {
+    const courseId = "course-1";
+    db.prepare(`
+      INSERT INTO academy_courses (
+        id, title, description, thumbnail_url, category, subcategory, tags, difficulty, premium, status, display_order, instructor, views, likes, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      courseId,
+      "Generative AI Studio Master Course",
+      "A complete end-to-end structured course taking you from beginner prompt engineering to high-end cinematic production.",
+      "",
+      "courses",
+      "generative-fundamentals",
+      JSON.stringify(["Generative AI", "Production", "Masterclass"]),
+      "Intermediate",
+      0,
+      "published",
+      1,
+      "RUHGEN Founders & VFX Leads",
+      1200,
+      340,
+      now,
+      now
+    );
+    console.log("[db] Seeded default academy course.");
+
+    // Link existing tutorials to subcategories / tags / course if missing
+    try {
+      db.prepare("UPDATE academy_tutorials SET subcategory = 'spatial-rendering', tags = ? WHERE category = 'features' AND (subcategory IS NULL OR subcategory = '')").run(JSON.stringify(["Lighting", "Rendering", "Spatial"]));
+      db.prepare("UPDATE academy_tutorials SET course_id = ?, subcategory = 'character-design', tags = ? WHERE category = 'courses' AND (subcategory IS NULL OR subcategory = '')").run(courseId, JSON.stringify(["Character", "Consistency", "Seed Lock"]));
+      db.prepare("UPDATE academy_tutorials SET subcategory = 'vfx-pipelines', tags = ? WHERE category = 'masterclasses' AND (subcategory IS NULL OR subcategory = '')").run(JSON.stringify(["VFX", "Upscaling", "Aspect Ratio"]));
+      db.prepare("UPDATE academy_tutorials SET course_id = ?, subcategory = 'film-production', tags = ? WHERE category = 'workflows' AND (subcategory IS NULL OR subcategory = '')").run(courseId, JSON.stringify(["Film", "Composition", "Short Film"]));
+    } catch (e) {
+      console.error("[db] Failed updating tutorial subcategories:", e.message);
+    }
+  }
 }
 
 function seedFaqsIfEmpty(db) {

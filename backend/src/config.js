@@ -58,106 +58,95 @@ function parseExpiryMs(val, defaultMs) {
   return num > 1000 ? num * 1000 : num * 60 * 1000;
 }
 
-function getImageConfig(tier = "quality") {
+const TRACKED_ENV_KEYS = [
+  "RUGEN_STANDARD_API_KEY",
+  "RUGEN_STANDARD_API_URL",
+  "RUGEN_STANDARD_MODEL",
+  "RUGEN_PREMIUM_API_KEY",
+  "RUGEN_PREMIUM_API_URL",
+  "RUGEN_PREMIUM_MODEL",
+  "VIDEO_STANDARD_API_KEY",
+  "VIDEO_STANDARD_API_URL",
+  "VIDEO_STANDARD_MODEL",
+  "VIDEO_PREMIUM_API_KEY",
+  "VIDEO_PREMIUM_API_URL",
+  "VIDEO_PREMIUM_MODEL",
+];
+
+function readFreshEnv() {
+  try {
+    const fs = require("node:fs");
+    const path = require("node:path");
+    const envPath = path.resolve(__dirname, "..", "..", ".env");
+    if (fs.existsSync(envPath)) {
+      const content = fs.readFileSync(envPath, "utf8");
+      const lines = content.split("\n");
+      const parsedKeys = new Set();
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith("#")) continue;
+        const eqIdx = trimmed.indexOf("=");
+        if (eqIdx > 0) {
+          const key = trimmed.slice(0, eqIdx).trim();
+          const val = trimmed.slice(eqIdx + 1).trim().replace(/^["']|["']$/g, "");
+          process.env[key] = val;
+          parsedKeys.add(key);
+        }
+      }
+      for (const key of TRACKED_ENV_KEYS) {
+        if (!parsedKeys.has(key)) {
+          delete process.env[key];
+        }
+      }
+    }
+  } catch (e) {
+    /* ignore */
+  }
+}
+
+function getImageConfig(tier = "standard") {
+  readFreshEnv();
+
   const isStandard =
     tier === "standard" || tier === "fast" || tier === "schnell";
 
   if (isStandard) {
-    const apiKey = (
-      process.env.RUGEN_STANDARD_API_KEY ||
-      process.env.QWEN_API_KEY ||
-      process.env.STUDIO_QWEN_API_KEY ||
-      process.env.STUDIO_IMAGE_API_KEY ||
-      process.env.NVIDIA_GENAI_API_KEY ||
-      process.env.NVIDIA_API_KEY ||
-      ""
-    ).trim();
-
+    const apiKey = (process.env.RUGEN_STANDARD_API_KEY || "").trim();
     const apiUrl = (
       process.env.RUGEN_STANDARD_API_URL ||
       "https://ai.api.nvidia.com/v1/genai/black-forest-labs/flux.2-klein-4b"
     ).trim();
-
-    const model = (
-      process.env.RUGEN_STANDARD_MODEL ||
-      "black-forest-labs/flux.2-klein-4b"
-    ).trim();
+    const model = (process.env.RUGEN_STANDARD_MODEL || "flux.2-klein-4b").trim();
 
     return { tier: "standard", apiKey, apiUrl, model };
   } else {
-    const apiKey = (
-      process.env.RUGEN_PREMIUM_API_KEY ||
-      process.env.RUGEN_STANDARD_API_KEY ||
-      process.env.QWEN_API_KEY ||
-      process.env.STUDIO_QWEN_API_KEY ||
-      process.env.STUDIO_IMAGE_API_KEY ||
-      process.env.NVIDIA_GENAI_API_KEY ||
-      process.env.NVIDIA_API_KEY ||
-      ""
-    ).trim();
-
+    const apiKey = (process.env.RUGEN_PREMIUM_API_KEY || "").trim();
     const apiUrl = (
       process.env.RUGEN_PREMIUM_API_URL ||
-      process.env.RUGEN_STANDARD_API_URL ||
       "https://ai.api.nvidia.com/v1/genai/black-forest-labs/flux.2-klein-4b"
     ).trim();
-
-    const model = (
-      process.env.RUGEN_PREMIUM_MODEL ||
-      process.env.RUGEN_STANDARD_MODEL ||
-      "black-forest-labs/flux.2-klein-4b"
-    ).trim();
+    const model = (process.env.RUGEN_PREMIUM_MODEL || "flux.2-klein-4b").trim();
 
     return { tier: "premium", apiKey, apiUrl, model };
   }
 }
 
-function getVideoConfig(tier = "quality") {
+function getVideoConfig(tier = "standard") {
+  readFreshEnv();
+
   const isStandard =
     tier === "standard" || tier === "std" || tier === "fast";
 
   if (isStandard) {
-    const apiKey = (
-      process.env.VIDEO_STANDARD_API_KEY ||
-      process.env.RUGEN_STANDARD_API_KEY ||
-      process.env.QWEN_API_KEY ||
-      ""
-    ).trim();
-
-    const apiUrl = (
-      process.env.VIDEO_STANDARD_API_URL ||
-      process.env.RUGEN_STANDARD_API_URL ||
-      ""
-    ).trim();
-
-    const model = (
-      process.env.VIDEO_STANDARD_MODEL ||
-      "kling-turbo"
-    ).trim();
+    const apiKey = (process.env.VIDEO_STANDARD_API_KEY || "").trim();
+    const apiUrl = (process.env.VIDEO_STANDARD_API_URL || "").trim();
+    const model = (process.env.VIDEO_STANDARD_MODEL || "kling-turbo").trim();
 
     return { tier: "standard", apiKey, apiUrl, model };
   } else {
-    const apiKey = (
-      process.env.VIDEO_PREMIUM_API_KEY ||
-      process.env.VIDEO_STANDARD_API_KEY ||
-      process.env.RUGEN_PREMIUM_API_KEY ||
-      process.env.RUGEN_STANDARD_API_KEY ||
-      process.env.QWEN_API_KEY ||
-      ""
-    ).trim();
-
-    const apiUrl = (
-      process.env.VIDEO_PREMIUM_API_URL ||
-      process.env.VIDEO_STANDARD_API_URL ||
-      process.env.RUGEN_PREMIUM_API_URL ||
-      process.env.RUGEN_STANDARD_API_URL ||
-      ""
-    ).trim();
-
-    const model = (
-      process.env.VIDEO_PREMIUM_MODEL ||
-      "kling-pro"
-    ).trim();
+    const apiKey = (process.env.VIDEO_PREMIUM_API_KEY || "").trim();
+    const apiUrl = (process.env.VIDEO_PREMIUM_API_URL || "").trim();
+    const model = (process.env.VIDEO_PREMIUM_MODEL || "kling-pro").trim();
 
     return { tier: "premium", apiKey, apiUrl, model };
   }

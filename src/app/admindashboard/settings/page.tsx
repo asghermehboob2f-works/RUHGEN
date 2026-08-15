@@ -3,7 +3,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { Eye, EyeOff, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAdminAuth } from "@/components/AdminAuthProvider";
 import type { AdminUser } from "@/lib/admin-auth-storage";
 import {
@@ -28,28 +28,6 @@ function AdminSettingsForm({ admin }: { admin: AdminUser }) {
   const [showNew, setShowNew] = useState(false);
   const [status, setStatus] = useState("");
   const [pending, setPending] = useState(false);
-
-  // Credit Rates states
-  const [imageRate, setImageRate] = useState("2");
-  const [videoRate, setVideoRate] = useState("5");
-  const [rateStatus, setRateStatus] = useState("");
-  const [ratesPending, setRatesPending] = useState(false);
-
-  useEffect(() => {
-    const fetchRates = async () => {
-      try {
-        const res = await fetch("/api/credits/rates");
-        const data = await res.json();
-        if (data.ok && data.rates) {
-          setImageRate(String(data.rates.credits_per_image));
-          setVideoRate(String(data.rates.credits_per_video_second));
-        }
-      } catch (err) {
-        console.error("Error fetching credit rates", err);
-      }
-    };
-    fetchRates();
-  }, []);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,40 +84,6 @@ function AdminSettingsForm({ admin }: { admin: AdminUser }) {
       setStatus("Network error.");
     }
     setPending(false);
-  };
-
-  const onSaveRates = async () => {
-    setRateStatus("");
-    const imgVal = Number(imageRate);
-    const vidVal = Number(videoRate);
-    if (isNaN(imgVal) || imgVal < 0 || isNaN(vidVal) || vidVal < 0) {
-      setRateStatus("Rates must be positive numbers.");
-      return;
-    }
-    setRatesPending(true);
-    try {
-      const h = authHeaders();
-      if (!h.Authorization) {
-        setRateStatus("Sign in again at /admin/login.");
-        setRatesPending(false);
-        return;
-      }
-      const res = await fetch("/api/admin/rates", {
-        method: "POST",
-        headers: { ...h, "content-type": "application/json" },
-        body: JSON.stringify({ imageRate: imgVal, videoRate: vidVal }),
-      });
-      const data = await res.json();
-      if (!data.ok) {
-        setRateStatus(data.error || "Could not save rates.");
-      } else {
-        setRateStatus("Saved credit rates successfully.");
-      }
-    } catch {
-      setRateStatus("Network error.");
-    } finally {
-      setRatesPending(false);
-    }
   };
 
   return (
@@ -290,62 +234,6 @@ function AdminSettingsForm({ admin }: { admin: AdminUser }) {
             </div>
           </ProSettingsCard>
         </motion.form>
-
-        {/* Credit System Rates Settings Card */}
-        <ProSettingsCard>
-          <div className="flex flex-col gap-6">
-            <ProFieldGroup title="Credit System Rates" description="Configure the credit costs for image and video generations.">
-              <div>
-                <ProLabel htmlFor="rate-image">Credits per Image Generation</ProLabel>
-                <input
-                  id="rate-image"
-                  type="number"
-                  value={imageRate}
-                  onChange={(e) => setImageRate(e.target.value)}
-                  className={proInputClass}
-                  style={proInputStyle}
-                />
-              </div>
-              <div>
-                <ProLabel htmlFor="rate-video">Credits per Video Second</ProLabel>
-                <input
-                  id="rate-video"
-                  type="number"
-                  value={videoRate}
-                  onChange={(e) => setVideoRate(e.target.value)}
-                  className={proInputClass}
-                  style={proInputStyle}
-                />
-              </div>
-            </ProFieldGroup>
-
-            {rateStatus && (
-              <p
-                className="text-sm font-medium animate-pulse"
-                style={{ color: rateStatus.includes("successfully") ? "#10B981" : "#FF2E9A" }}
-              >
-                {rateStatus}
-              </p>
-            )}
-
-            <div className="flex pt-2">
-              <motion.button
-                type="button"
-                onClick={onSaveRates}
-                disabled={ratesPending}
-                whileTap={reduce ? undefined : { scale: 0.98 }}
-                className="inline-flex min-h-[48px] items-center justify-center rounded-xl border px-6 text-sm font-semibold disabled:opacity-60"
-                style={{
-                  borderColor: "var(--border-subtle)",
-                  background: "linear-gradient(135deg, #7B61FF 0%, #00D4FF 100%)",
-                  color: "#fff",
-                }}
-              >
-                {ratesPending ? "Saving Rates…" : "Save Rates"}
-              </motion.button>
-            </div>
-          </div>
-        </ProSettingsCard>
       </div>
     </div>
   );

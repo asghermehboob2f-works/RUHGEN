@@ -1,5 +1,6 @@
 import "server-only";
 
+import { connection } from "next/server";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { PUBLIC_DEFAULT_SITE_CONTENT } from "@/backend/site-content/default-content";
@@ -287,8 +288,19 @@ export function applyPublicSiteDefaults(c: SiteContent): SiteContent {
 }
 
 export async function readSiteContent(): Promise<SiteContent> {
+  try {
+    await connection();
+  } catch {
+    /* ignore if called outside request context */
+  }
+
   let fromApi: SiteContent | null = null;
-  const base = process.env.BACKEND_URL?.trim();
+  const base =
+    process.env.BACKEND_URL?.trim() ||
+    process.env.NEXT_PUBLIC_BACKEND_URL?.trim() ||
+    process.env.NEXT_PUBLIC_API_URL?.trim() ||
+    "http://127.0.0.1:4000";
+
   if (base) {
     try {
       const res = await fetch(`${base.replace(/\/$/, "")}/api/admin/content`, {
@@ -310,15 +322,18 @@ export async function readSiteContent(): Promise<SiteContent> {
   const fromDisk = await loadSiteContentFromDisk();
 
   let merged: SiteContent;
-  if (fromApi && fromDisk && isSparseContent(fromApi)) {
-    // SQLite often seeds empty hero/gallery; prefer on-disk JSON (your /media/... paths).
-    merged = fromDisk;
-  } else if (fromApi && !isSparseContent(fromApi)) {
+  if (fromApi && fromDisk) {
+    merged = {
+      ...fromDisk,
+      ...fromApi,
+      gallery: fromApi.gallery?.items && fromApi.gallery.items.length > 0 ? fromApi.gallery : fromDisk.gallery,
+      showcase: fromApi.showcase?.slides && fromApi.showcase.slides.length > 0 ? fromApi.showcase : fromDisk.showcase,
+      plans: fromApi.plans && fromApi.plans.length > 0 ? fromApi.plans : fromDisk.plans,
+    };
+  } else if (fromApi) {
     merged = fromApi;
-  } else if (!fromApi && fromDisk) {
+  } else if (fromDisk) {
     merged = fromDisk;
-  } else if (fromApi && !fromDisk) {
-    merged = fromApi;
   } else {
     merged = PUBLIC_DEFAULT_SITE_CONTENT;
   }

@@ -3,12 +3,12 @@ import { AcademyPageContent } from "@/components/academy";
 import { MarketingShell } from "@/components/MarketingShell";
 
 export const metadata: Metadata = {
-  title: "Academy — RUHGEN",
+  title: "Tutorials — RUHGEN",
   description:
-    "Master generative AI tools, discover proven earning strategies, and access premium courses to scale your creative agency.",
+    "Explore comprehensive video tutorials, masterclasses, and step-by-step guides for mastering generative AI video production.",
 };
 
-export default function AcademyPage() {
+export default function TutorialsPage() {
   return (
     <MarketingShell>
       <main className="flex-1">

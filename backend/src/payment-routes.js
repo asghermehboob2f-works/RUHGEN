@@ -87,9 +87,43 @@ function verifyWebhookSignature(rawBody, signature) {
   }
 }
 
-/** Server-side plan definitions — single source of truth. */
-function getServerPlans() {
-  return [
+/** Server-side plan definitions — single source of truth derived from database. */
+function getServerPlans(db) {
+  let rawPlans = null;
+
+  if (db) {
+    try {
+      const row = db.prepare("SELECT json FROM site_content WHERE id = 1").get();
+      if (row && row.json) {
+        const parsed = JSON.parse(row.json);
+        if (Array.isArray(parsed.plans) && parsed.plans.length > 0) {
+          rawPlans = parsed.plans;
+        }
+      }
+    } catch (e) {
+      console.error("[payment] Error loading plans from DB:", e.message);
+    }
+  }
+
+  if (!rawPlans) {
+    try {
+      const fs = require("node:fs");
+      const path = require("node:path");
+      const primaryPath = path.join(__dirname, "../data/site-content.json");
+      const fallbackPath = path.join(__dirname, "../../data/site-content.json");
+      const targetPath = fs.existsSync(primaryPath) ? primaryPath : fs.existsSync(fallbackPath) ? fallbackPath : null;
+      if (targetPath) {
+        const content = JSON.parse(fs.readFileSync(targetPath, "utf8"));
+        if (Array.isArray(content.plans) && content.plans.length > 0) {
+          rawPlans = content.plans;
+        }
+      }
+    } catch (e) {
+      console.error("[payment] Error loading plans from disk JSON:", e.message);
+    }
+  }
+
+  const defaultPlans = [
     {
       id: "pro",
       name: "Pro",
@@ -187,10 +221,65 @@ function getServerPlans() {
       billing: "yearly"
     }
   ];
+
+  if (!rawPlans || !Array.isArray(rawPlans) || rawPlans.length === 0) {
+    return defaultPlans;
+  }
+
+  const result = [];
+  for (const raw of rawPlans) {
+    if (raw.available === false) continue;
+    if (raw.id === "free" || raw.id === "custom") continue;
+
+    const monthlyPrice = Number(raw.monthlyPrice || 0);
+    const yearlyPrice = Number(raw.yearlyPrice || 0);
+    const credits = Number(raw.credits || 0);
+
+    // 1. Monthly plan variant
+    if (monthlyPrice > 0) {
+      const pricePaise = Math.round(monthlyPrice * 100);
+      result.push({
+        id: raw.id,
+        name: raw.name,
+        description: raw.description || "Advanced image & video generation",
+        price_inr: pricePaise,
+        price_display: `₹${monthlyPrice.toLocaleString("en-IN")}`,
+        credits: credits,
+        features: raw.features || [],
+        badge: raw.badge || null,
+        popular: raw.badge === "Most Popular",
+        billing: "monthly"
+      });
+    }
+
+    // 2. Yearly plan variant
+    if (yearlyPrice > 0) {
+      const yearlyId = raw.id.endsWith("_yearly") ? raw.id : `${raw.id}_yearly`;
+      const pricePaise = Math.round(yearlyPrice * 100);
+      const yearlyCredits = credits * 12;
+      const yearlyFeatures = (raw.features || []).map((f) =>
+        f.includes("Credits Included") ? `${yearlyCredits.toLocaleString("en-IN")} Credits Included` : f
+      );
+      result.push({
+        id: yearlyId,
+        name: raw.name.includes("Yearly") ? raw.name : `${raw.name} (Yearly)`,
+        description: raw.description || "Advanced image & video generation",
+        price_inr: pricePaise,
+        price_display: `₹${yearlyPrice.toLocaleString("en-IN")}`,
+        credits: yearlyCredits,
+        features: yearlyFeatures,
+        badge: raw.badge === "Most Popular" ? "Save 20%" : (raw.badge || "Save 20%"),
+        popular: false,
+        billing: "yearly"
+      });
+    }
+  }
+
+  return result.length > 0 ? result : defaultPlans;
 }
 
-function getPlanById(planId) {
-  return getServerPlans().find((p) => p.id === planId) || null;
+function getPlanById(db, planId) {
+  return getServerPlans(db).find((p) => p.id === planId) || null;
 }
 
 function requireUserAuth(db) {
@@ -257,11 +346,12 @@ function mountPaymentRoutes(app, { db, verifyAdminToken }) {
   app.get("/api/payments/plans", (_req, res) => {
     try {
       const configured = isRazorpayConfigured();
-      const plans = getServerPlans().map((p) => ({
+      const plans = getServerPlans(db).map((p) => ({
         id: p.id,
         name: p.name,
         description: p.description,
         price_display: p.price_display,
+        price_inr: p.price_inr,
         credits: p.credits,
         features: p.features,
         badge: p.badge,
@@ -288,7 +378,7 @@ function mountPaymentRoutes(app, { db, verifyAdminToken }) {
       const planId = typeof req.body?.planId === "string" ? req.body.planId.trim() : "";
       if (!planId) return res.status(400).json({ ok: false, error: "Plan ID is required." });
 
-      const plan = getPlanById(planId);
+      const plan = getPlanById(db, planId);
       if (!plan) return res.status(400).json({ ok: false, error: "Invalid plan selected." });
 
       // Check for very recent pending order for same user+plan (anti-replay)
@@ -332,15 +422,17 @@ function mountPaymentRoutes(app, { db, verifyAdminToken }) {
       const paymentId = crypto.randomUUID();
       db.prepare(
         `INSERT INTO payments
-         (id, user_id, razorpay_order_id, plan_id, amount_paise, currency,
+         (id, user_id, razorpay_order_id, plan_id, plan_name_snapshot, amount_paise, currency, credits_to_grant,
           status, created_at, metadata_json)
-         VALUES (?, ?, ?, ?, ?, 'INR', 'created', ?, ?)`
+         VALUES (?, ?, ?, ?, ?, ?, 'INR', ?, 'created', ?, ?)`
       ).run(
         paymentId,
         req.userId,
         order.id,
         planId,
+        plan.name,
         plan.price_inr,
+        plan.credits,
         new Date().toISOString(),
         JSON.stringify({ planName: plan.name, credits: plan.credits })
       );
@@ -425,7 +517,7 @@ function mountPaymentRoutes(app, { db, verifyAdminToken }) {
       }
 
       // 5. Resolve plan from DB record (never trust frontend input)
-      const plan = getPlanById(payment.plan_id);
+      const plan = getPlanById(db, payment.plan_id);
       if (!plan) {
         return res.status(500).json({ ok: false, error: "Plan configuration error." });
       }
@@ -491,30 +583,37 @@ function mountPaymentRoutes(app, { db, verifyAdminToken }) {
 
       const rows = db
         .prepare(
-          `SELECT id, plan_id, amount_paise, currency, status, created_at, captured_at, metadata_json
+          `SELECT id, internal_transaction_id, plan_id, plan_name_snapshot, amount_paise, currency,
+                  credits_to_grant, status, created_at, paid_at, captured_at, razorpay_order_id, razorpay_payment_id, metadata_json
            FROM payments
-           WHERE user_id = ? AND status != 'created'
+           WHERE user_id = ? AND LOWER(status) NOT IN ('created', 'checkout_started')
            ORDER BY created_at DESC
            LIMIT ? OFFSET ?`
         )
         .all(req.userId, limit, offset);
 
       const total = db
-        .prepare("SELECT COUNT(*) AS c FROM payments WHERE user_id = ? AND status != 'created'")
+        .prepare("SELECT COUNT(*) AS c FROM payments WHERE user_id = ? AND LOWER(status) NOT IN ('created', 'checkout_started')")
         .get(req.userId).c;
+
+      const serverPlans = getServerPlans();
+      const planMap = Object.fromEntries(serverPlans.map((p) => [p.id, p]));
 
       const formatted = rows.map((r) => {
         let meta = {};
         try { meta = JSON.parse(r.metadata_json || "{}"); } catch {}
-        const plan = getPlanById(r.plan_id);
+        const plan = planMap[r.plan_id] || getPlanById(r.plan_id);
         return {
           id: r.id,
+          internalTransactionId: r.internal_transaction_id || r.id,
           planId: r.plan_id,
-          planName: plan?.name || meta.planName || r.plan_id,
+          planName: plan?.name || r.plan_name_snapshot || meta.planName || r.plan_id,
           amountDisplay: plan ? plan.price_display : `₹${((r.amount_paise || 0) / 100).toFixed(0)}`,
-          credits: plan?.credits || meta.credits || 0,
+          credits: r.credits_to_grant || plan?.credits || meta.credits || 0,
           status: r.status,
-          date: r.captured_at || r.created_at,
+          date: r.paid_at || r.captured_at || r.created_at,
+          razorpayOrderId: r.razorpay_order_id,
+          razorpayPaymentId: r.razorpay_payment_id,
         };
       });
 
@@ -648,7 +747,7 @@ function mountPaymentRoutes(app, { db, verifyAdminToken }) {
           userName: r.user_name || "—",
           planId: r.plan_id,
           planName: plan?.name || r.plan_id,
-          amountDisplay: plan?.price_display || `₹${((r.amount_paise || 0) / 100).toFixed(0)}`,
+          amountDisplay: `₹${((r.amount_paise || 0) / 100).toLocaleString("en-IN")}`,
           credits: plan?.credits || 0,
           status: r.status,
           razorpayOrderId: r.razorpay_order_id,
@@ -661,9 +760,9 @@ function mountPaymentRoutes(app, { db, verifyAdminToken }) {
         .prepare(
           `SELECT
              COUNT(*) AS total,
-             SUM(CASE WHEN status = 'captured' THEN 1 ELSE 0 END) AS successful,
-             SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) AS failed,
-             SUM(CASE WHEN status = 'captured' THEN amount_paise ELSE 0 END) AS total_paise
+             SUM(CASE WHEN LOWER(status) IN ('credited', 'captured', 'verified', 'paid', 'success') AND razorpay_payment_id IS NOT NULL AND razorpay_payment_id != '' AND razorpay_payment_id NOT LIKE 'pay_sim_%' THEN 1 ELSE 0 END) AS successful,
+             SUM(CASE WHEN LOWER(status) IN ('failed') THEN 1 ELSE 0 END) AS failed,
+             SUM(CASE WHEN LOWER(status) IN ('credited', 'captured', 'verified', 'paid', 'success') AND razorpay_payment_id IS NOT NULL AND razorpay_payment_id != '' AND razorpay_payment_id NOT LIKE 'pay_sim_%' THEN amount_paise ELSE 0 END) AS total_paise
            FROM payments`
         )
         .get();
@@ -675,10 +774,10 @@ function mountPaymentRoutes(app, { db, verifyAdminToken }) {
         page,
         limit,
         analytics: {
-          totalTransactions: analytics.total,
-          successfulPayments: analytics.successful,
-          failedPayments: analytics.failed,
-          totalRevenue: `₹${((analytics.total_paise || 0) / 100).toFixed(0)}`,
+          totalTransactions: analytics.total || 0,
+          successfulPayments: analytics.successful || 0,
+          failedPayments: analytics.failed || 0,
+          totalRevenue: `₹${(((analytics.total_paise || 0) / 100)).toLocaleString("en-IN")}`,
         },
       });
     } catch (e) {
@@ -690,12 +789,35 @@ function mountPaymentRoutes(app, { db, verifyAdminToken }) {
   // ─── ADMIN: Revenue Analytics ────────────────────────────────────────────
   app.get("/api/admin/payments/analytics", authAdmin, (req, res) => {
     try {
+      const summary = db
+        .prepare(
+          `SELECT
+             SUM(CASE WHEN LOWER(status) IN ('credited', 'captured', 'verified', 'paid', 'success') AND razorpay_payment_id IS NOT NULL AND razorpay_payment_id != '' AND razorpay_payment_id NOT LIKE 'pay_sim_%' THEN amount_paise ELSE 0 END) AS total_paise,
+             SUM(CASE WHEN LOWER(status) IN ('credited', 'captured', 'verified', 'paid', 'success') AND razorpay_payment_id IS NOT NULL AND razorpay_payment_id != '' AND razorpay_payment_id NOT LIKE 'pay_sim_%' AND created_at >= date('now', 'start of day') THEN amount_paise ELSE 0 END) AS today_paise,
+             SUM(CASE WHEN LOWER(status) IN ('credited', 'captured', 'verified', 'paid', 'success') AND razorpay_payment_id IS NOT NULL AND razorpay_payment_id != '' AND razorpay_payment_id NOT LIKE 'pay_sim_%' AND created_at >= date('now', '-7 days') THEN amount_paise ELSE 0 END) AS weekly_paise,
+             SUM(CASE WHEN LOWER(status) IN ('credited', 'captured', 'verified', 'paid', 'success') AND razorpay_payment_id IS NOT NULL AND razorpay_payment_id != '' AND razorpay_payment_id NOT LIKE 'pay_sim_%' THEN 1 ELSE 0 END) AS successful_count,
+             SUM(CASE WHEN LOWER(status) IN ('failed') THEN 1 ELSE 0 END) AS failed_count,
+             SUM(CASE WHEN LOWER(status) IN ('refunded') THEN 1 ELSE 0 END) AS refunded_count,
+             SUM(CASE WHEN LOWER(status) IN ('created', 'checkout_started') THEN 1 ELSE 0 END) AS pending_count,
+             SUM(CASE WHEN LOWER(status) IN ('credited', 'captured', 'verified', 'paid', 'success') AND razorpay_payment_id IS NOT NULL AND razorpay_payment_id != '' AND razorpay_payment_id NOT LIKE 'pay_sim_%' THEN COALESCE(credits_to_grant, 0) ELSE 0 END) AS total_credits
+           FROM payments`
+        )
+        .get() || {};
+
+      const upgradedUsers = db
+        .prepare("SELECT COUNT(DISTINCT user_id) AS c FROM payments WHERE LOWER(status) IN ('credited', 'captured', 'verified', 'paid', 'success') AND razorpay_payment_id IS NOT NULL AND razorpay_payment_id != '' AND razorpay_payment_id NOT LIKE 'pay_sim_%'")
+        .get()?.c || 0;
+
+      const totalRevenuePaise = summary.total_paise || 0;
+      const successfulCount = summary.successful_count || 0;
+      const avgPaise = successfulCount > 0 ? totalRevenuePaise / successfulCount : 0;
+
       const byPlan = db
         .prepare(
           `SELECT plan_id,
                   COUNT(*) AS count,
                   SUM(amount_paise) AS total_paise
-           FROM payments WHERE status = 'captured'
+           FROM payments WHERE LOWER(status) IN ('credited', 'captured', 'verified', 'paid', 'success') AND razorpay_payment_id IS NOT NULL AND razorpay_payment_id != '' AND razorpay_payment_id NOT LIKE 'pay_sim_%'
            GROUP BY plan_id`
         )
         .all();
@@ -703,7 +825,7 @@ function mountPaymentRoutes(app, { db, verifyAdminToken }) {
       const last30 = db
         .prepare(
           `SELECT date(created_at) AS day, SUM(amount_paise) AS revenue
-           FROM payments WHERE status = 'captured'
+           FROM payments WHERE LOWER(status) IN ('credited', 'captured', 'verified', 'paid', 'success') AND razorpay_payment_id IS NOT NULL AND razorpay_payment_id != '' AND razorpay_payment_id NOT LIKE 'pay_sim_%'
              AND created_at > datetime('now', '-30 days')
            GROUP BY day ORDER BY day`
         )
@@ -713,6 +835,18 @@ function mountPaymentRoutes(app, { db, verifyAdminToken }) {
 
       return res.json({
         ok: true,
+        analytics: {
+          totalRevenue: `₹${(totalRevenuePaise / 100).toLocaleString()}`,
+          todayRevenue: `₹${((summary.today_paise || 0) / 100).toLocaleString()}`,
+          weeklyRevenue: `₹${((summary.weekly_paise || 0) / 100).toLocaleString()}`,
+          averageOrderValue: `₹${(avgPaise / 100).toFixed(0)}`,
+          successfulPayments: successfulCount,
+          failedPayments: summary.failed_count || 0,
+          refundedPayments: summary.refunded_count || 0,
+          pendingPayments: summary.pending_count || 0,
+          upgradedUsers,
+          totalCreditsSold: summary.total_credits || 0,
+        },
         byPlan: byPlan.map((r) => ({
           planId: r.plan_id,
           planName: planMap[r.plan_id]?.name || r.plan_id,
@@ -731,4 +865,4 @@ function mountPaymentRoutes(app, { db, verifyAdminToken }) {
   });
 }
 
-module.exports = { mountPaymentRoutes, isRazorpayConfigured };
+module.exports = { mountPaymentRoutes, isRazorpayConfigured, getServerPlans, getPlanById };

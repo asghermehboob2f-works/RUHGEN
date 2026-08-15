@@ -269,9 +269,81 @@ export function Pricing({ hideHeading = false, plans }: { hideHeading?: boolean;
   const { user } = useAuth();
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
+  const [dynamicPlans, setDynamicPlans] = useState<PricingPlan[]>(plans && plans.length > 0 ? plans : []);
+  const [liveRates, setLiveRates] = useState<{
+    cost_image_schnell: number;
+    cost_image_dev: number;
+    cost_video_std: number;
+    cost_video_pro: number;
+  }>({
+    cost_image_schnell: 2,
+    cost_image_dev: 3,
+    cost_video_std: 5,
+    cost_video_pro: 8,
+  });
   const reduce = useReducedMotion() === true;
 
-  const activePlans = (plans && plans.length > 0 ? plans : DEFAULT_PLANS).filter(p => p.available !== false);
+  React.useEffect(() => {
+    fetch("/api/credits/rates")
+      .then((r) => (r.ok ? r.json().catch(() => null) : null))
+      .then((data) => {
+        if (data?.ok && data?.rates) {
+          setLiveRates({
+            cost_image_schnell: data.rates.cost_image_schnell ?? data.rates.credits_per_image ?? 2,
+            cost_image_dev: data.rates.cost_image_dev ?? 3,
+            cost_video_std: data.rates.cost_video_std ?? data.rates.credits_per_video_second ?? 5,
+            cost_video_pro: data.rates.cost_video_pro ?? 8,
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  React.useEffect(() => {
+    if (plans && plans.length > 0) {
+      setDynamicPlans(plans);
+      return;
+    }
+    fetch("/api/payments/plans")
+      .then((res) => (res.ok ? res.json().catch(() => null) : null))
+      .then((data) => {
+        if (data && data.ok && Array.isArray(data.plans) && data.plans.length > 0) {
+          const map = new Map<string, PricingPlan>();
+          for (const p of data.plans) {
+            const baseId = p.id.replace("_yearly", "");
+            let existing = map.get(baseId);
+            if (!existing) {
+              existing = {
+                id: baseId,
+                name: p.name.replace(" (Yearly)", ""),
+                monthlyPrice: 0,
+                yearlyPrice: 0,
+                credits: p.credits,
+                features: p.features || [],
+                badge: p.badge,
+                cta: baseId === "free" ? "Get Started Free" : `Upgrade to ${p.name.replace(" (Yearly)", "")}`,
+                available: true,
+                description: p.description,
+              };
+              map.set(baseId, existing);
+            }
+            const priceRupees = p.price_inr ? Math.round(p.price_inr / 100) : 0;
+            if (p.id.includes("yearly")) {
+              existing.yearlyPrice = priceRupees;
+            } else {
+              existing.monthlyPrice = priceRupees;
+            }
+          }
+          const loaded = Array.from(map.values());
+          if (loaded.length > 0) {
+            setDynamicPlans(loaded);
+          }
+        }
+      })
+      .catch(() => {});
+  }, [plans]);
+
+  const activePlans = (dynamicPlans.length > 0 ? dynamicPlans : DEFAULT_PLANS).filter(p => p.available !== false);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("en-IN", {
@@ -661,6 +733,12 @@ export function Pricing({ hideHeading = false, plans }: { hideHeading?: boolean;
           <div className="relative grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {CREDIT_RATES.map((rate, idx) => {
               const Icon = rate.icon;
+              let costDisplay = rate.cost;
+              if (idx === 0) costDisplay = `${liveRates.cost_image_schnell} credits / image`;
+              if (idx === 1) costDisplay = `${liveRates.cost_image_dev} credits / image`;
+              if (idx === 2) costDisplay = `${liveRates.cost_video_std} credits / second`;
+              if (idx === 3) costDisplay = `${liveRates.cost_video_pro} credits / second`;
+
               return (
                 <div key={idx} className="rounded-xl border border-border/60 bg-card/30 p-5 flex flex-col justify-between">
                   <div>
@@ -672,7 +750,7 @@ export function Pricing({ hideHeading = false, plans }: { hideHeading?: boolean;
                     <p className="text-[11.5px] text-muted-foreground leading-relaxed mt-3">{rate.description}</p>
                   </div>
                   <div className="mt-5 border-t border-border/60 pt-3">
-                    <span className="text-[12px] font-bold" style={{ color: rate.color }}>{rate.cost}</span>
+                    <span className="text-[12px] font-bold" style={{ color: rate.color }}>{costDisplay}</span>
                   </div>
                 </div>
               );

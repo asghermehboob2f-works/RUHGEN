@@ -82,11 +82,14 @@ function PlanCard({ plan, paymentsAvailable }: { plan: Plan; paymentsAvailable: 
 
 interface PaymentRecord {
   id: string;
+  internalTransactionId?: string;
   planName: string;
   amountDisplay: string;
   credits: number;
   status: string;
   date?: string;
+  razorpayOrderId?: string;
+  razorpayPaymentId?: string;
 }
 
 interface CreditTransaction {
@@ -187,8 +190,9 @@ export default function BillingPage() {
   const currentPlan = user.subscriptionPlan || "free";
 
   const statusColor = (s: string) => {
-    if (s === "captured") return "text-emerald-400 bg-emerald-400/10 border-emerald-400/25";
-    if (s === "failed") return "text-rose-400 bg-rose-400/10 border-rose-400/25";
+    if (s === "captured" || s === "CREDITED") return "text-emerald-400 bg-emerald-400/10 border-emerald-400/25";
+    if (s === "failed" || s === "FAILED") return "text-rose-400 bg-rose-400/10 border-rose-400/25";
+    if (s === "REFUNDED") return "text-purple-400 bg-purple-400/10 border-purple-400/25";
     return "text-amber-400 bg-amber-400/10 border-amber-400/25";
   };
 
@@ -332,7 +336,8 @@ export default function BillingPage() {
                 <table className="w-full text-left text-sm">
                   <thead>
                     <tr className="border-b text-xs uppercase tracking-wider" style={{ borderColor: "var(--border-subtle)", color: "var(--text-subtle)" }}>
-                      <th className="px-5 py-3 font-bold">Plan</th>
+                      <th className="px-5 py-3 font-bold">Transaction Ref</th>
+                      <th className="px-4 py-3 font-bold">Plan</th>
                       <th className="px-4 py-3 font-bold">Amount</th>
                       <th className="px-4 py-3 font-bold">Credits</th>
                       <th className="px-4 py-3 font-bold">Status</th>
@@ -342,7 +347,11 @@ export default function BillingPage() {
                   <tbody>
                     {paymentHistory.map((p: PaymentRecord) => (
                       <tr key={p.id} className="border-b hover:bg-white/[0.02]" style={{ borderColor: "var(--border-subtle)" }}>
-                        <td className="px-5 py-3 font-semibold" style={{ color: "var(--text-primary)" }}>{p.planName}</td>
+                        <td className="px-5 py-3 font-mono text-xs">
+                          <span className="font-bold text-white block">{p.internalTransactionId || p.id}</span>
+                          {p.razorpayOrderId && <span className="text-[10px] text-[var(--text-subtle)]">{p.razorpayOrderId}</span>}
+                        </td>
+                        <td className="px-4 py-3 font-semibold" style={{ color: "var(--text-primary)" }}>{p.planName}</td>
                         <td className="px-4 py-3 font-bold" style={{ color: "var(--text-primary)" }}>{p.amountDisplay}</td>
                         <td className="px-4 py-3">
                           <span className="flex items-center gap-1 text-xs font-semibold text-[#00D4FF]">
@@ -351,11 +360,11 @@ export default function BillingPage() {
                         </td>
                         <td className="px-4 py-3">
                           <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${statusColor(p.status)}`}>
-                            {p.status === "captured" ? "Success" : p.status}
+                            {p.status === "captured" || p.status === "CREDITED" ? "Success" : p.status}
                           </span>
                         </td>
                         <td className="px-5 py-3 font-mono text-xs" style={{ color: "var(--text-subtle)" }}>
-                          {p.date ? new Date(p.date).toLocaleDateString() : "—"}
+                          {p.date ? new Date(p.date).toLocaleString() : "—"}
                         </td>
                       </tr>
                     ))}

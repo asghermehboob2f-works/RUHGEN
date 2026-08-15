@@ -37,8 +37,8 @@ function CheckoutContent() {
   const loadPlans = useCallback(async () => {
     try {
       const res = await fetch("/api/payments/plans");
-      const data = await res.json();
-      if (data.ok) {
+      const data = await res.json().catch(() => ({ ok: false }));
+      if (data && data.ok) {
         setPlans(data.plans || []);
         setPaymentsAvailable(data.available !== false);
       }

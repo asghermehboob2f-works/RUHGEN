@@ -42,7 +42,7 @@ import type { LuxuryStudioChromeValue } from "@/components/studio/luxury/studio-
 import { DashboardLoading } from "@/components/dashboard/DashboardLoading";
 import { useAuth } from "@/components/AuthProvider";
 import { readUserToken } from "@/lib/auth-storage";
-import { createVideoTask, pollStudioTask, uploadStudioReferenceImage } from "@/lib/studio-client";
+import { createVideoTask, pollStudioTask, uploadStudioReference, uploadStudioReferenceImage } from "@/lib/studio-client";
 
 /** Universal RUHGEN Video Tiers */
 const RUHGEN_VIDEO_TIERS = [
@@ -67,8 +67,6 @@ const ASPECT_RATIOS = [
   { key: "16:9", label: "Landscape", ratio: "16:9", iconW: 20, iconH: 11, desc: "16:9 Widescreen video", icon: RectangleHorizontal },
   { key: "9:16", label: "Portrait", ratio: "9:16", iconW: 11, iconH: 20, desc: "9:16 Reels & Stories", icon: Smartphone },
   { key: "1:1", label: "Square", ratio: "1:1", iconW: 16, iconH: 16, desc: "1:1 Social feed format", icon: Square },
-  { key: "4:3", label: "Classic", ratio: "4:3", iconW: 18, iconH: 13, desc: "4:3 Classic TV format", icon: Film },
-  { key: "2:3", label: "Poster", ratio: "2:3", iconW: 12, iconH: 18, desc: "2:3 Vertical cinema poster", icon: Smartphone },
 ] as const;
 
 /** Cinematic Camera Movements */
@@ -109,6 +107,7 @@ type ChatMsg = UserMsg | AssistantMsg;
 
 type PersistedChat = {
   v: 1;
+  timestamp?: number;
   messages: Array<
     | { id: string; role: "user"; content: string; meta: string }
     | (Omit<AssistantMsg, "loading"> & { role: "assistant"; loading: false })
@@ -251,10 +250,12 @@ export default function VideoStudioClient() {
   const [prompt, setPrompt] = useState("");
   const [negativePrompt, setNegativePrompt] = useState("");
   const [duration, setDuration] = useState<number>(5); // 5s to 10s slider
-  const [aspect, setAspect] = useState<"16:9" | "9:16" | "1:1" | "4:3" | "2:3">("16:9");
+  const [aspect, setAspect] = useState<"16:9" | "9:16" | "1:1">("16:9");
   const [selectedTier, setSelectedTier] = useState<string>("quality");
   const [selectedCamera, setSelectedCamera] = useState<string>("push_in");
-  const [referenceImageUrl, setReferenceImageUrl] = useState<string>("");
+  const [referenceUrl, setReferenceUrl] = useState<string>("");
+  const [referenceType, setReferenceType] = useState<"image" | "video">("image");
+  const [activeRefTab, setActiveRefTab] = useState<"image" | "video">("image");
   const [refUploading, setRefUploading] = useState(false);
   const [refUploadError, setRefUploadError] = useState<string | null>(null);
 
@@ -272,7 +273,9 @@ export default function VideoStudioClient() {
   const costPerSecond = selectedTier === "quality" ? (rates.cost_video_pro ?? 8) : (rates.cost_video_std ?? rates.credits_per_video_second ?? 5);
   const currentCost = costPerSecond * duration;
   const activeTierObj = RUHGEN_VIDEO_TIERS.find((t) => t.id === selectedTier) ?? RUHGEN_VIDEO_TIERS[1];
-  const isImg2Video = Boolean(referenceImageUrl.trim());
+  const isImg2Video = Boolean(referenceUrl.trim() && referenceType === "image");
+  const isVid2Video = Boolean(referenceUrl.trim() && referenceType === "video");
+  const referenceImageUrl = referenceType === "image" ? referenceUrl : "";
 
   useEffect(() => {
     if (ready && !user) router.replace("/sign-in?next=/dashboard/generate/video");
@@ -292,7 +295,7 @@ export default function VideoStudioClient() {
       };
       if (typeof d.prompt === "string" && d.prompt.trim()) setPrompt(d.prompt.trim());
       if (typeof d.duration === "number" && d.duration >= 5 && d.duration <= 10) setDuration(d.duration);
-      if (["16:9", "9:16", "1:1", "4:3", "2:3"].includes(d.aspect || "")) setAspect(d.aspect as any);
+      if (["16:9", "9:16", "1:1"].includes(d.aspect || "")) setAspect(d.aspect as any);
       if (d.mode === "pro" || d.mode === "std") setSelectedTier(d.mode === "pro" ? "quality" : "standard");
     } catch {
       /* ignore */
@@ -315,31 +318,14 @@ export default function VideoStudioClient() {
   useEffect(() => {
     if (!user?.id || typeof window === "undefined") return;
     try {
-      const raw = localStorage.getItem(`${CHAT_STORAGE_PREFIX}${user.id}`);
-      if (raw) {
-        const parsed = JSON.parse(raw) as PersistedChat;
-        if (parsed?.v === 1 && Array.isArray(parsed.messages)) setMessages(hydrateMessages(parsed.messages));
-      }
+      const key = `${CHAT_STORAGE_PREFIX}${user.id}`;
+      localStorage.removeItem(key);
     } catch {
       /* ignore */
     }
+    setMessages([]);
     setHistoryLoaded(true);
   }, [user?.id]);
-
-  useEffect(() => {
-    if (!user?.id || !historyLoaded) return;
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => {
-      try {
-        localStorage.setItem(`${CHAT_STORAGE_PREFIX}${user.id}`, JSON.stringify({ v: 1, messages: sanitizeForStorage(messages) }));
-      } catch {
-        /* quota */
-      }
-    }, 400);
-    return () => {
-      if (saveTimer.current) clearTimeout(saveTimer.current);
-    };
-  }, [messages, user?.id, historyLoaded]);
 
   const appendPromptChip = useCallback((t: string) => {
     setPrompt((p) => (p.trim() ? `${p.trim()}, ${t}` : t));
@@ -466,16 +452,67 @@ export default function VideoStudioClient() {
     return () => window.removeEventListener("keydown", onKey);
   }, [lightbox]);
 
+  const handleFileUpload = useCallback(
+    (file: File, expectedType?: "image" | "video") => {
+      if (!file) return;
+      setRefUploadError(null);
+
+      const isVideoFile = file.type.startsWith("video/") || /\.(mp4|webm|mov)$/i.test(file.name);
+      const isImageFile = file.type.startsWith("image/") || /\.(jpg|jpeg|png|webp)$/i.test(file.name);
+
+      if (expectedType === "image" && !isImageFile) {
+        setRefUploadError("Please select a valid image file (JPEG, PNG, WebP).");
+        return;
+      }
+      if (expectedType === "video" && !isVideoFile) {
+        setRefUploadError("Please select a valid video file (MP4, WebM, MOV).");
+        return;
+      }
+      if (!isImageFile && !isVideoFile) {
+        setRefUploadError("Unsupported file format. Please upload an image (JPEG, PNG, WebP) or video (MP4, WebM, MOV).");
+        return;
+      }
+
+      const maxImgBytes = 20 * 1024 * 1024;
+      const maxVidBytes = 50 * 1024 * 1024;
+      if (isImageFile && file.size > maxImgBytes) {
+        setRefUploadError("Image reference size exceeds 20MB limit.");
+        return;
+      }
+      if (isVideoFile && file.size > maxVidBytes) {
+        setRefUploadError("Video reference size exceeds 50MB limit.");
+        return;
+      }
+
+      setRefUploading(true);
+      uploadStudioReference(file)
+        .then(({ url, type }) => {
+          setReferenceUrl(url);
+          setReferenceType(type);
+          setActiveRefTab(type);
+        })
+        .catch((err: unknown) => {
+          setRefUploadError(err instanceof Error ? err.message : "Upload failed.");
+        })
+        .finally(() => {
+          setRefUploading(false);
+        });
+    },
+    []
+  );
+
   const run = useCallback(async () => {
     const p = prompt.trim();
     if (p.length < 2 || busy) return;
     const neg = negativePrompt.trim();
-    const img = referenceImageUrl.trim();
+    const img = referenceUrl.trim() && referenceType === "image" ? referenceUrl.trim() : "";
+    const vid = referenceUrl.trim() && referenceType === "video" ? referenceUrl.trim() : "";
     const tierLabel = activeTierObj.label;
     
     const parts = [`${duration}s clip`, aspect, tierLabel];
     if (neg) parts.push("negative filter");
     if (img) parts.push("reference image");
+    if (vid) parts.push("reference video");
     const meta = parts.join(" · ");
 
     const userId = crypto.randomUUID();
@@ -500,6 +537,9 @@ export default function VideoStudioClient() {
         quality: selectedTier,
         negative_prompt: neg || undefined,
         image_url: img || undefined,
+        video_url: vid || undefined,
+        reference_url: referenceUrl || undefined,
+        reference_type: referenceType || undefined,
       });
       void refreshUser();
       setMessages((prev) => prev.map((x) => (x.id === asstId ? { ...x, phase: "Rendering video motion frames…" } : x)));
@@ -535,7 +575,8 @@ export default function VideoStudioClient() {
   const clearChatHistory = useCallback(() => {
     prevLenForSnapRef.current = null;
     setMessages([]);
-    setReferenceImageUrl("");
+    setReferenceUrl("");
+    setReferenceType("image");
     if (user?.id && typeof window !== "undefined") {
       try {
         localStorage.removeItem(`${CHAT_STORAGE_PREFIX}${user.id}`);
@@ -576,9 +617,13 @@ export default function VideoStudioClient() {
                   <p className="truncate font-display text-xs font-bold text-[var(--text-primary)]">Video Creation Panel</p>
                 </div>
               </div>
-              {isImg2Video ? (
-                <span className="shrink-0 rounded-full border border-cyan-400/30 bg-cyan-500/15 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-cyan-200">
-                  Image Guided
+              {referenceUrl ? (
+                <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider ${
+                  referenceType === "video"
+                    ? "border-purple-400/30 bg-purple-500/15 text-purple-200"
+                    : "border-cyan-400/30 bg-cyan-500/15 text-cyan-200"
+                }`}>
+                  {referenceType === "video" ? "Video Guided" : "Image Guided"}
                 </span>
               ) : null}
             </div>
@@ -616,62 +661,121 @@ export default function VideoStudioClient() {
             </div>
 
             <div className="space-y-4">
-              {/* 1. REFERENCE IMAGE (Placed near top) */}
+              {/* 1. MEDIA REFERENCE (IMAGE / VIDEO) */}
               <div className="rounded-2xl border border-cyan-500/25 bg-gradient-to-br from-cyan-500/10 via-black/40 to-transparent p-3.5 shadow-sm">
                 <div className="mb-2 flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
-                    <ImagePlus className="h-3.5 w-3.5 text-cyan-300" strokeWidth={2} />
-                    <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-cyan-200">1. Reference Image</span>
+                    {activeRefTab === "video" ? (
+                      <Film className="h-3.5 w-3.5 text-cyan-300" strokeWidth={2} />
+                    ) : (
+                      <ImagePlus className="h-3.5 w-3.5 text-cyan-300" strokeWidth={2} />
+                    )}
+                    <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-cyan-200">
+                      1. Media Reference
+                    </span>
                   </div>
                   <span className="text-[9px] font-semibold uppercase tracking-wider text-[var(--text-subtle)]">Optional</span>
+                </div>
+
+                {/* Reference Mode Selector */}
+                <div className="mb-3 grid grid-cols-2 gap-1 rounded-xl border border-white/10 bg-black/60 p-1">
+                  <button
+                    type="button"
+                    disabled={busy || refUploading}
+                    onClick={() => setActiveRefTab("image")}
+                    className={`flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                      activeRefTab === "image"
+                        ? "bg-gradient-to-r from-cyan-600/90 to-cyan-500 text-white shadow-sm ring-1 ring-white/20"
+                        : "text-[var(--text-muted)] hover:text-white hover:bg-white/[0.05]"
+                    }`}
+                  >
+                    <ImagePlus className="h-3 w-3" />
+                    <span>Image Ref</span>
+                  </button>
+                  <button
+                    type="button"
+                    disabled={busy || refUploading}
+                    onClick={() => setActiveRefTab("video")}
+                    className={`flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                      activeRefTab === "video"
+                        ? "bg-gradient-to-r from-cyan-600/90 to-cyan-500 text-white shadow-sm ring-1 ring-white/20"
+                        : "text-[var(--text-muted)] hover:text-white hover:bg-white/[0.05]"
+                    }`}
+                  >
+                    <Film className="h-3 w-3" />
+                    <span>Video Ref</span>
+                  </button>
                 </div>
                 
                 <input
                   ref={refFileInput}
                   type="file"
-                  accept="image/jpeg,image/png,image/webp"
+                  accept={activeRefTab === "image" ? "image/jpeg,image/png,image/webp" : "video/mp4,video/webm,video/quicktime"}
                   className="sr-only"
                   tabIndex={-1}
                   disabled={busy || refUploading}
                   onChange={(e) => {
                     const f = e.target.files?.[0];
                     e.target.value = "";
-                    if (!f) return;
-                    setRefUploadError(null);
-                    setRefUploading(true);
-                    void uploadStudioReferenceImage(f)
-                      .then(({ url }) => {
-                        setReferenceImageUrl(url);
-                      })
-                      .catch((err: unknown) => setRefUploadError(err instanceof Error ? err.message : "Upload failed."))
-                      .finally(() => setRefUploading(false));
+                    if (f) handleFileUpload(f, activeRefTab);
                   }}
                 />
 
-                {referenceImageUrl ? (
-                  <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/50 p-2">
-                    <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-cyan-400/30 bg-black">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={referenceImageUrl} alt="Reference" className="h-full w-full object-cover" />
-                    </div>
+                {referenceUrl ? (
+                  <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/60 p-2.5">
+                    {referenceType === "image" ? (
+                      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-cyan-400/40 bg-black shadow-md">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={referenceUrl} alt="Image Reference" className="h-full w-full object-cover" />
+                      </div>
+                    ) : (
+                      <div className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg border border-purple-400/40 bg-black shadow-md">
+                        <video
+                          src={referenceUrl}
+                          muted
+                          loop
+                          autoPlay
+                          playsInline
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                    )}
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-bold text-white">Video Source Guide</p>
-                      <p className="text-[10px] text-[var(--text-muted)]">Animates & directs motion</p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="truncate text-xs font-bold text-white">
+                          {referenceType === "image" ? "Image Reference" : "Video Reference"}
+                        </p>
+                        <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-wider ${
+                          referenceType === "image"
+                            ? "bg-cyan-500/20 text-cyan-200 border border-cyan-400/30"
+                            : "bg-purple-500/20 text-purple-200 border border-purple-400/30"
+                        }`}>
+                          {referenceType === "image" ? "Image Guided" : "Video Guided"}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-[var(--text-muted)] truncate mt-0.5">
+                        {referenceType === "image"
+                          ? "Animates & directs motion frame"
+                          : "Motion transfer & scene guidance"}
+                      </p>
                     </div>
                     <div className="flex flex-col gap-1 shrink-0">
                       <button
                         type="button"
                         disabled={busy || refUploading}
                         onClick={() => refFileInput.current?.click()}
-                        className="rounded-md border border-white/15 bg-white/5 px-2 py-1 text-[9px] font-bold uppercase text-white hover:bg-white/10 cursor-pointer"
+                        className="rounded-md border border-white/15 bg-white/5 px-2 py-1 text-[9px] font-bold uppercase text-white hover:bg-white/10 cursor-pointer transition-colors"
                       >
                         Replace
                       </button>
                       <button
                         type="button"
                         disabled={busy}
-                        onClick={() => setReferenceImageUrl("")}
-                        className="rounded-md border border-rose-500/30 bg-rose-500/10 px-2 py-1 text-[9px] font-bold uppercase text-rose-300 hover:bg-rose-500/20 cursor-pointer"
+                        onClick={() => {
+                          setReferenceUrl("");
+                          setReferenceType("image");
+                        }}
+                        className="rounded-md border border-rose-500/30 bg-rose-500/10 px-2 py-1 text-[9px] font-bold uppercase text-rose-300 hover:bg-rose-500/20 cursor-pointer transition-colors"
                       >
                         Remove
                       </button>
@@ -682,25 +786,46 @@ export default function VideoStudioClient() {
                     type="button"
                     disabled={busy || refUploading}
                     onClick={() => refFileInput.current?.click()}
-                    className="flex min-h-[46px] w-full flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-white/20 bg-white/[0.02] p-2.5 text-center transition-all hover:border-[var(--primary-cyan)]/60 hover:bg-white/[0.05] cursor-pointer"
+                    className="flex min-h-[50px] w-full flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-white/20 bg-white/[0.02] p-2.5 text-center transition-all hover:border-[var(--primary-cyan)]/60 hover:bg-white/[0.05] cursor-pointer"
                   >
                     {refUploading ? (
-                      <Loader2 className="h-4 w-4 animate-spin text-[var(--primary-cyan)]" />
-                    ) : (
                       <div className="flex items-center gap-2">
-                        <ImagePlus className="h-4 w-4 text-cyan-300" />
-                        <span className="text-xs font-bold text-[var(--text-primary)]">Upload Image Reference</span>
+                        <Loader2 className="h-4 w-4 animate-spin text-[var(--primary-cyan)]" />
+                        <span className="text-xs font-bold text-cyan-200">
+                          Uploading {activeRefTab === "image" ? "Image" : "Video"} Reference…
+                        </span>
                       </div>
+                    ) : (
+                      <>
+                        <div className="flex items-center gap-2">
+                          {activeRefTab === "image" ? (
+                            <ImagePlus className="h-4 w-4 text-cyan-300" />
+                          ) : (
+                            <Film className="h-4 w-4 text-cyan-300" />
+                          )}
+                          <span className="text-xs font-bold text-[var(--text-primary)]">
+                            Upload {activeRefTab === "image" ? "Image" : "Video"} Reference
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-[var(--text-subtle)]">
+                          {activeRefTab === "image"
+                            ? "JPEG, PNG or WebP (max 20MB) · Optional starting frame"
+                            : "MP4, WebM or MOV (max 50MB) · Optional video motion guide"}
+                        </span>
+                      </>
                     )}
-                    <span className="text-[10px] text-[var(--text-subtle)]">JPEG, PNG or WebP · Optional video starting frame</span>
                   </button>
                 )}
-                {refUploadError ? <p className="mt-1.5 text-[10px] text-rose-300">{refUploadError}</p> : null}
+                {refUploadError ? (
+                  <div className="mt-2 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1.5 text-[10px] font-medium text-rose-200">
+                    {refUploadError}
+                  </div>
+                ) : null}
               </div>
 
               {/* 2. ASPECT RATIO */}
               <StudioCollapsible title="2. Aspect Ratio" defaultOpen>
-                <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-5" role="radiogroup" aria-label="Aspect Ratio">
+                <div className="grid grid-cols-3 gap-1.5" role="radiogroup" aria-label="Aspect Ratio">
                   {ASPECT_RATIOS.map((item) => {
                     const on = aspect === item.key;
                     return (

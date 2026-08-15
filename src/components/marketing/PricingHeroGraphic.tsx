@@ -70,17 +70,45 @@ const PLANS = [
 export function PricingHeroGraphic({ className = "" }: { className?: string }) {
   const reduce = useReducedMotion() === true;
   const [idx, setIdx] = useState(1);
-  const plan = PLANS[idx];
+  const [dynamicPlans, setDynamicPlans] = useState(PLANS);
+
+  useEffect(() => {
+    fetch("/api/payments/plans")
+      .then((res) => (res.ok ? res.json().catch(() => null) : null))
+      .then((data) => {
+        if (data && data.ok && Array.isArray(data.plans)) {
+          setDynamicPlans((prev) =>
+            prev.map((p) => {
+              const matched = data.plans.find((item: any) => item.id === p.id);
+              if (matched) {
+                const priceInRupees = matched.price_inr ? Math.round(matched.price_inr / 100).toString() : p.price;
+                const creditStr = matched.credits ? `${matched.credits.toLocaleString("en-IN")} credits / mo` : p.credits;
+                return {
+                  ...p,
+                  label: matched.name || p.label,
+                  price: priceInRupees,
+                  credits: creditStr,
+                };
+              }
+              return p;
+            })
+          );
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const plan = dynamicPlans[idx] || dynamicPlans[0] || PLANS[0];
   const Icon = plan.icon;
 
   // Auto-cycle through plans
   useEffect(() => {
     if (reduce) return;
     const id = setInterval(() => {
-      setIdx((i) => (i + 1) % PLANS.length);
+      setIdx((i) => (i + 1) % dynamicPlans.length);
     }, 3800);
     return () => clearInterval(id);
-  }, [reduce]);
+  }, [reduce, dynamicPlans.length]);
 
   return (
     <div className={`relative w-full max-w-[420px] select-none ${className}`} aria-hidden="true">
@@ -326,7 +354,7 @@ export function PricingHeroGraphic({ className = "" }: { className?: string }) {
             ACTIVE PLAN PRESETS
           </div>
           <div className="grid grid-cols-4 gap-1.5">
-            {PLANS.map((p, i) => {
+            {dynamicPlans.map((p, i) => {
               const isActive = idx === i;
               return (
                 <button
