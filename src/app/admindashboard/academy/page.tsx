@@ -207,11 +207,10 @@ function AcademyCmsContent() {
       };
 
       // Determine candidate endpoints: hit direct backend port first to bypass Next.js proxy limits on large files
-      const backendPort = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
-      const endpoints = [
-        `${backendPort}/api/admin/upload`,
-        "/api/admin/upload"
-      ];
+      const backendPort = process.env.NEXT_PUBLIC_BACKEND_URL || "";
+      const endpoints = backendPort
+        ? [`${backendPort}/api/admin/upload`, "/api/admin/upload"]
+        : ["/api/admin/upload"];
 
       const tryEndpoint = (index: number) => {
         if (index >= endpoints.length) {
@@ -442,12 +441,14 @@ function AcademyCmsContent() {
     setSuccess("");
     try {
       const h = authHeaders();
-      const backendPort = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
-
-      let res = await fetch(`${backendPort}/api/admin/academy/tutorials/${id}`, {
-        method: "DELETE",
-        headers: h
-      }).catch(() => null);
+      const backendPort = process.env.NEXT_PUBLIC_BACKEND_URL || "";
+      let res: Response | null = null;
+      if (backendPort) {
+        res = await fetch(`${backendPort}/api/admin/academy/tutorials/${id}`, {
+          method: "DELETE",
+          headers: h
+        }).catch(() => null);
+      }
 
       if (!res || !res.ok) {
         res = await fetch(`/api/admin/academy/tutorials/${id}`, {
@@ -559,9 +560,11 @@ function AcademyCmsContent() {
     if (!window.confirm("Delete course? Lessons linked to this course will remain as standalone lessons.")) return;
     try {
       const h = authHeaders();
-      const backendPort = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
-
-      let res = await fetch(`${backendPort}/api/admin/academy/courses/${id}`, { method: "DELETE", headers: h }).catch(() => null);
+      const backendPort = process.env.NEXT_PUBLIC_BACKEND_URL || "";
+      let res: Response | null = null;
+      if (backendPort) {
+        res = await fetch(`${backendPort}/api/admin/academy/courses/${id}`, { method: "DELETE", headers: h }).catch(() => null);
+      }
       if (!res || !res.ok) {
         res = await fetch(`/api/admin/academy/courses/${id}`, { method: "DELETE", headers: h }).catch(() => null);
       }
@@ -604,9 +607,11 @@ function AcademyCmsContent() {
     if (!window.confirm("Delete category and its subcategories?")) return;
     try {
       const h = authHeaders();
-      const backendPort = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
-
-      let res = await fetch(`${backendPort}/api/admin/academy/categories/${id}`, { method: "DELETE", headers: h }).catch(() => null);
+      const backendPort = process.env.NEXT_PUBLIC_BACKEND_URL || "";
+      let res: Response | null = null;
+      if (backendPort) {
+        res = await fetch(`${backendPort}/api/admin/academy/categories/${id}`, { method: "DELETE", headers: h }).catch(() => null);
+      }
       if (!res || !res.ok) {
         res = await fetch(`/api/admin/academy/categories/${id}`, { method: "DELETE", headers: h }).catch(() => null);
       }
@@ -647,9 +652,11 @@ function AcademyCmsContent() {
     if (!window.confirm("Delete subcategory?")) return;
     try {
       const h = authHeaders();
-      const backendPort = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
-
-      let res = await fetch(`${backendPort}/api/admin/academy/subcategories/${id}`, { method: "DELETE", headers: h }).catch(() => null);
+      const backendPort = process.env.NEXT_PUBLIC_BACKEND_URL || "";
+      let res: Response | null = null;
+      if (backendPort) {
+        res = await fetch(`${backendPort}/api/admin/academy/subcategories/${id}`, { method: "DELETE", headers: h }).catch(() => null);
+      }
       if (!res || !res.ok) {
         res = await fetch(`/api/admin/academy/subcategories/${id}`, { method: "DELETE", headers: h }).catch(() => null);
       }
@@ -1242,9 +1249,7 @@ function AcademyCmsContent() {
                               playsInline
                               preload="auto"
                             >
-                              <source src={videoUrl.startsWith("/media/") ? `http://localhost:4000${videoUrl}` : videoUrl} type="video/mp4" />
                               <source src={videoUrl.startsWith("http") || videoUrl.startsWith("/") ? videoUrl : "/" + videoUrl} type="video/mp4" />
-                              <source src={videoUrl.startsWith("/media/") ? `http://localhost:4000${videoUrl}` : videoUrl} type="video/quicktime" />
                               <source src={videoUrl.startsWith("http") || videoUrl.startsWith("/") ? videoUrl : "/" + videoUrl} type="video/quicktime" />
                               Your browser cannot stream this video format directly.
                             </video>

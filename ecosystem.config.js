@@ -28,6 +28,7 @@ module.exports = {
     {
       name: "ruhgen-frontend",
       script: "node_modules/next/dist/bin/next",
+      interpreter: "node",
       args: "start -p 3000",
       instances: 1,
       exec_mode: "fork",

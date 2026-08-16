@@ -383,8 +383,8 @@ export function AcademyPageContent() {
     } else {
       const ext = videoUrl.split('.').pop()?.toLowerCase() || '';
       const primaryType = ext === 'webm' ? 'video/webm' : 'video/mp4';
-      const backendOrigin = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
-      const directUrl = videoUrl.startsWith("/media/") ? `${backendOrigin}${videoUrl}` : videoUrl;
+      const backendOrigin = process.env.NEXT_PUBLIC_BACKEND_URL || "";
+      const directUrl = videoUrl.startsWith("/media/") && backendOrigin ? `${backendOrigin}${videoUrl}` : videoUrl;
 
       return (
         <video

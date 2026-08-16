@@ -9,8 +9,8 @@ const cron = require("node-cron");
 const crypto = require("node:crypto");
 const { sendMail } = require("./email-service");
 const { reminderEmail, suspensionEmail } = require("./email-templates");
+const { getAppUrl } = require("./config");
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 const GRACE_DAYS = Number(process.env.VERIFY_GRACE_DAYS) || 7;
 const LINK_TTL_HOURS = Number(process.env.VERIFY_LINK_TTL_HOURS) || 72;
 
@@ -26,7 +26,7 @@ function buildFreshVerifyUrl(db, userId) {
   const tokenExpiry = addMs(LINK_TTL_HOURS * 3600 * 1000);
   db.prepare("UPDATE users SET verification_token_hash = ?, verification_token_expiry = ? WHERE id = ?")
     .run(tokenHash, tokenExpiry, userId);
-  return `${SITE_URL}/api/verify-email?token=${rawToken}`;
+  return getAppUrl("verification", rawToken);
 }
 
 function logAudit(db, { target, action, details }) {

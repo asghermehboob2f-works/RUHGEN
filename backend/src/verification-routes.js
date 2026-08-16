@@ -288,7 +288,7 @@ function mountVerificationRoutes(app, { db }) {
 
     const { rawToken, otp } = createVerificationCredentials(db, userId);
     logAudit(db, { actor: { id: req.admin.sub, email: req.admin.email }, target: userId, action: "admin_resend_verification" });
-    const verifyUrl = `${SITE_URL}/api/verify-email?token=${rawToken}`;
+    const verifyUrl = getAppUrl("verification", rawToken);
     const result = await sendMail({ to: user.email, ...verificationEmail({ name: user.name, verifyUrl, expiresHours: LINK_TTL_HOURS, otp }) });
     return res.json({ ok: result.ok, error: result.error });
   });
