@@ -2,6 +2,9 @@
   "name": "ruhgen",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "backend"
+  ],
   "scripts": {
     "sync:media": "node scripts/sync-media.cjs",
     "prebuild": "node scripts/sync-media.cjs",
@@ -20,6 +23,7 @@
     "clear:data": "node scripts/clear-local-data.cjs --yes"
   },
   "dependencies": {
+    "dotenv": "^16.4.7",
     "framer-motion": "^12.38.0",
     "lucide-react": "^1.7.0",
     "next": "^16.2.11",

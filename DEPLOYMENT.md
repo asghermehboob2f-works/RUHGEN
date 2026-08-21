@@ -107,6 +107,22 @@ docker-compose logs -f
 
 ---
 
+## ☁️ Deployment Method 3: Render (PaaS)
+
+When deploying on Render, npm workspaces automatically install both frontend and backend dependencies during the root `npm install` build step.
+
+### 1. Standalone Backend Service Configuration
+- **Environment**: Node.js
+- **Build Command**: `npm install`
+- **Start Command**: `node backend/src/server.js`
+
+### 2. Multi-Process Single Web Service (Frontend + Backend)
+- **Environment**: Node.js
+- **Build Command**: `npm install && npm run build`
+- **Start Command**: `npm run start:cluster`
+
+---
+
 ## 🔄 Database Backups & Maintenance
 
 ### 1. SQLite WAL Database Backup
