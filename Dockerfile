@@ -38,6 +38,7 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/backend ./backend
+COPY --from=builder /app/scripts ./scripts
 COPY --from=builder /app/data ./data
 
 RUN mkdir -p /app/backend/data /app/media /app/logs && \
@@ -47,4 +48,4 @@ USER nextjs
 
 EXPOSE 3000 4000
 
-CMD ["node", "backend/src/server.js"]
+CMD ["node", "scripts/start-production.js"]

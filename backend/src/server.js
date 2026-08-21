@@ -29,7 +29,7 @@ const { mountAdminContentRoutes } = require("./admin-content-routes");
 const { mountContactRoutes } = require("./contact-routes");
 const { mountNewsletterRoutes } = require("./newsletter-routes");
 
-const PORT = Number(process.env.BACKEND_PORT || process.env.PORT || 4000, 10);
+const PORT = Number(process.env.BACKEND_PORT || 4000, 10);
 const projectRoot = path.resolve(__dirname, "..", "..");
 
 const { db, dataDir } = openDb(projectRoot);

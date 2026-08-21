@@ -35,8 +35,11 @@ backendProcess.on("exit", (code, signal) => {
   console.error(`[RUHGEN Production] Backend process exited (code ${code}, signal ${signal})`);
 });
 
-// 2. Spawn Next.js Frontend
-const nextBin = path.join(rootDir, "node_modules", "next", "dist", "bin", "next");
+const fs = require("fs");
+let nextBin = path.join(rootDir, "node_modules", "next", "dist", "bin", "next");
+if (!fs.existsSync(nextBin)) {
+  nextBin = path.join(rootDir, "node_modules", ".bin", "next");
+}
 const frontendProcess = spawn(process.execPath, [nextBin, "start", "-p", frontendPort], {
   cwd: rootDir,
   stdio: "inherit",
