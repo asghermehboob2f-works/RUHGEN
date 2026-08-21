@@ -295,11 +295,15 @@ export async function readSiteContent(): Promise<SiteContent> {
   }
 
   let fromApi: SiteContent | null = null;
-  const base =
+  const rawBase =
     process.env.BACKEND_URL?.trim() ||
     process.env.NEXT_PUBLIC_BACKEND_URL?.trim() ||
     process.env.NEXT_PUBLIC_API_URL?.trim() ||
-    "https://ruhgen-1.onrender.com";
+    "http://127.0.0.1:4000";
+
+  const base = (!rawBase || rawBase.includes("ruhgen-1.onrender.com"))
+    ? "http://127.0.0.1:4000"
+    : rawBase;
 
   if (base) {
     try {
