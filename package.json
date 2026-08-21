@@ -11,7 +11,10 @@
     "dev:backend": "npm --prefix backend run dev",
     "dev:full": "npm run dev",
     "build": "next build",
-    "start": "node scripts/start-production.js",
+    "start": "next start",
+    "start:backend": "node backend/src/server.js",
+    "start:frontend": "next start",
+    "start:cluster": "node scripts/start-production.js",
     "lint": "eslint",
     "clear:local": "node scripts/clear-local-data.cjs --yes --next",
     "clear:data": "node scripts/clear-local-data.cjs --yes"

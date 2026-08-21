@@ -1,0 +1,23 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# RUHGEN Platform — Production Standalone Express Backend Dockerfile
+# ─────────────────────────────────────────────────────────────────────────────
+
+FROM node:22-alpine AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV PORT=4000
+
+COPY package.json package-lock.json ./
+COPY backend/package.json backend/package-lock.json ./backend/
+
+RUN npm ci --only=production && cd backend && npm ci --only=production
+
+COPY backend ./backend
+COPY data ./data
+
+RUN mkdir -p /app/backend/data /app/media /app/logs
+
+EXPOSE 4000
+
+CMD ["node", "backend/src/server.js"]

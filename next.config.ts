@@ -1,21 +1,11 @@
 import path from "node:path";
 import type { NextConfig } from "next";
 
-function getBackendTarget(): string {
-  const envBackend = (process.env.BACKEND_URL || "").trim().replace(/\/$/, "");
-  if (
-    !envBackend ||
-    envBackend.includes("ruhgen-1.onrender.com") ||
-    (process.env.APP_URL && envBackend === process.env.APP_URL.trim().replace(/\/$/, "")) ||
-    (process.env.NEXT_PUBLIC_SITE_URL && envBackend === process.env.NEXT_PUBLIC_SITE_URL.trim().replace(/\/$/, ""))
-  ) {
-    const port = process.env.BACKEND_PORT || "4000";
-    return `http://127.0.0.1:${port}`;
-  }
-  return envBackend;
-}
-
-const backend = getBackendTarget();
+const backend = (
+  process.env.BACKEND_URL ||
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  "http://127.0.0.1:4000"
+).trim().replace(/\/$/, "");
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
