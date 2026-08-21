@@ -255,40 +255,29 @@ function openDb(projectRoot) {
     );
   `);
 
-  // Migrate users table if credits column does not exist
-  const tableInfo = db.pragma("table_info(users)");
-  const hasCredits = tableInfo.some(col => col.name === "credits");
-  if (!hasCredits) {
-    db.exec("ALTER TABLE users ADD COLUMN credits INTEGER NOT NULL DEFAULT 120");
-    console.log("[db] Added credits column to users table");
-  }
-  const hasGenDisabled = tableInfo.some(col => col.name === "generation_disabled");
-  if (!hasGenDisabled) {
-    db.exec("ALTER TABLE users ADD COLUMN generation_disabled INTEGER NOT NULL DEFAULT 0");
-    console.log("[db] Added generation_disabled column to users table");
-  }
-  const hasSpecialAccess = tableInfo.some(col => col.name === "special_access");
-  if (!hasSpecialAccess) {
-    db.exec("ALTER TABLE users ADD COLUMN special_access INTEGER NOT NULL DEFAULT 0");
-    console.log("[db] Added special_access column to users table");
-  }
-  const hasRole = tableInfo.some(col => col.name === "role");
-  if (!hasRole) {
-    db.exec("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'user'");
-    console.log("[db] Added role column to users table");
-  }
-  const hasTeamId = tableInfo.some(col => col.name === "team_id");
-  if (!hasTeamId) {
-    db.exec("ALTER TABLE users ADD COLUMN team_id TEXT DEFAULT NULL");
-    console.log("[db] Added team_id column to users table");
-  }
-  const hasTeamRole = tableInfo.some(col => col.name === "team_role");
-  if (!hasTeamRole) {
-    db.exec("ALTER TABLE users ADD COLUMN team_role TEXT DEFAULT NULL");
-    console.log("[db] Added team_role column to users table");
-  }
+  // Migrate users table columns safely if existing DB schema is older
+  const addUsersCol = (name, def) => {
+    try {
+      const currentCols = db.pragma("table_info(users)");
+      if (!currentCols.some((c) => c.name === name)) {
+        db.exec(`ALTER TABLE users ADD COLUMN ${name} ${def}`);
+        console.log(`[db] Added ${name} column to users table`);
+      }
+    } catch (err) {
+      if (!err.message.includes("duplicate column")) {
+        console.error(`[db] Failed to add ${name} to users:`, err.message);
+      }
+    }
+  };
 
-  // --- Email verification columns ---
+  addUsersCol("credits", "INTEGER NOT NULL DEFAULT 120");
+  addUsersCol("generation_disabled", "INTEGER NOT NULL DEFAULT 0");
+  addUsersCol("special_access", "INTEGER NOT NULL DEFAULT 0");
+  addUsersCol("role", "TEXT NOT NULL DEFAULT 'user'");
+  addUsersCol("team_id", "TEXT DEFAULT NULL");
+  addUsersCol("team_role", "TEXT DEFAULT NULL");
+
+  // --- Email verification & Auth Reset columns ---
   const verCols = [
     ["suspended", "INTEGER NOT NULL DEFAULT 0"],
     ["email_verified", "INTEGER NOT NULL DEFAULT 0"],
@@ -311,10 +300,7 @@ function openDb(projectRoot) {
     ["reset_otp_expiry", "TEXT DEFAULT NULL"],
   ];
   for (const [col, def] of verCols) {
-    if (!tableInfo.some(c => c.name === col)) {
-      db.exec(`ALTER TABLE users ADD COLUMN ${col} ${def}`);
-      console.log(`[db] Added ${col} column to users table`);
-    }
+    addUsersCol(col, def);
   }
 
   // Create credit-related tables
