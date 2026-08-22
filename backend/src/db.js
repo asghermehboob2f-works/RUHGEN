@@ -32,9 +32,13 @@ function maybeMigrateLegacySqlite(dataDir, projectRoot) {
 }
 
 function siteContentSeedPath(dataDir, projectRoot) {
+  const repoBackend = path.join(projectRoot, "backend", "data", "site-content.json");
+  if (fs.existsSync(repoBackend)) return repoBackend;
+  const repoData = path.join(projectRoot, "data", "site-content.json");
+  if (fs.existsSync(repoData)) return repoData;
   const primary = path.join(dataDir, "site-content.json");
   if (fs.existsSync(primary)) return primary;
-  return path.join(projectRoot, "data", "site-content.json");
+  return primary;
 }
 
 function legacyContactPath(dataDir, projectRoot) {
