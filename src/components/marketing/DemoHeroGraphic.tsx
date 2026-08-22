@@ -20,33 +20,33 @@ interface InternalPreset {
 
 const fallbackPresets: VisualizerPreset[] = [
   {
-    id: "sci-fi",
-    name: "Sci-Fi Monolith",
+    id: "vp-1",
+    name: "Silence wasn't enough",
     lens: "35mm",
     gap: "f/1.8",
     iso: "ISO 200",
-    prompt: "cinematic moody sci-fi explorer discovering a glowing neon monolith on an alien world, volumetric lighting, 8k",
-    image: "https://images.unsplash.com/photo-1633167605827-e8f50f098a8d?w=1400&q=85&auto=format&fit=crop",
+    prompt: "A cobra standing upright with two raised middle fingers, photorealistic, ultra-detailed wildlife photography, cinematic lighting, shallow depth of field, blurred green background, humorous yet intimidating, 8K",
+    image: "/media/gallery/32ef021f-7efb-42a3-9fd2-dce35c6ecac1.png",
     resolution: "4.2s"
   },
   {
-    id: "cyberpunk",
-    name: "Cyberpunk Hacker",
+    id: "vp-2",
+    name: "Only honor remained",
     lens: "50mm",
     gap: "f/1.2",
     iso: "ISO 800",
-    prompt: "cyberpunk terminal operator in a high-density server rack room, holographic neon interfaces, dense vapor haze",
-    image: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=1400&q=85&auto=format&fit=crop",
+    prompt: "A fallen medieval knight in blood-stained steel armor lying in a wildflower field at sunset, cinematic lighting, ultra-realistic, dramatic atmosphere, shallow depth of field, highly detailed, 8K.",
+    image: "/media/gallery/0f730191-d513-463f-92c8-7c91bbea3f42.jpg",
     resolution: "3.8s"
   },
   {
-    id: "vaporwave",
-    name: "Vaporwave Sea",
+    id: "vp-3",
+    name: "Can this be ours?",
     lens: "85mm",
     gap: "f/2.0",
     iso: "ISO 100",
-    prompt: "surreal vaporwave ocean landscape under a low-fidelity pastel sunset, wireframe grid vector reflections, 8k",
-    image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1400&q=85&auto=format&fit=crop",
+    prompt: "An adorable chubby tabby cat in a black tuxedo holding a red rose and an open diamond ring box, romantic candlelit street at night, cinematic lighting, ultra-realistic, shallow depth of field, warm bokeh, 8K.",
+    image: "/media/gallery/8b1de65d-3357-4a56-bfa9-23cb5c7fecdc.jpg",
     resolution: "2.9s"
   }
 ];
