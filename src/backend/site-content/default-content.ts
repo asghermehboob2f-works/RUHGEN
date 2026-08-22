@@ -2,7 +2,28 @@ import type { SiteContent } from "@/backend/site-content/types";
 
 /** Used only when the API has no usable content and `site-content.json` files are missing or invalid. */
 export const PUBLIC_DEFAULT_SITE_CONTENT: SiteContent = {
-  hero: {},
+  hero: {
+    previews: [
+      {
+        id: "prev-1",
+        src: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1400&q=85&auto=format&fit=crop",
+        alt: "Abstract neon glow",
+        prompt: "Cinematic abstract fluid art, neon cyan and magenta gradient, 8k"
+      },
+      {
+        id: "prev-2",
+        src: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1400&q=85&auto=format&fit=crop",
+        alt: "Alpine mountains",
+        prompt: "Hyper-realistic snow covered mountain peak at sunset, dramatic lighting, 8k"
+      },
+      {
+        id: "prev-3",
+        src: "https://images.unsplash.com/photo-1633167605827-e8f50f098a8d?w=1400&q=85&auto=format&fit=crop",
+        alt: "Sci-Fi Monolith",
+        prompt: "Glowing alien monolith in futuristic desert, volumetric mist, 8k"
+      }
+    ]
+  },
   heroBackground: {
     media: [
       {
@@ -302,7 +323,7 @@ export const PUBLIC_DEFAULT_SITE_CONTENT: SiteContent = {
       gap: "f/1.8",
       iso: "ISO 200",
       prompt: "cinematic moody sci-fi explorer discovering a glowing neon monolith on an alien world, volumetric lighting, 8k",
-      image: "/media/features-monolith.png",
+      image: "https://images.unsplash.com/photo-1633167605827-e8f50f098a8d?w=1400&q=85&auto=format&fit=crop",
       resolution: "4.2s"
     },
     {
@@ -312,7 +333,7 @@ export const PUBLIC_DEFAULT_SITE_CONTENT: SiteContent = {
       gap: "f/1.2",
       iso: "ISO 800",
       prompt: "cyberpunk terminal operator in a high-density server rack room, holographic neon interfaces, dense vapor haze",
-      image: "/media/features-editorial.png",
+      image: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=1400&q=85&auto=format&fit=crop",
       resolution: "3.8s"
     },
     {
@@ -322,7 +343,7 @@ export const PUBLIC_DEFAULT_SITE_CONTENT: SiteContent = {
       gap: "f/2.0",
       iso: "ISO 100",
       prompt: "surreal vaporwave ocean landscape under a low-fidelity pastel sunset, wireframe grid vector reflections, 8k",
-      image: "/media/features-sculpture.png",
+      image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1400&q=85&auto=format&fit=crop",
       resolution: "2.9s"
     }
   ],

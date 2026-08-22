@@ -776,9 +776,95 @@ function syncSiteContentFromSeedFile(db, dataDir, projectRoot) {
   if (syncHeroPreviewsFromSeed(data, seed)) changed = true;
   if (syncGalleryItemsFromSeed(data, seed)) changed = true;
   if (syncShowcaseSlidesFromSeed(data, seed)) changed = true;
+  if (syncHeroBackgroundFromSeed(data, seed)) changed = true;
+  if (syncVisualizerPresetsFromSeed(data, seed)) changed = true;
 
   if (changed) {
     db.prepare("UPDATE site_content SET json = ? WHERE id = 1").run(JSON.stringify(data));
+  }
+}
+
+function syncHeroBackgroundFromSeed(data, seed) {
+  const seedBg = seed?.heroBackground;
+  if (!seedBg || !Array.isArray(seedBg.media) || seedBg.media.length === 0) return false;
+  const dbBg = data.heroBackground;
+  if (!dbBg || !Array.isArray(dbBg.media) || dbBg.media.length === 0) {
+    data.heroBackground = JSON.parse(JSON.stringify(seedBg));
+    return true;
+  }
+  const catFiles = ['5fda8e4e-9bd2-41e6-a4e3-f654ad5864f3.png', 'ed24ee0e-e435-40f6-963f-4681c18fb5e2.png', '40709e0b-69b3-4033-be30-eda2c2581e8a.png'];
+  let changed = false;
+  const filtered = dbBg.media.filter(m => m && m.src && !catFiles.some(c => m.src.includes(c)));
+  if (filtered.length !== dbBg.media.length) {
+    dbBg.media = filtered;
+    changed = true;
+  }
+  return changed;
+}
+
+function syncVisualizerPresetsFromSeed(data, seed) {
+  const seedPresets = seed?.visualizerPresets;
+  if (!Array.isArray(seedPresets) || seedPresets.length === 0) return false;
+  const dbPresets = data.visualizerPresets;
+  if (!Array.isArray(dbPresets) || dbPresets.length === 0 || dbPresets.some(p => !p || !p.image || p.image.includes('32ef021f') || p.image.includes('features-monolith') || p.prompt?.includes('cobra'))) {
+    data.visualizerPresets = JSON.parse(JSON.stringify(seedPresets));
+    return true;
+  }
+  return false;
+}
+
+function upgradeExistingSiteContent(db) {
+  const row = db.prepare("SELECT json FROM site_content WHERE id = 1").get();
+  if (!row) return;
+  try {
+    const data = JSON.parse(row.json);
+    let changed = false;
+    if (Array.isArray(data.visualizerPresets)) {
+      for (const p of data.visualizerPresets) {
+        if (p && (p.image?.includes('32ef021f') || p.image?.includes('features-monolith') || p.prompt?.includes('cobra'))) {
+          data.visualizerPresets = [
+            {
+              id: "vp-1",
+              name: "Sci-Fi Monolith",
+              lens: "35mm",
+              gap: "f/1.8",
+              iso: "ISO 200",
+              prompt: "cinematic moody sci-fi explorer discovering a glowing neon monolith on an alien world, volumetric lighting, 8k",
+              image: "https://images.unsplash.com/photo-1633167605827-e8f50f098a8d?w=1400&q=85&auto=format&fit=crop",
+              resolution: "4.2s"
+            },
+            {
+              id: "vp-2",
+              name: "Cyberpunk Hacker",
+              lens: "50mm",
+              gap: "f/1.2",
+              iso: "ISO 800",
+              prompt: "cyberpunk terminal operator in a high-density server rack room, holographic neon interfaces, dense vapor haze",
+              image: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=1400&q=85&auto=format&fit=crop",
+              resolution: "3.8s"
+            },
+            {
+              id: "vp-3",
+              name: "Vaporwave Sea",
+              lens: "85mm",
+              gap: "f/2.0",
+              iso: "ISO 100",
+              prompt: "surreal vaporwave ocean landscape under a low-fidelity pastel sunset, wireframe grid vector reflections, 8k",
+              image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1400&q=85&auto=format&fit=crop",
+              resolution: "2.9s"
+            }
+          ];
+          changed = true;
+          break;
+        }
+      }
+    }
+    if (changed) {
+      db.prepare("UPDATE site_content SET json = ? WHERE id = 1").run(JSON.stringify(data));
+      console.log("[db] Upgraded existing site_content in SQLite to production visual assets.");
+    }
+  } catch (e) {
+    console.error("[db] Error upgrading site content:", e.message);
   }
 }
 

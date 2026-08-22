@@ -26,7 +26,7 @@ const fallbackPresets: VisualizerPreset[] = [
     gap: "f/1.8",
     iso: "ISO 200",
     prompt: "cinematic moody sci-fi explorer discovering a glowing neon monolith on an alien world, volumetric lighting, 8k",
-    image: "/media/features-monolith.png",
+    image: "https://images.unsplash.com/photo-1633167605827-e8f50f098a8d?w=1400&q=85&auto=format&fit=crop",
     resolution: "4.2s"
   },
   {
@@ -36,7 +36,7 @@ const fallbackPresets: VisualizerPreset[] = [
     gap: "f/1.2",
     iso: "ISO 800",
     prompt: "cyberpunk terminal operator in a high-density server rack room, holographic neon interfaces, dense vapor haze",
-    image: "/media/features-editorial.png",
+    image: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=1400&q=85&auto=format&fit=crop",
     resolution: "3.8s"
   },
   {
@@ -46,7 +46,7 @@ const fallbackPresets: VisualizerPreset[] = [
     gap: "f/2.0",
     iso: "ISO 100",
     prompt: "surreal vaporwave ocean landscape under a low-fidelity pastel sunset, wireframe grid vector reflections, 8k",
-    image: "/media/features-sculpture.png",
+    image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1400&q=85&auto=format&fit=crop",
     resolution: "2.9s"
   }
 ];
