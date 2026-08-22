@@ -4,7 +4,7 @@ import type { NextConfig } from "next";
 const backend = (
   process.env.BACKEND_URL ||
   process.env.NEXT_PUBLIC_BACKEND_URL ||
-  "http://127.0.0.1:4000"
+  (process.env.NODE_ENV === "production" ? "https://ruhgen-b.onrender.com" : "http://127.0.0.1:4000")
 ).trim().replace(/\/$/, "");
 
 const nextConfig: NextConfig = {

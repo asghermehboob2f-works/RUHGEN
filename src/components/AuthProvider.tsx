@@ -167,7 +167,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return {
           ok: false,
           error:
-            "Could not reach the sign-in API. Start the backend (port 4000), e.g. npm run dev from the repo root, or npm run dev:backend.",
+            "Could not reach the server API. Please ensure backend services are running.",
         };
       }
       if (data.ok && data.token && data.user) {
@@ -208,7 +208,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return {
           ok: false,
           error:
-            "Could not reach the sign-in API. Start the backend on port 4000 (npm run dev or npm run dev:backend).",
+            "Could not reach the sign-in API server. Please try again later.",
         };
       }
       if (regData.ok && regData.token && regData.user) {
@@ -235,7 +235,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return {
             ok: false,
             error:
-              "Could not reach the sign-in API. Start the backend on port 4000 (npm run dev or npm run dev:backend).",
+              "Could not reach the sign-in API server. Please try again later.",
           };
         }
         if (loginData.ok && loginData.token && loginData.user) {
@@ -256,7 +256,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return {
         ok: false,
         error:
-          "Network error. Start the API on port 4000 (npm run dev from the repo root starts Next + backend), or set BACKEND_URL if the API runs elsewhere.",
+          "Network error while connecting to the server. Please check your internet connection.",
       };
     }
   }, []);
@@ -292,7 +292,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return {
             ok: false,
             error:
-              "Could not reach the API. Start the backend on port 4000 (npm run dev or npm run dev:backend).",
+              "Could not reach the API server. Please try again later.",
           };
         }
         if (data.ok && data.token && data.user) {
@@ -307,7 +307,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return {
           ok: false,
           error:
-            "Network error. Start the API on port 4000 (npm run dev), or set BACKEND_URL if the API runs elsewhere.",
+            "Network error while connecting to the server. Please check your internet connection.",
         };
       }
     },
