@@ -40,10 +40,15 @@ let nextBin = path.join(rootDir, "node_modules", "next", "dist", "bin", "next");
 if (!fs.existsSync(nextBin)) {
   nextBin = path.join(rootDir, "node_modules", ".bin", "next");
 }
+const frontendEnv = {
+  ...process.env,
+  BACKEND_URL: process.env.BACKEND_URL || `http://127.0.0.1:${backendPort}`,
+};
+
 const frontendProcess = spawn(process.execPath, [nextBin, "start", "-p", frontendPort], {
   cwd: rootDir,
   stdio: "inherit",
-  env: process.env,
+  env: frontendEnv,
 });
 
 frontendProcess.on("error", (err) => {

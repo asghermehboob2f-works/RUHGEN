@@ -95,7 +95,11 @@ const mediaStaticOptions = {
 app.use("/media", express.static(MEDIA_ROOT, mediaStaticOptions));
 app.use("/media", express.static(PUBLIC_MEDIA_ROOT, mediaStaticOptions));
 
-// --- Health Check ---
+// --- Root & Health Check ---
+app.get("/", (_req, res) => {
+  res.json({ ok: true, service: "ruhgen-backend", message: "RUHGEN Express API Backend operational" });
+});
+
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true, service: "ruhgen-backend" });
 });

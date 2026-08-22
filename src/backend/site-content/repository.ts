@@ -181,15 +181,11 @@ function parsePricingPlan(x: unknown): PricingPlan | null {
 
 /** Parse JSON payload into `SiteContent` (shared by file read and API response). */
 export function parseSiteContentPayload(data: unknown): SiteContent {
-  if (!isRecord(data)) throw new Error("Invalid content: root is not an object.");
+  if (!isRecord(data)) return PUBLIC_DEFAULT_SITE_CONTENT;
 
   const hero = isRecord(data.hero) ? data.hero : {};
   const gallery = isRecord(data.gallery) ? data.gallery : null;
-  const itemsRaw = gallery && Array.isArray(gallery.items) ? gallery.items : null;
-
-  if (!itemsRaw) {
-    throw new Error("Invalid content: missing gallery.items.");
-  }
+  const itemsRaw = gallery && Array.isArray(gallery.items) ? gallery.items : [];
 
   const items = itemsRaw.map(parseGalleryItem).filter(Boolean) as GalleryItem[];
 
@@ -216,7 +212,8 @@ export function parseSiteContentPayload(data: unknown): SiteContent {
 
 /** True when the CMS payload has no real gallery media (common after empty DB seed). */
 function isSparseContent(c: SiteContent): boolean {
-  const hasGallery = c.gallery.items.length > 0 && c.gallery.items.some((i) => i.src?.trim());
+  if (!c || !c.gallery || !Array.isArray(c.gallery.items)) return true;
+  const hasGallery = c.gallery.items.length > 0 && c.gallery.items.some((i) => i?.src?.trim());
   return !hasGallery;
 }
 
@@ -240,14 +237,19 @@ async function loadSiteContentFromDisk(): Promise<SiteContent | null> {
  */
 export function applyPublicSiteDefaults(c: SiteContent): SiteContent {
   const def = PUBLIC_DEFAULT_SITE_CONTENT;
-  const videoById = new Map(def.showcase.slides.map((s) => [s.id, s.videoSrc]));
+  if (!c) return def;
 
-  const galleryItems = c.gallery.items.filter((i) => i.src?.trim());
+  const videoById = new Map((def.showcase?.slides || []).map((s) => [s.id, s.videoSrc]));
 
+  const rawGalleryItems = Array.isArray(c.gallery?.items) ? c.gallery.items : [];
+  const galleryItems = rawGalleryItems.filter((i) => i && typeof i.src === "string" && i.src.trim());
+
+  const rawSlides = Array.isArray(c.showcase?.slides) ? c.showcase.slides : [];
   const slides =
-    c.showcase.slides.length === 0
+    rawSlides.length === 0
       ? def.showcase.slides
-      : c.showcase.slides.map((s, i) => {
+      : rawSlides.map((s, i) => {
+          if (!s) return def.showcase.slides[i] || { id: `show-${i}`, title: "", caption: "", videoSrc: "" };
           const v = s.videoSrc?.trim();
           if (v) return s;
           const fallback = videoById.get(s.id) ?? def.showcase.slides[i]?.videoSrc ?? "";
@@ -259,19 +261,19 @@ export function applyPublicSiteDefaults(c: SiteContent): SiteContent {
 
   const heroBackground = c.heroBackground || def.heroBackground;
 
-  const pillars = c.pillars && c.pillars.length > 0 ? c.pillars : def.pillars;
-  const stats = c.stats && c.stats.length > 0 ? c.stats : def.stats;
-  const testimonials = c.testimonials && c.testimonials.length > 0 ? c.testimonials : def.testimonials;
+  const pillars = Array.isArray(c.pillars) && c.pillars.length > 0 ? c.pillars : def.pillars;
+  const stats = Array.isArray(c.stats) && c.stats.length > 0 ? c.stats : def.stats;
+  const testimonials = Array.isArray(c.testimonials) && c.testimonials.length > 0 ? c.testimonials : def.testimonials;
 
-  const spotlightFeatures = c.spotlightFeatures && c.spotlightFeatures.length > 0 ? c.spotlightFeatures : def.spotlightFeatures;
-  const spotlightTemplates = c.spotlightTemplates && c.spotlightTemplates.length > 0 ? c.spotlightTemplates : def.spotlightTemplates;
-  const upcomingFeatures = c.upcomingFeatures && c.upcomingFeatures.length > 0 ? c.upcomingFeatures : def.upcomingFeatures;
-  const visualizerPresets = c.visualizerPresets && c.visualizerPresets.length > 0 ? c.visualizerPresets : def.visualizerPresets;
+  const spotlightFeatures = Array.isArray(c.spotlightFeatures) && c.spotlightFeatures.length > 0 ? c.spotlightFeatures : def.spotlightFeatures;
+  const spotlightTemplates = Array.isArray(c.spotlightTemplates) && c.spotlightTemplates.length > 0 ? c.spotlightTemplates : def.spotlightTemplates;
+  const upcomingFeatures = Array.isArray(c.upcomingFeatures) && c.upcomingFeatures.length > 0 ? c.upcomingFeatures : def.upcomingFeatures;
+  const visualizerPresets = Array.isArray(c.visualizerPresets) && c.visualizerPresets.length > 0 ? c.visualizerPresets : def.visualizerPresets;
   const featuresCalibration = c.featuresCalibration || def.featuresCalibration;
-  const plans = c.plans && c.plans.length > 0 ? c.plans : def.plans;
+  const plans = Array.isArray(c.plans) && c.plans.length > 0 ? c.plans : def.plans;
 
   return {
-    hero: c.hero,
+    hero: c.hero || def.hero,
     heroBackground,
     gallery: { items: galleryItems.length > 0 ? galleryItems : def.gallery.items },
     showcase: { slides: showcaseSlides },
@@ -289,55 +291,60 @@ export function applyPublicSiteDefaults(c: SiteContent): SiteContent {
 
 export async function readSiteContent(): Promise<SiteContent> {
   try {
-    await connection();
-  } catch {
-    /* ignore if called outside request context */
-  }
-
-  let fromApi: SiteContent | null = null;
-  const base = (
-    process.env.BACKEND_URL?.trim() ||
-    process.env.NEXT_PUBLIC_BACKEND_URL?.trim() ||
-    process.env.NEXT_PUBLIC_API_URL?.trim() ||
-    "http://127.0.0.1:4000"
-  ).replace(/\/$/, "");
-
-  if (base) {
     try {
-      const res = await fetch(`${base.replace(/\/$/, "")}/api/admin/content`, {
-        cache: "no-store",
-      });
-      if (res.ok) {
-        try {
-          const raw = (await res.json()) as unknown;
-          fromApi = parseSiteContentPayload(raw);
-        } catch {
-          fromApi = null;
-        }
-      }
+      await connection();
     } catch {
-      /* ignore */
+      /* ignore if called outside request context */
     }
+
+    let fromApi: SiteContent | null = null;
+    const base = (
+      process.env.BACKEND_URL?.trim() ||
+      process.env.NEXT_PUBLIC_BACKEND_URL?.trim() ||
+      process.env.NEXT_PUBLIC_API_URL?.trim() ||
+      "http://127.0.0.1:4000"
+    ).replace(/\/$/, "");
+
+    if (base) {
+      try {
+        const res = await fetch(`${base}/api/admin/content`, {
+          cache: "no-store",
+        });
+        if (res.ok) {
+          try {
+            const raw = (await res.json()) as unknown;
+            fromApi = parseSiteContentPayload(raw);
+          } catch {
+            fromApi = null;
+          }
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+
+    const fromDisk = await loadSiteContentFromDisk();
+
+    let merged: SiteContent;
+    if (fromApi && fromDisk) {
+      merged = {
+        ...fromDisk,
+        ...fromApi,
+        gallery: fromApi.gallery?.items && fromApi.gallery.items.length > 0 ? fromApi.gallery : fromDisk.gallery,
+        showcase: fromApi.showcase?.slides && fromApi.showcase.slides.length > 0 ? fromApi.showcase : fromDisk.showcase,
+        plans: fromApi.plans && fromApi.plans.length > 0 ? fromApi.plans : fromDisk.plans,
+      };
+    } else if (fromApi) {
+      merged = fromApi;
+    } else if (fromDisk) {
+      merged = fromDisk;
+    } else {
+      merged = PUBLIC_DEFAULT_SITE_CONTENT;
+    }
+
+    return applyPublicSiteDefaults(merged);
+  } catch (err) {
+    console.error("[readSiteContent] Fallback triggered due to error:", err);
+    return applyPublicSiteDefaults(PUBLIC_DEFAULT_SITE_CONTENT);
   }
-
-  const fromDisk = await loadSiteContentFromDisk();
-
-  let merged: SiteContent;
-  if (fromApi && fromDisk) {
-    merged = {
-      ...fromDisk,
-      ...fromApi,
-      gallery: fromApi.gallery?.items && fromApi.gallery.items.length > 0 ? fromApi.gallery : fromDisk.gallery,
-      showcase: fromApi.showcase?.slides && fromApi.showcase.slides.length > 0 ? fromApi.showcase : fromDisk.showcase,
-      plans: fromApi.plans && fromApi.plans.length > 0 ? fromApi.plans : fromDisk.plans,
-    };
-  } else if (fromApi) {
-    merged = fromApi;
-  } else if (fromDisk) {
-    merged = fromDisk;
-  } else {
-    merged = PUBLIC_DEFAULT_SITE_CONTENT;
-  }
-
-  return applyPublicSiteDefaults(merged);
 }

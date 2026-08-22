@@ -8,7 +8,7 @@ const backend = (
 ).trim().replace(/\/$/, "");
 
 const nextConfig: NextConfig = {
-  cacheComponents: true,
+  cacheComponents: false,
   turbopack: {
     root: path.resolve(__dirname),
   },
