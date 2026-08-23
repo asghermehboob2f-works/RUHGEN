@@ -238,12 +238,12 @@ export function LuxuryStudioLayout({
               initial={reduce ? false : { opacity: 0, x: -8 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-              className={`flex min-h-0 min-w-0 flex-col overflow-hidden ${
-                mobilePane === "controls" ? "max-lg:flex max-lg:flex-1 max-lg:h-full" : "max-lg:hidden"
+              className={`flex min-h-0 min-w-0 flex-col max-lg:h-full max-lg:w-full max-lg:overflow-y-auto max-lg:overscroll-y-contain [-webkit-overflow-scrolling:touch] touch-pan-y lg:overflow-hidden ${
+                mobilePane === "controls" ? "max-lg:flex max-lg:flex-1" : "max-lg:hidden"
               } ${collapsed ? "lg:hidden" : "lg:flex"}`}
               aria-label="Generation controls"
             >
-              <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#11131C] shadow-lg backdrop-blur-2xl lg:h-full lg:max-h-full">
+              <div className="flex min-h-0 flex-1 flex-col rounded-2xl border border-white/10 bg-[#11131C] shadow-lg backdrop-blur-2xl max-lg:min-h-max lg:h-full lg:max-h-full lg:overflow-hidden">
                 {leftPanel}
               </div>
             </motion.aside>
