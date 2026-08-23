@@ -52,7 +52,7 @@ function mountUserAuthRoutes(app, { db }) {
       if (!passCheck.ok) {
         return res.status(400).json({ ok: false, error: passCheck.error });
       }
-      const existing = db.prepare("SELECT id FROM users WHERE email = ?").get(email);
+      const existing = db.prepare("SELECT id FROM users WHERE LOWER(TRIM(email)) = LOWER(TRIM(?))").get(email);
       if (existing) {
         return res.status(409).json({ ok: false, error: "An account with this email already exists." });
       }
@@ -91,6 +91,9 @@ function mountUserAuthRoutes(app, { db }) {
       }
       return res.json({ ok: true, token, user });
     } catch (e) {
+      if (e && (e.code === "SQLITE_CONSTRAINT" || (e.message && e.message.includes("UNIQUE constraint failed")))) {
+        return res.status(409).json({ ok: false, error: "An account with this email already exists." });
+      }
       const msg = e instanceof Error ? e.message : "Server error.";
       return res.status(500).json({ ok: false, error: msg });
     }
@@ -117,7 +120,7 @@ function mountUserAuthRoutes(app, { db }) {
       }
 
       const row = db
-        .prepare("SELECT id, email, name, password_hash, suspended, credits FROM users WHERE email = ?")
+        .prepare("SELECT id, email, name, password_hash, suspended, credits FROM users WHERE LOWER(TRIM(email)) = LOWER(TRIM(?))")
         .get(email);
       if (!row) {
         recordFailedAttempt(ipKey);
