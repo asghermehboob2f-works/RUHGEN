@@ -82,7 +82,11 @@ function getRazorpayCredentials(db) {
       }
       if (map.key_secret_encrypted && map.key_secret_encrypted.trim()) {
         const decrypted = decryptSecret(map.key_secret_encrypted);
-        if (decrypted) keySecret = decrypted;
+        if (decrypted && !isPlaceholder(decrypted)) {
+          keySecret = decrypted;
+        } else if (process.env.RAZORPAY_KEY_SECRET && process.env.RAZORPAY_KEY_SECRET.trim()) {
+          keySecret = process.env.RAZORPAY_KEY_SECRET.trim();
+        }
       }
       if (map.mode) {
         mode = map.mode.trim().toLowerCase();

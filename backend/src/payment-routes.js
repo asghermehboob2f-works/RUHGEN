@@ -359,6 +359,7 @@ function mountPaymentRoutes(app, { db, verifyAdminToken }) {
           ok: true,
           available: true,
           orderId: recentOrder.razorpay_order_id,
+          internalTransactionId: recentOrder.id,
           amount: recentOrder.amount_paise,
           currency: "INR",
           keyId: creds.keyId,
