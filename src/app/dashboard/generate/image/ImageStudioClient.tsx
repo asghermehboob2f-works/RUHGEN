@@ -28,6 +28,7 @@ import {
   RefreshCw,
   ChevronUp,
   ChevronDown,
+  Share2,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -38,6 +39,7 @@ import type { LuxuryStudioChromeValue } from "@/components/studio/luxury/studio-
 import { useAuth } from "@/components/AuthProvider";
 import { readUserToken } from "@/lib/auth-storage";
 import { createImageTask, pollStudioTask, uploadStudioReferenceImage } from "@/lib/studio-client";
+import { CommunityShareModal } from "@/components/community/CommunityShareModal";
 
 /** Universal RUHGEN Model Abstraction Tiers */
 const RUHGEN_IMAGE_TIERS = [
@@ -259,6 +261,8 @@ export default function ImageStudioClient() {
   const [studioView, setStudioView] = useState<"feed" | "gallery">("feed");
   const [feedFilter, setFeedFilter] = useState<"all" | "ready" | "running">("all");
   const [lightbox, setLightbox] = useState<{ src: string } | null>(null);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [shareModalData, setShareModalData] = useState<{ mediaUrl: string; prompt: string; kind: "image" | "video" } | null>(null);
 
   const costImageDev = rates.cost_image_dev ?? 3;
   const costImageSchnell = rates.cost_image_schnell ?? rates.credits_per_image ?? 2;
@@ -536,7 +540,7 @@ export default function ImageStudioClient() {
   const leftPanel = (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
       <p className="sr-only">Press Enter to generate. Shift+Enter for a new line.</p>
-      <div className="studio-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain p-2.5 sm:p-3">
+      <div className="studio-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] touch-pan-y p-2.5 sm:p-3">
         <div className="rounded-2xl border border-white/10 bg-[#121420] p-3.5 sm:p-4 shadow-sm">
             {/* Control Deck Header */}
             <div className="mb-3 flex items-center justify-between gap-2 border-b border-white/[0.08] pb-2.5">
@@ -1318,9 +1322,9 @@ export default function ImageStudioClient() {
                                       className="w-full h-auto block transition-transform duration-700 ease-out group-hover:scale-105"
                                     />
                                     
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 pointer-events-none" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 max-lg:opacity-100 pointer-events-none" />
 
-                                    <div className="absolute top-3 right-3 flex gap-1.5 opacity-0 transition-all duration-300 translate-y-[-4px] group-hover:translate-y-0 group-hover:opacity-100">
+                                    <div className="absolute top-3 right-3 flex gap-1.5 opacity-0 transition-all duration-300 translate-y-[-4px] group-hover:translate-y-0 group-hover:opacity-100 max-lg:opacity-100 max-lg:translate-y-0">
                                       <button
                                         type="button"
                                         onClick={() => setLightbox({ src })}
@@ -1340,7 +1344,7 @@ export default function ImageStudioClient() {
                                       </a>
                                     </div>
 
-                                    <div className="absolute inset-x-3 bottom-3 flex gap-1.5 opacity-0 transition-all duration-300 translate-y-[4px] group-hover:translate-y-0 group-hover:opacity-100">
+                                    <div className="absolute inset-x-3 bottom-3 flex flex-wrap gap-1.5 opacity-0 transition-all duration-300 translate-y-[4px] group-hover:translate-y-0 group-hover:opacity-100 max-lg:opacity-100 max-lg:translate-y-0">
                                       <button
                                         type="button"
                                         disabled={busy}
@@ -1349,10 +1353,10 @@ export default function ImageStudioClient() {
                                           setPrompt("");
                                           document.getElementById("img-prompt")?.focus();
                                         }}
-                                        className="flex h-8.5 flex-1 items-center justify-center gap-1.5 rounded-lg border border-white/15 bg-black/60 text-[11px] font-bold uppercase tracking-wider text-white backdrop-blur-md transition-colors hover:bg-[var(--primary-purple)]/80 hover:border-[var(--primary-purple)]/40 disabled:opacity-50"
+                                        className="flex h-8.5 flex-1 min-w-[80px] items-center justify-center gap-1.5 rounded-lg border border-white/15 bg-black/60 text-[11px] font-bold uppercase tracking-wider text-white backdrop-blur-md transition-colors hover:bg-[var(--primary-purple)]/80 hover:border-[var(--primary-purple)]/40 disabled:opacity-50 cursor-pointer"
                                       >
                                         <Wand2 className="h-3 w-3" />
-                                        Refine Frame
+                                        Refine
                                       </button>
                                       <button
                                         type="button"
@@ -1366,7 +1370,7 @@ export default function ImageStudioClient() {
                                             })
                                             .finally(() => setDownloadingIdx(null));
                                         }}
-                                        className="flex h-8.5 px-3 items-center justify-center gap-1.5 rounded-lg border border-white/15 bg-black/60 text-[11px] font-bold uppercase tracking-wider text-white backdrop-blur-md transition-colors hover:bg-black/80 disabled:opacity-50"
+                                        className="flex h-8.5 px-3 items-center justify-center gap-1.5 rounded-lg border border-white/15 bg-black/60 text-[11px] font-bold uppercase tracking-wider text-white backdrop-blur-md transition-colors hover:bg-black/80 disabled:opacity-50 cursor-pointer"
                                       >
                                         {downloadingIdx?.key === msg.id && downloadingIdx.idx === idx ? (
                                           <Loader2 className="h-3 w-3 animate-spin text-[var(--primary-cyan)]" />
@@ -1377,8 +1381,21 @@ export default function ImageStudioClient() {
                                       </button>
                                       <button
                                         type="button"
+                                        onClick={() => {
+                                          const userPrompt = messages.slice(0, messages.findIndex((m) => m.id === msg.id)).reverse().find((m) => m.role === "user")?.content || prompt;
+                                          setShareModalData({ mediaUrl: src, prompt: userPrompt, kind: "image" });
+                                          setShareModalOpen(true);
+                                        }}
+                                        className="flex h-8.5 px-3 items-center justify-center gap-1.5 rounded-lg border border-indigo-400/40 bg-indigo-600/80 text-[11px] font-bold uppercase tracking-wider text-white backdrop-blur-md transition-colors hover:bg-indigo-600 shadow-md cursor-pointer"
+                                        title="Share to Community"
+                                      >
+                                        <Share2 className="h-3 w-3 text-cyan-200" />
+                                        Post
+                                      </button>
+                                      <button
+                                        type="button"
                                         onClick={() => void copyText(src, "Link copied")}
-                                        className="flex h-8.5 px-3 items-center justify-center gap-1.5 rounded-lg border border-white/15 bg-black/60 text-[11px] font-bold uppercase tracking-wider text-white backdrop-blur-md transition-colors hover:bg-black/80"
+                                        className="flex h-8.5 px-3 items-center justify-center gap-1.5 rounded-lg border border-white/15 bg-black/60 text-[11px] font-bold uppercase tracking-wider text-white backdrop-blur-md transition-colors hover:bg-black/80 cursor-pointer"
                                       >
                                         <Copy className="h-3 w-3" />
                                         Link
@@ -1540,8 +1557,8 @@ export default function ImageStudioClient() {
     <motion.div className="flex min-h-0 flex-1 flex-col overflow-hidden" initial={reduce ? false : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
       <LuxuryStudioLayout
         mode="image"
-        eyebrow="RUHGEN Image Studio"
-        title="Universal AI Creation Panel"
+        eyebrow="RUHGEN AI"
+        title="Image Studio"
         subtitle="Model-agnostic image studio · RUHGEN tier rendering · cinema quality stills."
         mobilePane={mobileStudioPane}
         onMobilePaneChange={setMobileStudioPane}
@@ -1563,15 +1580,20 @@ export default function ImageStudioClient() {
             </button>
             <Link
               href="/dashboard/billing"
-              className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-full border border-amber-400/35 bg-gradient-to-r from-amber-500/10 via-indigo-500/10 to-violet-500/10 px-4 text-xs font-bold tracking-wider text-amber-200 shadow-md backdrop-blur-md transition-all hover:scale-[1.03] hover:border-amber-400/60 hover:shadow-amber-500/20 active:scale-95 cursor-pointer"
+              className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 sm:gap-2 rounded-full border border-amber-400/35 bg-gradient-to-r from-amber-500/10 via-indigo-500/10 to-violet-500/10 px-2.5 sm:px-4 text-xs font-bold tracking-wider text-amber-200 shadow-md backdrop-blur-md transition-all hover:scale-[1.03] hover:border-amber-400/60 hover:shadow-amber-500/20 active:scale-95 cursor-pointer"
             >
               <Zap className="h-3.5 w-3.5 text-amber-400 fill-amber-400 animate-pulse" />
-              <span className="font-mono text-white text-xs">{user?.availableCredits ?? user?.credits ?? 0} Credits</span>
+              <span className="font-mono text-white text-xs">{user?.availableCredits ?? user?.credits ?? 0}<span className="hidden sm:inline"> Credits</span></span>
             </Link>
           </>
         }
         leftPanel={leftPanel}
         renderRightPanel={renderRightPanel}
+      />
+      <CommunityShareModal
+        open={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        initial={shareModalData || undefined}
       />
     </motion.div>
   );

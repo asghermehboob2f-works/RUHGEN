@@ -32,6 +32,7 @@ import {
   Info,
   ChevronUp,
   ChevronDown,
+  Share2,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -43,6 +44,7 @@ import { DashboardLoading } from "@/components/dashboard/DashboardLoading";
 import { useAuth } from "@/components/AuthProvider";
 import { readUserToken } from "@/lib/auth-storage";
 import { createVideoTask, pollStudioTask, uploadStudioReference, uploadStudioReferenceImage } from "@/lib/studio-client";
+import { CommunityShareModal } from "@/components/community/CommunityShareModal";
 
 /** Universal RUHGEN Video Tiers */
 const RUHGEN_VIDEO_TIERS = [
@@ -269,6 +271,8 @@ export default function VideoStudioClient() {
   const [studioView, setStudioView] = useState<"feed" | "gallery">("feed");
   const [feedFilter, setFeedFilter] = useState<"all" | "ready" | "running">("all");
   const [lightbox, setLightbox] = useState<{ src: string } | null>(null);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [shareModalData, setShareModalData] = useState<{ mediaUrl: string; prompt: string; kind: "image" | "video" } | null>(null);
 
   const costPerSecond = selectedTier === "quality" ? (rates.cost_video_pro ?? 8) : (rates.cost_video_std ?? rates.credits_per_video_second ?? 5);
   const currentCost = costPerSecond * duration;
@@ -601,7 +605,7 @@ export default function VideoStudioClient() {
   const leftPanel = (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
       <p className="sr-only">Press Enter to generate video. Shift+Enter for newline.</p>
-      <div className="studio-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain p-2.5 sm:p-3">
+      <div className="studio-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] touch-pan-y p-2.5 sm:p-3">
         <div className="rounded-2xl border border-white/10 bg-[#121420] p-3.5 sm:p-4 shadow-sm">
             {/* Header Title */}
             <div className="mb-3 flex items-center justify-between gap-2 border-b border-white/[0.08] pb-2.5">
@@ -1455,6 +1459,19 @@ export default function VideoStudioClient() {
                                       </button>
                                       <button
                                         type="button"
+                                        onClick={() => {
+                                          const userPrompt = messages.slice(0, messages.findIndex((m) => m.id === msg.id)).reverse().find((m) => m.role === "user")?.content || prompt;
+                                          setShareModalData({ mediaUrl: src, prompt: userPrompt, kind: "video" });
+                                          setShareModalOpen(true);
+                                        }}
+                                        className="inline-flex items-center gap-1.5 rounded-lg border border-cyan-400/40 bg-cyan-600/80 px-3 py-1.5 text-xs font-bold text-white transition-all hover:bg-cyan-600 cursor-pointer shadow-md"
+                                        title="Share to Community"
+                                      >
+                                        <Share2 className="h-3.5 w-3.5 text-cyan-200" />
+                                        Post
+                                      </button>
+                                      <button
+                                        type="button"
                                         onClick={() => void copyText(src, "Video link copied")}
                                         className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-bold text-white transition-all hover:bg-white/15 cursor-pointer"
                                       >
@@ -1590,8 +1607,8 @@ export default function VideoStudioClient() {
     <motion.div className="flex min-h-0 flex-1 flex-col overflow-hidden" initial={reduce ? false : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
       <LuxuryStudioLayout
         mode="video"
-        eyebrow="RUHGEN Video Studio"
-        title="Universal AI Video Panel"
+        eyebrow="RUHGEN AI"
+        title="Video Studio"
         subtitle="Model-agnostic video creation interface · RUHGEN tier rendering · cinematic motion control."
         mobilePane={mobileStudioPane}
         onMobilePaneChange={setMobileStudioPane}
@@ -1613,15 +1630,20 @@ export default function VideoStudioClient() {
             </button>
             <Link
               href="/dashboard/billing"
-              className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-full border border-amber-400/35 bg-gradient-to-r from-amber-500/10 via-sky-500/10 to-indigo-500/10 px-4 text-xs font-bold tracking-wider text-amber-200 shadow-md backdrop-blur-md transition-all hover:scale-[1.03] hover:border-amber-400/60 hover:shadow-amber-500/20 active:scale-95 cursor-pointer"
+              className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 sm:gap-2 rounded-full border border-amber-400/35 bg-gradient-to-r from-amber-500/10 via-sky-500/10 to-indigo-500/10 px-2.5 sm:px-4 text-xs font-bold tracking-wider text-amber-200 shadow-md backdrop-blur-md transition-all hover:scale-[1.03] hover:border-amber-400/60 hover:shadow-amber-500/20 active:scale-95 cursor-pointer"
             >
               <Zap className="h-3.5 w-3.5 text-amber-400 fill-amber-400 animate-pulse" />
-              <span className="font-mono text-white text-xs">{user?.availableCredits ?? user?.credits ?? 0} Credits</span>
+              <span className="font-mono text-white text-xs">{user?.availableCredits ?? user?.credits ?? 0}<span className="hidden sm:inline"> Credits</span></span>
             </Link>
           </>
         }
         leftPanel={leftPanel}
         renderRightPanel={renderRightPanel}
+      />
+      <CommunityShareModal
+        open={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        initial={shareModalData || undefined}
       />
     </motion.div>
   );

@@ -97,6 +97,15 @@ export function LuxuryStudioLayout({
           ring: "rgba(14, 165, 233, 0.4)",
         };
 
+  useEffect(() => {
+    if (mobilePane === "output" && typeof window !== "undefined") {
+      window.requestAnimationFrame(() => {
+        const promptEl = document.getElementById("img-prompt") || document.getElementById("vid-prompt") || mobileCanvasRef.current;
+        promptEl?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "nearest" });
+      });
+    }
+  }, [mobilePane, reduce]);
+
   return (
     <LuxuryStudioChromeProvider collapsed={collapsed} onToggleCollapsed={() => setCollapsed((c) => !c)}>
       <div
@@ -131,11 +140,11 @@ export function LuxuryStudioLayout({
             </span>
 
             <div className="min-w-0 flex-1 overflow-hidden">
-              <p className="font-mono text-[9px] font-bold uppercase leading-none tracking-[0.26em] text-indigo-200/90">
+              <p className="font-mono text-[9px] font-bold uppercase leading-none tracking-[0.2em] sm:tracking-[0.26em] text-indigo-200/90 truncate">
                 {eyebrow}
               </p>
-              <div className="mt-1 flex min-w-0 items-baseline gap-x-2.5">
-                <h1 className="truncate font-display text-[15px] sm:text-lg font-black leading-tight tracking-tight text-white drop-shadow-sm">
+              <div className="mt-0.5 sm:mt-1 flex min-w-0 items-baseline gap-x-2.5">
+                <h1 className="truncate font-display text-[13px] sm:text-lg font-black leading-tight tracking-tight text-white drop-shadow-sm">
                   {title}
                 </h1>
                 <p className="hidden min-w-0 max-w-[min(100%,28rem)] truncate text-[11px] font-medium leading-snug text-slate-400 lg:block">

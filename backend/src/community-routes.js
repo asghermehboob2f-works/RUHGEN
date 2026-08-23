@@ -153,9 +153,9 @@ function isAcceptableMediaUrl(value) {
   if (typeof value !== "string") return false;
   const v = value.trim();
   if (!v) return false;
-  if (v.length > 2048) return false;
-  if (v.startsWith("/media/") || v.startsWith("/community-media/")) return true;
-  return isHttpsUrl(v);
+  if (v.startsWith("/")) return true;
+  if (v.startsWith("data:")) return true;
+  return isSafeExternalUrl(v) || /^https?:\/\//i.test(v);
 }
 
 function normalizeTags(input) {
@@ -494,19 +494,31 @@ function mountCommunityRoutes(app, { db }) {
         return res.status(400).json({ ok: false, error: "Pick image or video." });
       }
       let mediaUrl = typeof req.body?.mediaUrl === "string" ? req.body.mediaUrl.trim() : "";
-      if (mediaUrl.startsWith("data:") || isHttpsUrl(mediaUrl)) {
-        mediaUrl = await storeCommunityMedia(mediaUrl);
+      if (mediaUrl.startsWith("data:") || isSafeExternalUrl(mediaUrl)) {
+        try {
+          mediaUrl = await storeCommunityMedia(mediaUrl);
+        } catch (e) {
+          if (!isAcceptableMediaUrl(mediaUrl)) {
+            return res
+              .status(400)
+              .json({ ok: false, error: "Media URL could not be retrieved." });
+          }
+        }
       } else if (!isAcceptableMediaUrl(mediaUrl)) {
         return res
           .status(400)
-          .json({ ok: false, error: "Media URL must be HTTPS or a local media path." });
+          .json({ ok: false, error: "Media URL must be a valid HTTPS link or local path." });
       }
       
       const thumbInput =
         typeof req.body?.thumbnailUrl === "string" ? req.body.thumbnailUrl.trim() : "";
       let thumbnailUrl = thumbInput && isAcceptableMediaUrl(thumbInput) ? thumbInput : "";
-      if (thumbnailUrl.startsWith("data:") || isHttpsUrl(thumbnailUrl)) {
-        thumbnailUrl = await storeCommunityMedia(thumbnailUrl);
+      if (thumbnailUrl.startsWith("data:") || isSafeExternalUrl(thumbnailUrl)) {
+        try {
+          thumbnailUrl = await storeCommunityMedia(thumbnailUrl);
+        } catch {
+          // ignore thumbnail download error
+        }
       }
 
       const title =
