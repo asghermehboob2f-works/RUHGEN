@@ -877,34 +877,49 @@ html.light .luxury-glass-panel {
 
 /* Thin, luxurious scrollbar for studio panes, mobile controls & textareas */
 #mobile-studio-controls,
+#mobile-studio-canvas,
 .studio-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(123, 97, 255, 0.5) transparent;
+  scrollbar-color: rgba(123, 97, 255, 0.45) transparent;
 }
 #mobile-studio-controls::-webkit-scrollbar,
+#mobile-studio-canvas::-webkit-scrollbar,
 .studio-scrollbar::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
+}
+@media (max-width: 1023px) {
+  #mobile-studio-controls::-webkit-scrollbar,
+  #mobile-studio-canvas::-webkit-scrollbar,
+  .studio-scrollbar::-webkit-scrollbar {
+    width: 3px;
+    height: 3px;
+  }
 }
 #mobile-studio-controls::-webkit-scrollbar-track,
+#mobile-studio-canvas::-webkit-scrollbar-track,
 .studio-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
 #mobile-studio-controls::-webkit-scrollbar-thumb,
+#mobile-studio-canvas::-webkit-scrollbar-thumb,
 .studio-scrollbar::-webkit-scrollbar-thumb {
   background: linear-gradient(180deg, rgba(123, 97, 255, 0.6) 0%, rgba(0, 212, 255, 0.6) 100%);
   border-radius: 9999px;
 }
 #mobile-studio-controls::-webkit-scrollbar-thumb:hover,
+#mobile-studio-canvas::-webkit-scrollbar-thumb:hover,
 .studio-scrollbar::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(180deg, rgba(123, 97, 255, 0.9) 0%, rgba(0, 212, 255, 0.9) 100%);
 }
 
 [data-studio-mode="image"] #mobile-studio-controls,
+[data-studio-mode="image"] #mobile-studio-canvas,
 [data-studio-mode="image"] .studio-scrollbar {
   scrollbar-color: rgba(123, 97, 255, 0.6) transparent;
 }
 [data-studio-mode="video"] #mobile-studio-controls,
+[data-studio-mode="video"] #mobile-studio-canvas,
 [data-studio-mode="video"] .studio-scrollbar {
   scrollbar-color: rgba(0, 212, 255, 0.6) transparent;
 }
