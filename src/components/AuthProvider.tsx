@@ -94,8 +94,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
       } else {
-        const s = readSession();
-        if (s && !cancelled) setUser(s);
+        writeSession(null);
+        setUser(null);
       }
       if (!cancelled) setReady(true);
     };
@@ -114,7 +114,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       ) {
         const token = readUserToken();
         if (!token) {
-          setUser(readSession());
+          writeSession(null);
+          setUser(null);
           return;
         }
         void fetch("/api/auth/me", { headers: { Authorization: `Bearer ${token}` } })
@@ -130,7 +131,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
           })
           .catch(() => {
-            setUser(readSession());
+            writeUserToken(null);
+            writeSession(null);
+            setUser(null);
           });
       }
     };
