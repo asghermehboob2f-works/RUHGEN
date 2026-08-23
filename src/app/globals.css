@@ -836,10 +836,32 @@ html.light .luxury-glass-panel {
   }
 }
 
-/* Mobile Controls Dedicated Scroll Container */
+/* Mobile Controls & Canvas Pane Toggle System */
 @media (max-width: 1023px) {
-  #mobile-studio-controls {
-    display: flex;
+  .luxury-studio-root[data-mobile-pane="controls"] #mobile-studio-controls {
+    display: flex !important;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+    flex: 1 1 0%;
+    height: 100% !important;
+    max-height: 100% !important;
+    overflow-y: auto !important;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+  }
+
+  .luxury-studio-root[data-mobile-pane="controls"] #mobile-studio-canvas {
+    display: none !important;
+  }
+
+  .luxury-studio-root[data-mobile-pane="output"] #mobile-studio-controls {
+    display: none !important;
+  }
+
+  .luxury-studio-root[data-mobile-pane="output"] #mobile-studio-canvas {
+    display: flex !important;
     flex-direction: column;
     min-height: 0;
     min-width: 0;

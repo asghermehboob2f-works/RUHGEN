@@ -111,6 +111,7 @@ export function LuxuryStudioLayout({
       <div
         className="luxury-studio-root font-studio-sans flex min-h-0 flex-1 flex-col overflow-hidden px-3 pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] pt-3 max-sm:h-[calc(100dvh-env(safe-area-inset-top,0px)-3.5rem)] sm:px-4 sm:pt-3 lg:h-[calc(100dvh-env(safe-area-inset-top,0px))] lg:max-h-[calc(100dvh-env(safe-area-inset-top,0px))] lg:px-5 lg:pb-4 lg:pt-4"
         data-studio-mode={mode}
+        data-mobile-pane={mobilePane}
         onTouchStart={swipe.onTouchStart}
         onTouchEnd={swipe.onTouchEnd}
       >
