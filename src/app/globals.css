@@ -811,33 +811,75 @@ html.light .luxury-glass-panel {
   transform: scale(0.95);
 }
 
+/* Mobile & Desktop Studio Height & Scrolling System */
+.luxury-studio-root {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1 1 0%;
+  overflow: hidden;
+  height: calc(100dvh - env(safe-area-inset-top, 0px) - 3.5rem) !important;
+  max-height: calc(100dvh - env(safe-area-inset-top, 0px) - 3.5rem) !important;
+}
+
+@media (min-width: 640px) {
+  .luxury-studio-root {
+    height: calc(100dvh - env(safe-area-inset-top, 0px) - 4rem) !important;
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - 4rem) !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .luxury-studio-root {
+    height: calc(100dvh - env(safe-area-inset-top, 0px)) !important;
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px)) !important;
+  }
+}
+
+/* Mobile Controls Dedicated Scroll Container */
+@media (max-width: 1023px) {
+  #mobile-studio-controls {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+    flex: 1 1 0%;
+    height: 100% !important;
+    max-height: 100% !important;
+    overflow-y: auto !important;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+  }
+}
+
 /* Thin, luxurious scrollbar for studio panes & textareas */
 .studio-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(99, 102, 241, 0.4) transparent;
+  scrollbar-color: rgba(123, 97, 255, 0.6) rgba(17, 19, 28, 0.6);
 }
 .studio-scrollbar::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 .studio-scrollbar::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(17, 19, 28, 0.6);
   border-radius: 999px;
   margin: 2px;
 }
 .studio-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.18);
+  background: linear-gradient(180deg, rgba(123, 97, 255, 0.6) 0%, rgba(0, 212, 255, 0.6) 100%);
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 .studio-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.5);
+  background: linear-gradient(180deg, rgba(123, 97, 255, 0.85) 0%, rgba(0, 212, 255, 0.85) 100%);
 }
-[data-studio-mode="image"] .studio-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.6);
+[data-studio-mode="image"] .studio-scrollbar {
+  scrollbar-color: rgba(123, 97, 255, 0.65) rgba(17, 19, 28, 0.6);
 }
-[data-studio-mode="video"] .studio-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(14, 165, 233, 0.6);
+[data-studio-mode="video"] .studio-scrollbar {
+  scrollbar-color: rgba(0, 212, 255, 0.65) rgba(17, 19, 28, 0.6);
 }
 
 /* Global Dark Glass Scrollbar override for textareas & inputs */
