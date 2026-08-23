@@ -603,9 +603,9 @@ export default function VideoStudioClient() {
   if (!user) return null;
 
   const leftPanel = (
-    <div className="flex min-h-0 flex-1 flex-col max-lg:h-full max-lg:min-h-0 max-lg:overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] touch-pan-y lg:overflow-hidden">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
       <p className="sr-only">Press Enter to generate video. Shift+Enter for newline.</p>
-      <div className="studio-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] touch-pan-y p-2.5 sm:p-3">
+      <div className="studio-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-y-contain [-webkit-overflow-scrolling:touch] touch-pan-y p-2.5 sm:p-3">
         <div className="rounded-2xl border border-white/10 bg-[#121420] p-3.5 sm:p-4 shadow-sm">
             {/* Header Title */}
             <div className="mb-3 flex items-center justify-between gap-2 border-b border-white/[0.08] pb-2.5">
