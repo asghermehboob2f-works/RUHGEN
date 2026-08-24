@@ -689,7 +689,7 @@ export default function ImageStudioClient() {
               </div>
 
               {/* 2. ASPECT RATIO */}
-              <StudioCollapsible title="2. Aspect Ratio" defaultOpen>
+              <StudioCollapsible title="2. Aspect Ratio" defaultOpen={false}>
                 <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6" role="radiogroup" aria-label="Aspect Ratio">
                   {ASPECT_RATIOS.map((item, idx) => {
                     const on = selectedRatioIdx === idx;

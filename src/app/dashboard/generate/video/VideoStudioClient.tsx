@@ -830,7 +830,7 @@ export default function VideoStudioClient() {
               </div>
 
               {/* 2. ASPECT RATIO */}
-              <StudioCollapsible title="2. Aspect Ratio" defaultOpen>
+              <StudioCollapsible title="2. Aspect Ratio" defaultOpen={false}>
                 <div className="grid grid-cols-3 gap-1.5" role="radiogroup" aria-label="Aspect Ratio">
                   {ASPECT_RATIOS.map((item) => {
                     const on = aspect === item.key;
@@ -867,7 +867,7 @@ export default function VideoStudioClient() {
               </StudioCollapsible>
 
               {/* 3. VIDEO DURATION */}
-              <StudioCollapsible title="3. Video Duration" subtitle="Select target clip duration in seconds" defaultOpen>
+              <StudioCollapsible title="3. Video Duration" subtitle="Select target clip duration in seconds" defaultOpen={false}>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
