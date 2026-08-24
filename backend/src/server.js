@@ -13,6 +13,14 @@ const { verifyAdminToken } = require("./auth");
 const { requireAdmin } = require("./middleware/adminAuth");
 const { requestLogger } = require("./middleware/requestLogger");
 const { errorHandler, notFoundHandler } = require("./middleware/errorHandler");
+const {
+  apiLimiter,
+  authLimiter,
+  passwordResetLimiter,
+  verificationLimiter,
+  contactFormLimiter,
+  studioLimiter,
+} = require("./middleware/rateLimiter");
 const { mountStudioRoutes } = require("./studio-routes");
 const { mountUserAuthRoutes } = require("./user-auth-routes");
 const { mountCommunityRoutes } = require("./community-routes");
