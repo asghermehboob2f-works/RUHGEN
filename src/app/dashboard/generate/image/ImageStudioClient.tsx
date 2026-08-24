@@ -483,6 +483,13 @@ export default function ImageStudioClient() {
     setPrompt("");
     setReferenceImageUrl(null);
     setBusy(true);
+    setMobileStudioPane("output");
+    if (typeof window !== "undefined") {
+      window.requestAnimationFrame(() => {
+        const canvasEl = document.getElementById("mobile-studio-canvas") || document.getElementById("studio-canvas-feed");
+        canvasEl?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
 
     try {
       const { taskId } = await createImageTask({

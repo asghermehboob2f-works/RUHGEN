@@ -250,7 +250,7 @@ export function UserDashboardShell({ children }: { children: React.ReactNode }) 
         </div>
       </aside>
 
-      <div className="flex min-h-[100dvh] flex-col lg:pl-[260px] xl:pl-[270px]">
+      <div className="flex min-h-[100dvh] flex-col lg:pl-[270px] xl:pl-[280px]">
         <header
           className="sticky top-0 z-50 border-b pt-[env(safe-area-inset-top)] lg:hidden"
           style={{

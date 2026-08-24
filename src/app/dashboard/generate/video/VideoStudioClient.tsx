@@ -531,6 +531,13 @@ export default function VideoStudioClient() {
     ]);
     setPrompt("");
     setBusy(true);
+    setMobileStudioPane("output");
+    if (typeof window !== "undefined") {
+      window.requestAnimationFrame(() => {
+        const canvasEl = document.getElementById("mobile-studio-canvas") || document.getElementById("studio-canvas-feed");
+        canvasEl?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
 
     try {
       // Map API duration (backend supports 5 or 10)
