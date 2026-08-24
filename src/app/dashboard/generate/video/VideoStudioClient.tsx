@@ -626,7 +626,6 @@ export default function VideoStudioClient() {
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
                     <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-400">RUHGEN Studio</p>
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
                   </div>
                   <p className="truncate font-display text-xs font-semibold text-zinc-100">Video Creation Panel</p>
                 </div>
