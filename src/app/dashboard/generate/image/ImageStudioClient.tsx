@@ -29,6 +29,8 @@ import {
   ChevronUp,
   ChevronDown,
   Share2,
+  Eye,
+  Palette,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -71,19 +73,19 @@ const ASPECT_RATIOS = [
 
 /** Premium Aesthetic Styles */
 const AESTHETIC_STYLES = [
-  { id: "cinematic", label: "Cinematic", icon: "🎬", tag: "cinematic 35mm lighting, anamorphic lens flare, shallow depth of field" },
-  { id: "photorealistic", label: "Photorealistic", icon: "📷", tag: "photorealistic 8k, crisp detail, studio strobe lighting, ultra-realistic" },
-  { id: "editorial", label: "Editorial", icon: "📰", tag: "high-fashion editorial photography, Vogue magazine style, clean ambient light" },
-  { id: "minimal", label: "Minimal", icon: "🎨", tag: "minimalist aesthetic, clean composition, soft pastel tones, negative space balance" },
-  { id: "anime", label: "Anime", icon: "✨", tag: "vibrant anime illustration style, detailed cell shading, Makoto Shinkai atmosphere" },
-  { id: "illustration", label: "Illustration", icon: "🖌️", tag: "artistic digital illustration, stylized linework, rich painterly textures" },
-  { id: "3d", label: "3D", icon: "💎", tag: "octane 3D render, raytraced glass & metal, Unreal Engine 5 aesthetic" },
-  { id: "film", label: "Film", icon: "🎞️", tag: "vintage 35mm film grain, Kodachrome color tone, nostalgic soft focus" },
-  { id: "fantasy", label: "Fantasy", icon: "🔮", tag: "ethereal dark fantasy, glowing mystical particles, enchanted atmosphere" },
-  { id: "architecture", label: "Architecture", icon: "🏛️", tag: "Architectural Digest interior, modern brutalist design, realistic raytracing" },
-  { id: "product", label: "Product Photography", icon: "🛍️", tag: "commercial product photoshoot, studio key lighting, pristine background" },
-  { id: "portrait", label: "Portrait", icon: "👤", tag: "85mm portrait lens, Rembrandt studio lighting, sharp eye clarity" },
-  { id: "custom", label: "Custom", icon: "⚙️", tag: "" },
+  { id: "cinematic", label: "Cinematic", icon: Film, tag: "cinematic 35mm lighting, anamorphic lens flare, shallow depth of field" },
+  { id: "photorealistic", label: "Photorealistic", icon: Camera, tag: "photorealistic 8k, crisp detail, studio strobe lighting, ultra-realistic" },
+  { id: "editorial", label: "Editorial", icon: Eye, tag: "high-fashion editorial photography, Vogue magazine style, clean ambient light" },
+  { id: "minimal", label: "Minimal", icon: Palette, tag: "minimalist aesthetic, clean composition, soft pastel tones, negative space balance" },
+  { id: "anime", label: "Anime", icon: Sparkles, tag: "vibrant anime illustration style, detailed cell shading, Makoto Shinkai atmosphere" },
+  { id: "illustration", label: "Illustration", icon: Wand2, tag: "artistic digital illustration, stylized linework, rich painterly textures" },
+  { id: "3d", label: "3D", icon: Layers, tag: "octane 3D render, raytraced glass & metal, Unreal Engine 5 aesthetic" },
+  { id: "film", label: "Film", icon: Film, tag: "vintage 35mm film grain, Kodachrome color tone, nostalgic soft focus" },
+  { id: "fantasy", label: "Fantasy", icon: Zap, tag: "ethereal dark fantasy, glowing mystical particles, enchanted atmosphere" },
+  { id: "architecture", label: "Architecture", icon: Grid3x3, tag: "Architectural Digest interior, modern brutalist design, realistic raytracing" },
+  { id: "product", label: "Product Photography", icon: ImagePlus, tag: "commercial product photoshoot, studio key lighting, pristine background" },
+  { id: "portrait", label: "Portrait", icon: Camera, tag: "85mm portrait lens, Rembrandt studio lighting, sharp eye clarity" },
+  { id: "custom", label: "Custom", icon: SlidersHorizontal, tag: "" },
 ] as const;
 
 const CHAT_STORAGE_PREFIX = "ruhgen-image-studio-chat-v1:";
@@ -491,9 +493,16 @@ export default function ImageStudioClient() {
       });
     }
 
+    const styleObj = AESTHETIC_STYLES.find((s) => s.id === selectedStyle);
+    const styleTag = styleObj?.tag || "";
+    let finalPrompt = p;
+    if (styleTag && !finalPrompt.toLowerCase().includes(styleTag.toLowerCase())) {
+      finalPrompt = `${finalPrompt}, ${styleTag}`;
+    }
+
     try {
       const { taskId } = await createImageTask({
-        prompt: p,
+        prompt: finalPrompt,
         quality: selectedTier,
         ...(refUrl
           ? {
@@ -905,19 +914,20 @@ export default function ImageStudioClient() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
                   {AESTHETIC_STYLES.map((st) => {
                     const active = selectedStyle === st.id;
+                    const Icon = st.icon;
                     return (
                       <button
                         key={st.id}
                         type="button"
                         disabled={busy}
                         onClick={() => setSelectedStyle(st.id)}
-                        className={`flex items-center gap-1.5 rounded-md border px-2 py-1.5 text-left transition-all cursor-pointer ${
+                        className={`flex items-center gap-2 rounded-md border px-2.5 py-2 text-left transition-all cursor-pointer ${
                           active
-                            ? "border-white/20 bg-zinc-800 text-white font-semibold shadow-sm"
-                            : "border-white/10 bg-zinc-900 text-zinc-400 hover:border-white/20 hover:text-white"
+                            ? "border-white/20 bg-white/10 text-white font-semibold shadow-sm"
+                            : "border-white/10 bg-zinc-900 text-zinc-400 hover:border-white/20 hover:text-white hover:bg-zinc-800/60"
                         }`}
                       >
-                        <span className="text-xs">{st.icon}</span>
+                        <Icon className={`h-3.5 w-3.5 shrink-0 ${active ? "text-white" : "text-zinc-500"}`} strokeWidth={1.75} />
                         <span className="truncate text-[10px] font-bold tracking-tight">{st.label}</span>
                       </button>
                     );

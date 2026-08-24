@@ -31,8 +31,14 @@ import {
   Layers,
   Info,
   ChevronUp,
-  ChevronDown,
   Share2,
+  ZoomIn,
+  ZoomOut,
+  RotateCw,
+  ArrowLeft,
+  ArrowRight,
+  ArrowDown,
+  MoveVertical,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -73,18 +79,18 @@ const ASPECT_RATIOS = [
 
 /** Cinematic Camera Movements */
 const CAMERA_MOVEMENTS = [
-  { id: "static", label: "Static", icon: "🔒", desc: "Locked tripod shot", tag: "locked tripod static shot, steady composition" },
-  { id: "push_in", label: "Push In", icon: "🔍", desc: "Dolly in towards subject", tag: "slow dolly push in camera movement" },
-  { id: "pull_out", label: "Pull Out", icon: "⏪", desc: "Reverse dolly move", tag: "smooth reverse pull out camera shot" },
-  { id: "pan_left", label: "Pan Left", icon: "⬅️", desc: "Horizontal left pan", tag: "cinematic smooth left pan shot" },
-  { id: "pan_right", label: "Pan Right", icon: "➡️", desc: "Horizontal right pan", tag: "cinematic smooth right pan shot" },
-  { id: "tilt_up", label: "Tilt Up", icon: "⬆️", desc: "Vertical upward tilt", tag: "vertical tilt up camera shot" },
-  { id: "tilt_down", label: "Tilt Down", icon: "⬇️", desc: "Vertical downward tilt", tag: "vertical tilt down camera shot" },
-  { id: "orbit", label: "Orbit", icon: "🔄", desc: "360° rotational camera", tag: "360 degree orbital camera sweep around subject" },
-  { id: "tracking", label: "Tracking", icon: "🎯", desc: "Dynamic subject tracking", tag: "dynamic subject tracking camera move" },
-  { id: "crane", label: "Crane", icon: "🏗️", desc: "Elevated sweeping crane", tag: "sweeping elevated crane shot" },
-  { id: "handheld", label: "Handheld", icon: "📱", desc: "Organic micro-shake", tag: "cinematic handheld micro-shake feel" },
-  { id: "dolly", label: "Dolly", icon: "🎥", desc: "Smooth tracking dolly", tag: "smooth tracking dolly shot" },
+  { id: "static", label: "Static", icon: Camera, desc: "Locked tripod shot", tag: "locked tripod static shot, steady composition" },
+  { id: "push_in", label: "Push In", icon: ZoomIn, desc: "Dolly in towards subject", tag: "slow dolly push in camera movement" },
+  { id: "pull_out", label: "Pull Out", icon: ZoomOut, desc: "Reverse dolly move", tag: "smooth reverse pull out camera shot" },
+  { id: "pan_left", label: "Pan Left", icon: ArrowLeft, desc: "Horizontal left pan", tag: "cinematic smooth left pan shot" },
+  { id: "pan_right", label: "Pan Right", icon: ArrowRight, desc: "Horizontal right pan", tag: "cinematic smooth right pan shot" },
+  { id: "tilt_up", label: "Tilt Up", icon: ArrowUp, desc: "Vertical upward tilt", tag: "vertical tilt up camera shot" },
+  { id: "tilt_down", label: "Tilt Down", icon: ArrowDown, desc: "Vertical downward tilt", tag: "vertical tilt down camera shot" },
+  { id: "orbit", label: "Orbit", icon: RotateCw, desc: "360° rotational camera", tag: "360 degree orbital camera sweep around subject" },
+  { id: "tracking", label: "Tracking", icon: MoveHorizontal, desc: "Dynamic subject tracking", tag: "dynamic subject tracking camera move" },
+  { id: "crane", label: "Crane", icon: MoveVertical, desc: "Elevated sweeping crane", tag: "sweeping elevated crane shot" },
+  { id: "handheld", label: "Handheld", icon: Smartphone, desc: "Organic micro-shake", tag: "cinematic handheld micro-shake feel" },
+  { id: "dolly", label: "Dolly", icon: Film, desc: "Smooth tracking dolly", tag: "smooth tracking dolly shot" },
 ] as const;
 
 /** Motion Vocabulary Concepts */
@@ -539,13 +545,20 @@ export default function VideoStudioClient() {
       });
     }
 
+    const camObj = CAMERA_MOVEMENTS.find((c) => c.id === selectedCamera);
+    const camTag = camObj?.tag || "";
+    let finalPrompt = p;
+    if (camTag && !finalPrompt.toLowerCase().includes(camTag.toLowerCase())) {
+      finalPrompt = `${finalPrompt}, ${camTag}`;
+    }
+
     try {
       // Map API duration (backend supports 5 or 10)
       const targetApiDuration: 5 | 10 = duration >= 8 ? 10 : 5;
       const targetAspect = (["16:9", "9:16", "1:1"].includes(aspect) ? aspect : "16:9") as "16:9" | "9:16" | "1:1";
 
       const { taskId } = await createVideoTask({
-        prompt: p,
+        prompt: finalPrompt,
         duration: targetApiDuration,
         aspect_ratio: targetAspect,
         quality: selectedTier,
@@ -1019,6 +1032,7 @@ export default function VideoStudioClient() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
                   {CAMERA_MOVEMENTS.map((cam) => {
                     const active = selectedCamera === cam.id;
+                    const Icon = cam.icon;
                     return (
                       <button
                         key={cam.id}
@@ -1028,17 +1042,17 @@ export default function VideoStudioClient() {
                           setSelectedCamera(cam.id);
                           appendPromptChip(cam.tag);
                         }}
-                        className={`flex flex-col items-start gap-0.5 rounded-lg border p-2 transition-all text-left cursor-pointer ${
+                        className={`flex flex-col items-start gap-1 rounded-lg border p-2.5 transition-all text-left cursor-pointer ${
                           active
-                            ? "border-white/20 bg-zinc-800 text-white font-semibold shadow-sm"
-                            : "border-white/10 bg-zinc-900 text-zinc-400 hover:border-white/20 hover:text-white"
+                            ? "border-white/20 bg-white/10 text-white font-semibold shadow-sm"
+                            : "border-white/10 bg-zinc-900 text-zinc-400 hover:border-white/20 hover:text-white hover:bg-zinc-800/60"
                         }`}
                       >
                         <div className="flex items-center gap-1.5 w-full">
-                          <span className="text-xs">{cam.icon}</span>
+                          <Icon className={`h-3.5 w-3.5 shrink-0 ${active ? "text-white" : "text-zinc-500"}`} strokeWidth={1.75} />
                           <span className="truncate text-[10px] font-bold tracking-tight text-white">{cam.label}</span>
                         </div>
-                        <span className="text-[9px] text-zinc-500 truncate w-full">{cam.desc}</span>
+                        <span className="text-[9px] text-zinc-400 truncate w-full">{cam.desc}</span>
                       </button>
                     );
                   })}
