@@ -73,23 +73,23 @@ function SidebarNavLink({
     <Link
       href={item.href}
       onClick={onNavigate}
-      className={`group flex items-center rounded-lg border transition-all duration-150 ${
+      className={`group flex items-center rounded-xl border transition-all duration-150 ${
         slimmer
-          ? "min-h-[36px] gap-2 px-2.5 py-1.5 text-xs font-medium"
+          ? "min-h-[38px] gap-2.5 px-2.5 py-1.5 text-xs font-medium"
           : "min-h-[40px] gap-2.5 px-3 py-2 text-xs sm:text-sm font-medium"
       } ${
         on
-          ? "border-white/15 bg-white/[0.08] text-white shadow-sm"
+          ? "border-white/15 bg-white/[0.08] text-white shadow-sm font-semibold"
           : "border-transparent text-zinc-400 hover:border-white/10 hover:bg-white/[0.04] hover:text-zinc-200"
       }`}
     >
       <span
-        className={`flex shrink-0 items-center justify-center rounded-md border transition-colors ${
-          slimmer ? "h-6 w-6" : "h-7 w-7"
+        className={`flex shrink-0 items-center justify-center rounded-lg border transition-all ${
+          slimmer ? "h-6.5 w-6.5" : "h-7 w-7"
         } ${
           on
-            ? "border-white/20 bg-white/10 text-white"
-            : "border-white/5 bg-zinc-900 text-zinc-400 group-hover:text-zinc-200"
+            ? "border-white/25 bg-white/15 text-white shadow-sm"
+            : "border-white/10 bg-zinc-900/90 text-zinc-400 group-hover:border-white/20 group-hover:bg-zinc-800 group-hover:text-zinc-100"
         }`}
       >
         <item.icon className={slimmer ? "h-3.5 w-3.5" : "h-4 w-4"} strokeWidth={1.75} />
@@ -421,7 +421,7 @@ export function UserDashboardShell({ children }: { children: React.ReactNode }) 
                   </p>
                   <nav className="mt-3 flex flex-col gap-1.5" aria-label="Support mobile">
                     {supportNav.map((item) => (
-                      <SidebarNavLink key={item.href} item={item} pathname={pathname} onNavigate={() => setMobileOpen(false)} slimmer />
+                      <SidebarNavLink key={item.href} item={item} pathname={pathname} onNavigate={() => setMobileOpen(false)} />
                     ))}
                   </nav>
                 </div>
