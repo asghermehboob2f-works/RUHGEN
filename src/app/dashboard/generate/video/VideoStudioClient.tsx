@@ -1238,7 +1238,7 @@ export default function VideoStudioClient() {
                 </p>
               </div>
               {studioView === "feed" ? (
-                <div className="hidden shrink-0 items-center gap-1 sm:flex">
+                <div className="hidden shrink-0 items-center gap-1 lg:flex">
                   {(["all", "running", "ready"] as const).map((f) => (
                     <button
                       key={f}
@@ -1489,7 +1489,7 @@ export default function VideoStudioClient() {
             </div>
 
             <div
-              className="shrink-0 border-t px-3 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] backdrop-blur-xl lg:hidden"
+              className="shrink-0 border-t px-3 py-2 backdrop-blur-xl lg:hidden"
               style={{
                 borderColor: "color-mix(in srgb, white 8%, transparent)",
                 background:
@@ -1497,7 +1497,7 @@ export default function VideoStudioClient() {
                 boxShadow: "0 -20px 40px -28px rgba(0,0,0,0.75)",
               }}
             >
-              <div className="flex items-end gap-2">
+              <div className="flex items-center gap-2">
                 <textarea
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
@@ -1510,19 +1510,18 @@ export default function VideoStudioClient() {
                   disabled={busy}
                   placeholder={isImg2Video ? "Describe action for reference photo…" : "Describe video motion scene…"}
                   rows={1}
-                  className="studio-scrollbar studio-prompt-focus-video min-h-[44px] max-h-28 flex-1 resize-none rounded-xl border border-white/10 bg-black/45 px-3 py-2.5 text-sm leading-relaxed text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)]"
+                  className="studio-scrollbar studio-prompt-focus-video min-h-[36px] max-h-24 flex-1 resize-none rounded-lg border border-white/10 bg-black/45 px-2.5 py-1.5 text-xs leading-normal text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)]"
                 />
                 <StudioGlowGenerate
-                  tone="cyan"
-                  size="md"
                   disabled={busy || prompt.trim().length < 2 || Boolean(user?.generationDisabled) || (user?.availableCredits ?? user?.credits ?? 0) < currentCost}
                   onClick={() => void run()}
+                  size="md"
                 >
                   {busy ? (
-                    <Loader2 className="h-4 w-4 animate-spin text-zinc-950" />
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-zinc-950" />
                   ) : (
-                    <div className="flex items-center gap-1.5 px-1 font-bold text-zinc-950">
-                      <Sparkles className="h-4 w-4 text-zinc-950" strokeWidth={2.2} />
+                    <div className="flex items-center gap-1.5 px-0.5 font-bold text-zinc-950 text-xs">
+                      <Sparkles className="h-3.5 w-3.5 text-zinc-950" strokeWidth={2.2} />
                       <span>Generate</span>
                     </div>
                   )}
