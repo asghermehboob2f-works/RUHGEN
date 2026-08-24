@@ -1072,111 +1072,25 @@ export default function VideoStudioClient() {
           </div>
         </div>
 
-      {/* Sticky prompt + generate (Section 8: Video Generation Area) */}
-      <div className="shrink-0 border-t border-white/10 bg-[#121215] px-3 pb-3 pt-2.5">
-        {/* Slim Single-Line Tier & Credit Summary Badge */}
-        <div className="mb-2 flex items-center justify-between gap-2 rounded-md border border-white/10 bg-zinc-900/90 px-2.5 py-1 text-[10px] text-zinc-300 whitespace-nowrap overflow-x-auto scrollbar-none">
+      {/* Sticky Parameters Summary Footer */}
+      <div className="shrink-0 border-t border-white/10 bg-[#121215] p-3">
+        <div className="flex items-center justify-between gap-2 rounded-xl border border-white/10 bg-zinc-900/90 px-3 py-2 text-xs text-zinc-300">
           <div className="flex items-center gap-2 shrink-0">
-            <span className="font-display font-semibold text-white flex items-center gap-1.5">
-              <Clapperboard className="h-3 w-3 text-zinc-300" />
-              {selectedTier === "quality" ? "Prem Tier" : "Std Tier"}
+            <span className="font-display font-semibold text-white flex items-center gap-1.5 text-xs">
+              <Clapperboard className="h-3.5 w-3.5 text-cyan-300" />
+              {selectedTier === "quality" ? "Premium Tier" : "Standard Tier"}
             </span>
             <span className="text-zinc-600">|</span>
-            <span className="text-zinc-200 font-medium">{duration}s</span>
+            <span className="text-zinc-200 font-medium">{duration}s clip</span>
           </div>
-          <div className="flex items-center gap-3 shrink-0 text-[10px] text-zinc-400">
+          <div className="flex items-center gap-2 shrink-0 text-xs text-zinc-400">
             <span>
-              Avail: <strong className="text-zinc-100 tabular-nums">{user?.availableCredits ?? user?.credits ?? 0}</strong>
+              Credits: <strong className="text-zinc-100 tabular-nums">{user?.availableCredits ?? user?.credits ?? 0}</strong>
             </span>
             <span>
               Cost: <strong className={((user?.availableCredits ?? user?.credits ?? 0) < currentCost) ? "text-rose-400 font-bold" : "text-emerald-400 font-bold"}>{currentCost} cr</strong>
             </span>
           </div>
-        </div>
-
-        <div className="relative flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-900 px-2.5 py-1.5 transition-colors focus-within:border-white/25">
-          <label className="sr-only" htmlFor="vid-prompt">Prompt</label>
-          <textarea
-            ref={videoPromptRef}
-            id="vid-prompt"
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            autoComplete="off"
-            spellCheck={false}
-            placeholder={isImg2Video ? "Describe action & movement for reference image…" : "Describe cinematic video scene & motion…"}
-            rows={2}
-            disabled={busy}
-            className="no-scrollbar max-h-[160px] min-h-[40px] w-full resize-none bg-transparent text-sm leading-relaxed text-zinc-100 outline-none placeholder:text-zinc-500 sm:text-[13px]"
-            style={{ scrollbarWidth: "none" }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                void run();
-              }
-            }}
-          />
-
-          {prompt.length > 70 ? (
-            <div className="flex flex-col gap-1 shrink-0 select-none transition-opacity duration-200">
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => {
-                  if (videoPromptRef.current) {
-                    videoPromptRef.current.scrollTop -= 32;
-                  }
-                }}
-                className="flex h-5 w-5 items-center justify-center rounded-md border border-white/12 bg-white/[0.05] text-slate-300 transition-all hover:border-cyan-400/60 hover:bg-cyan-500/25 hover:text-white active:scale-95 cursor-pointer disabled:opacity-30"
-                title="Scroll Up"
-                aria-label="Scroll Up"
-              >
-                <ChevronUp className="h-3 w-3" strokeWidth={2.5} />
-              </button>
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => {
-                  if (videoPromptRef.current) {
-                    videoPromptRef.current.scrollTop += 32;
-                  }
-                }}
-                className="flex h-5 w-5 items-center justify-center rounded-md border border-white/12 bg-white/[0.05] text-slate-300 transition-all hover:border-cyan-400/60 hover:bg-cyan-500/25 hover:text-white active:scale-95 cursor-pointer disabled:opacity-30"
-                title="Scroll Down"
-                aria-label="Scroll Down"
-              >
-                <ChevronDown className="h-3 w-3" strokeWidth={2.5} />
-              </button>
-            </div>
-          ) : null}
-        </div>
-        <div className="mt-2">
-          <StudioGlowGenerate
-            disabled={busy || prompt.trim().length < 2 || Boolean(user?.generationDisabled) || (user?.availableCredits ?? user?.credits ?? 0) < currentCost}
-            onClick={() => void run()}
-            size="md"
-          >
-            {busy ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin text-zinc-950" />
-                <span className="font-bold tracking-wide text-zinc-950">Rendering Video ({duration}s)…</span>
-              </>
-            ) : user?.generationDisabled ? (
-              <>
-                <X className="h-4 w-4 text-rose-700" strokeWidth={2.5} />
-                <span className="font-bold tracking-wide text-rose-800">Access Disabled</span>
-              </>
-            ) : (user?.availableCredits ?? user?.credits ?? 0) < currentCost ? (
-              <>
-                <X className="h-4 w-4 text-rose-700" strokeWidth={2.5} />
-                <span className="font-bold tracking-wide text-rose-800">Insufficient Credits</span>
-              </>
-            ) : (
-              <>
-                <Clapperboard className="h-4 w-4 text-zinc-950" strokeWidth={2.2} />
-                <span className="font-bold tracking-wide text-zinc-950">Generate Video</span>
-              </>
-            )}
-          </StudioGlowGenerate>
         </div>
       </div>
     </div>
