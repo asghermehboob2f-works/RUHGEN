@@ -275,32 +275,28 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
                   initial={reduce ? false : { opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: reduce ? 0 : 0.04 * idx }}
-                  className="group flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-xl border p-4 transition-all duration-300 hover:border-brand-cyan/35"
-                  style={{
-                    borderColor: "var(--border-subtle)",
-                    background: "color-mix(in srgb, var(--deep-black) 55%, transparent)",
-                  }}
+                  className="group flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-xl border border-white/10 bg-[#121215] p-4 transition-all duration-200 hover:border-white/20"
                 >
                   <div className="flex items-start gap-3 flex-1 min-w-0">
                     <span
-                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border/40 bg-card/40"
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-zinc-900 text-zinc-300"
                       title={item.kind === "image" ? "Image Prompt" : "Video Prompt"}
                     >
                       {item.kind === "image" ? (
-                        <ImageIcon className="h-4 w-4 text-[var(--primary-purple)]" />
+                        <ImageIcon className="h-4 w-4 text-zinc-300" strokeWidth={1.75} />
                       ) : (
-                        <Video className="h-4 w-4 text-[var(--primary-cyan)]" />
+                        <Video className="h-4 w-4 text-zinc-300" strokeWidth={1.75} />
                       )}
                     </span>
                     
                     <div className="min-w-0 flex-1">
-                      <div className="max-h-24 overflow-y-auto pr-1 select-all whitespace-pre-wrap [scrollbar-width:thin] scrollbar-thumb-[var(--border-subtle)]">
-                        <p className="text-sm font-medium leading-relaxed text-[var(--text-primary)]">
+                      <div className="max-h-24 overflow-y-auto pr-1 select-all whitespace-pre-wrap [scrollbar-width:thin] scrollbar-thumb-zinc-800">
+                        <p className="text-sm font-medium leading-relaxed text-zinc-200">
                           {item.prompt}
                         </p>
                       </div>
-                      <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[10px] text-[var(--text-subtle)] font-medium">
-                        <span className="uppercase tracking-wider text-[var(--primary-cyan)]">{item.kind} workspace</span>
+                      <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[10px] text-zinc-400 font-medium">
+                        <span className="uppercase tracking-wider text-zinc-400">{item.kind} workspace</span>
                         {item.createdAt && (
                           <>
                             <span>·</span>
@@ -321,45 +317,46 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
                     <button
                       type="button"
                       onClick={() => copyPrompt(item.prompt, item.id)}
-                      className="inline-flex min-h-[32px] items-center gap-1.5 rounded-lg border border-border bg-card/50 px-3 text-xs font-semibold text-[var(--text-primary)] transition-all hover:bg-card/90 active:scale-[0.98]"
+                      className="inline-flex min-h-[32px] items-center gap-1.5 rounded-lg border border-white/10 bg-zinc-900 px-3 text-xs font-medium text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-white"
                       title="Copy prompt"
                     >
                       {isCopied ? (
                         <>
-                          <Check className="h-3.5 w-3.5 text-emerald-400 animate-in fade-in zoom-in-75 duration-200" />
+                          <Check className="h-3.5 w-3.5 text-emerald-400" />
                           <span className="text-emerald-400">Copied</span>
                         </>
                       ) : (
                         <>
-                          <Copy className="h-3.5 w-3.5 text-[var(--text-muted)]" />
+                          <Copy className="h-3.5 w-3.5 text-zinc-400" />
                           <span>Copy</span>
                         </>
                       )}
                     </button>
                     
-                    <Link
-                      href={`${item.href}?prompt=${encodeURIComponent(item.prompt)}`}
-                      className="inline-flex min-h-[32px] items-center gap-1.5 rounded-lg border border-border bg-card/50 px-3 text-xs font-semibold text-[var(--text-primary)] transition-all hover:bg-card/90 active:scale-[0.98]"
-                    >
-                      <Wand2 className="h-3.5 w-3.5 text-[var(--primary-purple)]" />
-                      <span>Use</span>
-                    </Link>
+                    {(() => {
+                      const studioHref =
+                        item.href && item.href.startsWith("/dashboard/generate/")
+                          ? item.href
+                          : item.kind === "video"
+                          ? "/dashboard/generate/video"
+                          : "/dashboard/generate/image";
+                      return (
+                        <Link
+                          href={`${studioHref}?prompt=${encodeURIComponent(item.prompt)}`}
+                          className="inline-flex min-h-[32px] items-center gap-1.5 rounded-lg border border-white/10 bg-zinc-900 px-3 text-xs font-medium text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-white"
+                        >
+                          <Wand2 className="h-3.5 w-3.5 text-zinc-300" />
+                          <span>Use</span>
+                        </Link>
+                      );
+                    })()}
 
                     <button
                       type="button"
                       onClick={() => shareGeneration(item)}
-                      className="inline-flex min-h-[32px] items-center gap-1.5 rounded-lg border px-3 text-xs font-semibold transition-all duration-300"
-                      style={{
-                        borderColor: alreadyShared
-                          ? "color-mix(in srgb, var(--primary-cyan) 35%, var(--border-subtle))"
-                          : "var(--border-subtle)",
-                        background: alreadyShared
-                          ? "color-mix(in srgb, var(--primary-cyan) 12%, var(--soft-black))"
-                          : "var(--glass)",
-                        color: "var(--text-primary)",
-                      }}
+                      className="inline-flex min-h-[32px] items-center gap-1.5 rounded-lg border border-white/10 bg-zinc-900 px-3 text-xs font-medium text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-white"
                     >
-                      <Send className="h-3 w-3" strokeWidth={2.5} />
+                      <Send className="h-3 w-3 text-zinc-400" strokeWidth={2} />
                       <span>{alreadyShared ? "Shared" : "Share"}</span>
                     </button>
                   </div>

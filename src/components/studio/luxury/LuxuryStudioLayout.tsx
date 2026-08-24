@@ -109,75 +109,60 @@ export function LuxuryStudioLayout({
   return (
     <LuxuryStudioChromeProvider collapsed={collapsed} onToggleCollapsed={() => setCollapsed((c) => !c)}>
       <div
-        className="luxury-studio-root font-studio-sans flex min-h-0 flex-1 flex-col overflow-hidden px-3 pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] pt-3 max-sm:h-[calc(100dvh-env(safe-area-inset-top,0px)-3.5rem)] sm:px-4 sm:pt-3 lg:h-[calc(100dvh-env(safe-area-inset-top,0px))] lg:max-h-[calc(100dvh-env(safe-area-inset-top,0px))] lg:px-5 lg:pb-4 lg:pt-4"
+        className="luxury-studio-root font-studio-sans flex min-h-0 flex-1 flex-col overflow-hidden px-3 pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] pt-3 max-sm:h-[calc(100dvh-env(safe-area-inset-top,0px)-3.5rem)] sm:px-4 sm:pt-3 lg:h-[calc(100dvh-env(safe-area-inset-top,0px))] lg:max-h-[calc(100dvh-env(safe-area-inset-top,0px))] lg:px-5 lg:pb-4 lg:pt-4 bg-[#09090b]"
         data-studio-mode={mode}
         data-mobile-pane={mobilePane}
         onTouchStart={swipe.onTouchStart}
         onTouchEnd={swipe.onTouchEnd}
       >
-        <div className="luxury-aurora-layer" aria-hidden>
-          <div className="luxury-aurora-blob luxury-aurora-blob--a" />
-          <div className="luxury-aurora-blob luxury-aurora-blob--b" />
-          <div className="luxury-aurora-blob luxury-aurora-blob--c" />
-        </div>
-        <div className="pointer-events-none absolute inset-0 z-[1] opacity-[0.035] app-grain" aria-hidden />
+        <div className="pointer-events-none absolute inset-0 z-[1] opacity-[0.025] app-grain" aria-hidden />
 
         <header className="relative z-10 mb-2 shrink-0 lg:mb-3">
-          <div className="flex items-center gap-2 rounded-2xl border border-white/15 bg-[#0D0F18]/90 p-2 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.18)] backdrop-blur-3xl sm:gap-3 sm:p-2.5 lg:rounded-2xl lg:pl-3.5">
+          <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-[#121215] p-2 shadow-sm sm:gap-3 sm:p-2.5 lg:pl-3.5">
             <span
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white ring-1 ring-white/35 sm:h-10 sm:w-10 shadow-lg transition-transform hover:scale-105"
-              style={{
-                background:
-                  mode === "image"
-                    ? "linear-gradient(135deg, #6366F1 0%, #4F46E5 50%, #3730A3 100%)"
-                    : "linear-gradient(135deg, #0EA5E9 0%, #0284C7 50%, #075985 100%)",
-                boxShadow:
-                  mode === "image"
-                    ? "0 0 24px rgba(99, 102, 241, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.4)"
-                    : "0 0 24px rgba(14, 165, 233, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.4)",
-              }}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/15 bg-zinc-800 text-zinc-100 sm:h-10 sm:w-10 shadow-sm"
             >
-              <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-white drop-shadow-md" strokeWidth={2} />
+              <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-zinc-200" strokeWidth={1.75} />
             </span>
 
             <div className="min-w-0 flex-1 overflow-hidden">
-              <p className="font-mono text-[9px] font-bold uppercase leading-none tracking-[0.2em] sm:tracking-[0.26em] text-indigo-200/90 truncate">
+              <p className="font-mono text-[9px] font-bold uppercase leading-none tracking-[0.2em] sm:tracking-[0.26em] text-zinc-400 truncate">
                 {eyebrow}
               </p>
               <div className="mt-0.5 sm:mt-1 flex min-w-0 items-baseline gap-x-2.5">
-                <h1 className="truncate font-display text-[13px] sm:text-lg font-black leading-tight tracking-tight text-white drop-shadow-sm">
+                <h1 className="truncate font-display text-[13px] sm:text-base font-bold leading-tight tracking-tight text-white">
                   {title}
                 </h1>
-                <p className="hidden min-w-0 max-w-[min(100%,28rem)] truncate text-[11px] font-medium leading-snug text-slate-400 lg:block">
+                <p className="hidden min-w-0 max-w-[min(100%,28rem)] truncate text-[11px] font-normal leading-snug text-zinc-400 lg:block">
                   {subtitle}
                 </p>
               </div>
             </div>
 
             <nav
-              className="ml-auto flex shrink-0 gap-1 rounded-full border border-white/15 bg-black/70 p-1 backdrop-blur-xl shadow-inner"
+              className="ml-auto flex shrink-0 gap-1 rounded-lg border border-white/10 bg-zinc-950 p-1"
               aria-label="Studio mode"
             >
               <Link
                 href="/dashboard/generate/image"
-                className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all cursor-pointer ${
                   pathname.startsWith("/dashboard/generate/image")
-                    ? "bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/25 border border-white/25"
-                    : "text-slate-400 hover:text-white"
+                    ? "bg-zinc-800 text-white border border-white/15 shadow-sm"
+                    : "text-zinc-400 hover:text-white"
                 }`}
               >
-                <ImageIcon className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
+                <ImageIcon className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} />
                 <span className="hidden sm:inline">Image</span>
               </Link>
               <Link
                 href="/dashboard/generate/video"
-                className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all cursor-pointer ${
                   pathname.startsWith("/dashboard/generate/video")
-                    ? "bg-gradient-to-r from-sky-600 via-sky-500 to-cyan-600 text-white shadow-lg shadow-sky-500/25 border border-white/25"
-                    : "text-slate-400 hover:text-white"
+                    ? "bg-zinc-800 text-white border border-white/15 shadow-sm"
+                    : "text-zinc-400 hover:text-white"
                 }`}
               >
-                <Video className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
+                <Video className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} />
                 <span className="hidden sm:inline">Video</span>
               </Link>
             </nav>
@@ -186,12 +171,11 @@ export function LuxuryStudioLayout({
               <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">{topActions}</div>
             ) : null}
           </div>
-          <div className="pointer-events-none mt-1 h-[1px] w-full opacity-30" style={{ background: accent.line }} aria-hidden />
         </header>
 
         <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden">
           <div
-            className="mb-2 flex shrink-0 gap-1.5 rounded-2xl border border-border p-1 shadow-sm backdrop-blur-xl lg:hidden bg-card/60"
+            className="mb-2 flex shrink-0 gap-1.5 rounded-xl border border-white/10 p-1 bg-zinc-950 lg:hidden"
             role="tablist"
             aria-label="Studio workspace"
           >
@@ -211,11 +195,10 @@ export function LuxuryStudioLayout({
                 }}
                 className={mobilePaneTabBase}
                 style={{
-                  background: mobilePane === pane ? accent.tabOn : "transparent",
-                  color: mobilePane === pane ? "var(--text-primary)" : "var(--text-muted)",
-                  boxShadow: mobilePane === pane ? accent.tabGlow : undefined,
+                  background: mobilePane === pane ? "var(--soft-black)" : "transparent",
+                  color: mobilePane === pane ? "#ffffff" : "var(--text-muted)",
                   border:
-                    mobilePane === pane ? `1px solid var(--border-subtle)` : "1px solid transparent",
+                    mobilePane === pane ? `1px solid rgba(255, 255, 255, 0.15)` : "1px solid transparent",
                 }}
               >
                 {pane === "output" ? (
@@ -239,12 +222,12 @@ export function LuxuryStudioLayout({
               initial={reduce ? false : { opacity: 0, x: -8 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-              className={`studio-scrollbar flex min-h-0 min-w-0 flex-col max-lg:h-full max-lg:w-full max-lg:overflow-y-auto max-lg:overscroll-y-contain [-webkit-overflow-scrolling:touch] touch-pan-y lg:overflow-hidden ${
+              className={`flex min-h-0 min-w-0 flex-col h-full w-full overflow-hidden ${
                 mobilePane === "controls" ? "max-lg:flex max-lg:flex-1" : "max-lg:hidden"
               } ${collapsed ? "lg:hidden" : "lg:flex"}`}
               aria-label="Generation controls"
             >
-              <div className="flex min-h-0 flex-1 flex-col rounded-2xl border border-white/10 bg-[#11131C] shadow-lg backdrop-blur-2xl max-lg:min-h-max lg:h-full lg:max-h-full lg:overflow-hidden">
+              <div className="flex min-h-0 flex-1 flex-col rounded-xl border border-white/10 bg-[#121215] shadow-sm h-full max-h-full overflow-hidden">
                 {leftPanel}
               </div>
             </motion.aside>

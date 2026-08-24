@@ -752,12 +752,13 @@ function mountStudioRoutes(app, options) {
         } catch (e) {}
         const urls = details.urls || [];
         const previewUrl = urls[0] || "";
+        const targetHref = row.type === "video" ? "/dashboard/generate/video" : "/dashboard/generate/image";
         return {
           id: row.id,
           kind: row.type, // 'image' or 'video'
           previewUrl: previewUrl,
           prompt: details.prompt || "",
-          href: previewUrl,
+          href: targetHref,
           createdAt: row.created_at
         };
       });

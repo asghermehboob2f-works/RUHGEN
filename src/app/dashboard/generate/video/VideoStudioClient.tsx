@@ -312,6 +312,9 @@ export default function VideoStudioClient() {
       const queryPrompt = params.get("prompt");
       if (queryPrompt) {
         setPrompt(queryPrompt);
+        setTimeout(() => {
+          videoPromptRef.current?.focus();
+        }, 100);
         const url = new URL(window.location.href);
         url.searchParams.delete("prompt");
         window.history.replaceState({}, "", url.toString());
@@ -603,42 +606,38 @@ export default function VideoStudioClient() {
   if (!user) return null;
 
   const leftPanel = (
-    <div className="flex flex-col w-full max-lg:min-h-max lg:min-h-0 lg:flex-1 lg:overflow-hidden">
+    <div className="flex flex-col w-full h-full min-h-0 flex-1 overflow-hidden bg-[#121215]">
       <p className="sr-only">Press Enter to generate video. Shift+Enter for newline.</p>
-      <div className="p-2.5 sm:p-3 max-lg:min-h-max lg:studio-scrollbar lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-y-contain [-webkit-overflow-scrolling:touch] touch-pan-y">
-        <div className="rounded-2xl border border-white/10 bg-[#121420] p-3.5 sm:p-4 shadow-sm">
+      <div className="p-2.5 sm:p-3 min-h-0 flex-1 overflow-y-auto studio-scrollbar overscroll-y-contain [-webkit-overflow-scrolling:touch] touch-pan-y">
+        <div className="rounded-xl border border-white/10 bg-[#121215] p-3 sm:p-3.5 shadow-sm space-y-3">
             {/* Header Title */}
-            <div className="mb-3 flex items-center justify-between gap-2 border-b border-white/[0.08] pb-2.5">
+            <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2.5">
               <div className="flex min-w-0 items-center gap-2.5">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-400/35 to-[var(--primary-cyan)]/45 ring-1 ring-white/20 shadow-[0_4px_16px_-4px_rgba(0,212,255,0.5)]">
-                  <Clapperboard className="h-4 w-4 text-cyan-50" strokeWidth={2} />
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/15 bg-zinc-800 text-zinc-100">
+                  <Clapperboard className="h-4 w-4 text-zinc-200" strokeWidth={1.75} />
                 </span>
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[var(--text-subtle)]">RUHGEN Studio</p>
-                    <span className="h-1.5 w-1.5 rounded-full bg-[var(--primary-cyan)] animate-pulse" />
+                    <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-400">RUHGEN Studio</p>
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
                   </div>
-                  <p className="truncate font-display text-xs font-bold text-[var(--text-primary)]">Video Creation Panel</p>
+                  <p className="truncate font-display text-xs font-semibold text-zinc-100">Video Creation Panel</p>
                 </div>
               </div>
               {referenceUrl ? (
-                <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider ${
-                  referenceType === "video"
-                    ? "border-purple-400/30 bg-purple-500/15 text-purple-200"
-                    : "border-cyan-400/30 bg-cyan-500/15 text-cyan-200"
-                }`}>
+                <span className="shrink-0 rounded-md border border-white/20 bg-white/10 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-zinc-100">
                   {referenceType === "video" ? "Video Guided" : "Image Guided"}
                 </span>
               ) : null}
             </div>
 
-            {/* Slim Top RUHGEN Version Tier Selector */}
-            <div className="mb-3.5 rounded-xl border border-white/10 bg-black/50 p-1 shadow-inner">
-              <div className="mb-1 px-1.5 flex items-center justify-between text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
-                <span>RUHGEN Version</span>
-                <span className="text-[var(--primary-cyan)]">{selectedTier === "quality" ? "Premium (8 cr/s)" : "Standard (5 cr/s)"}</span>
+            {/* Model / Version Tier Selector */}
+            <div className="rounded-lg border border-white/10 bg-zinc-900/90 p-1.5">
+              <div className="mb-1.5 px-1 flex items-center justify-between text-[9px] font-bold uppercase tracking-[0.14em] text-zinc-400">
+                <span>Select Model Tier</span>
+                <span className="text-zinc-200 font-semibold">{selectedTier === "quality" ? "Premium (8 cr/s)" : "Standard (5 cr/s)"}</span>
               </div>
-              <div className="grid grid-cols-2 gap-1" role="radiogroup" aria-label="RUHGEN Video Version Tier">
+              <div className="grid grid-cols-2 gap-1.5" role="radiogroup" aria-label="RUHGEN Video Version Tier">
                 {RUHGEN_VIDEO_TIERS.map((tier) => {
                   const Icon = tier.icon;
                   const active = selectedTier === tier.id;
@@ -650,13 +649,13 @@ export default function VideoStudioClient() {
                       aria-checked={active}
                       disabled={busy}
                       onClick={() => setSelectedTier(tier.id)}
-                      className={`flex items-center justify-center gap-1.5 rounded-lg py-1.5 px-2 text-[11px] font-bold transition-all cursor-pointer ${
+                      className={`flex items-center justify-center gap-1.5 rounded-md py-2 px-2.5 text-[11px] font-medium transition-all cursor-pointer ${
                         active
-                          ? "bg-gradient-to-r from-cyan-600 to-[var(--primary-cyan)] text-white shadow-[0_2px_10px_rgba(0,212,255,0.45)] ring-1 ring-white/20"
-                          : "text-[var(--text-muted)] hover:text-white hover:bg-white/[0.05]"
+                          ? "bg-white/10 text-white border border-white/25 shadow-[0_2px_10px_rgba(255,255,255,0.08)] font-semibold"
+                          : "text-zinc-400 hover:text-white hover:bg-white/[0.04] border border-transparent"
                       }`}
                     >
-                      <Icon className={`h-3 w-3 ${active ? "text-cyan-100" : "text-white/50"}`} />
+                      <Icon className={`h-3.5 w-3.5 ${active ? "text-white" : "text-zinc-500"}`} />
                       <span className="truncate">{tier.label}</span>
                     </button>
                   );
@@ -664,49 +663,49 @@ export default function VideoStudioClient() {
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3">
               {/* 1. MEDIA REFERENCE (IMAGE / VIDEO) */}
-              <div className="rounded-2xl border border-cyan-500/25 bg-gradient-to-br from-cyan-500/10 via-black/40 to-transparent p-3.5 shadow-sm">
+              <div className="rounded-lg border border-white/10 bg-zinc-900/60 p-3">
                 <div className="mb-2 flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
                     {activeRefTab === "video" ? (
-                      <Film className="h-3.5 w-3.5 text-cyan-300" strokeWidth={2} />
+                      <Film className="h-3.5 w-3.5 text-zinc-300" strokeWidth={1.75} />
                     ) : (
-                      <ImagePlus className="h-3.5 w-3.5 text-cyan-300" strokeWidth={2} />
+                      <ImagePlus className="h-3.5 w-3.5 text-zinc-300" strokeWidth={1.75} />
                     )}
-                    <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-cyan-200">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-300">
                       1. Media Reference
                     </span>
                   </div>
-                  <span className="text-[9px] font-semibold uppercase tracking-wider text-[var(--text-subtle)]">Optional</span>
+                  <span className="text-[9px] font-semibold uppercase tracking-wider text-zinc-500">Optional</span>
                 </div>
 
                 {/* Reference Mode Selector */}
-                <div className="mb-3 grid grid-cols-2 gap-1 rounded-xl border border-white/10 bg-black/60 p-1">
+                <div className="mb-3 grid grid-cols-2 gap-1 rounded-lg border border-white/10 bg-zinc-950 p-1">
                   <button
                     type="button"
                     disabled={busy || refUploading}
                     onClick={() => setActiveRefTab("image")}
-                    className={`flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                    className={`flex items-center justify-center gap-1.5 rounded-md py-1.5 text-[10px] font-medium uppercase tracking-wider transition-all cursor-pointer ${
                       activeRefTab === "image"
-                        ? "bg-gradient-to-r from-cyan-600/90 to-cyan-500 text-white shadow-sm ring-1 ring-white/20"
-                        : "text-[var(--text-muted)] hover:text-white hover:bg-white/[0.05]"
+                        ? "bg-white/10 text-white border border-white/25 shadow-sm font-semibold"
+                        : "text-zinc-400 hover:text-white hover:bg-white/[0.04]"
                     }`}
                   >
-                    <ImagePlus className="h-3 w-3" />
+                    <ImagePlus className="h-3 w-3 text-zinc-200" />
                     <span>Image Ref</span>
                   </button>
                   <button
                     type="button"
                     disabled={busy || refUploading}
                     onClick={() => setActiveRefTab("video")}
-                    className={`flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                    className={`flex items-center justify-center gap-1.5 rounded-md py-1.5 text-[10px] font-medium uppercase tracking-wider transition-all cursor-pointer ${
                       activeRefTab === "video"
-                        ? "bg-gradient-to-r from-cyan-600/90 to-cyan-500 text-white shadow-sm ring-1 ring-white/20"
-                        : "text-[var(--text-muted)] hover:text-white hover:bg-white/[0.05]"
+                        ? "bg-white/10 text-white border border-white/25 shadow-sm font-semibold"
+                        : "text-zinc-400 hover:text-white hover:bg-white/[0.04]"
                     }`}
                   >
-                    <Film className="h-3 w-3" />
+                    <Film className="h-3 w-3 text-zinc-200" />
                     <span>Video Ref</span>
                   </button>
                 </div>
@@ -726,14 +725,14 @@ export default function VideoStudioClient() {
                 />
 
                 {referenceUrl ? (
-                  <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/60 p-2.5">
+                  <div className="flex items-center gap-3 rounded-lg border border-white/15 bg-zinc-900 p-2">
                     {referenceType === "image" ? (
-                      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-cyan-400/40 bg-black shadow-md">
+                      <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md border border-white/20 bg-black">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={referenceUrl} alt="Image Reference" className="h-full w-full object-cover" />
                       </div>
                     ) : (
-                      <div className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg border border-purple-400/40 bg-black shadow-md">
+                      <div className="relative h-12 w-16 shrink-0 overflow-hidden rounded-md border border-white/20 bg-black">
                         <video
                           src={referenceUrl}
                           muted
@@ -746,18 +745,14 @@ export default function VideoStudioClient() {
                     )}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
-                        <p className="truncate text-xs font-bold text-white">
+                        <p className="truncate text-xs font-semibold text-white">
                           {referenceType === "image" ? "Image Reference" : "Video Reference"}
                         </p>
-                        <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-wider ${
-                          referenceType === "image"
-                            ? "bg-cyan-500/20 text-cyan-200 border border-cyan-400/30"
-                            : "bg-purple-500/20 text-purple-200 border border-purple-400/30"
-                        }`}>
+                        <span className="shrink-0 rounded-md bg-zinc-800 text-zinc-300 border border-white/10 px-1.5 py-0.5 text-[8px] font-semibold uppercase tracking-wider">
                           {referenceType === "image" ? "Image Guided" : "Video Guided"}
                         </span>
                       </div>
-                      <p className="text-[10px] text-[var(--text-muted)] truncate mt-0.5">
+                      <p className="text-[10px] text-zinc-400 truncate mt-0.5">
                         {referenceType === "image"
                           ? "Animates & directs motion frame"
                           : "Motion transfer & scene guidance"}
@@ -768,7 +763,7 @@ export default function VideoStudioClient() {
                         type="button"
                         disabled={busy || refUploading}
                         onClick={() => refFileInput.current?.click()}
-                        className="rounded-md border border-white/15 bg-white/5 px-2 py-1 text-[9px] font-bold uppercase text-white hover:bg-white/10 cursor-pointer transition-colors"
+                        className="rounded-md border border-white/15 bg-zinc-800 px-2 py-1 text-[9px] font-semibold uppercase text-zinc-200 hover:bg-zinc-700 cursor-pointer transition-colors"
                       >
                         Replace
                       </button>
@@ -840,23 +835,23 @@ export default function VideoStudioClient() {
                         aria-checked={on}
                         disabled={busy}
                         onClick={() => setAspect(item.key as any)}
-                        className={`flex flex-col items-center justify-center gap-1.5 rounded-xl border py-2 px-1.5 text-center transition-all cursor-pointer ${
+                        className={`flex flex-col items-center justify-center gap-1.5 rounded-lg border py-2 px-1.5 text-center transition-all cursor-pointer ${
                           on
-                            ? "border-white/30 bg-white/15 text-white shadow-sm ring-1 ring-white/20 font-semibold"
-                            : "border-white/[0.08] bg-white/[0.03] text-slate-400 hover:border-white/20 hover:text-white"
+                            ? "border-white/20 bg-zinc-800 text-white shadow-sm font-semibold"
+                            : "border-white/10 bg-zinc-900 text-zinc-400 hover:border-white/20 hover:text-white"
                         }`}
                       >
                         <div className="flex h-5 items-center justify-center">
                           <div
                             className={`rounded-[2px] border-2 transition-all ${
-                              on ? "border-white bg-white/35 shadow-[0_0_8px_rgba(255,255,255,0.3)]" : "border-white/40"
+                              on ? "border-white bg-zinc-700" : "border-zinc-500"
                             }`}
                             style={{ width: `${item.iconW}px`, height: `${item.iconH}px` }}
                           />
                         </div>
                         <div className="leading-none">
                           <p className="font-mono text-[11px] font-bold text-white">{item.ratio}</p>
-                          <p className="mt-0.5 text-[9px] font-medium text-slate-400">{item.label}</p>
+                          <p className="mt-0.5 text-[9px] font-medium text-zinc-400">{item.label}</p>
                         </div>
                       </button>
                     );
@@ -869,10 +864,10 @@ export default function VideoStudioClient() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
-                      <Clock className="h-3.5 w-3.5 text-cyan-400" />
-                      <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">Clip Length</span>
+                      <Clock className="h-3.5 w-3.5 text-zinc-300" />
+                      <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">Clip Length</span>
                     </div>
-                    <span className="font-mono text-xs font-bold text-cyan-300 bg-cyan-500/10 px-2.5 py-0.5 rounded-md border border-cyan-400/25 shadow-[0_0_12px_rgba(0,212,255,0.2)]">
+                    <span className="font-mono text-xs font-bold text-zinc-100 bg-zinc-800 px-2.5 py-0.5 rounded-md border border-white/10">
                       {duration} Seconds
                     </span>
                   </div>
@@ -891,7 +886,7 @@ export default function VideoStudioClient() {
                         className="studio-range-premium h-[2px] w-full cursor-pointer appearance-none rounded-full bg-white/15 outline-none transition-all"
                       />
                     </div>
-                    <div className="mt-2 flex justify-between px-0.5 font-mono text-[10px] font-bold text-slate-400">
+                    <div className="mt-2 flex justify-between px-0.5 font-mono text-[10px] font-bold text-zinc-400">
                       {[5, 6, 7, 8, 9, 10].map((s) => (
                         <button
                           key={s}
@@ -900,8 +895,8 @@ export default function VideoStudioClient() {
                           onClick={() => setDuration(s)}
                           className={`cursor-pointer transition-colors ${
                             duration === s
-                              ? "text-cyan-300 font-extrabold"
-                              : "hover:text-white"
+                              ? "text-white font-extrabold"
+                              : "hover:text-white text-zinc-400"
                           }`}
                         >
                           {s}s
@@ -913,7 +908,7 @@ export default function VideoStudioClient() {
               </StudioCollapsible>
 
               {/* 4. MOTION VOCABULARY */}
-              <StudioCollapsible title="4. Motion Vocabulary" subtitle="Interactive kinetic action, atmosphere & physical motion" defaultOpen>
+              <StudioCollapsible title="4. Motion Vocabulary" subtitle="Interactive kinetic action, atmosphere & physical motion" defaultOpen={false}>
                 <div className="space-y-3">
                   {[
                     {
@@ -989,7 +984,7 @@ export default function VideoStudioClient() {
                     },
                   ].map((group) => (
                     <div key={group.category} className="space-y-1.5">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-cyan-300/80">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
                         {group.category}
                       </p>
                       <div className="flex flex-wrap gap-1.5">
@@ -1001,7 +996,7 @@ export default function VideoStudioClient() {
                             onClick={() => {
                               appendPromptChip(item.value);
                             }}
-                            className="rounded-lg border border-white/12 bg-white/[0.04] px-2.5 py-1 text-[10px] font-semibold text-slate-300 transition-all hover:border-cyan-400/60 hover:bg-cyan-500/20 hover:text-white cursor-pointer disabled:opacity-40"
+                            className="rounded-md border border-white/10 bg-zinc-900 px-2 py-1 text-[10px] font-medium text-zinc-300 transition-colors hover:border-white/20 hover:bg-zinc-800 hover:text-white cursor-pointer disabled:opacity-40"
                             title={`Inserts: "${item.value}"`}
                           >
                             + {item.label}
@@ -1014,7 +1009,7 @@ export default function VideoStudioClient() {
               </StudioCollapsible>
 
               {/* 5. CAMERA MOVEMENT */}
-              <StudioCollapsible title="5. Camera Movement" subtitle="Direct virtual camera paths & dynamics" defaultOpen>
+              <StudioCollapsible title="5. Camera Movement" subtitle="Direct virtual camera paths & dynamics" defaultOpen={false}>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
                   {CAMERA_MOVEMENTS.map((cam) => {
                     const active = selectedCamera === cam.id;
@@ -1029,15 +1024,15 @@ export default function VideoStudioClient() {
                         }}
                         className={`flex flex-col items-start gap-0.5 rounded-lg border p-2 transition-all text-left cursor-pointer ${
                           active
-                            ? "border-[var(--primary-cyan)] bg-[var(--primary-cyan)]/20 text-white shadow-[0_2px_8px_rgba(0,212,255,0.4)]"
-                            : "border-white/[0.06] bg-white/[0.02] text-[var(--text-muted)] hover:border-white/20 hover:text-white"
+                            ? "border-white/20 bg-zinc-800 text-white font-semibold shadow-sm"
+                            : "border-white/10 bg-zinc-900 text-zinc-400 hover:border-white/20 hover:text-white"
                         }`}
                       >
                         <div className="flex items-center gap-1.5 w-full">
                           <span className="text-xs">{cam.icon}</span>
                           <span className="truncate text-[10px] font-bold tracking-tight text-white">{cam.label}</span>
                         </div>
-                        <span className="text-[9px] text-[var(--text-subtle)] truncate w-full">{cam.desc}</span>
+                        <span className="text-[9px] text-zinc-500 truncate w-full">{cam.desc}</span>
                       </button>
                     );
                   })}
@@ -1048,20 +1043,21 @@ export default function VideoStudioClient() {
               <StudioCollapsible title="6. Negative Prompt" subtitle="Exclude unwanted motion or visual artifacts" defaultOpen={false}>
                 <div>
                   <div className="mb-1 flex items-center justify-between">
-                    <label htmlFor="vid-neg" className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
+                    <label htmlFor="vid-neg" className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">
                       Unwanted Motion & Artifacts
                     </label>
-                    <span className="tabular-nums text-[9px] text-[var(--text-subtle)]">{negativePrompt.length}/2500</span>
+                    <span className="tabular-nums text-[9px] text-zinc-500">{negativePrompt.length}/2500</span>
                   </div>
                   <textarea
                     id="vid-neg"
                     value={negativePrompt}
                     onChange={(e) => setNegativePrompt(e.target.value.slice(0, 2500))}
                     disabled={busy}
+                    autoComplete="off"
+                    spellCheck={false}
                     placeholder="Describe unwanted camera shake, morphing, flickering, artifacts, bad physics…"
                     rows={2}
-                    className="w-full resize-none rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-xs outline-none transition-all focus:border-[var(--primary-cyan)]/60 focus:ring-1 focus:ring-[var(--primary-cyan)]/20"
-                    style={{ color: "var(--text-primary)" }}
+                    className="w-full resize-none rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-xs text-zinc-100 outline-none transition-colors focus:border-white/20 focus:ring-1 focus:ring-zinc-400"
                   />
                 </div>
               </StudioCollapsible>
@@ -1069,54 +1065,46 @@ export default function VideoStudioClient() {
           </div>
         </div>
 
-      {/* Sticky desktop prompt + generate (Section 8: Video Generation Area) */}
-      <div
-        className="hidden shrink-0 border-t px-3 pb-3 pt-3 backdrop-blur-xl lg:block"
-        style={{
-          borderColor: "color-mix(in srgb, white 8%, transparent)",
-          background:
-            "linear-gradient(180deg, color-mix(in srgb, var(--deep-black) 55%, transparent) 0%, color-mix(in srgb, var(--deep-black) 88%, transparent) 100%)",
-        }}
-      >
+      {/* Sticky prompt + generate (Section 8: Video Generation Area) */}
+      <div className="shrink-0 border-t border-white/10 bg-[#121215] px-3.5 pb-3.5 pt-3.5">
         {/* Tier & Credit Summary */}
-        <div className="mb-2.5 flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.02] px-3 py-1.5 text-xs">
+        <div className="mb-2.5 flex items-center justify-between rounded-lg border border-white/10 bg-zinc-900/90 px-3 py-1.5 text-xs text-zinc-300">
           <div className="flex items-center gap-3">
-            <span className="font-display font-bold text-white flex items-center gap-1.5">
-              <Clapperboard className="h-3.5 w-3.5 text-[var(--primary-cyan)]" />
+            <span className="font-display font-semibold text-white flex items-center gap-1.5">
+              <Clapperboard className="h-3.5 w-3.5 text-zinc-300" />
               {activeTierObj.label}
             </span>
-            <span className="text-[var(--text-subtle)]">|</span>
-            <span className="text-white font-medium">{duration}s Clip</span>
+            <span className="text-zinc-600">|</span>
+            <span className="text-zinc-200 font-medium">{duration}s Clip</span>
           </div>
-          <div className="flex items-center gap-4 text-[var(--text-muted)]">
+          <div className="flex items-center gap-4 text-zinc-400">
             <span>
-              Available: <strong className="text-[var(--text-primary)] tabular-nums">{user?.availableCredits ?? user?.credits ?? 0}</strong>
+              Available: <strong className="text-zinc-100 tabular-nums">{user?.availableCredits ?? user?.credits ?? 0}</strong>
             </span>
             <span>
-              Cost: <strong className={((user?.availableCredits ?? user?.credits ?? 0) < currentCost) ? "text-rose-400 font-bold" : "text-[#00D4FF] font-bold"}>{currentCost} credits</strong>
+              Cost: <strong className={((user?.availableCredits ?? user?.credits ?? 0) < currentCost) ? "text-rose-400 font-bold" : "text-emerald-400 font-bold"}>{currentCost} credits</strong>
             </span>
           </div>
         </div>
 
         <div className="mb-1.5 flex items-center justify-between gap-2">
-          <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--text-muted)]">Video Motion Prompt</span>
-          <span className="text-[10px] tabular-nums text-[var(--text-subtle)]">{prompt.length}</span>
+          <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-400">Video Motion Prompt</span>
+          <span className="text-[10px] tabular-nums text-zinc-500">{prompt.length}</span>
         </div>
-        <div
-          className="studio-prompt-focus-video relative flex items-center gap-2 rounded-xl border border-border bg-card/65 px-3 py-2 transition-shadow"
-          style={{ boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)" }}
-        >
+        <div className="relative flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 transition-colors focus-within:border-white/25">
           <label className="sr-only" htmlFor="vid-prompt">Prompt</label>
           <textarea
             ref={videoPromptRef}
             id="vid-prompt"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
+            autoComplete="off"
+            spellCheck={false}
             placeholder={isImg2Video ? "Describe action & movement for reference image…" : "Describe cinematic video scene & motion…"}
             rows={2}
             disabled={busy}
-            className="no-scrollbar max-h-[160px] min-h-[44px] w-full resize-none bg-transparent text-sm leading-relaxed outline-none placeholder:text-[var(--text-subtle)] sm:text-[14px]"
-            style={{ color: "var(--text-primary)", scrollbarWidth: "none" }}
+            className="no-scrollbar max-h-[160px] min-h-[44px] w-full resize-none bg-transparent text-sm leading-relaxed text-zinc-100 outline-none placeholder:text-zinc-500 sm:text-[14px]"
+            style={{ scrollbarWidth: "none" }}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
@@ -1168,23 +1156,23 @@ export default function VideoStudioClient() {
           >
             {busy ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin text-cyan-200" />
-                <span className="font-semibold tracking-wide">Rendering Video ({duration}s)…</span>
+                <Loader2 className="h-4 w-4 animate-spin text-zinc-950" />
+                <span className="font-bold tracking-wide text-zinc-950">Rendering Video ({duration}s)…</span>
               </>
             ) : user?.generationDisabled ? (
               <>
-                <X className="h-4 w-4 text-rose-300" strokeWidth={2} />
-                <span className="font-semibold tracking-wide">Access Disabled</span>
+                <X className="h-4 w-4 text-rose-700" strokeWidth={2.5} />
+                <span className="font-bold tracking-wide text-rose-800">Access Disabled</span>
               </>
             ) : (user?.availableCredits ?? user?.credits ?? 0) < currentCost ? (
               <>
-                <X className="h-4 w-4 text-rose-300" strokeWidth={2} />
-                <span className="font-semibold tracking-wide">Insufficient Credits</span>
+                <X className="h-4 w-4 text-rose-700" strokeWidth={2.5} />
+                <span className="font-bold tracking-wide text-rose-800">Insufficient Credits</span>
               </>
             ) : (
               <>
-                <Clapperboard className="h-4 w-4 text-white" strokeWidth={2.2} />
-                <span className="font-medium tracking-wide text-white">Generate Video</span>
+                <Clapperboard className="h-4 w-4 text-zinc-950" strokeWidth={2.2} />
+                <span className="font-bold tracking-wide text-zinc-950">Generate Video</span>
               </>
             )}
           </StudioGlowGenerate>
@@ -1519,11 +1507,18 @@ export default function VideoStudioClient() {
                 />
                 <StudioGlowGenerate
                   tone="cyan"
-                  size="icon"
+                  size="md"
                   disabled={busy || prompt.trim().length < 2 || Boolean(user?.generationDisabled) || (user?.availableCredits ?? user?.credits ?? 0) < currentCost}
                   onClick={() => void run()}
                 >
-                  {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowUp className="h-5 w-5" strokeWidth={2.25} />}
+                  {busy ? (
+                    <Loader2 className="h-4 w-4 animate-spin text-zinc-950" />
+                  ) : (
+                    <div className="flex items-center gap-1.5 px-1 font-bold text-zinc-950">
+                      <Sparkles className="h-4 w-4 text-zinc-950" strokeWidth={2.2} />
+                      <span>Generate</span>
+                    </div>
+                  )}
                 </StudioGlowGenerate>
               </div>
             </div>
