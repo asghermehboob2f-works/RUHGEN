@@ -1154,24 +1154,6 @@ export default function ImageStudioClient() {
                 {chrome.collapsed ? <PanelLeft className="h-3.5 w-3.5" strokeWidth={2} /> : <PanelLeftClose className="h-3.5 w-3.5" strokeWidth={2} />}
               </button>
             </div>
-            {studioView === "feed" ? (
-              <div className="flex shrink-0 items-center gap-1 border-b border-border/30 px-3 py-1.5 sm:hidden">
-                {(["all", "running", "ready"] as const).map((f) => (
-                  <button
-                    key={f}
-                    type="button"
-                    onClick={() => setFeedFilter(f)}
-                    className={`flex-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide transition-all ${
-                      feedFilter === f
-                        ? "bg-[#7B61FF]/25 text-[var(--text-primary)] ring-1 ring-[#7B61FF]/40"
-                        : "border border-border bg-card/35 text-[var(--text-muted)]"
-                    }`}
-                  >
-                    {f === "all" ? "All" : f === "running" ? "Live" : "Ready"}
-                  </button>
-                ))}
-              </div>
-            ) : null}
             <div
               ref={scrollRef}
               className="studio-scrollbar min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain [-webkit-overflow-scrolling:touch] touch-pan-y px-3 py-3 sm:px-4"
@@ -1210,18 +1192,30 @@ export default function ImageStudioClient() {
                   </div>
                 )
               ) : messages.length === 0 ? (
-                <div className="flex min-h-[240px] flex-col items-center justify-center gap-5 py-12 text-center">
+                <div className="flex min-h-[300px] flex-col items-center justify-center gap-5 py-14 text-center select-none">
                   <motion.div
-                    initial={reduce ? false : { scale: 0.92, opacity: 0 }}
+                    initial={reduce ? false : { scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    className="relative flex h-24 w-24 items-center justify-center rounded-3xl border border-violet-400/30 bg-gradient-to-br from-violet-600/40 via-[var(--deep-black)] to-cyan-500/25 shadow-[0_0_80px_-24px_rgba(123,97,255,0.65)]"
+                    transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                    className="group relative flex h-28 w-28 items-center justify-center rounded-3xl border border-white/20 bg-gradient-to-tr from-indigo-950/80 via-purple-900/40 to-cyan-500/20 p-0.5 shadow-[0_0_100px_-20px_rgba(123,97,255,0.75)] backdrop-blur-2xl transition-transform duration-500 hover:scale-105"
                   >
-                    <Sparkles className="h-10 w-10 text-cyan-200" strokeWidth={1.5} />
+                    <div className="flex h-full w-full items-center justify-center rounded-[22px] bg-[#0c0d12]/90 backdrop-blur-md">
+                      <div className="relative">
+                        <Sparkles className="h-11 w-11 text-cyan-300 drop-shadow-[0_0_16px_rgba(0,212,255,0.85)] transition-transform duration-500 group-hover:rotate-12" strokeWidth={1.75} />
+                        <span className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-indigo-500 text-[8px] font-bold text-white shadow-[0_0_10px_rgba(99,102,241,0.8)]">+</span>
+                      </div>
+                    </div>
                   </motion.div>
-                  <div className="max-w-md space-y-2 px-2">
-                    <p className="font-display text-xl font-bold tracking-tight text-[var(--text-primary)]">RUHGEN Image Studio Online</p>
-                    <p className="text-sm leading-relaxed text-[var(--text-muted)]">
-                      Select your desired aspect ratio, aesthetic style, and RUHGEN tier. Upload an optional reference image to direct the composition.
+                  <div className="max-w-md space-y-2 px-4">
+                    <div className="inline-flex items-center gap-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-indigo-300 backdrop-blur-md">
+                      <Sparkles className="h-3 w-3 text-cyan-300" />
+                      RUHGEN Studio Online
+                    </div>
+                    <h2 className="font-display text-2xl font-black tracking-tight text-white sm:text-3xl">
+                      RUHGEN Image Studio
+                    </h2>
+                    <p className="text-xs leading-relaxed text-zinc-400 sm:text-sm">
+                      Select your desired aspect ratio, aesthetic style, and RUHGEN tier. Enter your prompt directly below to synthesize high-fidelity visuals.
                     </p>
                   </div>
                 </div>
