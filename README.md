@@ -1,140 +1,185 @@
 # RUHGEN — Enterprise AI-Powered Creative Media & Studio Platform
 
-[![Framework](https://img.shields.io/badge/Next.js-16.2-black?style=flat-square&logo=nextdotjs)](https://nextjs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16.2-black?style=flat-square&logo=nextdotjs)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19.2-61DAFB?style=flat-square&logo=react&logoColor=black)](https://reactjs.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-20%2B-339933?style=flat-square&logo=nodedotjs)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![Database](https://img.shields.io/badge/SQLite-WAL--Mode-003B57?style=flat-square&logo=sqlite)](https://www.sqlite.org/)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](#license)
 
-**RUHGEN** is a full-stack, enterprise-grade creative studio and content management platform engineered for digital artists, creative directors, and media production teams. Combining high-performance AI generation workflows, dynamic credit allocation, community showcase feeds, educational resources, and administrative control systems, RUHGEN provides an end-to-end environment for professional visual asset creation.
+**RUHGEN** is an enterprise-grade multi-modal AI generation studio, digital asset management environment, and content management platform engineered for digital artists, creative directors, and media production teams. Combining high-performance image and video generation workflows, real-time credit allocation, community exhibition feeds, masterclass educational resources, and an administrative control studio, RUHGEN delivers a unified end-to-end environment for modern visual asset production.
 
 ---
 
 ## 📋 Table of Contents
 
 - [Overview](#overview)
-- [Why RUHGEN Exists](#why-ruhgen-exists)
-- [Target Audience](#target-audience)
-- [Key Features](#key-features)
+- [The Problem](#the-problem)
+- [The Solution](#the-solution)
+- [Core Features](#core-features)
+- [What Makes RUHGEN Different](#what-makes-ruhgen-different)
+- [User Workflows & Journey](#user-workflows--journey)
 - [Technology Stack](#technology-stack)
-- [Architecture Overview](#architecture-overview)
+- [System Architecture](#system-architecture)
 - [Project Structure](#project-structure)
-- [Installation & Local Setup](#installation--local-setup)
-- [Environment Configuration](#environment-configuration)
-- [Running Locally](#running-locally)
-- [Production Deployment](#production-deployment)
-- [Security Considerations](#security-considerations)
-- [Contribution Guidelines](#contribution-guidelines)
+- [Local Development & Setup](#local-development--setup)
+- [Environment Variable Architecture](#environment-variable-architecture)
+- [Security Architecture](#security-architecture)
+- [Administrative Control & CMS](#administrative-control--cms)
+- [SEO, Discoverability & Performance](#seo-discoverability--performance)
+- [Quality Assurance & Build Verification](#quality-assurance--build-verification)
+- [Official Social Links](#official-social-links)
 - [License](#license)
-- [Roadmap](#roadmap)
 
 ---
 
 ## 🔍 Overview
 
-RUHGEN bridges the gap between disparate model architectures and production-grade media workflows. Rather than forcing creators to switch between isolated prompt tools and external asset managers, RUHGEN offers a unified platform with:
+Modern digital creative pipelines require rapid iteration, high-fidelity visual feedback, and seamless asset orchestration. RUHGEN bridges the gap between raw model endpoints and production-ready creative software.
 
-- **Generation Studio**: High-resolution image and video creation with custom parameter tuning.
-- **Credit & Billing Engine**: Tiered subscription plans, automated credit deductions, transaction ledgers, and secure Razorpay payment processing.
-- **Community Hub**: Interactive feeds for discovering, liking, saving, commenting on, and sharing member-created artwork.
-- **Academy & Resources**: Structured video tutorials, guides, and platform masterclasses.
-- **Administration Suite**: Administrative dashboard for managing user accounts, site content, support tickets, credit balances, and security audit logs.
+Rather than forcing creators to switch between isolated prompt tools, standalone image generators, separate video platforms, and external storage managers, RUHGEN unifies the visual synthesis lifecycle into a single, cohesive web application:
 
----
-
-## 🎯 Why RUHGEN Exists
-
-Modern creative pipelines often suffer from fragmented tooling, unpredictable credit management, lack of team visibility, and complex asset orchestration. RUHGEN solves these challenges by providing:
-
-1. **Unified Studio Workflow**: A single, intuitive dashboard for image and video production with real-time feedback.
-2. **Transparent Resource Management**: Real-time balance tracking, credit transaction logs, and clear usage limits across Free, Pro, and Enterprise tiers.
-3. **Content Governance**: Built-in moderation, admin user management, support ticketing, and detailed audit trails.
-4. **Self-Contained Architecture**: Standalone SQLite database with write-ahead logging (WAL) for rapid local execution or cloud VPS deployments.
+- **Generation Studio**: High-resolution image and cinema-grade video creation with real-time parameter tuning and visualizer presets.
+- **Credit & Ledger Engine**: Automated credit deductions, usage transaction logs, and flexible subscription tiers.
+- **Community Exhibition Hub**: Interactive social gallery for publishing, discovering, saving, commenting on, and sharing member artwork.
+- **RUHGEN Academy**: Structured video tutorials, prompt framing guides, and lighting masterclasses for creator skill advancement.
+- **Administrative Control Studio**: Dedicated admin console for user governance, dynamic CMS content updates, support ticket processing, and security audit logs.
 
 ---
 
-## 👥 Target Audience
+## ⚡ The Problem
 
-- **Creative & Art Directors**: For rapid mood boarding, look development, and client pitch preparation.
-- **Digital Artists & Designers**: For high-resolution asset generation and community exhibition.
-- **Marketing & Content Teams**: For producing high-converting visual media at scale.
-- **Production Studios**: For integrating scalable generation APIs into broader asset management pipelines.
+Creative teams and digital artists operating in modern media environments face critical operational bottlenecks:
+
+1. **Fragmented Tooling**: Creators waste time navigating across multiple single-purpose generation platforms with inconsistent prompt interfaces and asset formats.
+2. **Opaque Usage & Cost Tracking**: Many generative platforms obscure per-generation token costs, leading to unexpected credit depletion without clear transaction visibility.
+3. **Disconnected Community & Portfolio Workflows**: Generated assets often sit isolated on local disks or temporary discord channels rather than being organized into exhibitable portfolios.
+4. **Rigid Platform CMS Control**: Administrators frequently lack real-time control over homepage showcases, dynamic pricing tiers, hero media backgrounds, and support ticket queues without performing full codebase re-deployments.
 
 ---
 
-## ✨ Key Features
+## 💡 The Solution
 
-### 🎨 Generation Studio
-- **Multi-Modal Output**: Generate photorealistic imagery and cinema-grade short video sequences.
-- **Custom Aspect Ratios & Presets**: Cinema (16:9), Portrait (9:16), Square (1:1), and Ultrawide (21:9) configurations.
-- **Task Tracking**: Background asynchronous job execution with real-time status polling.
+RUHGEN addresses these challenges by offering a centralized, enterprise-grade generation environment backed by a robust REST architecture, write-ahead logged SQLite persistence, and an interactive CMS.
 
-### 💳 Credit & Billing Systems
-- **Tiered Plans**: Free, Pro, Pro Plus, and Custom Enterprise subscriptions.
-- **Razorpay Integration**: Native checkout flow with signature verification and webhook capabilities.
-- **Transaction Audit Log**: Immutable record of credit additions, usage deductions, and administrative overrides.
+### End-to-End Execution Flow
 
-### 🌐 Community Exhibition & Social Features
-- **Public Feed & Gallery**: Explore curated community creations with tag filtering.
-- **Member Interactivity**: Like posts, save to personal collections, add comments, and track view metrics.
-- **Media Publishing**: Directly share Studio generations to the community feed with customizable prompts and metadata.
+```mermaid
+flowchart TD
+    A[Creator / User Input] -->|Prompt & Preset Selection| B[Generation Studio Engine]
+    B -->|Pre-Flight Check| C{Sufficient Credits & Auth?}
+    C -->|No| D[Display Upgrade CTA / Auth Alert]
+    C -->|Yes| E[Dispatch Async Generation Request]
+    E -->|Processing & Polling| F[AI Synthesizer Engine]
+    F -->|Render Completed| G[Store Asset & Deduct Credits]
+    G -->|Update State| H[Display on Studio Canvas]
+    H -->|Optional| I[Publish to Community Exhibition Feed]
+```
+
+---
+
+## ✨ Core Features
+
+### 🎨 Multi-Modal Generation Studio
+- **Dual-Engine Synthesis**: Seamlessly switch between high-resolution Image generation and cinematic Video generation within a single workspace.
+- **Preset Calibration & Framing**: Pre-configured aspect ratios (16:9 Cinema, 9:16 Portrait, 1:1 Square, 21:9 Ultrawide) and visualizer presets (lens parameters, gap settings, ISO controls).
+- **Asynchronous Task Processing**: Asynchronous job handling with real-time status polling, progress indicators, and immediate canvas rendering.
+- **Interactive Image Editing**: Support for image-to-image prompts, variation synthesis, and high-resolution upscaling.
+
+### 💳 Transparent Credit & Billing Engine
+- **Tiered Subscription Plans**: Flexible plan structures (Free, Pro, Pro Plus, Enterprise) tailored to individual creators and production teams.
+- **Real-Time Cost Preview**: Interactive cost calculation that adjusts based on chosen model tier, aspect ratio, and resolution prior to execution.
+- **Transaction Audit Ledger**: Immutable record of credit additions, usage deductions, plan changes, and administrative credit overrides.
+
+### 🌐 Community Exhibition & Social Hub
+- **Exhibition Feed**: Browse top community-generated visual art filtered by category (`cinematic`, `sci-fi`, `art`, `realistic`).
+- **Creator Interactivity**: Support for liking posts, saving creations into personal collections, adding comments, and tracking view analytics.
+- **One-Click Publishing**: Direct option within the Generation Studio to share rendered assets to the public exhibition feed with custom prompt metadata.
 
 ### 🎓 RUHGEN Academy
-- **Video Tutorials**: Structured tutorials categorized by difficulty level (Beginner, Intermediate, Advanced).
-- **Interactive Guides**: Masterclass content detailing prompt engineering, lighting, and style framing techniques.
+- **Curated Masterclasses**: Comprehensive video tutorials and guides covering advanced prompt framing, lighting styles, camera movement parameters, and style consistency.
+- **Skill Progression Paths**: Structured categorization by difficulty level (Beginner, Intermediate, Advanced) to accelerate creator onboarding.
 
-### 🛡️ Admin Dashboard & Control Center
-- **User Governance**: View registered members, modify credit balances, manage roles, or suspend accounts.
-- **Content Management System (CMS)**: Dynamically edit homepage banners, showcase videos, visualizer presets, and pricing plans.
-- **Support Desk**: Integrated ticketing system for responding to member inquiries with attachment uploads.
-- **Audit Trails**: Security logs recording email verifications, credit alterations, and security events.
+### 🛡️ Administrative Control Studio & CMS
+- **Single Authorized Admin Account**: Protected administrative console guarded by PBKDF2 salt-hashed password verification and JWT token authorization.
+- **Dynamic Content Management (CMS)**: Live editing for homepage hero backgrounds, showcase video slides, pricing plans, feature calibration assets, and official social media links.
+- **User Governance**: Account status monitoring (Active, Pending, Suspended), email verification management, and manual credit balance adjustments.
+- **Support Desk Ticketing**: Integrated support queue for reading user inquiries, downloading attachments, and sending admin responses.
+- **Security Audit Logs**: Track account creation timestamps, password changes, verification deadlines, and administrative security events.
 
-### ✉️ Email Verification & Lifecycle System
-- **Transactional Emails**: Verification links, 6-digit OTP codes, and automated reminder crons.
-- **Grace Period Enforcement**: Automated background scheduler handling account verification deadlines.
+---
+
+## 🚀 What Makes RUHGEN Different
+
+| Aspect | Traditional Generation Tools | RUHGEN Platform |
+| :--- | :--- | :--- |
+| **Workspace Integration** | Isolated tools for image vs video | Unified multi-modal studio for both media types |
+| **Cost Transparency** | Hidden per-prompt token formulas | Live per-generation credit cost preview |
+| **Content Flexibility** | Static, hardcoded landing page assets | Database-backed CMS for instant dynamic site updates |
+| **Community Connection** | Disconnected local file downloads | Integrated community exhibition feed with one-click sharing |
+| **Administrative Control** | Manual database script overrides | Comprehensive Admin Control Studio with audit logging |
+| **Architecture** | Heavy external service locking | Self-contained, hosting-independent application stack |
+
+---
+
+## 🔄 User Workflows & Journey
+
+### 1. Creator Workflow
+1. Creator registers an account and verifies email.
+2. Navigates to the **Generation Studio** (`/dashboard/generate/image` or `/dashboard/generate/video`).
+3. Selects aspect ratio, visualizer preset, and model quality tier while viewing live credit costs.
+4. Submits the prompt. The system validates balance, deducts credits, and renders the media.
+5. The rendered asset appears on the interactive studio canvas for download or publishing.
+
+### 2. Community Workflow
+1. Member explores the **Community Hub** (`/community`) to discover trending creator work.
+2. Filters by style category, likes posts, saves assets to personal collections, or joins discussion threads.
+
+### 3. Admin Workflow
+1. Operator signs in via `/admin/login` using administrative credentials.
+2. Accesses the **Admin Control Studio** (`/admindashboard`).
+3. Updates site pricing, hero backgrounds, or social links in the CMS tab (`/admindashboard/content`).
+4. Monitors user accounts (`/admindashboard/users`), manages support tickets (`/admindashboard/support`), or reviews system logs.
 
 ---
 
 ## 💻 Technology Stack
 
 ### Frontend Architecture
-- **Framework**: [Next.js 16](https://nextjs.org/) (App Router)
-- **UI Library**: [React 19](https://react.js.org/) & [TypeScript](https://www.typescriptlang.org/)
-- **Styling**: Vanilla CSS, Modern CSS Custom Properties, and [Tailwind CSS 4](https://tailwindcss.com/)
-- **Icons & Animations**: [Lucide React](https://lucide.dev/) & [Framer Motion 12](https://www.framer.com/motion/)
+- **Framework**: [Next.js 16](https://nextjs.org/) (App Router, Server Components & Dynamic SSR)
+- **UI Library**: [React 19](https://react.dev/) & [TypeScript 5](https://www.typescriptlang.org/)
+- **Styling**: Vanilla CSS, Theme CSS Custom Properties, and [Tailwind CSS 4](https://tailwindcss.com/)
+- **Animations & Icons**: [Framer Motion 12](https://www.framer.com/motion/) & [Lucide React](https://lucide.dev/)
 
 ### Backend Architecture
 - **Runtime**: [Node.js](https://nodejs.org/) (v20+ recommended)
-- **Web Framework**: [Express.js](https://expressjs.com/)
-- **Database Engine**: [better-sqlite3](https://github.com/WiseLibs/better-sqlite3) (SQLite3 with WAL mode)
-- **Authentication**: JWT (JSON Web Tokens) & Password Hashing
-- **Email Delivery**: [Nodemailer](https://nodemailer.com/) (SMTP with SSL/TLS support)
-- **Payments**: [Razorpay Node SDK](https://razorpay.com/)
-- **File Uploads**: [Multer](https://github.com/expressjs/multer) (Memory storage buffer)
+- **Web Server**: [Express.js](https://expressjs.com/)
+- **Database**: [better-sqlite3](https://github.com/WiseLibs/better-sqlite3) (SQLite with Write-Ahead Logging `WAL` mode)
+- **Authentication**: Session JWTs (JSON Web Tokens) & PBKDF2 Password Hashing
+- **Email Service**: [Nodemailer](https://nodemailer.com/) (SMTP with SSL/TLS)
+- **File Upload Handling**: [Multer](https://github.com/expressjs/multer) (Memory storage buffer with safe path sanitization)
 
 ---
 
-## 🧬 Architecture Overview
+## 🧬 System Architecture
 
-RUHGEN runs as a decoupled architecture where the Next.js frontend handles public rendering, marketing layouts, dynamic client components, and administrative UI, while the Node.js/Express backend controls database mutations, authentication, external API routing, and cron tasks.
+RUHGEN operates on a decoupled architecture separating public rendering and client interactions (Next.js) from persistent database operations, background cron jobs, and authentication guards (Express API Engine).
 
 ```mermaid
 graph TD
-    User([Client / User Browser]) -->|HTTP / Next.js Pages| Frontend[Next.js 16 Web Server :3000]
-    User -->|REST API Requests| Backend[Express API Server :4000]
-    
-    Frontend -->|Server Components & SSR| Backend
-    
-    subgraph Backend Engine
-        Backend -->|WAL Connections| DB[(SQLite Database / ruhgen.sqlite)]
-        Backend -->|Asynchronous Crons| Cron[Verification & Maintenance Cron]
-        Backend -->|Transactional SMTP| Mail[Nodemailer / Mail Server]
+    User([Client / Web Browser]) -->|Next.js App Router Pages| Frontend[Next.js Web Application :3000]
+    User -->|REST API Calls| Backend[Express API Server :4000]
+
+    subgraph Application Stack
+        Frontend -->|Server-Side Data Fetching| Backend
+        Backend -->|Write-Ahead Logging| SQLite[(SQLite Database / ruhgen.sqlite)]
+        Backend -->|Scheduled Tasks| Cron[Verification & Maintenance Cron]
+        Backend -->|Transactional Delivery| Mail[Nodemailer / SMTP Service]
     end
-    
-    subgraph External Services
-        Backend -->|Task Generation| GenerationAPI[RUHGEN Studio Engine]
-        Backend -->|Order Verification| Razorpay[Razorpay Gateway]
+
+    subgraph Service Abstractions
+        Backend -->|Asynchronous Jobs| GenerationAPI[AI Generation Engine]
+        Backend -->|Order Verification| PaymentAPI[Payment Gateway Engine]
     end
 ```
 
@@ -144,194 +189,196 @@ graph TD
 
 ```text
 RUHGEN/
-├── backend/                  # Node.js + Express API Backend
-│   ├── data/                 # SQLite DB storage (ruhgen.sqlite) & site JSON data
+├── backend/                  # Express API Backend Engine
+│   ├── data/                 # SQLite DB file (ruhgen.sqlite) & site JSON content
 │   └── src/
-│       ├── middleware/       # Rate limiters, Admin auth, Error handlers
-│       ├── academy-routes.js # Academy tutorial endpoints
-│       ├── admin-content-routes.js # CMS dynamic site content editing
-│       ├── admin-users-routes.js   # User administration & audit logs
-│       ├── community-routes.js     # Posts, likes, comments, saves
-│       ├── db.js             # SQLite initialization & database migrations
-│       ├── payment-routes.js # Razorpay integration & webhook handlers
+│       ├── middleware/       # Rate limiters, Admin RBAC guards, input validators
+│       ├── academy-routes.js # Academy tutorials & lesson endpoints
+│       ├── admin-content-routes.js # CMS dynamic site content routes
+│       ├── admin-users-routes.js   # User management & security audit routes
+│       ├── auth.js           # PBKDF2 hashing, JWT signing, admin seeding
+│       ├── config.js         # Centralized environment variable resolution
+│       ├── db.js             # SQLite initialization & schema migrations
+│       ├── payment-routes.js # Payment processing & transaction ledgers
 │       ├── server.js         # Express app entrypoint & graceful shutdown
-│       ├── studio-routes.js  # Generation tasks & credits handling
-│       ├── support-routes.js # Ticket desk API routes
-│       ├── user-auth-routes.js    # Member registration, login, profile
-│       └── verification-cron.js  # Scheduled background verification tasks
-├── media/                    # Media uploads (synced to public/media)
-├── public/                   # Static public web assets (images, icons, media)
-├── scripts/                  # Administrative utility scripts
-│   ├── cleanup-unused-media.cjs  # Purges orphan media files
-│   ├── clear-local-data.cjs      # Clears SQLite cache for fresh testing
-│   └── sync-media.cjs            # Syncs root media/ into public/media/
-├── src/                      # Next.js Frontend Application
-│   ├── app/                  # App Router pages and API routes
-│   │   ├── admindashboard/   # Admin UI routes (Content, Users, Support)
-│   │   ├── dashboard/        # Member Studio dashboard & settings
-│   │   ├── (marketing)/      # Public pages (Features, Pricing, Academy, etc.)
-│   │   ├── globals.css       # Design tokens, theme colors, CSS variables
-│   │   └── layout.tsx        # Root HTML layout & global navigation
-│   ├── backend/              # Server-side data repository helpers
-│   ├── components/           # UI components, Modals, Navbars, Footers
-│   ├── hooks/                # Custom React hooks
-│   └── lib/                  # Auth storage, API clients, and constants
-├── Dockerfile                # Production Docker container configuration
-├── docker-compose.yml        # Docker Compose service orchestration
-├── ecosystem.config.js       # PM2 production process configuration
-├── nginx.conf                # Nginx production reverse-proxy configuration
-├── package.json              # Monorepo dependencies & scripts
+│       ├── studio-routes.js  # Async generation job handlers & credit balance
+│       ├── support-routes.js # Support ticket API endpoints
+│       └── verification-cron.js  # Background account verification deadline scheduler
+├── data/                     # Root seed data & fallback content definitions
+├── media/                    # Media upload directory (synced to public/media)
+├── public/                   # Static public assets (images, SVGs, favicon)
+├── scripts/                  # Maintenance utility scripts
+│   ├── clear-local-data.cjs  # Database purge utility for clean test environments
+│   └── sync-media.cjs        # Synchronizes root media folder into public directory
+├── src/                      # Next.js Frontend Source Code
+│   ├── app/                  # App Router pages and route handlers
+│   │   ├── admin/            # Admin sign-in route
+│   │   ├── admindashboard/   # Admin Control Studio routes (Content, Users, Support)
+│   │   ├── dashboard/        # Member Studio dashboard, settings, & generation UI
+│   │   ├── (marketing)/      # Public pages (Features, Pricing, Academy, FAQ, etc.)
+│   │   ├── globals.css       # Core design tokens, dark/light theme variables
+│   │   ├── layout.tsx        # Root HTML layout with font loading
+│   │   ├── robots.ts         # Automated search engine robots.txt configuration
+│   │   └── sitemap.ts        # Automated sitemap XML generation
+│   ├── backend/              # Server-side content repositories & default fallbacks
+│   ├── components/           # Reusable UI components, Modals, Navbars, Footers
+│   ├── hooks/                # Custom React state hooks
+│   └── lib/                  # Navigation links, layout constraints, API helpers
+├── .env.example              # Environment variables template file
+├── package.json              # Monorepo dependencies & scripts configuration
 └── README.md                 # Project documentation
 ```
 
 ---
 
-## ⚙️ Environment Configuration
+## ⚙️ Local Development & Setup
 
+### Prerequisites
+- **Node.js**: v20.0.0 or higher
+- **npm**: v10.0.0 or higher
+
+### 1. Clone & Install Dependencies
+Run from the repository root:
+
+```bash
+# Install root frontend dependencies
+npm install
+
+# Install backend service dependencies
+cd backend && npm install && cd ..
+```
+
+### 2. Environment Configuration
 Copy `.env.example` to `.env` in the root directory:
 
 ```bash
 cp .env.example .env
 ```
 
-### Environment Variables Matrix
-
-| Parameter | Type | Required | Description | Default |
-| :--- | :--- | :--- | :--- | :--- |
-| `PORT` | Number | Yes | Next.js frontend port | `3000` |
-| `BACKEND_PORT` | Number | Yes | Express API backend port | `4000` |
-| `BACKEND_URL` | String | Yes | Internal API URL used by Next.js SSR | `http://127.0.0.1:4000` |
-| `NEXT_PUBLIC_SITE_URL` | String | Yes | Public canonical URL for links | `http://localhost:3000` |
-| `ADMIN_JWT_SECRET` | String | Yes | JWT secret key for Admin sessions | *Configurable* |
-| `USER_JWT_SECRET` | String | Yes | JWT secret key for User sessions | *Configurable* |
-| `QWEN_API_KEY` | String | Yes | Qwen / NVIDIA GenAI API Key for Image Studio | *Configurable* |
-| `SMTP_HOST` | String | No | Mail server hostname | `mail.ruhgen.in` |
-| `SMTP_PORT` | Number | No | SMTP port (465 SSL or 587 TLS) | `465` |
-| `SMTP_USER` | String | No | SMTP authentication username | `verify@ruhgen.in` |
-| `SMTP_PASS` | String | No | SMTP authentication password | *Configurable* |
-| `RAZORPAY_KEY_ID` | String | No | Razorpay Key ID for payments | `rzp_test_...` |
-| `RAZORPAY_KEY_SECRET` | String | No | Razorpay Secret for payments | *Configurable* |
-
----
-
-## 🚀 Running Locally
-
-### 1. Install Dependencies
-Run from the repository root:
-
-```bash
-npm install
-cd backend && npm install && cd ..
-```
-
-### 2. Synchronize Assets
-Initialize the media storage folders:
+### 3. Synchronize Media Assets
+Initialize public media assets:
 
 ```bash
 npm run sync:media
 ```
 
-### 3. Start Development Services
-Launch both the Next.js frontend and Express backend concurrently:
+### 4. Launch Development Environment
+Start both Next.js frontend and Express backend concurrently:
 
 ```bash
 npm run dev
 ```
 
 - **Frontend Interface**: [http://localhost:3000](http://localhost:3000)
-- **Backend API Engine**: [http://localhost:4000](http://localhost:4000)
-- **Health Check Endpoint**: [http://localhost:4000/api/health](http://localhost:4000/api/health)
+- **Backend API Server**: [http://localhost:4000](http://localhost:4000)
+- **Backend Health Endpoint**: [http://localhost:4000/api/health](http://localhost:4000/api/health)
 
 ---
 
-## 📦 Workspace Command Registry
+## 🔒 Environment Variable Architecture
+
+Environment variables are managed centrally via `backend/src/config.js` and root `.env`.
+
+| Category | Key Name | Server/Client Scope | Description |
+| :--- | :--- | :--- | :--- |
+| **System** | `PORT` | Server-Side | Next.js frontend server port (default `3000`) |
+| **System** | `BACKEND_PORT` | Server-Side | Express API server port (default `4000`) |
+| **System** | `BACKEND_URL` | Server-Side | Internal API gateway URL used by SSR |
+| **Public** | `NEXT_PUBLIC_SITE_URL` | Client & Server | Canonical public origin for metadata & sitemaps |
+| **Security** | `ADMIN_JWT_SECRET` | Server-Side Only | Secret key used to sign Admin session tokens |
+| **Security** | `USER_JWT_SECRET` | Server-Side Only | Secret key used to sign User session tokens |
+| **Security** | `ADMIN_SEED_EMAIL` | Server-Side Only | Initial admin account email for system seeding |
+| **Security** | `ADMIN_SEED_PASSWORD` | Server-Side Only | Initial admin account password for system seeding |
+| **Services** | `QWEN_API_KEY` | Server-Side Only | AI Generation Provider credential |
+| **Services** | `SMTP_HOST` | Server-Side Only | Outbound transactional mail server host |
+| **Services** | `SMTP_PORT` | Server-Side Only | Outbound transactional mail server port |
+| **Services** | `SMTP_USER` | Server-Side Only | Outbound transactional mail user |
+| **Services** | `SMTP_PASS` | Server-Side Only | Outbound transactional mail password |
+| **Payments** | `RAZORPAY_KEY_ID` | Server/Client Safe | Payment Gateway Key ID |
+| **Payments** | `RAZORPAY_KEY_SECRET` | Server-Side Only | Payment Gateway Secret Key |
+
+> [!IMPORTANT]
+> Sensitive credentials (JWT secrets, SMTP passwords, API keys) must **never** be prefixed with `NEXT_PUBLIC_` to ensure they remain strictly isolated on the backend.
+
+---
+
+## 🛡️ Security Architecture
+
+RUHGEN incorporates comprehensive security controls across all application tiers:
+
+1. **Authentication & Password Protection**:
+   - Passwords are salt-hashed using **PBKDF2** (10,000 iterations, SHA-512) before storage.
+   - Authentication tokens are signed with isolated secrets (`USER_JWT_SECRET` and `ADMIN_JWT_SECRET`).
+
+2. **Single Admin Role-Based Access Control (RBAC)**:
+   - Administrative endpoints (`/api/admin/*`) enforce strict `requireAdmin` middleware checks.
+   - Public self-registration for administrative roles is completely disabled.
+
+3. **Rate Limiting & Brute-Force Mitigation**:
+   - Authentication and sensitive routes (`/api/auth/login`, `/api/admin/auth/login`, `/api/newsletter/subscribe`) are protected by `express-rate-limit` counters.
+
+4. **Input Validation & SQL Parameterization**:
+   - All SQLite queries execute via parameterized prepared statements in `better-sqlite3`, preventing SQL injection.
+   - Sanitized string inputs prevent path traversal or cross-site scripting (XSS).
+
+5. **Search Privacy & No-Index Enforcement**:
+   - Strict `noindex, nofollow` headers are automatically injected on `/dashboard` and `/admindashboard` sub-trees to protect workspace privacy.
+
+---
+
+## 🎛️ Administrative Control & CMS
+
+The **Admin Control Studio** (`/admindashboard`) gives platform administrators centralized management capabilities:
+
+- **Site Content Studio (`/admindashboard/content`)**:
+  - **Hero & Gallery**: Edit hero background images/videos, opacity, and parallax parameters.
+  - **Homepage Layout**: Update showcase video carousels and platform stats.
+  - **Demo & Visualizer**: Configure lens gap, ISO, and visualizer prompt presets.
+  - **Features & Pricing**: Modify feature calibration assets and dynamic subscription plan pricing.
+  - **Social Media Links**: Add, edit, re-order, validate, and toggle public visibility for social platform links.
+- **User Governance (`/admindashboard/users`)**: Search registered users, adjust credit balances, update account statuses, or review email verification deadlines.
+- **Support Desk (`/admindashboard/support`)**: Manage user support tickets, inspect system attachments, and send official replies.
+
+---
+
+## 🌐 SEO, Discoverability & Performance
+
+RUHGEN is engineered for search engine discoverability and fast page loads:
+
+- **Dynamic Metadata & Canonical URLs**: Every public page defines a unique title, meta description, Open Graph image, and dynamic canonical URL backed by `metadataBase`.
+- **Structured Data (JSON-LD)**: Injected `Organization`, `WebSite`, and `FAQPage` schemas for enhanced search engine result rendering.
+- **Automated Sitemap & Robots**: Next.js App Router dynamic `sitemap.ts` and `robots.ts` expose indexable public pages while restricting private routes.
+- **Performance Optimizations**: Asset lazy-loading, smooth framer-motion transitions, CSS custom property theming, and optimized Turbopack bundle compilation.
+
+---
+
+## 🧪 Quality Assurance & Build Verification
+
+To verify codebase health and compile production assets:
 
 ```bash
-# Start Next.js + Express backend concurrently in development mode
-npm run dev
+# Run ESLint check
+npm run lint
 
-# Run Next.js frontend only
-npm run dev:next
-
-# Run Express backend only
-npm run dev:backend
-
-# Compile production bundles
+# Execute full Next.js production build test
 npm run build
-
-# Synchronize root media assets into public/media
-npm run sync:media
-
-# Maintenance: Reset local SQLite database for clean test runs
-npm run clear:data
 ```
 
 ---
 
-## 🌐 Production Deployment
+## 📲 Official Social Links
 
-### Option A: PM2 + Nginx on Linux VPS (Ubuntu / Debian)
+Official platform channels configured within the dynamic CMS:
 
-1. **Build Application**:
-   ```bash
-   npm ci
-   cd backend && npm ci && cd ..
-   npm run build
-   ```
-
-2. **Launch with PM2**:
-   ```bash
-   pm2 start ecosystem.config.js --env production
-   pm2 save
-   ```
-
-3. **Nginx Reverse Proxy**:
-   Copy `nginx.conf` to your Nginx sites configuration directory and enable SSL via Certbot:
-   ```bash
-   sudo cp nginx.conf /etc/nginx/sites-available/ruhgen
-   sudo ln -s /etc/nginx/sites-available/ruhgen /etc/nginx/sites-enabled/
-   sudo nginx -t && sudo systemctl reload nginx
-   sudo certbot --nginx -d yourdomain.com
-   ```
-
-### Option B: Docker & Docker Compose
-
-Deploy using containerization:
-
-```bash
-docker-compose up -d --build
-```
-
----
-
-## 🔒 Security Considerations
-
-- **Rate Limiting**: Configured via `express-rate-limit` on authentication endpoints (`/api/auth/login`, `/api/auth/register`, `/api/admin/auth/login`) to mitigate brute-force attacks.
-- **SQL Parameterization**: All SQLite operations use parameterized statements with `better-sqlite3`, preventing SQL injection vulnerabilities.
-- **Sanitized Media Operations**: Uploaded file paths undergo path normalization and bounds validation to prevent directory traversal attempts.
-- **Encrypted Password Storage**: Passwords are standardly hashed before being committed to persistent storage.
-- **Graceful Shutdown**: The Express API intercepts `SIGINT` and `SIGTERM` signals to close active database connections and complete pending tasks safely.
-
----
-
-## 🤝 Contribution Guidelines
-
-1. **Fork & Branch**: Create a feature branch off `master` (`git checkout -b feature/your-feature`).
-2. **Code Style**: Ensure code conforms to TypeScript and ESLint standards (`npm run lint`).
-3. **Commit Messages**: Write clear, descriptive commit messages.
-4. **Pull Requests**: Submit PRs with a clear summary of changes and test steps.
+- **Instagram**: [https://instagram.com/ruhgen](https://instagram.com/ruhgen)
+- **Facebook**: [https://facebook.com/ruhgen](https://facebook.com/ruhgen)
+- **X / Twitter**: [https://x.com/ruhgen](https://x.com/ruhgen)
+- **LinkedIn**: [https://linkedin.com/company/ruhgen](https://linkedin.com/company/ruhgen)
+- **YouTube**: [https://youtube.com/@ruhgen](https://youtube.com/@ruhgen)
+- **GitHub**: [https://github.com/ruhgen](https://github.com/ruhgen)
 
 ---
 
 ## 📄 License
 
-Distributed under the MIT License. See `LICENSE` for more information.
-
----
-
-## 🛣️ Roadmap
-
-- [ ] **Webhook Gateway**: Real-time event notifications for downstream integrations.
-- [ ] **Multi-Tenant Teams**: Shared organizational credit pools and workspace controls.
-- [ ] **Batch Generation**: Bulk asset production queues for enterprise workflows.
-- [ ] **Expanded Payment Providers**: International multi-currency support (Stripe, PayPal).
+This project is licensed under the **MIT License**.
