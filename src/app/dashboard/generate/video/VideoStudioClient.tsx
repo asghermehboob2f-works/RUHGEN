@@ -1306,30 +1306,16 @@ export default function VideoStudioClient() {
                   </div>
                 )
               ) : messages.length === 0 ? (
-                <div className="flex min-h-[300px] flex-col items-center justify-center gap-5 py-14 text-center select-none">
-                  <motion.div
-                    initial={reduce ? false : { scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                    className="group relative flex h-28 w-28 items-center justify-center rounded-3xl border border-white/20 bg-gradient-to-tr from-cyan-950/80 via-indigo-900/40 to-blue-500/20 p-0.5 shadow-[0_0_100px_-20px_rgba(0,212,255,0.75)] backdrop-blur-2xl transition-transform duration-500 hover:scale-105"
-                  >
-                    <div className="flex h-full w-full items-center justify-center rounded-[22px] bg-[#0c0d12]/90 backdrop-blur-md">
-                      <div className="relative">
-                        <Clapperboard className="h-11 w-11 text-cyan-300 drop-shadow-[0_0_16px_rgba(0,212,255,0.85)] transition-transform duration-500 group-hover:rotate-6" strokeWidth={1.75} />
-                        <span className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-cyan-500 text-[8px] font-bold text-white shadow-[0_0_10px_rgba(0,212,255,0.8)]">▶</span>
-                      </div>
-                    </div>
-                  </motion.div>
-                  <div className="max-w-md space-y-2 px-4">
-                    <div className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-cyan-300 backdrop-blur-md">
-                      <Clapperboard className="h-3 w-3 text-cyan-300" />
-                      RUHGEN Motion Engine
-                    </div>
-                    <h2 className="font-display text-2xl font-black tracking-tight text-white sm:text-3xl">
+                <div className="flex min-h-[300px] flex-col items-center justify-center gap-4 py-14 text-center select-none">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] shadow-2xl backdrop-blur-xl">
+                    <Clapperboard className="h-7 w-7 text-zinc-200" strokeWidth={1.5} />
+                  </div>
+                  <div className="max-w-sm space-y-1 px-4">
+                    <h3 className="font-display text-lg font-bold tracking-tight text-zinc-100 sm:text-xl">
                       RUHGEN Video Studio
-                    </h2>
-                    <p className="text-xs leading-relaxed text-zinc-400 sm:text-sm">
-                      Set duration slider, camera path, aspect ratio, and RUHGEN tier. Enter your motion description below to render video clips.
+                    </h3>
+                    <p className="text-xs leading-relaxed text-zinc-400 sm:text-[13px]">
+                      Configure motion settings in Controls or enter a motion prompt directly below to render video clips.
                     </p>
                   </div>
                 </div>
