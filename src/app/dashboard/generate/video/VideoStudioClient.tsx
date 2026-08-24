@@ -31,14 +31,8 @@ import {
   Layers,
   Info,
   ChevronUp,
+  ChevronDown,
   Share2,
-  ZoomIn,
-  ZoomOut,
-  RotateCw,
-  ArrowLeft,
-  ArrowRight,
-  ArrowDown,
-  MoveVertical,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -79,18 +73,18 @@ const ASPECT_RATIOS = [
 
 /** Cinematic Camera Movements */
 const CAMERA_MOVEMENTS = [
-  { id: "static", label: "Static", icon: Camera, desc: "Locked tripod shot", tag: "locked tripod static shot, steady composition" },
-  { id: "push_in", label: "Push In", icon: ZoomIn, desc: "Dolly in towards subject", tag: "slow dolly push in camera movement" },
-  { id: "pull_out", label: "Pull Out", icon: ZoomOut, desc: "Reverse dolly move", tag: "smooth reverse pull out camera shot" },
-  { id: "pan_left", label: "Pan Left", icon: ArrowLeft, desc: "Horizontal left pan", tag: "cinematic smooth left pan shot" },
-  { id: "pan_right", label: "Pan Right", icon: ArrowRight, desc: "Horizontal right pan", tag: "cinematic smooth right pan shot" },
-  { id: "tilt_up", label: "Tilt Up", icon: ArrowUp, desc: "Vertical upward tilt", tag: "vertical tilt up camera shot" },
-  { id: "tilt_down", label: "Tilt Down", icon: ArrowDown, desc: "Vertical downward tilt", tag: "vertical tilt down camera shot" },
-  { id: "orbit", label: "Orbit", icon: RotateCw, desc: "360° rotational camera", tag: "360 degree orbital camera sweep around subject" },
-  { id: "tracking", label: "Tracking", icon: MoveHorizontal, desc: "Dynamic subject tracking", tag: "dynamic subject tracking camera move" },
-  { id: "crane", label: "Crane", icon: MoveVertical, desc: "Elevated sweeping crane", tag: "sweeping elevated crane shot" },
-  { id: "handheld", label: "Handheld", icon: Smartphone, desc: "Organic micro-shake", tag: "cinematic handheld micro-shake feel" },
-  { id: "dolly", label: "Dolly", icon: Film, desc: "Smooth tracking dolly", tag: "smooth tracking dolly shot" },
+  { id: "static", label: "Static", icon: "🔒", desc: "Locked tripod shot", tag: "locked tripod static shot, steady composition" },
+  { id: "push_in", label: "Push In", icon: "🔍", desc: "Dolly in towards subject", tag: "slow dolly push in camera movement" },
+  { id: "pull_out", label: "Pull Out", icon: "⏪", desc: "Reverse dolly move", tag: "smooth reverse pull out camera shot" },
+  { id: "pan_left", label: "Pan Left", icon: "⬅️", desc: "Horizontal left pan", tag: "cinematic smooth left pan shot" },
+  { id: "pan_right", label: "Pan Right", icon: "➡️", desc: "Horizontal right pan", tag: "cinematic smooth right pan shot" },
+  { id: "tilt_up", label: "Tilt Up", icon: "⬆️", desc: "Vertical upward tilt", tag: "vertical tilt up camera shot" },
+  { id: "tilt_down", label: "Tilt Down", icon: "⬇️", desc: "Vertical downward tilt", tag: "vertical tilt down camera shot" },
+  { id: "orbit", label: "Orbit", icon: "🔄", desc: "360° rotational camera", tag: "360 degree orbital camera sweep around subject" },
+  { id: "tracking", label: "Tracking", icon: "🎯", desc: "Dynamic subject tracking", tag: "dynamic subject tracking camera move" },
+  { id: "crane", label: "Crane", icon: "🏗️", desc: "Elevated sweeping crane", tag: "sweeping elevated crane shot" },
+  { id: "handheld", label: "Handheld", icon: "📱", desc: "Organic micro-shake", tag: "cinematic handheld micro-shake feel" },
+  { id: "dolly", label: "Dolly", icon: "🎥", desc: "Smooth tracking dolly", tag: "smooth tracking dolly shot" },
 ] as const;
 
 /** Motion Vocabulary Concepts */
@@ -318,9 +312,6 @@ export default function VideoStudioClient() {
       const queryPrompt = params.get("prompt");
       if (queryPrompt) {
         setPrompt(queryPrompt);
-        setTimeout(() => {
-          videoPromptRef.current?.focus();
-        }, 100);
         const url = new URL(window.location.href);
         url.searchParams.delete("prompt");
         window.history.replaceState({}, "", url.toString());
@@ -521,7 +512,7 @@ export default function VideoStudioClient() {
     const img = referenceUrl.trim() && referenceType === "image" ? referenceUrl.trim() : "";
     const vid = referenceUrl.trim() && referenceType === "video" ? referenceUrl.trim() : "";
     const tierLabel = activeTierObj.label;
-    
+
     const parts = [`${duration}s clip`, aspect, tierLabel];
     if (neg) parts.push("negative filter");
     if (img) parts.push("reference image");
@@ -537,20 +528,6 @@ export default function VideoStudioClient() {
     ]);
     setPrompt("");
     setBusy(true);
-    setMobileStudioPane("output");
-    if (typeof window !== "undefined") {
-      window.requestAnimationFrame(() => {
-        const canvasEl = document.getElementById("mobile-studio-canvas") || document.getElementById("studio-canvas-feed");
-        canvasEl?.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
-    }
-
-    const camObj = CAMERA_MOVEMENTS.find((c) => c.id === selectedCamera);
-    const camTag = camObj?.tag || "";
-    let finalPrompt = p;
-    if (camTag && !finalPrompt.toLowerCase().includes(camTag.toLowerCase())) {
-      finalPrompt = `${finalPrompt}, ${camTag}`;
-    }
 
     try {
       // Map API duration (backend supports 5 or 10)
@@ -558,7 +535,7 @@ export default function VideoStudioClient() {
       const targetAspect = (["16:9", "9:16", "1:1"].includes(aspect) ? aspect : "16:9") as "16:9" | "9:16" | "1:1";
 
       const { taskId } = await createVideoTask({
-        prompt: finalPrompt,
+        prompt: p,
         duration: targetApiDuration,
         aspect_ratio: targetAspect,
         quality: selectedTier,
@@ -626,485 +603,584 @@ export default function VideoStudioClient() {
   if (!user) return null;
 
   const leftPanel = (
-    <div className="flex flex-col w-full h-full min-h-0 flex-1 overflow-hidden bg-[#121215]">
+    <div className="flex flex-col w-full max-lg:min-h-max lg:min-h-0 lg:flex-1 lg:overflow-hidden">
       <p className="sr-only">Press Enter to generate video. Shift+Enter for newline.</p>
-      <div className="p-2.5 sm:p-3 min-h-0 flex-1 overflow-y-auto studio-scrollbar overscroll-y-contain [-webkit-overflow-scrolling:touch] touch-pan-y">
-        <div className="rounded-xl border border-white/10 bg-[#121215] p-3 sm:p-3.5 shadow-sm space-y-3">
-            {/* Header Title */}
-            <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2.5">
-              <div className="flex min-w-0 items-center gap-2.5">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/15 bg-zinc-800 text-zinc-100">
-                  <Clapperboard className="h-4 w-4 text-zinc-200" strokeWidth={1.75} />
-                </span>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-400">RUHGEN Studio</p>
-                  </div>
-                  <p className="truncate font-display text-xs font-semibold text-zinc-100">Video Creation Panel</p>
+      <div className="p-2.5 sm:p-3 max-lg:min-h-max lg:studio-scrollbar lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-y-contain [-webkit-overflow-scrolling:touch] touch-pan-y">
+        <div className="rounded-2xl border border-white/10 bg-[#121420] p-3.5 sm:p-4 shadow-sm">
+          {/* Header Title */}
+          <div className="mb-3 flex items-center justify-between gap-2 border-b border-white/[0.08] pb-2.5">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-400/35 to-[var(--primary-cyan)]/45 ring-1 ring-white/20 shadow-[0_4px_16px_-4px_rgba(0,212,255,0.5)]">
+                <Clapperboard className="h-4 w-4 text-cyan-50" strokeWidth={2} />
+              </span>
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[var(--text-subtle)]">RUHGEN Studio</p>
+                  <span className="h-1.5 w-1.5 rounded-full bg-[var(--primary-cyan)] animate-pulse" />
                 </div>
+                <p className="truncate font-display text-xs font-bold text-[var(--text-primary)]">Video Creation Panel</p>
               </div>
+            </div>
+            {referenceUrl ? (
+              <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider ${referenceType === "video"
+                  ? "border-purple-400/30 bg-purple-500/15 text-purple-200"
+                  : "border-cyan-400/30 bg-cyan-500/15 text-cyan-200"
+                }`}>
+                {referenceType === "video" ? "Video Guided" : "Image Guided"}
+              </span>
+            ) : null}
+          </div>
+
+          {/* Slim Top RUHGEN Version Tier Selector */}
+          <div className="mb-3.5 rounded-xl border border-white/10 bg-black/50 p-1 shadow-inner">
+            <div className="mb-1 px-1.5 flex items-center justify-between text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
+              <span>RUHGEN Version</span>
+              <span className="text-[var(--primary-cyan)]">{selectedTier === "quality" ? "Premium (8 cr/s)" : "Standard (5 cr/s)"}</span>
+            </div>
+            <div className="grid grid-cols-2 gap-1" role="radiogroup" aria-label="RUHGEN Video Version Tier">
+              {RUHGEN_VIDEO_TIERS.map((tier) => {
+                const Icon = tier.icon;
+                const active = selectedTier === tier.id;
+                return (
+                  <button
+                    key={tier.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    disabled={busy}
+                    onClick={() => setSelectedTier(tier.id)}
+                    className={`flex items-center justify-center gap-1.5 rounded-lg py-1.5 px-2 text-[11px] font-bold transition-all cursor-pointer ${active
+                        ? "bg-gradient-to-r from-cyan-600 to-[var(--primary-cyan)] text-white shadow-[0_2px_10px_rgba(0,212,255,0.45)] ring-1 ring-white/20"
+                        : "text-[var(--text-muted)] hover:text-white hover:bg-white/[0.05]"
+                      }`}
+                  >
+                    <Icon className={`h-3 w-3 ${active ? "text-cyan-100" : "text-white/50"}`} />
+                    <span className="truncate">{tier.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {/* 1. MEDIA REFERENCE (IMAGE / VIDEO) */}
+            <div className="rounded-2xl border border-cyan-500/25 bg-gradient-to-br from-cyan-500/10 via-black/40 to-transparent p-3.5 shadow-sm">
+              <div className="mb-2 flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  {activeRefTab === "video" ? (
+                    <Film className="h-3.5 w-3.5 text-cyan-300" strokeWidth={2} />
+                  ) : (
+                    <ImagePlus className="h-3.5 w-3.5 text-cyan-300" strokeWidth={2} />
+                  )}
+                  <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-cyan-200">
+                    1. Media Reference
+                  </span>
+                </div>
+                <span className="text-[9px] font-semibold uppercase tracking-wider text-[var(--text-subtle)]">Optional</span>
+              </div>
+
+              {/* Reference Mode Selector */}
+              <div className="mb-3 grid grid-cols-2 gap-1 rounded-xl border border-white/10 bg-black/60 p-1">
+                <button
+                  type="button"
+                  disabled={busy || refUploading}
+                  onClick={() => setActiveRefTab("image")}
+                  className={`flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${activeRefTab === "image"
+                      ? "bg-gradient-to-r from-cyan-600/90 to-cyan-500 text-white shadow-sm ring-1 ring-white/20"
+                      : "text-[var(--text-muted)] hover:text-white hover:bg-white/[0.05]"
+                    }`}
+                >
+                  <ImagePlus className="h-3 w-3" />
+                  <span>Image Ref</span>
+                </button>
+                <button
+                  type="button"
+                  disabled={busy || refUploading}
+                  onClick={() => setActiveRefTab("video")}
+                  className={`flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${activeRefTab === "video"
+                      ? "bg-gradient-to-r from-cyan-600/90 to-cyan-500 text-white shadow-sm ring-1 ring-white/20"
+                      : "text-[var(--text-muted)] hover:text-white hover:bg-white/[0.05]"
+                    }`}
+                >
+                  <Film className="h-3 w-3" />
+                  <span>Video Ref</span>
+                </button>
+              </div>
+
+              <input
+                ref={refFileInput}
+                type="file"
+                accept={activeRefTab === "image" ? "image/jpeg,image/png,image/webp" : "video/mp4,video/webm,video/quicktime"}
+                className="sr-only"
+                tabIndex={-1}
+                disabled={busy || refUploading}
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  e.target.value = "";
+                  if (f) handleFileUpload(f, activeRefTab);
+                }}
+              />
+
               {referenceUrl ? (
-                <span className="shrink-0 rounded-md border border-white/20 bg-white/10 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-zinc-100">
-                  {referenceType === "video" ? "Video Guided" : "Image Guided"}
-                </span>
+                <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/60 p-2.5">
+                  {referenceType === "image" ? (
+                    <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-cyan-400/40 bg-black shadow-md">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={referenceUrl} alt="Image Reference" className="h-full w-full object-cover" />
+                    </div>
+                  ) : (
+                    <div className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg border border-purple-400/40 bg-black shadow-md">
+                      <video
+                        src={referenceUrl}
+                        muted
+                        loop
+                        autoPlay
+                        playsInline
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <p className="truncate text-xs font-bold text-white">
+                        {referenceType === "image" ? "Image Reference" : "Video Reference"}
+                      </p>
+                      <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-wider ${referenceType === "image"
+                          ? "bg-cyan-500/20 text-cyan-200 border border-cyan-400/30"
+                          : "bg-purple-500/20 text-purple-200 border border-purple-400/30"
+                        }`}>
+                        {referenceType === "image" ? "Image Guided" : "Video Guided"}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-[var(--text-muted)] truncate mt-0.5">
+                      {referenceType === "image"
+                        ? "Animates & directs motion frame"
+                        : "Motion transfer & scene guidance"}
+                    </p>
+                  </div>
+                  <div className="flex flex-col gap-1 shrink-0">
+                    <button
+                      type="button"
+                      disabled={busy || refUploading}
+                      onClick={() => refFileInput.current?.click()}
+                      className="rounded-md border border-white/15 bg-white/5 px-2 py-1 text-[9px] font-bold uppercase text-white hover:bg-white/10 cursor-pointer transition-colors"
+                    >
+                      Replace
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => {
+                        setReferenceUrl("");
+                        setReferenceType("image");
+                      }}
+                      className="rounded-md border border-rose-500/30 bg-rose-500/10 px-2 py-1 text-[9px] font-bold uppercase text-rose-300 hover:bg-rose-500/20 cursor-pointer transition-colors"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  disabled={busy || refUploading}
+                  onClick={() => refFileInput.current?.click()}
+                  className="flex min-h-[50px] w-full flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-white/20 bg-white/[0.02] p-2.5 text-center transition-all hover:border-[var(--primary-cyan)]/60 hover:bg-white/[0.05] cursor-pointer"
+                >
+                  {refUploading ? (
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin text-[var(--primary-cyan)]" />
+                      <span className="text-xs font-bold text-cyan-200">
+                        Uploading {activeRefTab === "image" ? "Image" : "Video"} Reference…
+                      </span>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-2">
+                        {activeRefTab === "image" ? (
+                          <ImagePlus className="h-4 w-4 text-cyan-300" />
+                        ) : (
+                          <Film className="h-4 w-4 text-cyan-300" />
+                        )}
+                        <span className="text-xs font-bold text-[var(--text-primary)]">
+                          Upload {activeRefTab === "image" ? "Image" : "Video"} Reference
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-[var(--text-subtle)]">
+                        {activeRefTab === "image"
+                          ? "JPEG, PNG or WebP (max 20MB) · Optional starting frame"
+                          : "MP4, WebM or MOV (max 50MB) · Optional video motion guide"}
+                      </span>
+                    </>
+                  )}
+                </button>
+              )}
+              {refUploadError ? (
+                <div className="mt-2 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1.5 text-[10px] font-medium text-rose-200">
+                  {refUploadError}
+                </div>
               ) : null}
             </div>
 
-            {/* Model / Version Tier Selector */}
-            <div className="rounded-lg border border-white/10 bg-zinc-900/90 p-1.5">
-              <div className="mb-1.5 px-1 flex items-center justify-between text-[9px] font-bold uppercase tracking-[0.14em] text-zinc-400">
-                <span>Select Model Tier</span>
-                <span className="text-zinc-200 font-semibold">{selectedTier === "quality" ? "Premium (8 cr/s)" : "Standard (5 cr/s)"}</span>
-              </div>
-              <div className="grid grid-cols-2 gap-1.5" role="radiogroup" aria-label="RUHGEN Video Version Tier">
-                {RUHGEN_VIDEO_TIERS.map((tier) => {
-                  const Icon = tier.icon;
-                  const active = selectedTier === tier.id;
+            {/* 2. ASPECT RATIO */}
+            <StudioCollapsible title="2. Aspect Ratio" defaultOpen>
+              <div className="grid grid-cols-3 gap-1.5" role="radiogroup" aria-label="Aspect Ratio">
+                {ASPECT_RATIOS.map((item) => {
+                  const on = aspect === item.key;
                   return (
                     <button
-                      key={tier.id}
+                      key={item.key}
                       type="button"
                       role="radio"
-                      aria-checked={active}
+                      aria-checked={on}
                       disabled={busy}
-                      onClick={() => setSelectedTier(tier.id)}
-                      className={`flex items-center justify-center gap-1.5 rounded-md py-2 px-2.5 text-[11px] font-medium transition-all cursor-pointer ${
-                        active
-                          ? "bg-white/10 text-white border border-white/25 shadow-[0_2px_10px_rgba(255,255,255,0.08)] font-semibold"
-                          : "text-zinc-400 hover:text-white hover:bg-white/[0.04] border border-transparent"
-                      }`}
+                      onClick={() => setAspect(item.key as any)}
+                      className={`flex flex-col items-center justify-center gap-1.5 rounded-xl border py-2 px-1.5 text-center transition-all cursor-pointer ${on
+                          ? "border-white/30 bg-white/15 text-white shadow-sm ring-1 ring-white/20 font-semibold"
+                          : "border-white/[0.08] bg-white/[0.03] text-slate-400 hover:border-white/20 hover:text-white"
+                        }`}
                     >
-                      <Icon className={`h-3.5 w-3.5 ${active ? "text-white" : "text-zinc-500"}`} />
-                      <span className="truncate">{tier.label}</span>
+                      <div className="flex h-5 items-center justify-center">
+                        <div
+                          className={`rounded-[2px] border-2 transition-all ${on ? "border-white bg-white/35 shadow-[0_0_8px_rgba(255,255,255,0.3)]" : "border-white/40"
+                            }`}
+                          style={{ width: `${item.iconW}px`, height: `${item.iconH}px` }}
+                        />
+                      </div>
+                      <div className="leading-none">
+                        <p className="font-mono text-[11px] font-bold text-white">{item.ratio}</p>
+                        <p className="mt-0.5 text-[9px] font-medium text-slate-400">{item.label}</p>
+                      </div>
                     </button>
                   );
                 })}
               </div>
-            </div>
+            </StudioCollapsible>
 
-            <div className="space-y-3">
-              {/* 1. MEDIA REFERENCE (IMAGE / VIDEO) */}
-              <div className="rounded-lg border border-white/10 bg-zinc-900/60 p-3">
-                <div className="mb-2 flex items-center justify-between">
+            {/* 3. VIDEO DURATION */}
+            <StudioCollapsible title="3. Video Duration" subtitle="Select target clip duration in seconds" defaultOpen>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
-                    {activeRefTab === "video" ? (
-                      <Film className="h-3.5 w-3.5 text-zinc-300" strokeWidth={1.75} />
-                    ) : (
-                      <ImagePlus className="h-3.5 w-3.5 text-zinc-300" strokeWidth={1.75} />
-                    )}
-                    <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-300">
-                      1. Media Reference
-                    </span>
+                    <Clock className="h-3.5 w-3.5 text-cyan-400" />
+                    <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">Clip Length</span>
                   </div>
-                  <span className="text-[9px] font-semibold uppercase tracking-wider text-zinc-500">Optional</span>
+                  <span className="font-mono text-xs font-bold text-cyan-300 bg-cyan-500/10 px-2.5 py-0.5 rounded-md border border-cyan-400/25 shadow-[0_0_12px_rgba(0,212,255,0.2)]">
+                    {duration} Seconds
+                  </span>
                 </div>
 
-                {/* Reference Mode Selector */}
-                <div className="mb-3 grid grid-cols-2 gap-1 rounded-lg border border-white/10 bg-zinc-950 p-1">
-                  <button
-                    type="button"
-                    disabled={busy || refUploading}
-                    onClick={() => setActiveRefTab("image")}
-                    className={`flex items-center justify-center gap-1.5 rounded-md py-1.5 text-[10px] font-medium uppercase tracking-wider transition-all cursor-pointer ${
-                      activeRefTab === "image"
-                        ? "bg-white/10 text-white border border-white/25 shadow-sm font-semibold"
-                        : "text-zinc-400 hover:text-white hover:bg-white/[0.04]"
-                    }`}
-                  >
-                    <ImagePlus className="h-3 w-3 text-zinc-200" />
-                    <span>Image Ref</span>
-                  </button>
-                  <button
-                    type="button"
-                    disabled={busy || refUploading}
-                    onClick={() => setActiveRefTab("video")}
-                    className={`flex items-center justify-center gap-1.5 rounded-md py-1.5 text-[10px] font-medium uppercase tracking-wider transition-all cursor-pointer ${
-                      activeRefTab === "video"
-                        ? "bg-white/10 text-white border border-white/25 shadow-sm font-semibold"
-                        : "text-zinc-400 hover:text-white hover:bg-white/[0.04]"
-                    }`}
-                  >
-                    <Film className="h-3 w-3 text-zinc-200" />
-                    <span>Video Ref</span>
-                  </button>
-                </div>
-                
-                <input
-                  ref={refFileInput}
-                  type="file"
-                  accept={activeRefTab === "image" ? "image/jpeg,image/png,image/webp" : "video/mp4,video/webm,video/quicktime"}
-                  className="sr-only"
-                  tabIndex={-1}
-                  disabled={busy || refUploading}
-                  onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    e.target.value = "";
-                    if (f) handleFileUpload(f, activeRefTab);
-                  }}
-                />
-
-                {referenceUrl ? (
-                  <div className="flex items-center gap-3 rounded-lg border border-white/15 bg-zinc-900 p-2">
-                    {referenceType === "image" ? (
-                      <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md border border-white/20 bg-black">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={referenceUrl} alt="Image Reference" className="h-full w-full object-cover" />
-                      </div>
-                    ) : (
-                      <div className="relative h-12 w-16 shrink-0 overflow-hidden rounded-md border border-white/20 bg-black">
-                        <video
-                          src={referenceUrl}
-                          muted
-                          loop
-                          autoPlay
-                          playsInline
-                          className="h-full w-full object-cover"
-                        />
-                      </div>
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <p className="truncate text-xs font-semibold text-white">
-                          {referenceType === "image" ? "Image Reference" : "Video Reference"}
-                        </p>
-                        <span className="shrink-0 rounded-md bg-zinc-800 text-zinc-300 border border-white/10 px-1.5 py-0.5 text-[8px] font-semibold uppercase tracking-wider">
-                          {referenceType === "image" ? "Image Guided" : "Video Guided"}
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-zinc-400 truncate mt-0.5">
-                        {referenceType === "image"
-                          ? "Animates & directs motion frame"
-                          : "Motion transfer & scene guidance"}
-                      </p>
-                    </div>
-                    <div className="flex flex-col gap-1 shrink-0">
+                {/* Ultra-Slim Minimalist Glass Slider */}
+                <div className="relative pt-2 pb-1">
+                  <div className="relative flex items-center">
+                    <input
+                      type="range"
+                      min={5}
+                      max={10}
+                      step={1}
+                      value={duration}
+                      onChange={(e) => setDuration(Number(e.target.value))}
+                      disabled={busy}
+                      className="studio-range-premium h-[2px] w-full cursor-pointer appearance-none rounded-full bg-white/15 outline-none transition-all"
+                    />
+                  </div>
+                  <div className="mt-2 flex justify-between px-0.5 font-mono text-[10px] font-bold text-slate-400">
+                    {[5, 6, 7, 8, 9, 10].map((s) => (
                       <button
-                        type="button"
-                        disabled={busy || refUploading}
-                        onClick={() => refFileInput.current?.click()}
-                        className="rounded-md border border-white/15 bg-zinc-800 px-2 py-1 text-[9px] font-semibold uppercase text-zinc-200 hover:bg-zinc-700 cursor-pointer transition-colors"
-                      >
-                        Replace
-                      </button>
-                      <button
+                        key={s}
                         type="button"
                         disabled={busy}
-                        onClick={() => {
-                          setReferenceUrl("");
-                          setReferenceType("image");
-                        }}
-                        className="rounded-md border border-rose-500/30 bg-rose-500/10 px-2 py-1 text-[9px] font-bold uppercase text-rose-300 hover:bg-rose-500/20 cursor-pointer transition-colors"
+                        onClick={() => setDuration(s)}
+                        className={`cursor-pointer transition-colors ${duration === s
+                            ? "text-cyan-300 font-extrabold"
+                            : "hover:text-white"
+                          }`}
                       >
-                        Remove
+                        {s}s
                       </button>
-                    </div>
+                    ))}
                   </div>
-                ) : (
-                  <button
-                    type="button"
-                    disabled={busy || refUploading}
-                    onClick={() => refFileInput.current?.click()}
-                    className="flex min-h-[50px] w-full flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-white/20 bg-white/[0.02] p-2.5 text-center transition-all hover:border-[var(--primary-cyan)]/60 hover:bg-white/[0.05] cursor-pointer"
-                  >
-                    {refUploading ? (
-                      <div className="flex items-center gap-2">
-                        <Loader2 className="h-4 w-4 animate-spin text-[var(--primary-cyan)]" />
-                        <span className="text-xs font-bold text-cyan-200">
-                          Uploading {activeRefTab === "image" ? "Image" : "Video"} Reference…
-                        </span>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="flex items-center gap-2">
-                          {activeRefTab === "image" ? (
-                            <ImagePlus className="h-4 w-4 text-cyan-300" />
-                          ) : (
-                            <Film className="h-4 w-4 text-cyan-300" />
-                          )}
-                          <span className="text-xs font-bold text-[var(--text-primary)]">
-                            Upload {activeRefTab === "image" ? "Image" : "Video"} Reference
-                          </span>
-                        </div>
-                        <span className="text-[10px] text-[var(--text-subtle)]">
-                          {activeRefTab === "image"
-                            ? "JPEG, PNG or WebP (max 20MB) · Optional starting frame"
-                            : "MP4, WebM or MOV (max 50MB) · Optional video motion guide"}
-                        </span>
-                      </>
-                    )}
-                  </button>
-                )}
-                {refUploadError ? (
-                  <div className="mt-2 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1.5 text-[10px] font-medium text-rose-200">
-                    {refUploadError}
-                  </div>
-                ) : null}
+                </div>
               </div>
+            </StudioCollapsible>
 
-              {/* 2. ASPECT RATIO */}
-              <StudioCollapsible title="2. Aspect Ratio" defaultOpen={false}>
-                <div className="grid grid-cols-3 gap-1.5" role="radiogroup" aria-label="Aspect Ratio">
-                  {ASPECT_RATIOS.map((item) => {
-                    const on = aspect === item.key;
-                    return (
-                      <button
-                        key={item.key}
-                        type="button"
-                        role="radio"
-                        aria-checked={on}
-                        disabled={busy}
-                        onClick={() => setAspect(item.key as any)}
-                        className={`flex flex-col items-center justify-center gap-1.5 rounded-lg border py-2 px-1.5 text-center transition-all cursor-pointer ${
-                          on
-                            ? "border-white/20 bg-zinc-800 text-white shadow-sm font-semibold"
-                            : "border-white/10 bg-zinc-900 text-zinc-400 hover:border-white/20 hover:text-white"
-                        }`}
-                      >
-                        <div className="flex h-5 items-center justify-center">
-                          <div
-                            className={`rounded-[2px] border-2 transition-all ${
-                              on ? "border-white bg-zinc-700" : "border-zinc-500"
-                            }`}
-                            style={{ width: `${item.iconW}px`, height: `${item.iconH}px` }}
-                          />
-                        </div>
-                        <div className="leading-none">
-                          <p className="font-mono text-[11px] font-bold text-white">{item.ratio}</p>
-                          <p className="mt-0.5 text-[9px] font-medium text-zinc-400">{item.label}</p>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </StudioCollapsible>
-
-              {/* 3. VIDEO DURATION */}
-              <StudioCollapsible title="3. Video Duration" subtitle="Select target clip duration in seconds" defaultOpen={false}>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
-                      <Clock className="h-3.5 w-3.5 text-zinc-300" />
-                      <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">Clip Length</span>
-                    </div>
-                    <span className="font-mono text-xs font-bold text-zinc-100 bg-zinc-800 px-2.5 py-0.5 rounded-md border border-white/10">
-                      {duration} Seconds
-                    </span>
-                  </div>
-
-                  {/* Ultra-Slim Minimalist Glass Slider */}
-                  <div className="relative pt-2 pb-1">
-                    <div className="relative flex items-center">
-                      <input
-                        type="range"
-                        min={5}
-                        max={10}
-                        step={1}
-                        value={duration}
-                        onChange={(e) => setDuration(Number(e.target.value))}
-                        disabled={busy}
-                        className="studio-range-premium h-[2px] w-full cursor-pointer appearance-none rounded-full bg-white/15 outline-none transition-all"
-                      />
-                    </div>
-                    <div className="mt-2 flex justify-between px-0.5 font-mono text-[10px] font-bold text-zinc-400">
-                      {[5, 6, 7, 8, 9, 10].map((s) => (
+            {/* 4. MOTION VOCABULARY */}
+            <StudioCollapsible title="4. Motion Vocabulary" subtitle="Interactive kinetic action, atmosphere & physical motion" defaultOpen>
+              <div className="space-y-3">
+                {[
+                  {
+                    category: "Camera Dynamics & Pace",
+                    items: [
+                      {
+                        label: "slow motion 60fps",
+                        value: "captured in ultra smooth slow motion at 60fps, high speed camera fluid dynamics, elegant motion cadence",
+                      },
+                      {
+                        label: "fast action velocity",
+                        value: "high velocity kinetic motion, rapid dynamic scene pacing, motion blur speed trail effect",
+                      },
+                      {
+                        label: "subtle organic breathing",
+                        value: "subtle natural breathing movement, gentle ambient swaying motion, soft life-like motion micro-dynamics",
+                      },
+                      {
+                        label: "hypnotic infinite loop",
+                        value: "seamless hypnotic looping motion, perfectly balanced cyclic movement, continuous fluid motion transition",
+                      },
+                      {
+                        label: "time-lapse sky sweep",
+                        value: "accelerated time-lapse motion sweep, fast moving cloud trails, shifting atmospheric shadows",
+                      },
+                    ],
+                  },
+                  {
+                    category: "Environmental & Atmospheric Motion",
+                    items: [
+                      {
+                        label: "volumetric smoke & haze",
+                        value: "swirling volumetric smoke and misty haze, dense atmospheric fog drifting softly across light beams",
+                      },
+                      {
+                        label: "explosive spark particles",
+                        value: "bursting embers and luminous spark particles rising upward, fiery light reflections, dynamic drift",
+                      },
+                      {
+                        label: "water splash & fluid ripples",
+                        value: "crystal liquid water splash, fluid surface ripple dynamics, sparkling light refraction on droplets",
+                      },
+                      {
+                        label: "wind-blown fabric motion",
+                        value: "dramatic wind gusts blowing silk fabric, flowing organic wave movement, billowing clothing physics",
+                      },
+                      {
+                        label: "glowing bioluminescent pulse",
+                        value: "rhythmic bioluminescent light pulse, pulsing cyan and violet ambient glow, shimmering energy waves",
+                      },
+                    ],
+                  },
+                  {
+                    category: "Lighting & Cinema FX",
+                    items: [
+                      {
+                        label: "anamorphic lens streak",
+                        value: "horizontal blue anamorphic streak lens flare, cinematic anamorphic bokeh, 2.39:1 scope motion focus",
+                      },
+                      {
+                        label: "dramatic shutter sweep",
+                        value: "180-degree cinema shutter angle, authentic motion blur, crisp optical dynamic range",
+                      },
+                      {
+                        label: "rim light specular highlights",
+                        value: "intense rear studio rim lighting, glinting specular edge highlights on moving surfaces",
+                      },
+                      {
+                        label: "neon night reflections",
+                        value: "cyberpunk wet street neon reflections, shimmering puddle light distortion, high-contrast night atmosphere",
+                      },
+                    ],
+                  },
+                ].map((group) => (
+                  <div key={group.category} className="space-y-1.5">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-cyan-300/80">
+                      {group.category}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {group.items.map((item) => (
                         <button
-                          key={s}
+                          key={item.label}
                           type="button"
                           disabled={busy}
-                          onClick={() => setDuration(s)}
-                          className={`cursor-pointer transition-colors ${
-                            duration === s
-                              ? "text-white font-extrabold"
-                              : "hover:text-white text-zinc-400"
-                          }`}
+                          onClick={() => {
+                            appendPromptChip(item.value);
+                          }}
+                          className="rounded-lg border border-white/12 bg-white/[0.04] px-2.5 py-1 text-[10px] font-semibold text-slate-300 transition-all hover:border-cyan-400/60 hover:bg-cyan-500/20 hover:text-white cursor-pointer disabled:opacity-40"
+                          title={`Inserts: "${item.value}"`}
                         >
-                          {s}s
+                          + {item.label}
                         </button>
                       ))}
                     </div>
                   </div>
-                </div>
-              </StudioCollapsible>
+                ))}
+              </div>
+            </StudioCollapsible>
 
-              {/* 4. MOTION VOCABULARY */}
-              <StudioCollapsible title="4. Motion Vocabulary" subtitle="Interactive kinetic action, atmosphere & physical motion" defaultOpen={false}>
-                <div className="space-y-3">
-                  {[
-                    {
-                      category: "Camera Dynamics & Pace",
-                      items: [
-                        {
-                          label: "slow motion 60fps",
-                          value: "captured in ultra smooth slow motion at 60fps, high speed camera fluid dynamics, elegant motion cadence",
-                        },
-                        {
-                          label: "fast action velocity",
-                          value: "high velocity kinetic motion, rapid dynamic scene pacing, motion blur speed trail effect",
-                        },
-                        {
-                          label: "subtle organic breathing",
-                          value: "subtle natural breathing movement, gentle ambient swaying motion, soft life-like motion micro-dynamics",
-                        },
-                        {
-                          label: "hypnotic infinite loop",
-                          value: "seamless hypnotic looping motion, perfectly balanced cyclic movement, continuous fluid motion transition",
-                        },
-                        {
-                          label: "time-lapse sky sweep",
-                          value: "accelerated time-lapse motion sweep, fast moving cloud trails, shifting atmospheric shadows",
-                        },
-                      ],
-                    },
-                    {
-                      category: "Environmental & Atmospheric Motion",
-                      items: [
-                        {
-                          label: "volumetric smoke & haze",
-                          value: "swirling volumetric smoke and misty haze, dense atmospheric fog drifting softly across light beams",
-                        },
-                        {
-                          label: "explosive spark particles",
-                          value: "bursting embers and luminous spark particles rising upward, fiery light reflections, dynamic drift",
-                        },
-                        {
-                          label: "water splash & fluid ripples",
-                          value: "crystal liquid water splash, fluid surface ripple dynamics, sparkling light refraction on droplets",
-                        },
-                        {
-                          label: "wind-blown fabric motion",
-                          value: "dramatic wind gusts blowing silk fabric, flowing organic wave movement, billowing clothing physics",
-                        },
-                        {
-                          label: "glowing bioluminescent pulse",
-                          value: "rhythmic bioluminescent light pulse, pulsing cyan and violet ambient glow, shimmering energy waves",
-                        },
-                      ],
-                    },
-                    {
-                      category: "Lighting & Cinema FX",
-                      items: [
-                        {
-                          label: "anamorphic lens streak",
-                          value: "horizontal blue anamorphic streak lens flare, cinematic anamorphic bokeh, 2.39:1 scope motion focus",
-                        },
-                        {
-                          label: "dramatic shutter sweep",
-                          value: "180-degree cinema shutter angle, authentic motion blur, crisp optical dynamic range",
-                        },
-                        {
-                          label: "rim light specular highlights",
-                          value: "intense rear studio rim lighting, glinting specular edge highlights on moving surfaces",
-                        },
-                        {
-                          label: "neon night reflections",
-                          value: "cyberpunk wet street neon reflections, shimmering puddle light distortion, high-contrast night atmosphere",
-                        },
-                      ],
-                    },
-                  ].map((group) => (
-                    <div key={group.category} className="space-y-1.5">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                        {group.category}
-                      </p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {group.items.map((item) => (
-                          <button
-                            key={item.label}
-                            type="button"
-                            disabled={busy}
-                            onClick={() => {
-                              appendPromptChip(item.value);
-                            }}
-                            className="rounded-md border border-white/10 bg-zinc-900 px-2 py-1 text-[10px] font-medium text-zinc-300 transition-colors hover:border-white/20 hover:bg-zinc-800 hover:text-white cursor-pointer disabled:opacity-40"
-                            title={`Inserts: "${item.value}"`}
-                          >
-                            + {item.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </StudioCollapsible>
-
-              {/* 5. CAMERA MOVEMENT */}
-              <StudioCollapsible title="5. Camera Movement" subtitle="Direct virtual camera paths & dynamics" defaultOpen={false}>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-                  {CAMERA_MOVEMENTS.map((cam) => {
-                    const active = selectedCamera === cam.id;
-                    const Icon = cam.icon;
-                    return (
-                      <button
-                        key={cam.id}
-                        type="button"
-                        disabled={busy}
-                        onClick={() => {
-                          setSelectedCamera(cam.id);
-                          appendPromptChip(cam.tag);
-                        }}
-                        className={`flex flex-col items-start gap-1 rounded-lg border p-2.5 transition-all text-left cursor-pointer ${
-                          active
-                            ? "border-white/20 bg-white/10 text-white font-semibold shadow-sm"
-                            : "border-white/10 bg-zinc-900 text-zinc-400 hover:border-white/20 hover:text-white hover:bg-zinc-800/60"
+            {/* 5. CAMERA MOVEMENT */}
+            <StudioCollapsible title="5. Camera Movement" subtitle="Direct virtual camera paths & dynamics" defaultOpen>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                {CAMERA_MOVEMENTS.map((cam) => {
+                  const active = selectedCamera === cam.id;
+                  return (
+                    <button
+                      key={cam.id}
+                      type="button"
+                      disabled={busy}
+                      onClick={() => {
+                        setSelectedCamera(cam.id);
+                        appendPromptChip(cam.tag);
+                      }}
+                      className={`flex flex-col items-start gap-0.5 rounded-lg border p-2 transition-all text-left cursor-pointer ${active
+                          ? "border-[var(--primary-cyan)] bg-[var(--primary-cyan)]/20 text-white shadow-[0_2px_8px_rgba(0,212,255,0.4)]"
+                          : "border-white/[0.06] bg-white/[0.02] text-[var(--text-muted)] hover:border-white/20 hover:text-white"
                         }`}
-                      >
-                        <div className="flex items-center gap-1.5 w-full">
-                          <Icon className={`h-3.5 w-3.5 shrink-0 ${active ? "text-white" : "text-zinc-500"}`} strokeWidth={1.75} />
-                          <span className="truncate text-[10px] font-bold tracking-tight text-white">{cam.label}</span>
-                        </div>
-                        <span className="text-[9px] text-zinc-400 truncate w-full">{cam.desc}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </StudioCollapsible>
+                    >
+                      <div className="flex items-center gap-1.5 w-full">
+                        <span className="text-xs">{cam.icon}</span>
+                        <span className="truncate text-[10px] font-bold tracking-tight text-white">{cam.label}</span>
+                      </div>
+                      <span className="text-[9px] text-[var(--text-subtle)] truncate w-full">{cam.desc}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </StudioCollapsible>
 
-              {/* 6. NEGATIVE PROMPT */}
-              <StudioCollapsible title="6. Negative Prompt" subtitle="Exclude unwanted motion or visual artifacts" defaultOpen={false}>
-                <div>
-                  <div className="mb-1 flex items-center justify-between">
-                    <label htmlFor="vid-neg" className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">
-                      Unwanted Motion & Artifacts
-                    </label>
-                    <span className="tabular-nums text-[9px] text-zinc-500">{negativePrompt.length}/2500</span>
-                  </div>
-                  <textarea
-                    id="vid-neg"
-                    value={negativePrompt}
-                    onChange={(e) => setNegativePrompt(e.target.value.slice(0, 2500))}
-                    disabled={busy}
-                    autoComplete="off"
-                    spellCheck={false}
-                    placeholder="Describe unwanted camera shake, morphing, flickering, artifacts, bad physics…"
-                    rows={2}
-                    className="w-full resize-none rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-xs text-zinc-100 outline-none transition-colors focus:border-white/20 focus:ring-1 focus:ring-zinc-400"
-                  />
+            {/* 6. NEGATIVE PROMPT */}
+            <StudioCollapsible title="6. Negative Prompt" subtitle="Exclude unwanted motion or visual artifacts" defaultOpen={false}>
+              <div>
+                <div className="mb-1 flex items-center justify-between">
+                  <label htmlFor="vid-neg" className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
+                    Unwanted Motion & Artifacts
+                  </label>
+                  <span className="tabular-nums text-[9px] text-[var(--text-subtle)]">{negativePrompt.length}/2500</span>
                 </div>
-              </StudioCollapsible>
+                <textarea
+                  id="vid-neg"
+                  value={negativePrompt}
+                  onChange={(e) => setNegativePrompt(e.target.value.slice(0, 2500))}
+                  disabled={busy}
+                  placeholder="Describe unwanted camera shake, morphing, flickering, artifacts, bad physics…"
+                  rows={2}
+                  className="w-full resize-none rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-xs outline-none transition-all focus:border-[var(--primary-cyan)]/60 focus:ring-1 focus:ring-[var(--primary-cyan)]/20"
+                  style={{ color: "var(--text-primary)" }}
+                />
+              </div>
+            </StudioCollapsible>
+          </div>
+        </div>
+      </div>
+
+      {/* Sticky desktop prompt + generate (Section 8: Video Generation Area) */}
+      <div
+        className="hidden shrink-0 border-t px-3 pb-3 pt-3 backdrop-blur-xl lg:block"
+        style={{
+          borderColor: "color-mix(in srgb, white 8%, transparent)",
+          background:
+            "linear-gradient(180deg, color-mix(in srgb, var(--deep-black) 55%, transparent) 0%, color-mix(in srgb, var(--deep-black) 88%, transparent) 100%)",
+        }}
+      >
+        {/* Tier & Credit Summary */}
+        <div className="mb-2.5 flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.02] px-3 py-1.5 text-xs">
+          <div className="flex items-center gap-3">
+            <span className="font-display font-bold text-white flex items-center gap-1.5">
+              <Clapperboard className="h-3.5 w-3.5 text-[var(--primary-cyan)]" />
+              {activeTierObj.label}
+            </span>
+            <span className="text-[var(--text-subtle)]">|</span>
+            <span className="text-white font-medium">{duration}s Clip</span>
+          </div>
+          <div className="flex items-center gap-4 text-[var(--text-muted)]">
+            <span>
+              Available: <strong className="text-[var(--text-primary)] tabular-nums">{user?.availableCredits ?? user?.credits ?? 0}</strong>
+            </span>
+            <span>
+              Cost: <strong className={((user?.availableCredits ?? user?.credits ?? 0) < currentCost) ? "text-rose-400 font-bold" : "text-[#00D4FF] font-bold"}>{currentCost} credits</strong>
+            </span>
+          </div>
+        </div>
+
+        <div className="mb-1.5 flex items-center justify-between gap-2">
+          <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--text-muted)]">Video Motion Prompt</span>
+          <span className="text-[10px] tabular-nums text-[var(--text-subtle)]">{prompt.length}</span>
+        </div>
+        <div
+          className="studio-prompt-focus-video relative flex items-center gap-2 rounded-xl border border-border bg-card/65 px-3 py-2 transition-shadow"
+          style={{ boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)" }}
+        >
+          <label className="sr-only" htmlFor="vid-prompt">Prompt</label>
+          <textarea
+            ref={videoPromptRef}
+            id="vid-prompt"
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder={isImg2Video ? "Describe action & movement for reference image…" : "Describe cinematic video scene & motion…"}
+            rows={2}
+            disabled={busy}
+            className="no-scrollbar max-h-[160px] min-h-[44px] w-full resize-none bg-transparent text-sm leading-relaxed outline-none placeholder:text-[var(--text-subtle)] sm:text-[14px]"
+            style={{ color: "var(--text-primary)", scrollbarWidth: "none" }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                void run();
+              }
+            }}
+          />
+
+          {/* Up / Down Arrow Glass Buttons - Only visible when text is long */}
+          {prompt.length > 70 ? (
+            <div className="flex flex-col gap-1 shrink-0 select-none transition-opacity duration-200">
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => {
+                  if (videoPromptRef.current) {
+                    videoPromptRef.current.scrollTop -= 32;
+                  }
+                }}
+                className="flex h-5 w-5 items-center justify-center rounded-md border border-white/12 bg-white/[0.05] text-slate-300 transition-all hover:border-cyan-400/60 hover:bg-cyan-500/25 hover:text-white active:scale-95 cursor-pointer disabled:opacity-30"
+                title="Scroll Up"
+                aria-label="Scroll Up"
+              >
+                <ChevronUp className="h-3 w-3" strokeWidth={2.5} />
+              </button>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => {
+                  if (videoPromptRef.current) {
+                    videoPromptRef.current.scrollTop += 32;
+                  }
+                }}
+                className="flex h-5 w-5 items-center justify-center rounded-md border border-white/12 bg-white/[0.05] text-slate-300 transition-all hover:border-cyan-400/60 hover:bg-cyan-500/25 hover:text-white active:scale-95 cursor-pointer disabled:opacity-30"
+                title="Scroll Down"
+                aria-label="Scroll Down"
+              >
+                <ChevronDown className="h-3 w-3" strokeWidth={2.5} />
+              </button>
             </div>
-          </div>
+          ) : null}
         </div>
-
-      {/* Sticky Parameters Summary Footer */}
-      <div className="shrink-0 border-t border-white/10 bg-[#121215] p-3">
-        <div className="flex items-center justify-between gap-2 rounded-xl border border-white/10 bg-zinc-900/90 px-3 py-2 text-xs text-zinc-300">
-          <div className="flex items-center gap-2 shrink-0">
-            <span className="font-display font-semibold text-white flex items-center gap-1.5 text-xs">
-              <Clapperboard className="h-3.5 w-3.5 text-cyan-300" />
-              {selectedTier === "quality" ? "Premium Tier" : "Standard Tier"}
-            </span>
-            <span className="text-zinc-600">|</span>
-            <span className="text-zinc-200 font-medium">{duration}s clip</span>
-          </div>
-          <div className="flex items-center gap-2 shrink-0 text-xs text-zinc-400">
-            <span>
-              Credits: <strong className="text-zinc-100 tabular-nums">{user?.availableCredits ?? user?.credits ?? 0}</strong>
-            </span>
-            <span>
-              Cost: <strong className={((user?.availableCredits ?? user?.credits ?? 0) < currentCost) ? "text-rose-400 font-bold" : "text-emerald-400 font-bold"}>{currentCost} cr</strong>
-            </span>
-          </div>
+        <div className="mt-2.5">
+          <StudioGlowGenerate
+            tone="cyan"
+            size="lg"
+            disabled={busy || prompt.trim().length < 2 || Boolean(user?.generationDisabled) || (user?.availableCredits ?? user?.credits ?? 0) < currentCost}
+            onClick={() => void run()}
+          >
+            {busy ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin text-cyan-200" />
+                <span className="font-semibold tracking-wide">Rendering Video ({duration}s)…</span>
+              </>
+            ) : user?.generationDisabled ? (
+              <>
+                <X className="h-4 w-4 text-rose-300" strokeWidth={2} />
+                <span className="font-semibold tracking-wide">Access Disabled</span>
+              </>
+            ) : (user?.availableCredits ?? user?.credits ?? 0) < currentCost ? (
+              <>
+                <X className="h-4 w-4 text-rose-300" strokeWidth={2} />
+                <span className="font-semibold tracking-wide">Insufficient Credits</span>
+              </>
+            ) : (
+              <>
+                <Clapperboard className="h-4 w-4 text-white" strokeWidth={2.2} />
+                <span className="font-medium tracking-wide text-white">Generate Video</span>
+              </>
+            )}
+          </StudioGlowGenerate>
         </div>
+        <p className="mt-1.5 text-center text-[10px] text-[var(--text-subtle)]">Enter to generate · Shift+Enter for line break</p>
       </div>
     </div>
   );
@@ -1136,9 +1212,8 @@ export default function VideoStudioClient() {
         ) : null}
 
         <div
-          className={`flex min-h-0 flex-1 flex-col gap-2 ${
-            showCanvasDock ? "min-h-0 overflow-y-auto overscroll-contain" : "overflow-hidden"
-          }`}
+          className={`flex min-h-0 flex-1 flex-col gap-2 ${showCanvasDock ? "min-h-0 overflow-y-auto overscroll-contain" : "overflow-hidden"
+            }`}
         >
           <div className="luxury-glass-panel flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl">
             <div
@@ -1157,15 +1232,31 @@ export default function VideoStudioClient() {
                   {messages.length === 0 ? "Awaiting video motion description" : `${galleryItems.length} video clip${galleryItems.length === 1 ? "" : "s"} rendered`}
                 </p>
               </div>
+              {studioView === "feed" ? (
+                <div className="hidden shrink-0 items-center gap-1 sm:flex">
+                  {(["all", "running", "ready"] as const).map((f) => (
+                    <button
+                      key={f}
+                      type="button"
+                      onClick={() => setFeedFilter(f)}
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide transition-all ${feedFilter === f
+                          ? "bg-[var(--primary-cyan)]/25 text-[var(--text-primary)] ring-1 ring-[var(--primary-cyan)]/40"
+                          : "border border-border bg-card/35 text-[var(--text-muted)] hover:border-border/80"
+                        }`}
+                    >
+                      {f === "all" ? "All" : f === "running" ? "Live" : "Ready"}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
               <div className="flex shrink-0 items-center gap-1 rounded-lg border border-border bg-card/45 p-0.5">
                 <button
                   type="button"
                   onClick={() => setStudioView("feed")}
                   aria-pressed={studioView === "feed"}
                   aria-label="Feed view"
-                  className={`inline-flex h-7 items-center gap-1 rounded-md px-1.5 text-[10px] font-bold uppercase tracking-wide transition-all ${
-                    studioView === "feed" ? "bg-[color-mix(in_srgb,var(--text-primary)_12%,transparent)] text-[var(--text-primary)] shadow-inner" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                  }`}
+                  className={`inline-flex h-7 items-center gap-1 rounded-md px-1.5 text-[10px] font-bold uppercase tracking-wide transition-all ${studioView === "feed" ? "bg-[color-mix(in_srgb,var(--text-primary)_12%,transparent)] text-[var(--text-primary)] shadow-inner" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                    }`}
                 >
                   <List className="h-3.5 w-3.5" strokeWidth={2} />
                 </button>
@@ -1174,9 +1265,8 @@ export default function VideoStudioClient() {
                   onClick={() => setStudioView("gallery")}
                   aria-pressed={studioView === "gallery"}
                   aria-label="Gallery view"
-                  className={`inline-flex h-7 items-center gap-1 rounded-md px-1.5 text-[10px] font-bold uppercase tracking-wide transition-all ${
-                    studioView === "gallery" ? "bg-[color-mix(in_srgb,var(--text-primary)_12%,transparent)] text-[var(--text-primary)] shadow-inner" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                  }`}
+                  className={`inline-flex h-7 items-center gap-1 rounded-md px-1.5 text-[10px] font-bold uppercase tracking-wide transition-all ${studioView === "gallery" ? "bg-[color-mix(in_srgb,var(--text-primary)_12%,transparent)] text-[var(--text-primary)] shadow-inner" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                    }`}
                 >
                   <Grid3x3 className="h-3.5 w-3.5" strokeWidth={2} />
                 </button>
@@ -1197,6 +1287,23 @@ export default function VideoStudioClient() {
                 {chrome.collapsed ? <PanelLeft className="h-3.5 w-3.5" strokeWidth={2} /> : <PanelLeftClose className="h-3.5 w-3.5" strokeWidth={2} />}
               </button>
             </div>
+            {studioView === "feed" ? (
+              <div className="flex shrink-0 items-center gap-1 border-b border-border/30 px-3 py-1.5 sm:hidden">
+                {(["all", "running", "ready"] as const).map((f) => (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => setFeedFilter(f)}
+                    className={`flex-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide transition-all ${feedFilter === f
+                        ? "bg-[var(--primary-cyan)]/25 text-[var(--text-primary)] ring-1 ring-[var(--primary-cyan)]/40"
+                        : "border border-border bg-card/35 text-[var(--text-muted)]"
+                      }`}
+                  >
+                    {f === "all" ? "All" : f === "running" ? "Live" : "Ready"}
+                  </button>
+                ))}
+              </div>
+            ) : null}
             <div
               ref={scrollRef}
               className="studio-scrollbar min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain [-webkit-overflow-scrolling:touch] touch-pan-y px-3 py-3 sm:px-4"
@@ -1233,16 +1340,18 @@ export default function VideoStudioClient() {
                   </div>
                 )
               ) : messages.length === 0 ? (
-                <div className="flex min-h-[300px] flex-col items-center justify-center gap-4 py-14 text-center select-none">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] shadow-2xl backdrop-blur-xl">
-                    <Clapperboard className="h-7 w-7 text-zinc-200" strokeWidth={1.5} />
-                  </div>
-                  <div className="max-w-sm space-y-1 px-4">
-                    <h3 className="font-display text-lg font-bold tracking-tight text-zinc-100 sm:text-xl">
-                      RUHGEN Video Studio
-                    </h3>
-                    <p className="text-xs leading-relaxed text-zinc-400 sm:text-[13px]">
-                      Configure motion settings in Controls or enter a motion prompt directly below to render video clips.
+                <div className="flex min-h-[240px] flex-col items-center justify-center gap-5 py-12 text-center">
+                  <motion.div
+                    initial={reduce ? false : { scale: 0.92, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="relative flex h-24 w-24 items-center justify-center rounded-3xl border border-cyan-400/30 bg-gradient-to-br from-cyan-600/40 via-[var(--deep-black)] to-violet-500/25 shadow-[0_0_80px_-24px_rgba(0,212,255,0.65)]"
+                  >
+                    <Clapperboard className="h-10 w-10 text-cyan-200" strokeWidth={1.5} />
+                  </motion.div>
+                  <div className="max-w-md space-y-2 px-2">
+                    <p className="font-display text-xl font-bold tracking-tight text-[var(--text-primary)]">RUHGEN Video Studio Online</p>
+                    <p className="text-sm leading-relaxed text-[var(--text-muted)]">
+                      Set duration slider, camera path, aspect ratio, and RUHGEN tier. Upload an optional image reference to direct the scene.
                     </p>
                   </div>
                 </div>
@@ -1371,17 +1480,15 @@ export default function VideoStudioClient() {
             </div>
 
             <div
-              ref={promptDockRef}
-              className="shrink-0 border-t border-white/10 px-3 py-2.5 backdrop-blur-2xl"
+              className="shrink-0 border-t px-3 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] backdrop-blur-xl lg:hidden"
               style={{
                 borderColor: "color-mix(in srgb, white 8%, transparent)",
                 background:
-                  "linear-gradient(180deg, color-mix(in srgb, var(--rich-black) 70%, transparent) 0%, color-mix(in srgb, var(--deep-black) 95%, transparent) 100%)",
+                  "linear-gradient(180deg, color-mix(in srgb, var(--rich-black) 60%, transparent) 0%, color-mix(in srgb, var(--deep-black) 92%, transparent) 100%)",
                 boxShadow: "0 -20px 40px -28px rgba(0,0,0,0.75)",
-                paddingBottom: "max(0.625rem, env(safe-area-inset-bottom))",
               }}
             >
-              <div className="flex flex-col gap-2">
+              <div className="flex items-end gap-2">
                 <textarea
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
@@ -1392,30 +1499,87 @@ export default function VideoStudioClient() {
                     }
                   }}
                   disabled={busy}
-                  placeholder={isImg2Video ? "Describe action & movement for reference image…" : "Describe cinematic video scene & motion…"}
-                  rows={2}
-                  className="studio-prompt-focus-video min-h-[44px] max-h-28 w-full resize-none rounded-xl border border-white/10 bg-black/50 px-3 py-2 text-xs leading-relaxed text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)]"
+                  placeholder={isImg2Video ? "Describe action for reference photo…" : "Describe video motion scene…"}
+                  rows={1}
+                  className="studio-scrollbar studio-prompt-focus-video min-h-[44px] max-h-28 flex-1 resize-none rounded-xl border border-white/10 bg-black/45 px-3 py-2.5 text-sm leading-relaxed text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)]"
                 />
                 <StudioGlowGenerate
+                  tone="cyan"
+                  size="icon"
                   disabled={busy || prompt.trim().length < 2 || Boolean(user?.generationDisabled) || (user?.availableCredits ?? user?.credits ?? 0) < currentCost}
                   onClick={() => void run()}
-                  size="md"
                 >
-                  {busy ? (
-                    <>
-                      <Loader2 className="h-3.5 w-3.5 animate-spin text-zinc-950" />
-                      <span className="font-bold text-xs text-zinc-950">Rendering Video ({duration}s)…</span>
-                    </>
-                  ) : (
-                    <div className="flex items-center justify-center gap-1.5 font-bold text-zinc-950 text-xs py-0.5">
-                      <Clapperboard className="h-3.5 w-3.5 text-zinc-950" strokeWidth={2.2} />
-                      <span>Generate Video</span>
-                    </div>
-                  )}
+                  {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowUp className="h-5 w-5" strokeWidth={2.25} />}
                 </StudioGlowGenerate>
               </div>
             </div>
           </div>
+
+          {showCanvasDock ? (
+            <div
+              ref={promptDockRef}
+              className="shrink-0 rounded-2xl border border-white/10 px-3 pt-3 shadow-[0_-12px_48px_-28px_rgba(0,0,0,0.55)] backdrop-blur-2xl"
+              style={{
+                background:
+                  "linear-gradient(165deg, color-mix(in srgb, white 5%, transparent) 0%, color-mix(in srgb, var(--rich-black) 92%, transparent) 100%)",
+                boxShadow: "inset 0 1px 0 color-mix(in srgb, white 6%, transparent), 0 -20px 56px -24px rgba(0,0,0,0.5)",
+                paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))",
+              }}
+            >
+              <div className="mb-2 flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.02] px-2 py-1 text-[11px]">
+                <span className="font-semibold text-white">Cost: <strong className={((user?.availableCredits ?? user?.credits ?? 0) < currentCost) ? "text-rose-400 font-bold" : "text-[#00D4FF] font-bold"}>{currentCost} credits ({duration}s clip)</strong></span>
+                <span className="text-[var(--text-subtle)]">Available: {user?.availableCredits ?? user?.credits ?? 0}</span>
+              </div>
+
+              <p className="mb-1.5 text-[9px] font-bold uppercase tracking-[0.14em]" style={{ color: "var(--text-subtle)" }}>
+                Video Motion Prompt
+              </p>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+                <textarea
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      void run();
+                    }
+                  }}
+                  disabled={busy}
+                  placeholder="Describe your video motion scene…"
+                  rows={2}
+                  className="studio-prompt-focus-video min-h-[44px] w-full flex-1 resize-none rounded-xl border border-white/10 bg-black/35 px-3 py-2.5 text-sm leading-relaxed text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)]"
+                />
+                <StudioGlowGenerate
+                  tone="cyan"
+                  size="lg"
+                  disabled={busy || prompt.trim().length < 2 || Boolean(user?.generationDisabled) || (user?.availableCredits ?? user?.credits ?? 0) < currentCost}
+                  onClick={() => void run()}
+                >
+                  {busy ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin text-cyan-200" />
+                      <span className="font-semibold tracking-wide">Rendering…</span>
+                    </>
+                  ) : user?.generationDisabled ? (
+                    <>
+                      <X className="h-4 w-4 text-rose-300" strokeWidth={2} />
+                      <span className="font-semibold tracking-wide">Access Disabled</span>
+                    </>
+                  ) : (user?.availableCredits ?? user?.credits ?? 0) < currentCost ? (
+                    <>
+                      <X className="h-4 w-4 text-rose-300" strokeWidth={2} />
+                      <span className="font-semibold tracking-wide">Insufficient</span>
+                    </>
+                  ) : (
+                    <>
+                      <Clapperboard className="h-4 w-4 text-white" strokeWidth={2.2} />
+                      <span className="font-medium tracking-wide text-white">Generate Video</span>
+                    </>
+                  )}
+                </StudioGlowGenerate>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         {downloadError ? (

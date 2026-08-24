@@ -61,30 +61,38 @@ function SidebarNavLink({
   item,
   pathname,
   onNavigate,
+  slimmer = false,
 }: {
   item: { href: string; label: string; icon: typeof Home; end?: boolean };
   pathname: string;
   onNavigate?: () => void;
+  slimmer?: boolean;
 }) {
   const on = navActive(pathname, item.href, "end" in item ? item.end : false);
   return (
     <Link
       href={item.href}
       onClick={onNavigate}
-      className={`group flex min-h-[40px] items-center gap-2.5 rounded-lg border px-3 py-2 text-xs font-medium transition-all duration-150 ${
-        on
-          ? "border-white/20 bg-zinc-800 text-white font-semibold shadow-sm"
-          : "border-white/10 bg-zinc-900/80 text-zinc-300 hover:border-white/20 hover:bg-zinc-800/90 hover:text-white"
-      }`}
+      className={`group flex items-center rounded-xl border transition-all duration-200 ${slimmer
+          ? "min-h-[36px] gap-2 px-2.5 py-1.5 text-xs font-semibold"
+          : "min-h-[40px] gap-2.5 px-3 py-2 text-xs sm:text-sm font-semibold"
+        }`}
+      style={{
+        borderColor: on ? "color-mix(in srgb, var(--primary-purple) 42%, var(--border-subtle))" : "var(--border-subtle)",
+        background: on ? "color-mix(in srgb, var(--primary-purple) 10%, var(--deep-black))" : "var(--soft-black)",
+        color: on ? "var(--text-primary)" : "var(--text-muted)",
+        boxShadow: on ? "0 0 14px -3px color-mix(in srgb, var(--primary-purple) 25%, transparent)" : undefined,
+      }}
     >
       <span
-        className={`flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-md border transition-colors ${
-          on
-            ? "border-white/20 bg-white/10 text-white"
-            : "border-white/10 bg-zinc-950 text-zinc-400 group-hover:border-white/15 group-hover:text-zinc-200"
-        }`}
+        className={`flex shrink-0 items-center justify-center rounded-lg border transition-colors ${slimmer ? "h-7 w-7" : "h-8 w-8"
+          }`}
+        style={{
+          borderColor: "var(--border-subtle)",
+          background: on ? "var(--glass)" : "var(--deep-black)",
+        }}
       >
-        <item.icon className="h-3.5 w-3.5" strokeWidth={1.75} />
+        <item.icon className={slimmer ? "h-3.5 w-3.5" : "h-4 w-4"} style={{ color: on ? "var(--primary-cyan)" : undefined }} strokeWidth={1.75} />
       </span>
       <span className="min-w-0 truncate">{item.label}</span>
     </Link>
@@ -120,27 +128,49 @@ export function UserDashboardShell({ children }: { children: React.ReactNode }) 
   }, [pathname]);
 
   return (
-    <div className="relative min-h-[100dvh] overflow-x-clip bg-[#09090b]">
+    <div className="relative min-h-[100dvh] overflow-x-clip">
       <div
-        className="pointer-events-none fixed inset-0 -z-10 bg-[#09090b]"
+        className="pointer-events-none fixed inset-0 -z-10"
+        aria-hidden
+        style={{
+          background: "var(--deep-black)",
+          backgroundImage:
+            "radial-gradient(ellipse 90% 70% at 10% -10%, rgba(123, 97, 255, 0.22), transparent 50%), radial-gradient(ellipse 70% 55% at 95% 15%, rgba(0, 212, 255, 0.14), transparent 55%), radial-gradient(ellipse 55% 45% at 50% 100%, rgba(255, 46, 154, 0.08), transparent 50%)",
+        }}
+      />
+      <div
+        className="pointer-events-none fixed inset-0 -z-10 opacity-[0.35]"
+        aria-hidden
+        style={{
+          backgroundImage:
+            "linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--primary-purple) 6%, transparent) 40%, transparent 100%)",
+        }}
+      />
+      <div
+        className="pointer-events-none fixed inset-0 -z-10 opacity-[0.12] [background-image:linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] [background-size:48px_48px] lg:opacity-[0.18]"
         aria-hidden
       />
 
       <aside
-        className="fixed bottom-0 left-0 top-0 z-40 hidden w-[270px] xl:w-[280px] flex-col border-r border-white/10 bg-[#121215] pt-[env(safe-area-inset-top)] lg:flex"
+        className="fixed bottom-0 left-0 top-0 z-40 hidden w-[270px] xl:w-[280px] flex-col border-r pt-[env(safe-area-inset-top)] lg:flex"
+        style={{
+          borderColor: "var(--border-subtle)",
+          background: "color-mix(in srgb, var(--rich-black) 96%, transparent)",
+          backdropFilter: "blur(16px)",
+        }}
       >
         {/* Sidebar Header */}
-        <div className="flex h-14 shrink-0 items-center border-b border-white/10 px-4">
+        <div className="flex h-14 shrink-0 items-center border-b px-4" style={{ borderColor: "var(--border-subtle)" }}>
           <BrandLogo size="md" showWordmark href="/" className="min-w-0" />
         </div>
 
-        {/* Sidebar Body with custom scrollbar */}
+        {/* Sidebar Body with high-end custom scrollbar */}
         <div className="studio-scrollbar flex flex-1 flex-col gap-4 overflow-y-auto px-3.5 py-4">
           <div>
-            <p className="px-1 mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-400">
+            <p className="px-1 text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--text-subtle)" }}>
               Workspace
             </p>
-            <nav className="flex flex-col gap-1.5" aria-label="Workspace">
+            <nav className="mt-2 flex flex-col gap-1.5" aria-label="Workspace">
               {activeWorkspaceNav.map((item) => (
                 <SidebarNavLink key={item.href} item={item} pathname={pathname} />
               ))}
@@ -148,10 +178,10 @@ export function UserDashboardShell({ children }: { children: React.ReactNode }) 
           </div>
 
           <div>
-            <p className="px-1 mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-400">
+            <p className="px-1 text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--text-subtle)" }}>
               Create
             </p>
-            <nav className="flex flex-col gap-1.5" aria-label="Create">
+            <nav className="mt-2 flex flex-col gap-1.5" aria-label="Create">
               {createNav.map((item) => (
                 <SidebarNavLink key={item.href} item={item} pathname={pathname} />
               ))}
@@ -159,10 +189,10 @@ export function UserDashboardShell({ children }: { children: React.ReactNode }) 
           </div>
 
           <div>
-            <p className="px-1 mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-400">
+            <p className="px-1 text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--text-subtle)" }}>
               Support
             </p>
-            <nav className="flex flex-col gap-1.5" aria-label="Support">
+            <nav className="mt-2 flex flex-col gap-1.5" aria-label="Support">
               {supportNav.map((item) => (
                 <SidebarNavLink key={item.href} item={item} pathname={pathname} />
               ))}
@@ -170,71 +200,92 @@ export function UserDashboardShell({ children }: { children: React.ReactNode }) 
           </div>
 
           {/* Credits Box Card */}
-          <div className="mt-auto rounded-lg border border-white/10 bg-zinc-900/80 p-3">
+          <div className="mt-auto rounded-xl border p-3 transition-all duration-300" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
             <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-zinc-400">
-                <Coins className="h-3.5 w-3.5 text-zinc-200" strokeWidth={2} />
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider" style={{ color: "var(--text-subtle)" }}>
+                <Coins className="h-3.5 w-3.5" style={{ color: "var(--primary-cyan)" }} strokeWidth={2} />
                 <span>Credits</span>
               </div>
               <Link
                 href="/dashboard/billing"
-                className="text-xs font-semibold text-zinc-200 transition-opacity hover:opacity-90 hover:underline"
+                className="text-xs font-semibold text-[var(--primary-cyan)] transition-opacity hover:opacity-90 hover:underline"
               >
                 Billing →
               </Link>
             </div>
-            <p className="mt-1.5 text-xs leading-snug text-zinc-400">
+            <p className="mt-1.5 text-xs leading-snug" style={{ color: "var(--text-muted)" }}>
               Manage plans and credit balance under billing.
             </p>
           </div>
         </div>
 
         {/* Sidebar Footer */}
-        <div className="shrink-0 p-3 border-t border-white/10">
-          <div className="rounded-2xl border border-white/10 bg-zinc-900/80 p-2.5 shadow-xl backdrop-blur-md space-y-2">
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={toggle}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-zinc-300 transition-all hover:bg-white/10 hover:text-white active:scale-95 cursor-pointer"
-                aria-label={theme === "dark" ? "Light mode" : "Dark mode"}
-              >
-                {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-              </button>
-              {ready && user ? (
-                <div className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] py-1 pl-1.5 pr-2.5">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-white/15 bg-zinc-800 text-[10px] font-bold text-zinc-100">
-                    {initials(user.name)}
-                  </span>
-                  <p className="min-w-0 truncate text-xs font-semibold text-zinc-200">
-                    {user.name}
-                  </p>
-                </div>
-              ) : null}
-              <button
-                type="button"
-                onClick={() => {
-                  signOut();
-                  router.push("/");
-                }}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-zinc-400 transition-all hover:border-rose-500/40 hover:bg-rose-500/15 hover:text-rose-300 active:scale-95 cursor-pointer"
-                aria-label="Sign out"
-              >
-                <LogOut className="h-4 w-4" strokeWidth={1.75} />
-              </button>
-            </div>
-            <Link
-              href="/"
-              className="flex min-h-[36px] w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] text-xs font-semibold text-zinc-300 transition-all hover:border-white/20 hover:bg-white/10 hover:text-white active:scale-[0.98]"
+        <div className="shrink-0 border-t p-3.5 space-y-2.5" style={{ borderColor: "var(--border-subtle)" }}>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={toggle}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border transition-colors hover:bg-white/10"
+              style={{
+                borderColor: "var(--border-subtle)",
+                background: "var(--glass)",
+                color: "var(--text-primary)",
+              }}
+              aria-label={theme === "dark" ? "Light mode" : "Dark mode"}
             >
-              <LayoutDashboard className="h-4 w-4 text-zinc-400" strokeWidth={1.75} />
-              Back to marketing site
-            </Link>
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
+            {ready && user ? (
+              <div
+                className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border py-1 pl-1 pr-2"
+                style={{ borderColor: "var(--border-subtle)", background: "var(--glass)" }}
+              >
+                <span
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold text-white"
+                  style={{
+                    background: "linear-gradient(135deg, var(--primary-purple), var(--primary-cyan))",
+                  }}
+                >
+                  {initials(user.name)}
+                </span>
+                <p className="min-w-0 truncate text-xs font-semibold" style={{ color: "var(--text-primary)" }}>
+                  {user.name}
+                </p>
+              </div>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => {
+                signOut();
+                router.push("/");
+              }}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border transition-colors hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400"
+              style={{
+                borderColor: "var(--border-subtle)",
+                background: "var(--glass)",
+                color: "var(--text-muted)",
+              }}
+              aria-label="Sign out"
+            >
+              <LogOut className="h-4 w-4" strokeWidth={1.75} />
+            </button>
           </div>
+          <Link
+            href="/"
+            className="flex min-h-[36px] items-center justify-center gap-2 rounded-xl border text-xs font-semibold transition-colors hover:bg-white/5"
+            style={{
+              borderColor: "var(--border-subtle)",
+              background: "var(--soft-black)",
+              color: "var(--text-muted)",
+            }}
+          >
+            <LayoutDashboard className="h-4 w-4 opacity-80" strokeWidth={1.75} />
+            Back to marketing site
+          </Link>
         </div>
       </aside>
 
-      <div className="flex min-h-[100dvh] flex-col lg:pl-[270px] xl:pl-[280px]">
+      <div className="flex min-h-[100dvh] flex-col lg:pl-[260px] xl:pl-[270px]">
         <header
           className="sticky top-0 z-50 border-b pt-[env(safe-area-inset-top)] lg:hidden"
           style={{
@@ -386,34 +437,34 @@ export function UserDashboardShell({ children }: { children: React.ReactNode }) 
                   <span className="sr-only">Close</span>
                 </button>
               </div>
-              <div className="flex flex-1 flex-col gap-6 overflow-y-auto p-4">
+              <div className="flex flex-1 flex-col gap-8 overflow-y-auto p-4">
                 <div>
-                  <p className="px-1 mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">
+                  <p className="px-1 text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: "var(--text-subtle)" }}>
                     Workspace
                   </p>
-                  <nav className="flex flex-col gap-1.5" aria-label="Workspace mobile">
+                  <nav className="mt-3 flex flex-col gap-1.5" aria-label="Workspace mobile">
                     {activeWorkspaceNav.map((item) => (
                       <SidebarNavLink key={item.href} item={item} pathname={pathname} onNavigate={() => setMobileOpen(false)} />
                     ))}
                   </nav>
                 </div>
                 <div>
-                  <p className="px-1 mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">
+                  <p className="px-1 text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: "var(--text-subtle)" }}>
                     Create
                   </p>
-                  <nav className="flex flex-col gap-1.5" aria-label="Create mobile">
+                  <nav className="mt-3 flex flex-col gap-1.5" aria-label="Create mobile">
                     {createNav.map((item) => (
                       <SidebarNavLink key={item.href} item={item} pathname={pathname} onNavigate={() => setMobileOpen(false)} />
                     ))}
                   </nav>
                 </div>
                 <div>
-                  <p className="px-1 mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">
+                  <p className="px-1 text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: "var(--text-subtle)" }}>
                     Support
                   </p>
-                  <nav className="flex flex-col gap-1.5" aria-label="Support mobile">
+                  <nav className="mt-3 flex flex-col gap-1.5" aria-label="Support mobile">
                     {supportNav.map((item) => (
-                      <SidebarNavLink key={item.href} item={item} pathname={pathname} onNavigate={() => setMobileOpen(false)} />
+                      <SidebarNavLink key={item.href} item={item} pathname={pathname} onNavigate={() => setMobileOpen(false)} slimmer />
                     ))}
                   </nav>
                 </div>

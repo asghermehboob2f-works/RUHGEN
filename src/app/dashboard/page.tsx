@@ -127,20 +127,20 @@ export default function DashboardPage() {
       value: loadingMetrics ? "..." : String(availableCreds),
       hint: pendingHold > 0 ? `${user.credits || availableCreds} total (${pendingHold} hold)` : "Available balance",
       icon: Coins,
-      color: "#e4e4e7",
+      color: "#00D4FF",
       href: "/dashboard/billing",
       badge: pendingHold > 0 ? `${pendingHold} hold` : null,
-      badgeColor: "#a1a1aa",
+      badgeColor: "#7B61FF",
     },
     {
       label: "This Month",
       value: loadingMetrics ? "..." : String(monthlyCount),
       hint: "Generations completed",
       icon: TrendingUp,
-      color: "#e4e4e7",
+      color: "#7B61FF",
       href: "/dashboard/generate/image",
       badge: "Real-time",
-      badgeColor: "#a1a1aa",
+      badgeColor: "#7B61FF",
     },
     {
       label: "Studio Queue",
@@ -148,20 +148,20 @@ export default function DashboardPage() {
       isLiveProcessing: pendingJobsCount > 0,
       hint: pendingJobsCount > 0 ? "Jobs generating now" : "No jobs waiting",
       icon: Zap,
-      color: pendingJobsCount > 0 ? "#f59e0b" : "#e4e4e7",
+      color: pendingJobsCount > 0 ? "#FFAB00" : "#FF2E9A",
       href: "/dashboard/generate/image",
       badge: pendingJobsCount > 0 ? "LIVE" : null,
-      badgeColor: "#f59e0b",
+      badgeColor: "#FFAB00",
     },
     {
       label: "Active Plan",
       value: planDisplay,
       hint: rawPlan.toLowerCase() === "free" ? "Upgrade for higher limits" : "Pro workspace",
       icon: Sparkles,
-      color: "#10b981",
+      color: "#00E676",
       href: "/dashboard/billing",
       badge: rawPlan.toUpperCase(),
-      badgeColor: "#10b981",
+      badgeColor: "#00E676",
     },
   ];
 
@@ -172,8 +172,35 @@ export default function DashboardPage() {
         initial={reduce ? false : { opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="relative overflow-hidden rounded-xl border border-white/10 bg-[#121215] p-4 sm:p-5 lg:p-6 shadow-sm"
+        className="relative overflow-hidden rounded-xl border p-3.5 sm:p-4 lg:p-5"
+        style={{
+          borderColor: "rgba(255, 255, 255, 0.08)",
+          background:
+            "linear-gradient(135deg, color-mix(in srgb, var(--soft-black) 94%, transparent) 0%, color-mix(in srgb, var(--deep-black) 98%, transparent) 100%)",
+          boxShadow: "0 10px 30px -15px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06)",
+        }}
       >
+        {/* Subtle grid pattern background */}
+        <div
+          className="absolute inset-0 opacity-[0.05] mix-blend-overlay pointer-events-none"
+          style={{
+            backgroundImage: "radial-gradient(var(--primary-purple) 1px, transparent 0)",
+            backgroundSize: "20px 20px",
+          }}
+        />
+
+        {/* Subtle ambient light glows */}
+        <div
+          className="pointer-events-none absolute -right-20 -top-20 h-36 w-36 rounded-full opacity-20 blur-2xl"
+          style={{ background: "var(--primary-purple)" }}
+          aria-hidden
+        />
+        <div
+          className="pointer-events-none absolute -bottom-16 left-1/4 h-32 w-32 rounded-full opacity-15 blur-2xl"
+          style={{ background: "var(--primary-cyan)" }}
+          aria-hidden
+        />
+
         <div className="relative grid gap-4 lg:grid-cols-12 lg:items-center">
           {/* Left Column: Compact Greeting & Status */}
           <div className="lg:col-span-6 flex flex-col justify-center">
@@ -182,24 +209,27 @@ export default function DashboardPage() {
                 type="button"
                 onClick={() => fetchDashboardMetrics(true)}
                 title="Refresh real-time workspace stats"
-                className="group inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-zinc-900 px-2.5 py-1 text-[10px] font-medium text-zinc-400 transition-all hover:bg-zinc-800 hover:text-white"
+                className="group inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-[9px] font-medium text-[var(--text-muted)] transition-all hover:bg-white/10 hover:border-white/20 hover:text-white active:scale-95"
               >
                 <RefreshCw className={`h-2.5 w-2.5 transition-transform ${isRefreshing ? "animate-spin text-white" : "group-hover:rotate-180 duration-500"}`} />
                 <span>Live sync</span>
               </button>
             </div>
-            
-            <h1 className="font-display mt-2 text-xl font-bold tracking-tight sm:text-2xl lg:text-3xl text-zinc-100">
-              {greeting}, {firstName}
+
+            <h1 className="font-display mt-2 text-xl font-extrabold tracking-tight sm:text-2xl lg:text-3xl text-[var(--text-primary)]">
+              {greeting},{" "}
+              <span className="bg-gradient-to-r from-[#7B61FF] via-[#00D4FF] to-[#FF2E9A] bg-clip-text text-transparent">
+                {firstName}
+              </span>
             </h1>
-            
-            <p className="mt-1 max-w-lg text-xs leading-relaxed text-zinc-400">
-              Your workspace is synchronized. Monitor credits, track active job queues, and access studio pipelines.
+
+            <p className="mt-1 max-w-lg text-xs leading-relaxed text-[var(--text-muted)]">
+              Your workspace is synchronized. Monitor credits, track active job queues, and access pipelines.
             </p>
           </div>
 
           {/* Right Column: Slim Statistics Cards */}
-          <div className="lg:col-span-6 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-2.5">
+          <div className="lg:col-span-6 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-2 sm:gap-2.5">
             {stats.map((stat, i) => (
               <motion.div
                 key={stat.label}
@@ -237,9 +267,8 @@ export default function DashboardPage() {
                       className="flex h-5.5 w-5.5 items-center justify-center rounded-md border border-white/5 bg-white/[0.02] transition-all duration-300 group-hover:scale-105 group-hover:bg-white/[0.06]"
                     >
                       <stat.icon
-                        className={`h-3 w-3 transition-transform duration-300 ${
-                          stat.isLiveProcessing ? "animate-pulse" : ""
-                        }`}
+                        className={`h-3 w-3 transition-transform duration-300 ${stat.isLiveProcessing ? "animate-pulse" : ""
+                          }`}
                         style={{ color: stat.color }}
                         strokeWidth={2}
                       />
@@ -313,7 +342,7 @@ export default function DashboardPage() {
                 />
 
                 {/* Cyber-mesh grid inside card */}
-                <div 
+                <div
                   className="absolute inset-0 opacity-[0.02] group-hover:opacity-[0.04] transition-opacity duration-500 pointer-events-none"
                   style={{
                     backgroundImage: "radial-gradient(white 1px, transparent 0)",
@@ -392,7 +421,7 @@ export default function DashboardPage() {
               >
                 {/* Subtle light pulse background */}
                 <div className="absolute inset-0 bg-white/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl" />
-                
+
                 <div
                   className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border transition-all duration-300 group-hover:scale-105"
                   style={{

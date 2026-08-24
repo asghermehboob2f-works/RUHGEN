@@ -25,7 +25,7 @@ export function StudioCollapsible({
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div
-      className={`rounded-xl border border-white/10 bg-[#141417] shadow-sm ${className}`}
+      className={`rounded-2xl border border-white/10 bg-[#161824]/80 shadow-sm backdrop-blur-xl ${className}`}
     >
       <button
         type="button"
@@ -33,21 +33,21 @@ export function StudioCollapsible({
         aria-expanded={open}
         aria-controls={`${id}-panel`}
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-white/[0.03] active:bg-white/[0.06] sm:px-3.5 sm:py-3"
+        className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition-colors hover:bg-white/[0.04] active:bg-white/[0.08] sm:px-3.5 sm:py-3"
       >
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-display text-[13px] font-semibold tracking-tight text-zinc-100 sm:text-sm">{title}</span>
+            <span className="font-display text-[13px] font-bold tracking-tight text-white sm:text-sm">{title}</span>
             {badge}
           </div>
-          {subtitle ? <p className="mt-0.5 text-[11px] leading-snug text-zinc-400">{subtitle}</p> : null}
+          {subtitle ? <p className="mt-0.5 text-[11px] leading-snug text-slate-400">{subtitle}</p> : null}
         </div>
         <motion.span
           animate={{ rotate: open ? 180 : 0 }}
-          transition={{ duration: reduce ? 0 : 0.2, ease: [0.22, 1, 0.36, 1] }}
-          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-white/10 bg-zinc-900 text-zinc-400"
+          transition={{ duration: reduce ? 0 : 0.22, ease: [0.22, 1, 0.36, 1] }}
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.05] text-slate-400"
         >
-          <ChevronDown className="h-3.5 w-3.5" strokeWidth={1.75} />
+          <ChevronDown className="h-4 w-4" strokeWidth={2} />
         </motion.span>
       </button>
       <AnimatePresence initial={false}>
@@ -59,10 +59,10 @@ export function StudioCollapsible({
             initial={reduce ? false : { height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={reduce ? undefined : { height: 0, opacity: 0 }}
-            transition={{ duration: reduce ? 0 : 0.2, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: reduce ? 0 : 0.28, ease: [0.22, 1, 0.36, 1] }}
             className="overflow-hidden"
           >
-            <div className="border-t border-white/10 px-3 pb-3.5 pt-3 sm:px-3.5">{children}</div>
+            <div className="border-t border-border/50 px-3 pb-3.5 pt-3 sm:px-3.5">{children}</div>
           </motion.div>
         ) : null}
       </AnimatePresence>
@@ -74,12 +74,18 @@ export function StudioPromptChips({
   labels,
   onPick,
   disabled,
+  tone,
 }: {
   labels: readonly string[];
   onPick: (text: string) => void;
   disabled?: boolean;
-  tone?: "purple" | "cyan";
+  tone: "purple" | "cyan";
 }) {
+  const ring = tone === "purple" ? "focus-visible:ring-[#7B61FF]/35" : "focus-visible:ring-[#00D4FF]/35";
+  const glow =
+    tone === "purple"
+      ? "hover:border-[color-mix(in_srgb,var(--primary-purple)_45%,transparent)] hover:shadow-[0_0_20px_-8px_rgba(123,97,255,0.55)]"
+      : "hover:border-[color-mix(in_srgb,var(--primary-cyan)_45%,transparent)] hover:shadow-[0_0_20px_-8px_rgba(0,212,255,0.45)]";
   return (
     <div className="flex flex-wrap gap-1.5">
       {labels.map((t) => (
@@ -88,7 +94,7 @@ export function StudioPromptChips({
           type="button"
           disabled={disabled}
           onClick={() => onPick(t)}
-          className="rounded-md border border-white/10 bg-zinc-900 px-2.5 py-1 text-[10px] font-medium tracking-wide text-zinc-300 transition-colors hover:border-white/20 hover:bg-zinc-800 hover:text-white disabled:opacity-40 sm:text-[11px] focus:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400"
+          className={`rounded-full border border-border/65 bg-card/35 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--text-muted)] transition-all hover:bg-card/70 hover:text-[var(--text-primary)] disabled:opacity-40 sm:text-[11px] ${glow} focus:outline-none focus-visible:ring-2 ${ring}`}
         >
           {t}
         </button>
@@ -101,16 +107,27 @@ export function StudioGlowGenerate({
   disabled,
   onClick,
   children,
+  tone,
   size = "md",
 }: {
   disabled: boolean;
   onClick: () => void;
   children: ReactNode;
-  tone?: "purple" | "cyan";
-  size?: "sm" | "md" | "lg" | "icon";
+  tone: "purple" | "cyan";
+  size?: "md" | "lg" | "icon";
 }) {
   const reduce = useReducedMotion();
   const isIcon = size === "icon";
+
+  const bgStyle =
+    tone === "purple"
+      ? "linear-gradient(135deg, #6366F1 0%, #4F46E5 50%, #3730A3 100%)"
+      : "linear-gradient(135deg, #0EA5E9 0%, #0284C7 50%, #075985 100%)";
+
+  const glowShadow =
+    tone === "purple"
+      ? "0 0 28px rgba(99, 102, 241, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.4)"
+      : "0 0 28px rgba(14, 165, 233, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.4)";
 
   return (
     <motion.button
@@ -118,17 +135,31 @@ export function StudioGlowGenerate({
       disabled={disabled}
       onClick={onClick}
       whileTap={reduce || disabled ? undefined : { scale: 0.98 }}
-      className={`group relative isolate overflow-hidden font-sans font-bold text-zinc-950 bg-white hover:bg-zinc-100 transition-all duration-200 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed border border-white/50 shadow-[0_4px_14px_rgba(255,255,255,0.12)] hover:shadow-[0_6px_18px_rgba(255,255,255,0.2)] ${
-        isIcon
-          ? "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
+      whileHover={reduce || disabled ? undefined : { scale: 1.015 }}
+      className={`group relative isolate overflow-hidden font-display font-bold text-white transition-all duration-200 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:shadow-none border border-white/30 hover:border-white/60 ${isIcon
+          ? "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl sm:h-12 sm:w-12"
           : size === "lg"
-            ? "inline-flex min-h-[40px] w-full items-center justify-center gap-2 rounded-lg px-4 text-xs tracking-wide"
-            : size === "sm"
-              ? "inline-flex min-h-[30px] w-full items-center justify-center gap-1.5 rounded-md px-3 text-[11px] font-bold tracking-wide"
-              : "inline-flex min-h-[34px] w-full items-center justify-center gap-2 rounded-lg px-3.5 text-xs font-bold tracking-wide"
-      }`}
+            ? "inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl px-5 text-sm tracking-wide shadow-lg"
+            : "inline-flex min-h-[42px] w-full items-center justify-center gap-2 rounded-xl px-4 text-xs font-extrabold tracking-wide shadow-md"
+        }`}
+      style={{
+        background: bgStyle,
+        boxShadow: disabled ? "none" : glowShadow,
+      }}
     >
-      <span className="relative z-[1] flex items-center justify-center gap-1.5 text-zinc-950 font-extrabold tracking-wide [&_*]:text-zinc-950">
+      {/* High-end Apple glass top light reflection */}
+      <span
+        className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/30 to-transparent opacity-80 transition-opacity duration-300 group-hover:opacity-100"
+        aria-hidden
+      />
+
+      {/* Subtle sweeping specular highlight */}
+      <span
+        className="pointer-events-none absolute -inset-full top-0 block h-full w-1/2 -skew-x-12 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 transition-opacity duration-500 group-hover:animate-shimmer group-hover:opacity-100"
+        aria-hidden
+      />
+
+      <span className="relative z-[1] flex items-center justify-center gap-2.5 text-white font-bold drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
         {children}
       </span>
     </motion.button>

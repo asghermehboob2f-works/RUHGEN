@@ -15,23 +15,23 @@ export function Hero() {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: { 
-        staggerChildren: 0.25, 
-        delayChildren: 0.4 
+      transition: {
+        staggerChildren: 0.25,
+        delayChildren: 0.4
       },
     },
   };
 
   const fadeUpBlur: Variants = {
     hidden: { opacity: 0, y: 40, filter: "blur(15px)" },
-    visible: { 
-      opacity: 1, 
-      y: 0, 
+    visible: {
+      opacity: 1,
+      y: 0,
       filter: "blur(0px)",
-      transition: { 
-        duration: 1.4, 
-        ease: [0.16, 1, 0.3, 1] 
-      } 
+      transition: {
+        duration: 1.4,
+        ease: [0.16, 1, 0.3, 1]
+      }
     },
   };
 
@@ -42,17 +42,17 @@ export function Hero() {
     >
       {/* Cinematic Background Atmosphere - Maximum Visibility */}
       <div className="pointer-events-none absolute inset-0 z-0">
-        <div 
-          className="absolute inset-0 transition-colors duration-700" 
+        <div
+          className="absolute inset-0 transition-colors duration-700"
           style={{
-            background: isLight 
+            background: isLight
               ? "radial-gradient(circle at 50% 50%, rgba(255,255,255,0) 0%, rgba(255,255,255,0.05) 100%)"
               : "radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 0%, rgba(0,0,0,0.4) 100%)"
           }}
         />
-        
+
         {/* Animated Light Leaks/Glows (Softer) */}
-        <motion.div 
+        <motion.div
           className="absolute top-[20%] left-[20%] w-[40%] h-[40%] bg-blue-500/5 blur-[120px] rounded-full"
           animate={{
             scale: [1, 1.1, 1],
@@ -62,7 +62,7 @@ export function Hero() {
         />
       </div>
 
-      <motion.div 
+      <motion.div
         className={`relative z-10 ${SITE_CONTAINER} flex flex-col items-center justify-center text-center px-6 my-auto`}
         variants={container}
         initial="hidden"
@@ -77,8 +77,8 @@ export function Hero() {
             <span className="block bg-gradient-to-b from-[var(--text-primary)] via-[var(--text-primary)] to-[var(--text-primary)]/80 bg-clip-text text-transparent">Where imagination</span>
             <span className="block mt-2 premium-text-shimmer bg-gradient-to-b from-[var(--text-primary)] via-[var(--text-primary)] to-[var(--text-primary)]/60 bg-clip-text text-transparent">becomes reality.</span>
           </h1>
-          
-          <motion.div 
+
+          <motion.div
             className="mt-5 flex items-center justify-center"
             variants={fadeUpBlur}
           >
@@ -98,7 +98,7 @@ export function Hero() {
             href="/sign-up"
             className="group relative"
           >
-            <motion.div 
+            <motion.div
               className="relative z-10 flex items-center justify-center rounded-full px-10 py-3.5 overflow-hidden transition-all duration-700 btn-gradient"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -114,7 +114,7 @@ export function Hero() {
             href="/demo"
             className="group relative"
           >
-            <motion.div 
+            <motion.div
               className="relative z-10 flex items-center justify-center gap-3 rounded-full px-9 py-3.5 overflow-hidden transition-all duration-700 bg-[var(--glass)] backdrop-blur-xl border border-[var(--border-subtle)] hover:border-[var(--text-primary)]/30 hover:bg-[color-mix(in_srgb,var(--text-primary)_10%,transparent)]"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -134,7 +134,7 @@ export function Hero() {
         >
           <div className="relative flex flex-col items-center">
             <div className="h-10 w-px bg-gradient-to-b from-[var(--border-subtle)] to-transparent" />
-            <motion.div 
+            <motion.div
               className="absolute top-0 w-px h-5 bg-[var(--text-muted)]"
               animate={{
                 y: [0, 20, 0],

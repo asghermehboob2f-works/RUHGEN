@@ -29,8 +29,6 @@ import {
   ChevronUp,
   ChevronDown,
   Share2,
-  Eye,
-  Palette,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -73,19 +71,19 @@ const ASPECT_RATIOS = [
 
 /** Premium Aesthetic Styles */
 const AESTHETIC_STYLES = [
-  { id: "cinematic", label: "Cinematic", icon: Film, tag: "cinematic 35mm lighting, anamorphic lens flare, shallow depth of field" },
-  { id: "photorealistic", label: "Photorealistic", icon: Camera, tag: "photorealistic 8k, crisp detail, studio strobe lighting, ultra-realistic" },
-  { id: "editorial", label: "Editorial", icon: Eye, tag: "high-fashion editorial photography, Vogue magazine style, clean ambient light" },
-  { id: "minimal", label: "Minimal", icon: Palette, tag: "minimalist aesthetic, clean composition, soft pastel tones, negative space balance" },
-  { id: "anime", label: "Anime", icon: Sparkles, tag: "vibrant anime illustration style, detailed cell shading, Makoto Shinkai atmosphere" },
-  { id: "illustration", label: "Illustration", icon: Wand2, tag: "artistic digital illustration, stylized linework, rich painterly textures" },
-  { id: "3d", label: "3D", icon: Layers, tag: "octane 3D render, raytraced glass & metal, Unreal Engine 5 aesthetic" },
-  { id: "film", label: "Film", icon: Film, tag: "vintage 35mm film grain, Kodachrome color tone, nostalgic soft focus" },
-  { id: "fantasy", label: "Fantasy", icon: Zap, tag: "ethereal dark fantasy, glowing mystical particles, enchanted atmosphere" },
-  { id: "architecture", label: "Architecture", icon: Grid3x3, tag: "Architectural Digest interior, modern brutalist design, realistic raytracing" },
-  { id: "product", label: "Product Photography", icon: ImagePlus, tag: "commercial product photoshoot, studio key lighting, pristine background" },
-  { id: "portrait", label: "Portrait", icon: Camera, tag: "85mm portrait lens, Rembrandt studio lighting, sharp eye clarity" },
-  { id: "custom", label: "Custom", icon: SlidersHorizontal, tag: "" },
+  { id: "cinematic", label: "Cinematic", icon: "🎬", tag: "cinematic 35mm lighting, anamorphic lens flare, shallow depth of field" },
+  { id: "photorealistic", label: "Photorealistic", icon: "📷", tag: "photorealistic 8k, crisp detail, studio strobe lighting, ultra-realistic" },
+  { id: "editorial", label: "Editorial", icon: "📰", tag: "high-fashion editorial photography, Vogue magazine style, clean ambient light" },
+  { id: "minimal", label: "Minimal", icon: "🎨", tag: "minimalist aesthetic, clean composition, soft pastel tones, negative space balance" },
+  { id: "anime", label: "Anime", icon: "✨", tag: "vibrant anime illustration style, detailed cell shading, Makoto Shinkai atmosphere" },
+  { id: "illustration", label: "Illustration", icon: "🖌️", tag: "artistic digital illustration, stylized linework, rich painterly textures" },
+  { id: "3d", label: "3D", icon: "💎", tag: "octane 3D render, raytraced glass & metal, Unreal Engine 5 aesthetic" },
+  { id: "film", label: "Film", icon: "🎞️", tag: "vintage 35mm film grain, Kodachrome color tone, nostalgic soft focus" },
+  { id: "fantasy", label: "Fantasy", icon: "🔮", tag: "ethereal dark fantasy, glowing mystical particles, enchanted atmosphere" },
+  { id: "architecture", label: "Architecture", icon: "🏛️", tag: "Architectural Digest interior, modern brutalist design, realistic raytracing" },
+  { id: "product", label: "Product Photography", icon: "🛍️", tag: "commercial product photoshoot, studio key lighting, pristine background" },
+  { id: "portrait", label: "Portrait", icon: "👤", tag: "85mm portrait lens, Rembrandt studio lighting, sharp eye clarity" },
+  { id: "custom", label: "Custom", icon: "⚙️", tag: "" },
 ] as const;
 
 const CHAT_STORAGE_PREFIX = "ruhgen-image-studio-chat-v1:";
@@ -295,9 +293,6 @@ export default function ImageStudioClient() {
       const queryPrompt = params.get("prompt");
       if (queryPrompt) {
         setPrompt(queryPrompt);
-        setTimeout(() => {
-          imagePromptRef.current?.focus();
-        }, 100);
         const url = new URL(window.location.href);
         url.searchParams.delete("prompt");
         window.history.replaceState({}, "", url.toString());
@@ -485,31 +480,17 @@ export default function ImageStudioClient() {
     setPrompt("");
     setReferenceImageUrl(null);
     setBusy(true);
-    setMobileStudioPane("output");
-    if (typeof window !== "undefined") {
-      window.requestAnimationFrame(() => {
-        const canvasEl = document.getElementById("mobile-studio-canvas") || document.getElementById("studio-canvas-feed");
-        canvasEl?.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
-    }
-
-    const styleObj = AESTHETIC_STYLES.find((s) => s.id === selectedStyle);
-    const styleTag = styleObj?.tag || "";
-    let finalPrompt = p;
-    if (styleTag && !finalPrompt.toLowerCase().includes(styleTag.toLowerCase())) {
-      finalPrompt = `${finalPrompt}, ${styleTag}`;
-    }
 
     try {
       const { taskId } = await createImageTask({
-        prompt: finalPrompt,
+        prompt: p,
         quality: selectedTier,
         ...(refUrl
           ? {
-              image_url: refUrl,
-              denoise: refineGuidance,
-              ...(negTxt ? { negative_prompt: negTxt } : {}),
-            }
+            image_url: refUrl,
+            denoise: refineGuidance,
+            ...(negTxt ? { negative_prompt: negTxt } : {}),
+          }
           : { width: w, height: h, ...(negTxt ? { negative_prompt: negTxt } : {}) }),
       });
       void refreshUser();
@@ -524,12 +505,12 @@ export default function ImageStudioClient() {
           prev.map((m) =>
             m.id === asstId
               ? {
-                  ...m,
-                  loading: false,
-                  phase: "",
-                  urls: [],
-                  error: "Generation completed but no image frame was returned. Please retry.",
-                }
+                ...m,
+                loading: false,
+                phase: "",
+                urls: [],
+                error: "Generation completed but no image frame was returned. Please retry.",
+              }
               : m,
           ),
         );
@@ -557,434 +538,529 @@ export default function ImageStudioClient() {
   };
 
   const leftPanel = (
-    <div className="flex flex-col w-full h-full min-h-0 flex-1 overflow-hidden bg-[#121215]">
+    <div className="flex flex-col w-full max-lg:min-h-max lg:min-h-0 lg:flex-1 lg:overflow-hidden">
       <p className="sr-only">Press Enter to generate. Shift+Enter for a new line.</p>
-      <div className="p-2.5 sm:p-3 min-h-0 flex-1 overflow-y-auto studio-scrollbar overscroll-y-contain [-webkit-overflow-scrolling:touch] touch-pan-y">
-        <div className="rounded-xl border border-white/10 bg-[#121215] p-3 sm:p-3.5 shadow-sm space-y-3">
-            {/* Control Deck Header */}
-            <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2.5">
-              <div className="flex min-w-0 items-center gap-2.5">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/15 bg-zinc-800 text-zinc-100">
-                  <Wand2 className="h-4 w-4 text-zinc-200" strokeWidth={1.75} />
-                </span>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-400">RUHGEN Studio</p>
-                  </div>
-                  <p className="truncate font-display text-xs font-semibold text-zinc-100">Image Creation Panel</p>
+      <div className="p-2.5 sm:p-3 max-lg:min-h-max lg:studio-scrollbar lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-y-contain [-webkit-overflow-scrolling:touch] touch-pan-y">
+        <div className="rounded-2xl border border-white/10 bg-[#121420] p-3.5 sm:p-4 shadow-sm">
+          {/* Control Deck Header */}
+          <div className="mb-3 flex items-center justify-between gap-2 border-b border-white/[0.08] pb-2.5">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-400/35 to-[var(--primary-purple)]/45 ring-1 ring-white/20 shadow-[0_4px_16px_-4px_rgba(123,97,255,0.6)]">
+                <Wand2 className="h-4 w-4 text-violet-100" strokeWidth={2} />
+              </span>
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[var(--text-subtle)]">RUHGEN Studio</p>
+                  <span className="h-1.5 w-1.5 rounded-full bg-[var(--primary-purple)] animate-pulse" />
                 </div>
+                <p className="truncate font-display text-xs font-bold text-[var(--text-primary)]">Image Creation Panel</p>
               </div>
+            </div>
+            {referenceImageUrl ? (
+              <span className="shrink-0 rounded-full border border-violet-400/30 bg-violet-500/15 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-violet-200">
+                Ref Guided
+              </span>
+            ) : null}
+          </div>
+
+          {/* Slim Top RUHGEN Version Tier Selector */}
+          <div className="mb-3.5 rounded-xl border border-white/10 bg-black/50 p-1 shadow-inner">
+            <div className="mb-1 px-1.5 flex items-center justify-between text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
+              <span>RUHGEN Version</span>
+              <span className="text-[var(--primary-cyan)]">{selectedTier === "quality" ? "Premium (3 cr)" : "Standard (2 cr)"}</span>
+            </div>
+            <div className="grid grid-cols-2 gap-1" role="radiogroup" aria-label="RUHGEN Version Tier">
+              {RUHGEN_IMAGE_TIERS.map((tier) => {
+                const Icon = tier.icon;
+                const active = selectedTier === tier.id;
+                return (
+                  <button
+                    key={tier.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    disabled={busy}
+                    onClick={() => setSelectedTier(tier.id)}
+                    className={`flex items-center justify-center gap-1.5 rounded-lg py-1.5 px-2 text-[11px] font-bold transition-all cursor-pointer ${active
+                        ? "bg-gradient-to-r from-violet-600 to-[var(--primary-purple)] text-white shadow-[0_2px_10px_rgba(123,97,255,0.45)] ring-1 ring-white/20"
+                        : "text-[var(--text-muted)] hover:text-white hover:bg-white/[0.05]"
+                      }`}
+                  >
+                    <Icon className={`h-3 w-3 ${active ? "text-cyan-200" : "text-white/50"}`} />
+                    <span className="truncate">{tier.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {/* 1. REFERENCE IMAGE (Placed near top) */}
+            <div className="rounded-2xl border border-violet-500/25 bg-gradient-to-br from-violet-500/10 via-black/40 to-transparent p-3.5 shadow-sm">
+              <div className="mb-2 flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <ImagePlus className="h-3.5 w-3.5 text-violet-300" strokeWidth={2} />
+                  <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-violet-200">1. Reference Image</span>
+                </div>
+                <span className="text-[9px] font-semibold uppercase tracking-wider text-[var(--text-subtle)]">Optional</span>
+              </div>
+
+              <input
+                ref={refFileInput}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="sr-only"
+                tabIndex={-1}
+                disabled={busy || refUploading}
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  e.target.value = "";
+                  if (!f) return;
+                  setRefUploadError(null);
+                  setRefUploading(true);
+                  void uploadStudioReferenceImage(f)
+                    .then(({ url }) => {
+                      setReferenceImageUrl(url);
+                    })
+                    .catch((err: unknown) => setRefUploadError(err instanceof Error ? err.message : "Upload failed."))
+                    .finally(() => setRefUploading(false));
+                }}
+              />
+
               {referenceImageUrl ? (
-                <span className="shrink-0 rounded-md border border-white/20 bg-white/10 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-zinc-100">
-                  Ref Guided
-                </span>
-              ) : null}
+                <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/50 p-2">
+                  <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-violet-400/30 bg-black">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={referenceImageUrl} alt="Reference" className="h-full w-full object-cover" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-bold text-white">Active Reference</p>
+                    <p className="text-[10px] text-[var(--text-muted)]">Guides structure & composition</p>
+                  </div>
+                  <div className="flex flex-col gap-1 shrink-0">
+                    <button
+                      type="button"
+                      disabled={busy || refUploading}
+                      onClick={() => refFileInput.current?.click()}
+                      className="rounded-md border border-white/15 bg-white/5 px-2 py-1 text-[9px] font-bold uppercase text-white hover:bg-white/10 cursor-pointer"
+                    >
+                      Replace
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => setReferenceImageUrl(null)}
+                      className="rounded-md border border-rose-500/30 bg-rose-500/10 px-2 py-1 text-[9px] font-bold uppercase text-rose-300 hover:bg-rose-500/20 cursor-pointer"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  disabled={busy || refUploading}
+                  onClick={() => refFileInput.current?.click()}
+                  className="flex min-h-[46px] w-full flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-white/20 bg-white/[0.02] p-2.5 text-center transition-all hover:border-[var(--primary-purple)]/60 hover:bg-white/[0.05] cursor-pointer"
+                >
+                  {refUploading ? (
+                    <Loader2 className="h-4 w-4 animate-spin text-[var(--primary-purple)]" />
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <ImagePlus className="h-4 w-4 text-violet-300" />
+                      <span className="text-xs font-bold text-[var(--text-primary)]">Upload Reference Photo</span>
+                    </div>
+                  )}
+                  <span className="text-[10px] text-[var(--text-subtle)]">JPEG, PNG or WebP · Optional guide</span>
+                </button>
+              )}
+              {refUploadError ? <p className="mt-1.5 text-[10px] text-rose-300">{refUploadError}</p> : null}
             </div>
 
-            {/* Top Model / Version Tier Selector */}
-            <div className="rounded-lg border border-white/10 bg-zinc-900/90 p-1.5">
-              <div className="mb-1.5 px-1 flex items-center justify-between text-[9px] font-bold uppercase tracking-[0.14em] text-zinc-400">
-                <span>Select Model Tier</span>
-                <span className="text-zinc-200 font-semibold">{selectedTier === "quality" ? "Premium (3 cr)" : "Standard (2 cr)"}</span>
-              </div>
-              <div className="grid grid-cols-2 gap-1.5" role="radiogroup" aria-label="RUHGEN Version Tier">
-                {RUHGEN_IMAGE_TIERS.map((tier) => {
-                  const Icon = tier.icon;
-                  const active = selectedTier === tier.id;
+            {/* 2. ASPECT RATIO */}
+            <StudioCollapsible title="2. Aspect Ratio" defaultOpen>
+              <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6" role="radiogroup" aria-label="Aspect Ratio">
+                {ASPECT_RATIOS.map((item, idx) => {
+                  const on = selectedRatioIdx === idx;
                   return (
                     <button
-                      key={tier.id}
+                      key={item.id}
                       type="button"
                       role="radio"
-                      aria-checked={active}
+                      aria-checked={on}
                       disabled={busy}
-                      onClick={() => setSelectedTier(tier.id)}
-                      className={`flex items-center justify-center gap-1.5 rounded-md py-2 px-2.5 text-[11px] font-medium transition-all cursor-pointer ${
-                        active
-                          ? "bg-white/10 text-white border border-white/25 shadow-[0_2px_10px_rgba(255,255,255,0.08)] font-semibold"
-                          : "text-zinc-400 hover:text-white hover:bg-white/[0.04] border border-transparent"
-                      }`}
+                      onClick={() => setSelectedRatioIdx(idx)}
+                      className={`flex flex-col items-center justify-center gap-1.5 rounded-xl border py-2 px-1.5 text-center transition-all cursor-pointer ${on
+                          ? "border-white/30 bg-white/15 text-white shadow-sm ring-1 ring-white/20 font-semibold"
+                          : "border-white/[0.08] bg-white/[0.03] text-slate-400 hover:border-white/20 hover:text-white"
+                        }`}
                     >
-                      <Icon className={`h-3.5 w-3.5 ${active ? "text-white" : "text-zinc-500"}`} />
-                      <span className="truncate">{tier.label}</span>
+                      <div className="flex h-5 items-center justify-center">
+                        <div
+                          className={`rounded-[2px] border-2 transition-all ${on ? "border-white bg-white/35 shadow-[0_0_8px_rgba(255,255,255,0.3)]" : "border-white/40"
+                            }`}
+                          style={{ width: `${item.iconW}px`, height: `${item.iconH}px` }}
+                        />
+                      </div>
+                      <div className="leading-none">
+                        <p className="font-mono text-[11px] font-bold text-white">{item.ratio}</p>
+                        <p className="mt-0.5 text-[9px] font-medium text-slate-400">{item.label}</p>
+                      </div>
                     </button>
                   );
                 })}
               </div>
-            </div>
+            </StudioCollapsible>
 
-            <div className="space-y-3">
-              {/* 1. REFERENCE IMAGE */}
-              <div className="rounded-lg border border-white/10 bg-zinc-900/60 p-3">
-                <div className="mb-2 flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <ImagePlus className="h-3.5 w-3.5 text-zinc-300" strokeWidth={1.75} />
-                    <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-300">1. Reference Image</span>
+            {/* 3. PROMPT INTELLIGENCE */}
+            <StudioCollapsible title="3. Prompt Intelligence" subtitle="Interactive prompt refinement & detailed descriptors" defaultOpen>
+              <div className="space-y-3">
+                {[
+                  {
+                    category: "Lighting & Atmosphere",
+                    items: [
+                      {
+                        label: "cinematic volumetric rays",
+                        value: "cinematic volumetric rays piercing through ambient atmospheric haze, god rays, intense radiance",
+                      },
+                      {
+                        label: "dramatic chiaroscuro lighting",
+                        value: "dramatic chiaroscuro lighting, deep Rembrandt shadows, high contrast light and dark balance",
+                      },
+                      {
+                        label: "golden hour soft radiance",
+                        value: "golden hour warm sunlight, soft diffuse glow, amber atmospheric illumination",
+                      },
+                      {
+                        label: "bioluminescent ambient glow",
+                        value: "bioluminescent cyan and violet ambient glow, ethereal neon luminescence, subtle light leaks",
+                      },
+                      {
+                        label: "studio rim lighting & softbox",
+                        value: "professional studio 3-point rim lighting, softbox illumination, crisp highlight edges",
+                      },
+                      {
+                        label: "moody neon reflections",
+                        value: "moody cybernetic neon reflections, wet asphalt sheen, vibrant dark night ambiance",
+                      },
+                    ],
+                  },
+                  {
+                    category: "Camera & Optics",
+                    items: [
+                      {
+                        label: "35mm anamorphic lens",
+                        value: "shot on 35mm anamorphic lens, subtle horizontal lens flare, oval bokeh, cinema scope depth",
+                      },
+                      {
+                        label: "shallow depth of field",
+                        value: "ultra shallow depth of field, f/1.4 aperture, creamy background blur, sharp subject isolation",
+                      },
+                      {
+                        label: "macro texture detail",
+                        value: "macro lens micro-texture clarity, extreme close-up detail, razor sharp surface focus",
+                      },
+                      {
+                        label: "85mm portrait focal clarity",
+                        value: "shot on 85mm prime lens, flattering portrait compression, crystal clear focal sharpness",
+                      },
+                      {
+                        label: "wide-angle cinematic scope",
+                        value: "16mm ultra wide-angle lens, expansive grand scale perspective, cinematic horizon framing",
+                      },
+                      {
+                        label: "crisp optical bokeh",
+                        value: "luminous circular optical bokeh, multi-layered background depth, crystal glass clarity",
+                      },
+                    ],
+                  },
+                  {
+                    category: "Quality & Resolution",
+                    items: [
+                      {
+                        label: "8k uhd photorealistic",
+                        value: "8k UHD resolution, hyperrealistic masterwork, 32k texture fidelity, photorealistic depth",
+                      },
+                      {
+                        label: "unreal engine 5 render",
+                        value: "unreal engine 5 render, lumen global illumination, nanite detail, cinematic CG masterpiece",
+                      },
+                      {
+                        label: "octane 3d raytraced",
+                        value: "octane render, 3D path-traced reflections, physically accurate materials, studio quality",
+                      },
+                      {
+                        label: "hyper-detailed micro texture",
+                        value: "hyper-detailed skin and surface micro textures, pore level precision, zero noise clarity",
+                      },
+                      {
+                        label: "masterpiece clarity",
+                        value: "trending on artstation, masterpiece, award-winning visual craftsmanship, peak aesthetic quality",
+                      },
+                      {
+                        label: "award winning photography",
+                        value: "National Geographic award winning photography, raw unedited realism, authentic lighting",
+                      },
+                    ],
+                  },
+                  {
+                    category: "Composition & Mood",
+                    items: [
+                      {
+                        label: "architectural symmetrical framing",
+                        value: "architectural symmetrical composition, perfect geometric balance, clean leading lines",
+                      },
+                      {
+                        label: "moody dark elegance",
+                        value: "moody obsidian dark elegance, luxury velvet tone, rich deep shadow gradient",
+                      },
+                      {
+                        label: "vibrant regal color grading",
+                        value: "vibrant regal color grading, royal indigo and gold accents, color calibrated balance",
+                      },
+                      {
+                        label: "subtle metallic sheen",
+                        value: "subtle polished metallic sheen, specular reflections, refined titanium glass finish",
+                      },
+                      {
+                        label: "film grain cinema texture",
+                        value: "subtle 35mm film grain texture, analog cinematic aesthetic, Kodak Portra 400 color science",
+                      },
+                      {
+                        label: "rule of thirds composition",
+                        value: "masterful rule of thirds composition, dynamic visual weight, cinematic storytelling angle",
+                      },
+                    ],
+                  },
+                ].map((group) => (
+                  <div key={group.category} className="space-y-1.5">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-300/80">
+                      {group.category}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {group.items.map((item) => (
+                        <button
+                          key={item.label}
+                          type="button"
+                          disabled={busy}
+                          onClick={() => {
+                            setPrompt((prev) => {
+                              const trimmed = prev.trim();
+                              if (!trimmed) return item.value;
+                              if (trimmed.toLowerCase().includes(item.value.toLowerCase()) || trimmed.toLowerCase().includes(item.label.toLowerCase())) {
+                                return trimmed;
+                              }
+                              return `${trimmed}, ${item.value}`;
+                            });
+                          }}
+                          className="rounded-lg border border-white/12 bg-white/[0.04] px-2.5 py-1 text-[10px] font-semibold text-slate-300 transition-all hover:border-indigo-400/60 hover:bg-indigo-500/20 hover:text-white cursor-pointer disabled:opacity-40"
+                          title={`Inserts: "${item.value}"`}
+                        >
+                          + {item.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  <span className="text-[9px] font-semibold uppercase tracking-wider text-zinc-500">Optional</span>
-                </div>
-                
-                <input
-                  ref={refFileInput}
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  className="sr-only"
-                  tabIndex={-1}
-                  disabled={busy || refUploading}
-                  onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    e.target.value = "";
-                    if (!f) return;
-                    setRefUploadError(null);
-                    setRefUploading(true);
-                    void uploadStudioReferenceImage(f)
-                      .then(({ url }) => {
-                        setReferenceImageUrl(url);
-                      })
-                      .catch((err: unknown) => setRefUploadError(err instanceof Error ? err.message : "Upload failed."))
-                      .finally(() => setRefUploading(false));
-                  }}
-                />
-
-                {referenceImageUrl ? (
-                  <div className="flex items-center gap-3 rounded-lg border border-white/15 bg-zinc-900 p-2">
-                    <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md border border-white/20 bg-black">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={referenceImageUrl} alt="Reference" className="h-full w-full object-cover" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-semibold text-white">Active Reference</p>
-                      <p className="text-[10px] text-zinc-400">Guides structure & composition</p>
-                    </div>
-                    <div className="flex flex-col gap-1 shrink-0">
-                      <button
-                        type="button"
-                        disabled={busy || refUploading}
-                        onClick={() => refFileInput.current?.click()}
-                        className="rounded-md border border-white/15 bg-zinc-800 px-2 py-1 text-[9px] font-semibold uppercase text-zinc-200 hover:bg-zinc-700 cursor-pointer"
-                      >
-                        Replace
-                      </button>
-                      <button
-                        type="button"
-                        disabled={busy}
-                        onClick={() => setReferenceImageUrl(null)}
-                        className="rounded-md border border-rose-500/30 bg-rose-500/10 px-2 py-1 text-[9px] font-semibold uppercase text-rose-300 hover:bg-rose-500/20 cursor-pointer"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    disabled={busy || refUploading}
-                    onClick={() => refFileInput.current?.click()}
-                    className="flex min-h-[44px] w-full flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-white/15 bg-zinc-950/50 p-2 text-center transition-all hover:border-white/30 hover:bg-zinc-900 cursor-pointer"
-                  >
-                    {refUploading ? (
-                      <Loader2 className="h-4 w-4 animate-spin text-zinc-300" />
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <ImagePlus className="h-4 w-4 text-zinc-300" />
-                        <span className="text-xs font-semibold text-zinc-200">Upload Reference Photo</span>
-                      </div>
-                    )}
-                    <span className="text-[10px] text-zinc-400">JPEG, PNG or WebP · Optional guide</span>
-                  </button>
-                )}
-                {refUploadError ? <p className="mt-1.5 text-[10px] text-rose-300">{refUploadError}</p> : null}
+                ))}
               </div>
+            </StudioCollapsible>
 
-              {/* 2. ASPECT RATIO */}
-              <StudioCollapsible title="2. Aspect Ratio" defaultOpen={false}>
-                <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6" role="radiogroup" aria-label="Aspect Ratio">
-                  {ASPECT_RATIOS.map((item, idx) => {
-                    const on = selectedRatioIdx === idx;
-                    return (
-                      <button
-                        key={item.id}
-                        type="button"
-                        role="radio"
-                        aria-checked={on}
-                        disabled={busy}
-                        onClick={() => setSelectedRatioIdx(idx)}
-                        className={`flex flex-col items-center justify-center gap-1.5 rounded-lg border py-2 px-1.5 text-center transition-all cursor-pointer ${
-                          on
-                            ? "border-white/25 bg-white/10 text-white shadow-[0_2px_10px_rgba(255,255,255,0.08)] font-semibold"
-                            : "border-white/10 bg-zinc-900 text-zinc-400 hover:border-white/20 hover:text-white"
+            {/* 4. NEGATIVE PROMPT */}
+            <StudioCollapsible title="4. Negative Prompt" subtitle="Optional elements to exclude from synthesis" defaultOpen={false}>
+              <div>
+                <div className="mb-1 flex items-center justify-between">
+                  <label htmlFor="img-neg" className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
+                    Unwanted Elements
+                  </label>
+                  <span className="tabular-nums text-[9px] text-[var(--text-subtle)]">{negativePrompt.length}/2000</span>
+                </div>
+                <textarea
+                  id="img-neg"
+                  value={negativePrompt}
+                  onChange={(e) => setNegativePrompt(e.target.value.slice(0, 2000))}
+                  disabled={busy}
+                  placeholder="Describe unwanted objects, text, watermarks, blurry details, deformities…"
+                  rows={2}
+                  className="w-full resize-none rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-xs outline-none transition-all focus:border-[var(--primary-purple)]/60 focus:ring-1 focus:ring-[var(--primary-purple)]/20"
+                  style={{ color: "var(--text-primary)" }}
+                />
+              </div>
+            </StudioCollapsible>
+
+            {/* 5. AESTHETIC STYLES */}
+            <StudioCollapsible title="5. Aesthetic Styles" subtitle="Curated visual directions & rendering engines" defaultOpen>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                {AESTHETIC_STYLES.map((st) => {
+                  const active = selectedStyle === st.id;
+                  return (
+                    <button
+                      key={st.id}
+                      type="button"
+                      disabled={busy}
+                      onClick={() => setSelectedStyle(st.id)}
+                      className={`flex items-center gap-1.5 rounded-lg border px-2 py-1.5 text-left transition-all cursor-pointer ${active
+                          ? "border-[var(--primary-purple)] bg-[var(--primary-purple)]/20 text-white shadow-[0_2px_8px_rgba(123,97,255,0.4)]"
+                          : "border-white/[0.06] bg-white/[0.02] text-[var(--text-muted)] hover:border-white/20 hover:text-white"
                         }`}
-                      >
-                        <div className="flex h-5 items-center justify-center">
-                          <div
-                            className={`rounded-[2px] border-2 transition-all ${
-                              on ? "border-white bg-zinc-700" : "border-zinc-500"
-                            }`}
-                            style={{ width: `${item.iconW}px`, height: `${item.iconH}px` }}
-                          />
-                        </div>
-                        <div className="leading-none">
-                          <p className="font-mono text-[11px] font-bold text-white">{item.ratio}</p>
-                          <p className="mt-0.5 text-[9px] font-medium text-zinc-400">{item.label}</p>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </StudioCollapsible>
+                    >
+                      <span className="text-xs">{st.icon}</span>
+                      <span className="truncate text-[10px] font-bold tracking-tight">{st.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </StudioCollapsible>
 
-              {/* 3. PROMPT INTELLIGENCE */}
-              <StudioCollapsible title="3. Prompt Intelligence" subtitle="Interactive prompt refinement & detailed descriptors" defaultOpen={false}>
-                <div className="space-y-3">
-                  {[
-                    {
-                      category: "Lighting & Atmosphere",
-                      items: [
-                        {
-                          label: "cinematic volumetric rays",
-                          value: "cinematic volumetric rays piercing through ambient atmospheric haze, god rays, intense radiance",
-                        },
-                        {
-                          label: "dramatic chiaroscuro lighting",
-                          value: "dramatic chiaroscuro lighting, deep Rembrandt shadows, high contrast light and dark balance",
-                        },
-                        {
-                          label: "golden hour soft radiance",
-                          value: "golden hour warm sunlight, soft diffuse glow, amber atmospheric illumination",
-                        },
-                        {
-                          label: "bioluminescent ambient glow",
-                          value: "bioluminescent cyan and violet ambient glow, ethereal neon luminescence, subtle light leaks",
-                        },
-                        {
-                          label: "studio rim lighting & softbox",
-                          value: "professional studio 3-point rim lighting, softbox illumination, crisp highlight edges",
-                        },
-                        {
-                          label: "moody neon reflections",
-                          value: "moody cybernetic neon reflections, wet asphalt sheen, vibrant dark night ambiance",
-                        },
-                      ],
-                    },
-                    {
-                      category: "Camera & Optics",
-                      items: [
-                        {
-                          label: "35mm anamorphic lens",
-                          value: "shot on 35mm anamorphic lens, subtle horizontal lens flare, oval bokeh, cinema scope depth",
-                        },
-                        {
-                          label: "shallow depth of field",
-                          value: "ultra shallow depth of field, f/1.4 aperture, creamy background blur, sharp subject isolation",
-                        },
-                        {
-                          label: "macro texture detail",
-                          value: "macro lens micro-texture clarity, extreme close-up detail, razor sharp surface focus",
-                        },
-                        {
-                          label: "85mm portrait focal clarity",
-                          value: "shot on 85mm prime lens, flattering portrait compression, crystal clear focal sharpness",
-                        },
-                        {
-                          label: "wide-angle cinematic scope",
-                          value: "16mm ultra wide-angle lens, expansive grand scale perspective, cinematic horizon framing",
-                        },
-                        {
-                          label: "crisp optical bokeh",
-                          value: "luminous circular optical bokeh, multi-layered background depth, crystal glass clarity",
-                        },
-                      ],
-                    },
-                    {
-                      category: "Quality & Resolution",
-                      items: [
-                        {
-                          label: "8k uhd photorealistic",
-                          value: "8k UHD resolution, hyperrealistic masterwork, 32k texture fidelity, photorealistic depth",
-                        },
-                        {
-                          label: "unreal engine 5 render",
-                          value: "unreal engine 5 render, lumen global illumination, nanite detail, cinematic CG masterpiece",
-                        },
-                        {
-                          label: "octane 3d raytraced",
-                          value: "octane render, 3D path-traced reflections, physically accurate materials, studio quality",
-                        },
-                        {
-                          label: "hyper-detailed micro texture",
-                          value: "hyper-detailed skin and surface micro textures, pore level precision, zero noise clarity",
-                        },
-                        {
-                          label: "masterpiece clarity",
-                          value: "trending on artstation, masterpiece, award-winning visual craftsmanship, peak aesthetic quality",
-                        },
-                        {
-                          label: "award winning photography",
-                          value: "National Geographic award winning photography, raw unedited realism, authentic lighting",
-                        },
-                      ],
-                    },
-                    {
-                      category: "Composition & Mood",
-                      items: [
-                        {
-                          label: "architectural symmetrical framing",
-                          value: "architectural symmetrical composition, perfect geometric balance, clean leading lines",
-                        },
-                        {
-                          label: "moody dark elegance",
-                          value: "moody obsidian dark elegance, luxury velvet tone, rich deep shadow gradient",
-                        },
-                        {
-                          label: "vibrant regal color grading",
-                          value: "vibrant regal color grading, royal indigo and gold accents, color calibrated balance",
-                        },
-                        {
-                          label: "subtle metallic sheen",
-                          value: "subtle polished metallic sheen, specular reflections, refined titanium glass finish",
-                        },
-                        {
-                          label: "film grain cinema texture",
-                          value: "subtle 35mm film grain texture, analog cinematic aesthetic, Kodak Portra 400 color science",
-                        },
-                        {
-                          label: "rule of thirds composition",
-                          value: "masterful rule of thirds composition, dynamic visual weight, cinematic storytelling angle",
-                        },
-                      ],
-                    },
-                  ].map((group) => (
-                    <div key={group.category} className="space-y-1.5">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                        {group.category}
-                      </p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {group.items.map((item) => (
-                          <button
-                            key={item.label}
-                            type="button"
-                            disabled={busy}
-                            onClick={() => {
-                              setPrompt((prev) => {
-                                const trimmed = prev.trim();
-                                if (!trimmed) return item.value;
-                                if (trimmed.toLowerCase().includes(item.value.toLowerCase()) || trimmed.toLowerCase().includes(item.label.toLowerCase())) {
-                                  return trimmed;
-                                }
-                                return `${trimmed}, ${item.value}`;
-                              });
-                            }}
-                            className="rounded-md border border-white/10 bg-zinc-900 px-2 py-1 text-[10px] font-medium text-zinc-300 transition-colors hover:border-white/20 hover:bg-zinc-800 hover:text-white cursor-pointer disabled:opacity-40"
-                            title={`Inserts: "${item.value}"`}
-                          >
-                            + {item.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </StudioCollapsible>
-
-              {/* 4. NEGATIVE PROMPT */}
-              <StudioCollapsible title="4. Negative Prompt" subtitle="Optional elements to exclude from synthesis" defaultOpen={false}>
+            {/* 6. GENERATION SETTINGS */}
+            {isEdit ? (
+              <StudioCollapsible title="6. Generation Settings" subtitle="Reference influence & guidance" defaultOpen>
                 <div>
-                  <div className="mb-1 flex items-center justify-between">
-                    <label htmlFor="img-neg" className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">
-                      Unwanted Elements
+                  <div className="flex items-center justify-between">
+                    <label htmlFor="refine-guidance" className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
+                      Reference Influence Strength
                     </label>
-                    <span className="tabular-nums text-[9px] text-zinc-500">{negativePrompt.length}/2000</span>
+                    <span className="font-mono text-[10px] font-bold text-[var(--primary-cyan)]">
+                      {Math.round(refineGuidance * 100)}%
+                    </span>
                   </div>
-                  <textarea
-                    id="img-neg"
-                    value={negativePrompt}
-                    onChange={(e) => setNegativePrompt(e.target.value.slice(0, 2000))}
+                  <input
+                    id="refine-guidance"
+                    type="range"
+                    min={0.2}
+                    max={0.9}
+                    step={0.05}
+                    value={refineGuidance}
+                    onChange={(e) => setRefineGuidance(Number(e.target.value))}
                     disabled={busy}
-                    autoComplete="off"
-                    spellCheck={false}
-                    placeholder="Describe unwanted objects, text, watermarks, blurry details, deformities…"
-                    rows={2}
-                    className="w-full resize-none rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-xs text-zinc-100 outline-none transition-colors focus:border-white/20 focus:ring-1 focus:ring-zinc-400"
+                    className="studio-range-premium mt-2 w-full cursor-pointer"
                   />
                 </div>
               </StudioCollapsible>
+            ) : null}
+          </div>
+        </div>
+      </div>
 
-              {/* 5. AESTHETIC STYLES */}
-              <StudioCollapsible title="5. Aesthetic Styles" subtitle="Curated visual directions & rendering engines" defaultOpen={false}>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-                  {AESTHETIC_STYLES.map((st) => {
-                    const active = selectedStyle === st.id;
-                    const Icon = st.icon;
-                    return (
-                      <button
-                        key={st.id}
-                        type="button"
-                        disabled={busy}
-                        onClick={() => setSelectedStyle(st.id)}
-                        className={`flex items-center gap-2 rounded-md border px-2.5 py-2 text-left transition-all cursor-pointer ${
-                          active
-                            ? "border-white/20 bg-white/10 text-white font-semibold shadow-sm"
-                            : "border-white/10 bg-zinc-900 text-zinc-400 hover:border-white/20 hover:text-white hover:bg-zinc-800/60"
-                        }`}
-                      >
-                        <Icon className={`h-3.5 w-3.5 shrink-0 ${active ? "text-white" : "text-zinc-500"}`} strokeWidth={1.75} />
-                        <span className="truncate text-[10px] font-bold tracking-tight">{st.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </StudioCollapsible>
+      {/* Sticky desktop prompt + generate (Section 8: Generation Area) */}
+      <div
+        className="hidden shrink-0 border-t px-3 pb-3 pt-3 backdrop-blur-xl lg:block"
+        style={{
+          borderColor: "color-mix(in srgb, white 8%, transparent)",
+          background:
+            "linear-gradient(180deg, color-mix(in srgb, var(--deep-black) 55%, transparent) 0%, color-mix(in srgb, var(--deep-black) 88%, transparent) 100%)",
+        }}
+      >
+        {/* Tier & Credit Summary */}
+        <div className="mb-2.5 flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.02] px-3 py-1.5 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="text-[var(--text-muted)]">Active Tier:</span>
+            <span className="font-display font-bold text-white flex items-center gap-1">
+              <Sparkles className="h-3 w-3 text-[var(--primary-cyan)]" />
+              {activeTierObj.label}
+            </span>
+          </div>
+          <div className="flex items-center gap-4 text-[var(--text-muted)]">
+            <span>
+              Available: <strong className="text-[var(--text-primary)] tabular-nums">{user?.availableCredits ?? user?.credits ?? 0}</strong>
+            </span>
+            <span>
+              Cost: <strong className={((user?.availableCredits ?? user?.credits ?? 0) < currentCost) ? "text-rose-400 font-bold" : "text-[#00D4FF] font-bold"}>{currentCost} credits</strong>
+            </span>
+          </div>
+        </div>
 
-              {/* 6. GENERATION SETTINGS */}
-              {isEdit ? (
-                <StudioCollapsible title="6. Generation Settings" subtitle="Reference influence & guidance" defaultOpen={false}>
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <label htmlFor="refine-guidance" className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">
-                        Reference Influence Strength
-                      </label>
-                      <span className="font-mono text-[10px] font-bold text-zinc-200">
-                        {Math.round(refineGuidance * 100)}%
-                      </span>
-                    </div>
-                    <input
-                      id="refine-guidance"
-                      type="range"
-                      min={0.2}
-                      max={0.9}
-                      step={0.05}
-                      value={refineGuidance}
-                      onChange={(e) => setRefineGuidance(Number(e.target.value))}
-                      disabled={busy}
-                      className="studio-range-premium mt-2 w-full cursor-pointer"
-                    />
-                  </div>
-                </StudioCollapsible>
-              ) : null}
+        <div className="mb-1.5 flex items-center justify-between gap-2">
+          <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--text-muted)]">Image Prompt</span>
+          <span className="text-[10px] tabular-nums text-[var(--text-subtle)]">{prompt.length}</span>
+        </div>
+        <div
+          className="studio-prompt-focus-image relative flex items-center gap-2 rounded-xl border border-border bg-card/65 px-3 py-2 transition-shadow"
+          style={{ boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)" }}
+        >
+          <label className="sr-only" htmlFor="img-prompt">Prompt</label>
+          <textarea
+            ref={imagePromptRef}
+            id="img-prompt"
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder={isEdit ? "Describe modifications to the reference image…" : "Describe your image concept in detail…"}
+            rows={2}
+            disabled={busy}
+            className="no-scrollbar max-h-[160px] min-h-[44px] w-full resize-none bg-transparent text-sm leading-relaxed outline-none placeholder:text-[var(--text-subtle)] sm:text-[14px]"
+            style={{ color: "var(--text-primary)", scrollbarWidth: "none" }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                void run();
+              }
+            }}
+          />
+
+          {/* Up / Down Arrow Glass Buttons - Only visible when text is long */}
+          {prompt.length > 70 ? (
+            <div className="flex flex-col gap-1 shrink-0 select-none transition-opacity duration-200">
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => {
+                  if (imagePromptRef.current) {
+                    imagePromptRef.current.scrollTop -= 32;
+                  }
+                }}
+                className="flex h-5 w-5 items-center justify-center rounded-md border border-white/12 bg-white/[0.05] text-slate-300 transition-all hover:border-indigo-400/60 hover:bg-indigo-500/25 hover:text-white active:scale-95 cursor-pointer disabled:opacity-30"
+                title="Scroll Up"
+                aria-label="Scroll Up"
+              >
+                <ChevronUp className="h-3 w-3" strokeWidth={2.5} />
+              </button>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => {
+                  if (imagePromptRef.current) {
+                    imagePromptRef.current.scrollTop += 32;
+                  }
+                }}
+                className="flex h-5 w-5 items-center justify-center rounded-md border border-white/12 bg-white/[0.05] text-slate-300 transition-all hover:border-indigo-400/60 hover:bg-indigo-500/25 hover:text-white active:scale-95 cursor-pointer disabled:opacity-30"
+                title="Scroll Down"
+                aria-label="Scroll Down"
+              >
+                <ChevronDown className="h-3 w-3" strokeWidth={2.5} />
+              </button>
             </div>
-          </div>
+          ) : null}
         </div>
-
-      {/* Sticky Parameters Summary Footer */}
-      <div className="shrink-0 border-t border-white/10 bg-[#121215] p-3">
-        <div className="flex items-center justify-between gap-2 rounded-xl border border-white/10 bg-zinc-900/90 px-3 py-2 text-xs text-zinc-300">
-          <div className="flex items-center gap-2 shrink-0">
-            <span className="font-display font-semibold text-white flex items-center gap-1.5 text-xs">
-              <Sparkles className="h-3.5 w-3.5 text-cyan-300" />
-              {selectedTier === "quality" ? "Premium Tier" : "Standard Tier"}
-            </span>
-            <span className="text-zinc-600">|</span>
-            <span className="text-zinc-200 font-medium">{ASPECT_RATIOS[selectedRatioIdx]?.ratio || "1:1"}</span>
-          </div>
-          <div className="flex items-center gap-2 shrink-0 text-xs text-zinc-400">
-            <span>
-              Credits: <strong className="text-zinc-100 tabular-nums">{user?.availableCredits ?? user?.credits ?? 0}</strong>
-            </span>
-            <span>
-              Cost: <strong className={((user?.availableCredits ?? user?.credits ?? 0) < currentCost) ? "text-rose-400 font-bold" : "text-emerald-400 font-bold"}>{currentCost} cr</strong>
-            </span>
-          </div>
+        <div className="mt-2.5">
+          <StudioGlowGenerate
+            tone="purple"
+            size="lg"
+            disabled={busy || prompt.trim().length < 2 || Boolean(user?.generationDisabled) || (user?.availableCredits ?? user?.credits ?? 0) < currentCost}
+            onClick={() => void run()}
+          >
+            {busy ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin text-violet-200" />
+                <span className="font-semibold tracking-wide">Synthesizing Image…</span>
+              </>
+            ) : user?.generationDisabled ? (
+              <>
+                <X className="h-4 w-4 text-rose-300" strokeWidth={2} />
+                <span className="font-semibold tracking-wide">Access Disabled</span>
+              </>
+            ) : (user?.availableCredits ?? user?.credits ?? 0) < currentCost ? (
+              <>
+                <X className="h-4 w-4 text-rose-300" strokeWidth={2} />
+                <span className="font-semibold tracking-wide">Insufficient Credits</span>
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4 text-white" strokeWidth={2.2} />
+                <span className="font-medium tracking-wide text-white">Generate Image</span>
+              </>
+            )}
+          </StudioGlowGenerate>
         </div>
+        <p className="mt-1.5 text-center text-[10px] text-[var(--text-subtle)]">Enter to generate · Shift+Enter for line break</p>
       </div>
     </div>
   );
@@ -1016,9 +1092,8 @@ export default function ImageStudioClient() {
         ) : null}
 
         <div
-          className={`flex min-h-0 flex-1 flex-col gap-2 ${
-            showCanvasDock ? "min-h-0 overflow-y-auto overscroll-contain" : "overflow-hidden"
-          }`}
+          className={`flex min-h-0 flex-1 flex-col gap-2 ${showCanvasDock ? "min-h-0 overflow-y-auto overscroll-contain" : "overflow-hidden"
+            }`}
         >
           <div className="luxury-glass-panel flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl">
             <div
@@ -1037,15 +1112,31 @@ export default function ImageStudioClient() {
                   {messages.length === 0 ? "Awaiting your creative prompt" : `${galleryItems.length} frame${galleryItems.length === 1 ? "" : "s"} generated`}
                 </p>
               </div>
+              {studioView === "feed" ? (
+                <div className="hidden shrink-0 items-center gap-1 sm:flex">
+                  {(["all", "running", "ready"] as const).map((f) => (
+                    <button
+                      key={f}
+                      type="button"
+                      onClick={() => setFeedFilter(f)}
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide transition-all ${feedFilter === f
+                          ? "bg-[#7B61FF]/25 text-[var(--text-primary)] ring-1 ring-[#7B61FF]/40"
+                          : "border border-border bg-card/35 text-[var(--text-muted)] hover:border-border/80"
+                        }`}
+                    >
+                      {f === "all" ? "All" : f === "running" ? "Live" : "Ready"}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
               <div className="flex shrink-0 items-center gap-1 rounded-lg border border-border bg-card/45 p-0.5">
                 <button
                   type="button"
                   onClick={() => setStudioView("feed")}
                   aria-pressed={studioView === "feed"}
                   aria-label="Feed view"
-                  className={`inline-flex h-7 items-center gap-1 rounded-md px-1.5 text-[10px] font-bold uppercase tracking-wide transition-all ${
-                    studioView === "feed" ? "bg-[color-mix(in_srgb,var(--text-primary)_12%,transparent)] text-[var(--text-primary)] shadow-inner" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                  }`}
+                  className={`inline-flex h-7 items-center gap-1 rounded-md px-1.5 text-[10px] font-bold uppercase tracking-wide transition-all ${studioView === "feed" ? "bg-[color-mix(in_srgb,var(--text-primary)_12%,transparent)] text-[var(--text-primary)] shadow-inner" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                    }`}
                 >
                   <List className="h-3.5 w-3.5" strokeWidth={2} />
                 </button>
@@ -1054,9 +1145,8 @@ export default function ImageStudioClient() {
                   onClick={() => setStudioView("gallery")}
                   aria-pressed={studioView === "gallery"}
                   aria-label="Gallery view"
-                  className={`inline-flex h-7 items-center gap-1 rounded-md px-1.5 text-[10px] font-bold uppercase tracking-wide transition-all ${
-                    studioView === "gallery" ? "bg-[color-mix(in_srgb,var(--text-primary)_12%,transparent)] text-[var(--text-primary)] shadow-inner" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                  }`}
+                  className={`inline-flex h-7 items-center gap-1 rounded-md px-1.5 text-[10px] font-bold uppercase tracking-wide transition-all ${studioView === "gallery" ? "bg-[color-mix(in_srgb,var(--text-primary)_12%,transparent)] text-[var(--text-primary)] shadow-inner" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                    }`}
                 >
                   <Grid3x3 className="h-3.5 w-3.5" strokeWidth={2} />
                 </button>
@@ -1077,6 +1167,23 @@ export default function ImageStudioClient() {
                 {chrome.collapsed ? <PanelLeft className="h-3.5 w-3.5" strokeWidth={2} /> : <PanelLeftClose className="h-3.5 w-3.5" strokeWidth={2} />}
               </button>
             </div>
+            {studioView === "feed" ? (
+              <div className="flex shrink-0 items-center gap-1 border-b border-border/30 px-3 py-1.5 sm:hidden">
+                {(["all", "running", "ready"] as const).map((f) => (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => setFeedFilter(f)}
+                    className={`flex-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide transition-all ${feedFilter === f
+                        ? "bg-[#7B61FF]/25 text-[var(--text-primary)] ring-1 ring-[#7B61FF]/40"
+                        : "border border-border bg-card/35 text-[var(--text-muted)]"
+                      }`}
+                  >
+                    {f === "all" ? "All" : f === "running" ? "Live" : "Ready"}
+                  </button>
+                ))}
+              </div>
+            ) : null}
             <div
               ref={scrollRef}
               className="studio-scrollbar min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain [-webkit-overflow-scrolling:touch] touch-pan-y px-3 py-3 sm:px-4"
@@ -1115,16 +1222,18 @@ export default function ImageStudioClient() {
                   </div>
                 )
               ) : messages.length === 0 ? (
-                <div className="flex min-h-[300px] flex-col items-center justify-center gap-4 py-14 text-center select-none">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] shadow-2xl backdrop-blur-xl">
-                    <Sparkles className="h-7 w-7 text-zinc-200" strokeWidth={1.5} />
-                  </div>
-                  <div className="max-w-sm space-y-1 px-4">
-                    <h3 className="font-display text-lg font-bold tracking-tight text-zinc-100 sm:text-xl">
-                      RUHGEN Image Studio
-                    </h3>
-                    <p className="text-xs leading-relaxed text-zinc-400 sm:text-[13px]">
-                      Select your desired parameters in Controls or enter a prompt directly below to start generating images.
+                <div className="flex min-h-[240px] flex-col items-center justify-center gap-5 py-12 text-center">
+                  <motion.div
+                    initial={reduce ? false : { scale: 0.92, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="relative flex h-24 w-24 items-center justify-center rounded-3xl border border-violet-400/30 bg-gradient-to-br from-violet-600/40 via-[var(--deep-black)] to-cyan-500/25 shadow-[0_0_80px_-24px_rgba(123,97,255,0.65)]"
+                  >
+                    <Sparkles className="h-10 w-10 text-cyan-200" strokeWidth={1.5} />
+                  </motion.div>
+                  <div className="max-w-md space-y-2 px-2">
+                    <p className="font-display text-xl font-bold tracking-tight text-[var(--text-primary)]">RUHGEN Image Studio Online</p>
+                    <p className="text-sm leading-relaxed text-[var(--text-muted)]">
+                      Select your desired aspect ratio, aesthetic style, and RUHGEN tier. Upload an optional reference image to direct the composition.
                     </p>
                   </div>
                 </div>
@@ -1203,7 +1312,7 @@ export default function ImageStudioClient() {
                                       alt="Generated Frame"
                                       className="w-full h-auto block transition-transform duration-700 ease-out group-hover:scale-105"
                                     />
-                                    
+
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 max-lg:opacity-100 pointer-events-none" />
 
                                     <div className="absolute top-3 right-3 flex gap-1.5 opacity-0 transition-all duration-300 translate-y-[-4px] group-hover:translate-y-0 group-hover:opacity-100 max-lg:opacity-100 max-lg:translate-y-0">
@@ -1298,17 +1407,15 @@ export default function ImageStudioClient() {
             </div>
 
             <div
-              ref={promptDockRef}
-              className="shrink-0 border-t border-white/10 px-3 py-2.5 backdrop-blur-2xl"
+              className="shrink-0 border-t px-3 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] backdrop-blur-xl lg:hidden"
               style={{
                 borderColor: "color-mix(in srgb, white 8%, transparent)",
                 background:
-                  "linear-gradient(180deg, color-mix(in srgb, var(--rich-black) 70%, transparent) 0%, color-mix(in srgb, var(--deep-black) 95%, transparent) 100%)",
+                  "linear-gradient(180deg, color-mix(in srgb, var(--rich-black) 60%, transparent) 0%, color-mix(in srgb, var(--deep-black) 92%, transparent) 100%)",
                 boxShadow: "0 -20px 40px -28px rgba(0,0,0,0.75)",
-                paddingBottom: "max(0.625rem, env(safe-area-inset-bottom))",
               }}
             >
-              <div className="flex flex-col gap-2">
+              <div className="flex items-end gap-2">
                 <textarea
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
@@ -1320,29 +1427,86 @@ export default function ImageStudioClient() {
                   }}
                   disabled={busy}
                   placeholder={isEdit ? "Describe image modifications…" : "Describe your image concept…"}
-                  rows={2}
-                  className="studio-prompt-focus-image min-h-[44px] max-h-28 w-full resize-none rounded-xl border border-white/10 bg-black/50 px-3 py-2 text-xs leading-relaxed text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)]"
+                  rows={1}
+                  className="studio-prompt-focus-image min-h-[44px] max-h-28 flex-1 resize-none rounded-xl border border-white/10 bg-black/45 px-3 py-2.5 text-sm leading-relaxed text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)]"
                 />
                 <StudioGlowGenerate
+                  tone="purple"
+                  size="icon"
                   disabled={busy || prompt.trim().length < 2 || Boolean(user?.generationDisabled) || (user?.availableCredits ?? user?.credits ?? 0) < currentCost}
                   onClick={() => void run()}
-                  size="md"
                 >
-                  {busy ? (
-                    <>
-                      <Loader2 className="h-3.5 w-3.5 animate-spin text-zinc-950" />
-                      <span className="font-bold text-xs text-zinc-950">Synthesizing Image…</span>
-                    </>
-                  ) : (
-                    <div className="flex items-center justify-center gap-1.5 font-bold text-zinc-950 text-xs py-0.5">
-                      <Sparkles className="h-3.5 w-3.5 text-zinc-950" strokeWidth={2.2} />
-                      <span>Generate Image</span>
-                    </div>
-                  )}
+                  {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowUp className="h-5 w-5" strokeWidth={2.25} />}
                 </StudioGlowGenerate>
               </div>
             </div>
           </div>
+
+          {showCanvasDock ? (
+            <div
+              ref={promptDockRef}
+              className="shrink-0 rounded-2xl border border-white/10 px-3 pt-3 shadow-[0_-12px_48px_-28px_rgba(0,0,0,0.55)] backdrop-blur-2xl"
+              style={{
+                background:
+                  "linear-gradient(165deg, color-mix(in srgb, white 5%, transparent) 0%, color-mix(in srgb, var(--rich-black) 92%, transparent) 100%)",
+                boxShadow: "inset 0 1px 0 color-mix(in srgb, white 6%, transparent), 0 -20px 56px -24px rgba(0,0,0,0.5)",
+                paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))",
+              }}
+            >
+              <div className="mb-2 flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.02] px-2 py-1 text-[11px]">
+                <span className="font-semibold text-white">Cost: <strong className={((user?.availableCredits ?? user?.credits ?? 0) < currentCost) ? "text-rose-400 font-bold" : "text-[#00D4FF] font-bold"}>{currentCost} credits ({activeTierObj.label})</strong></span>
+                <span className="text-[var(--text-subtle)]">Available: {user?.availableCredits ?? user?.credits ?? 0}</span>
+              </div>
+
+              <p className="mb-1.5 text-[9px] font-bold uppercase tracking-[0.14em]" style={{ color: "var(--text-subtle)" }}>
+                Prompt
+              </p>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+                <textarea
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      void run();
+                    }
+                  }}
+                  disabled={busy}
+                  placeholder="Describe your image concept…"
+                  rows={2}
+                  className="studio-prompt-focus-image min-h-[44px] w-full flex-1 resize-none rounded-xl border border-white/10 bg-black/35 px-3 py-2.5 text-sm leading-relaxed text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)]"
+                />
+                <StudioGlowGenerate
+                  tone="purple"
+                  size="lg"
+                  disabled={busy || prompt.trim().length < 2 || Boolean(user?.generationDisabled) || (user?.availableCredits ?? user?.credits ?? 0) < currentCost}
+                  onClick={() => void run()}
+                >
+                  {busy ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin text-violet-200" />
+                      <span className="font-semibold tracking-wide">Synthesizing…</span>
+                    </>
+                  ) : user?.generationDisabled ? (
+                    <>
+                      <X className="h-4 w-4 text-rose-300" strokeWidth={2} />
+                      <span className="font-semibold tracking-wide">Access Disabled</span>
+                    </>
+                  ) : (user?.availableCredits ?? user?.credits ?? 0) < currentCost ? (
+                    <>
+                      <X className="h-4 w-4 text-rose-300" strokeWidth={2} />
+                      <span className="font-semibold tracking-wide">Insufficient</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4 text-white" strokeWidth={2.2} />
+                      <span className="font-medium tracking-wide text-white">Generate Image</span>
+                    </>
+                  )}
+                </StudioGlowGenerate>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         {downloadError ? (

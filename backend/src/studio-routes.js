@@ -203,7 +203,7 @@ function mountStudioRoutes(app, options) {
           let details = {};
           try {
             details = JSON.parse(t.details_json);
-          } catch (e) {}
+          } catch (e) { }
           details.error = { message: "Task timed out after 2 hours." };
           db.transaction(() => {
             db.prepare("UPDATE studio_tasks SET status = 'failed', details_json = ? WHERE id = ?").run(
@@ -231,7 +231,7 @@ function mountStudioRoutes(app, options) {
           }
           const data = r.json?.data;
           if (!data) continue;
-          
+
           const status = normalizePiStatus(data.status);
           const urls = extractMediaUrls(data.output);
 
@@ -239,7 +239,7 @@ function mountStudioRoutes(app, options) {
             let details = {};
             try {
               details = JSON.parse(t.details_json);
-            } catch (e) {}
+            } catch (e) { }
             details.urls = urls;
             details.output = data.output;
             db.transaction(() => {
@@ -249,7 +249,7 @@ function mountStudioRoutes(app, options) {
                 if (u) {
                   const finalBalance = Math.max(0, u.credits - task.credits);
                   db.prepare("UPDATE users SET credits = ? WHERE id = ?").run(finalBalance, task.user_id);
-                  
+
                   db.prepare(`
                     INSERT INTO credit_transactions (id, user_id, action_type, credits_added, credits_deducted, previous_balance, new_balance, timestamp, source, reason, details_json)
                     VALUES (?, ?, ?, 0, ?, ?, ?, ?, 'studio', ?, ?)
@@ -286,7 +286,7 @@ function mountStudioRoutes(app, options) {
             let details = {};
             try {
               details = JSON.parse(t.details_json);
-            } catch (e) {}
+            } catch (e) { }
             details.error = data.error || { message: "Task failed upstream." };
             db.transaction(() => {
               const task = db.prepare("SELECT status FROM studio_tasks WHERE id = ?").get(t.id);
@@ -486,9 +486,9 @@ function mountStudioRoutes(app, options) {
     const pendingCredits = pendingSumRow?.pending || 0;
     const availableCredits = userRow.credits - pendingCredits;
     if (availableCredits < finalCost) {
-      return res.status(400).json({ 
-        ok: false, 
-        error: `Insufficient credits. You need ${finalCost} credits (available: ${availableCredits}, pending holds: ${pendingCredits}).` 
+      return res.status(400).json({
+        ok: false,
+        error: `Insufficient credits. You need ${finalCost} credits (available: ${availableCredits}, pending holds: ${pendingCredits}).`
       });
     }
 
@@ -543,7 +543,7 @@ function mountStudioRoutes(app, options) {
     const aspect_ratio = ["16:9", "9:16", "1:1"].includes(aspectRaw) ? aspectRaw : "16:9";
     const qualityRaw = typeof req.body?.quality === "string" ? req.body.quality.trim().toLowerCase() : "";
     const modeRaw = typeof req.body?.mode === "string" ? req.body.mode.trim().toLowerCase() : "";
-    
+
     let quality = "quality";
     let mode = "std";
     if (qualityRaw === "standard" || modeRaw === "std" || qualityRaw === "fast") {
@@ -600,9 +600,9 @@ function mountStudioRoutes(app, options) {
     const pendingCredits = pendingSumRow?.pending || 0;
     const availableCredits = userRow.credits - pendingCredits;
     if (availableCredits < finalCost) {
-      return res.status(400).json({ 
-        ok: false, 
-        error: `Insufficient credits. You need ${finalCost} credits (available: ${availableCredits}, pending holds: ${pendingCredits}).` 
+      return res.status(400).json({
+        ok: false,
+        error: `Insufficient credits. You need ${finalCost} credits (available: ${availableCredits}, pending holds: ${pendingCredits}).`
       });
     }
 
@@ -679,7 +679,7 @@ function mountStudioRoutes(app, options) {
       let dbDetails = {};
       try {
         dbDetails = JSON.parse(dbTask.details_json);
-      } catch (e) {}
+      } catch (e) { }
 
       if (dbTask.status === "completed" || dbTask.status === "failed") {
         const urls = dbDetails.urls || [];
@@ -749,16 +749,15 @@ function mountStudioRoutes(app, options) {
         let details = {};
         try {
           details = JSON.parse(row.details_json);
-        } catch (e) {}
+        } catch (e) { }
         const urls = details.urls || [];
         const previewUrl = urls[0] || "";
-        const targetHref = row.type === "video" ? "/dashboard/generate/video" : "/dashboard/generate/image";
         return {
           id: row.id,
           kind: row.type, // 'image' or 'video'
           previewUrl: previewUrl,
           prompt: details.prompt || "",
-          href: targetHref,
+          href: previewUrl,
           createdAt: row.created_at
         };
       });
@@ -796,7 +795,7 @@ function mountStudioRoutes(app, options) {
         ORDER BY timestamp DESC
         LIMIT 100
       `).all(req.user.sub);
-      
+
       const user = db.prepare("SELECT credits FROM users WHERE id = ?").get(req.user.sub);
       const balance = user ? user.credits : 0;
 
@@ -849,7 +848,7 @@ function mountStudioRoutes(app, options) {
         let details = {};
         try {
           details = JSON.parse(t.details_json);
-        } catch (e) {}
+        } catch (e) { }
         let q = details.quality;
         if (!q) {
           if (t.type === "image") {
