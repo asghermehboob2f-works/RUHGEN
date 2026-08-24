@@ -3,7 +3,7 @@
 import { motion, useReducedMotion, Variants } from "framer-motion";
 import Link from "next/link";
 import { SITE_CONTAINER } from "@/lib/site-layout";
-import { Play, Sparkles, ArrowRight } from "lucide-react";
+import { Play } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 
 export function Hero() {
@@ -90,38 +90,37 @@ export function Hero() {
 
         {/* 2. BUTTONS - Centered Action Deck */}
         <motion.div
-          className="flex flex-col gap-4 sm:flex-row sm:items-center justify-center"
+          className="flex flex-col gap-5 sm:flex-row sm:items-center justify-center"
           variants={fadeUpBlur}
         >
-          {/* PRIMARY CTA BUTTON: Vibrant Gradient with Subtle Glow & Icon */}
-          <Link href="/sign-up" className="group relative inline-flex">
-            {/* Outer ambient glow */}
-            <div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-[#7B61FF] via-[#00D4FF] to-[#7B61FF] opacity-70 blur-md transition-all duration-500 group-hover:opacity-100 group-hover:blur-lg" />
-            
-            <motion.div 
-              className="relative z-10 flex items-center justify-center gap-2.5 rounded-full bg-gradient-to-r from-[#7B61FF] via-[#258EFF] to-[#00D4FF] px-8 py-3.5 text-white shadow-xl transition-all duration-300 group-hover:brightness-110 active:scale-95 cursor-pointer"
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
+          {/* PRIMARY: Bluish Gradient */}
+          <Link
+            href="/sign-up"
+            className="group relative"
+          >
+            <motion.div
+              className="relative z-10 flex items-center justify-center rounded-full px-10 py-3.5 overflow-hidden transition-all duration-700 btn-gradient"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
-              <Sparkles className="h-4 w-4 text-cyan-200 animate-pulse" />
-              <span className="font-display text-[15px] font-bold tracking-wide text-white drop-shadow">
+              <span className="relative z-20 text-[14px] font-semibold tracking-wide text-white">
                 Start Creating Now
               </span>
-              <ArrowRight className="h-4 w-4 text-white transition-transform duration-300 group-hover:translate-x-1" strokeWidth={2.2} />
             </motion.div>
           </Link>
 
-          {/* SECONDARY CTA BUTTON: Refined Glassmorphism with Hover Glow */}
-          <Link href="/demo" className="group relative inline-flex">
-            <motion.div 
-              className="relative z-10 flex items-center justify-center gap-2.5 rounded-full border border-[var(--border-subtle)] bg-[var(--soft-black)] px-7 py-3.5 backdrop-blur-xl shadow-md transition-all duration-300 group-hover:border-[var(--primary-cyan)]/50 group-hover:bg-[var(--glass-hover)] group-hover:shadow-[0_0_20px_rgba(0,212,255,0.15)] active:scale-95 cursor-pointer"
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
+          {/* SECONDARY: Glass with refined border */}
+          <Link
+            href="/demo"
+            className="group relative"
+          >
+            <motion.div
+              className="relative z-10 flex items-center justify-center gap-3 rounded-full px-9 py-3.5 overflow-hidden transition-all duration-700 bg-[var(--glass)] backdrop-blur-xl border border-[var(--border-subtle)] hover:border-[var(--text-primary)]/30 hover:bg-[color-mix(in_srgb,var(--text-primary)_10%,transparent)]"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--primary-cyan)]/15 text-[var(--primary-cyan)] transition-colors group-hover:bg-[var(--primary-cyan)] group-hover:text-black">
-                <Play className="h-3 w-3 fill-current ml-0.5" />
-              </div>
-              <span className="font-display text-[15px] font-semibold tracking-wide text-[var(--text-primary)]">
+              <Play className="w-3.5 h-3.5 text-[var(--text-primary)] fill-[var(--text-primary)]/80" />
+              <span className="relative z-20 text-[14px] font-medium tracking-wide text-[var(--text-primary)]/90">
                 Watch Demo
               </span>
             </motion.div>
