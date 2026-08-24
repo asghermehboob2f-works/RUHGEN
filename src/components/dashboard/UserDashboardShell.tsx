@@ -198,55 +198,47 @@ export function UserDashboardShell({ children }: { children: React.ReactNode }) 
         </div>
 
         {/* Sidebar Footer */}
-        <div className="shrink-0 border-t border-white/10 p-3.5 space-y-2.5">
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={toggle}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-zinc-900 text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-white"
-              aria-label={theme === "dark" ? "Light mode" : "Dark mode"}
+        <div className="shrink-0 p-3 border-t border-white/10">
+          <div className="rounded-2xl border border-white/10 bg-zinc-900/80 p-2.5 shadow-xl backdrop-blur-md space-y-2">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={toggle}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-zinc-300 transition-all hover:bg-white/10 hover:text-white active:scale-95 cursor-pointer"
+                aria-label={theme === "dark" ? "Light mode" : "Dark mode"}
+              >
+                {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </button>
+              {ready && user ? (
+                <div className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] py-1 pl-1.5 pr-2.5">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-white/15 bg-zinc-800 text-[10px] font-bold text-zinc-100">
+                    {initials(user.name)}
+                  </span>
+                  <p className="min-w-0 truncate text-xs font-semibold text-zinc-200">
+                    {user.name}
+                  </p>
+                </div>
+              ) : null}
+              <button
+                type="button"
+                onClick={() => {
+                  signOut();
+                  router.push("/");
+                }}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-zinc-400 transition-all hover:border-rose-500/40 hover:bg-rose-500/15 hover:text-rose-300 active:scale-95 cursor-pointer"
+                aria-label="Sign out"
+              >
+                <LogOut className="h-4 w-4" strokeWidth={1.75} />
+              </button>
+            </div>
+            <Link
+              href="/"
+              className="flex min-h-[36px] w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] text-xs font-semibold text-zinc-300 transition-all hover:border-white/20 hover:bg-white/10 hover:text-white active:scale-[0.98]"
             >
-              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </button>
-            {ready && user ? (
-              <div className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-white/10 bg-zinc-900/80 py-1 pl-1 pr-2">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-white/15 bg-zinc-800 text-[10px] font-bold text-zinc-100">
-                  {initials(user.name)}
-                </span>
-                <p className="min-w-0 truncate text-xs font-semibold text-zinc-200">
-                  {user.name}
-                </p>
-              </div>
-            ) : null}
-            <button
-              type="button"
-              onClick={() => {
-                signOut();
-                router.push("/");
-              }}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border transition-colors hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400"
-              style={{
-                borderColor: "var(--border-subtle)",
-                background: "var(--glass)",
-                color: "var(--text-muted)",
-              }}
-              aria-label="Sign out"
-            >
-              <LogOut className="h-4 w-4" strokeWidth={1.75} />
-            </button>
+              <LayoutDashboard className="h-4 w-4 text-zinc-400" strokeWidth={1.75} />
+              Back to marketing site
+            </Link>
           </div>
-          <Link
-            href="/"
-            className="flex min-h-[36px] items-center justify-center gap-2 rounded-xl border text-xs font-semibold transition-colors hover:bg-white/5"
-            style={{
-              borderColor: "var(--border-subtle)",
-              background: "var(--soft-black)",
-              color: "var(--text-muted)",
-            }}
-          >
-            <LayoutDashboard className="h-4 w-4 opacity-80" strokeWidth={1.75} />
-            Back to marketing site
-          </Link>
         </div>
       </aside>
 
