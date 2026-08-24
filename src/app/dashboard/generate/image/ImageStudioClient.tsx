@@ -978,58 +978,95 @@ export default function ImageStudioClient() {
           </div>
         </div>
 
-        <div className="mt-1 flex items-center gap-2">
-          <div className="relative flex min-h-[36px] flex-1 items-center gap-1.5 rounded-lg border border-white/10 bg-zinc-900 px-2.5 py-1 transition-colors focus-within:border-white/25">
-            <label className="sr-only" htmlFor="img-prompt">Prompt</label>
-            <textarea
-              ref={imagePromptRef}
-              id="img-prompt"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              autoComplete="off"
-              spellCheck={false}
-              placeholder={isEdit ? "Describe image modifications…" : "Describe your image concept…"}
-              rows={1}
-              disabled={busy}
-              className="no-scrollbar max-h-20 min-h-[24px] w-full flex-1 resize-none bg-transparent text-xs leading-normal text-zinc-100 outline-none placeholder:text-zinc-500"
-              style={{ scrollbarWidth: "none" }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  void run();
-                }
-              }}
-            />
-            <button
-              type="button"
-              onClick={enhancePromptManually}
-              disabled={busy || !prompt.trim()}
-              title="Enhance prompt with AI details"
-              className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-white/10 bg-white/5 text-zinc-400 hover:text-white disabled:opacity-30 cursor-pointer"
-            >
-              <Sparkles className="h-3 w-3 text-purple-400" />
-            </button>
-          </div>
+        <div className="mb-1 flex items-center justify-between gap-2">
+          <span className="text-[9px] font-bold uppercase tracking-[0.16em] text-zinc-400">Image Prompt</span>
+          <span className="text-[9px] tabular-nums text-zinc-500">{prompt.length}</span>
+        </div>
+        <div className="relative flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-900 px-2.5 py-1.5 transition-colors focus-within:border-white/25">
+          <label className="sr-only" htmlFor="img-prompt">Prompt</label>
+          <textarea
+            ref={imagePromptRef}
+            id="img-prompt"
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            autoComplete="off"
+            spellCheck={false}
+            placeholder={isEdit ? "Describe modifications to the reference image…" : "Describe your image concept in detail…"}
+            rows={2}
+            disabled={busy}
+            className="no-scrollbar max-h-[160px] min-h-[44px] w-full resize-none bg-transparent text-sm leading-relaxed text-zinc-100 outline-none placeholder:text-zinc-500 sm:text-[14px]"
+            style={{ scrollbarWidth: "none" }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                void run();
+              }
+            }}
+          />
 
+          {prompt.length > 70 ? (
+            <div className="flex flex-col gap-1 shrink-0 select-none transition-opacity duration-200">
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => {
+                  if (imagePromptRef.current) {
+                    imagePromptRef.current.scrollTop -= 32;
+                  }
+                }}
+                className="flex h-5 w-5 items-center justify-center rounded-md border border-white/10 bg-zinc-800 text-zinc-300 transition-colors hover:bg-zinc-700 hover:text-white cursor-pointer disabled:opacity-30"
+                title="Scroll Up"
+                aria-label="Scroll Up"
+              >
+                <ChevronUp className="h-3 w-3" strokeWidth={2.5} />
+              </button>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => {
+                  if (imagePromptRef.current) {
+                    imagePromptRef.current.scrollTop += 32;
+                  }
+                }}
+                className="flex h-5 w-5 items-center justify-center rounded-md border border-white/12 bg-white/[0.05] text-slate-300 transition-all hover:border-indigo-400/60 hover:bg-indigo-500/25 hover:text-white active:scale-95 cursor-pointer disabled:opacity-30"
+                title="Scroll Down"
+                aria-label="Scroll Down"
+              >
+                <ChevronDown className="h-3 w-3" strokeWidth={2.5} />
+              </button>
+            </div>
+          ) : null}
+        </div>
+        <div className="mt-2.5">
           <StudioGlowGenerate
             disabled={busy || prompt.trim().length < 2 || Boolean(user?.generationDisabled) || (user?.availableCredits ?? user?.credits ?? 0) < currentCost}
             onClick={() => void run()}
             size="md"
           >
             {busy ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin text-zinc-950" />
+              <>
+                <Loader2 className="h-4 w-4 animate-spin text-zinc-950" />
+                <span className="font-bold tracking-wide text-zinc-950">Synthesizing Image…</span>
+              </>
             ) : user?.generationDisabled ? (
-              <span className="font-bold text-xs text-rose-800">Disabled</span>
+              <>
+                <X className="h-4 w-4 text-rose-700" strokeWidth={2.5} />
+                <span className="font-bold tracking-wide text-rose-800">Access Disabled</span>
+              </>
             ) : (user?.availableCredits ?? user?.credits ?? 0) < currentCost ? (
-              <span className="font-bold text-xs text-rose-800">No Credits</span>
+              <>
+                <X className="h-4 w-4 text-rose-700" strokeWidth={2.5} />
+                <span className="font-bold tracking-wide text-rose-800">Insufficient Credits</span>
+              </>
             ) : (
-              <div className="flex items-center gap-1.5 px-0.5 font-bold text-zinc-950 text-xs shrink-0">
-                <Sparkles className="h-3.5 w-3.5 text-zinc-950" strokeWidth={2.2} />
-                <span>Generate</span>
-              </div>
+              <>
+                <Sparkles className="h-4 w-4 text-zinc-950" strokeWidth={2.2} />
+                <span className="font-bold tracking-wide text-zinc-950">Generate Image</span>
+              </>
             )}
           </StudioGlowGenerate>
         </div>
+        <p className="mt-1.5 text-center text-[10px] text-[var(--text-subtle)]">Enter to generate · Shift+Enter for line break</p>
         <p className="mt-1.5 text-center text-[10px] text-[var(--text-subtle)]">Enter to generate · Shift+Enter for line break</p>
       </div>
     </div>
