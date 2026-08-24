@@ -44,16 +44,16 @@ function PlanCard({ plan, paymentsAvailable }: { plan: Plan; paymentsAvailable: 
         </div>
       )}
       <div className="mb-4">
-        <h3 className="font-display text-lg font-bold text-white">{plan.name}</h3>
+        <h3 className="font-display text-lg font-bold text-[var(--text-primary)]">{plan.name}</h3>
         <p className="mt-1 text-xs text-[var(--text-muted)]">{plan.description}</p>
       </div>
       <div className="mb-4 flex items-baseline gap-2">
-        <span className="font-display text-3xl font-extrabold text-white">{plan.price_display}</span>
+        <span className="font-display text-3xl font-extrabold text-[var(--text-primary)]">{plan.price_display}</span>
         <span className="text-xs text-[var(--text-subtle)]">/{labelSuffix}</span>
       </div>
       <div className="mb-4 flex items-center gap-2 rounded-lg border border-[#7B61FF]/25 bg-[#7B61FF]/10 px-3 py-2">
         <Zap className="h-4 w-4 text-[#7B61FF]" />
-        <span className="text-sm font-bold text-white">{plan.credits.toLocaleString()} credits</span>
+        <span className="text-sm font-bold text-[var(--text-primary)]">{plan.credits.toLocaleString()} credits</span>
       </div>
       <ul className="mb-5 flex-1 space-y-1.5">
         {plan.features.map((f) => (
@@ -348,7 +348,7 @@ export default function BillingPage() {
                     {paymentHistory.map((p: PaymentRecord) => (
                       <tr key={p.id} className="border-b hover:bg-white/[0.02]" style={{ borderColor: "var(--border-subtle)" }}>
                         <td className="px-5 py-3 font-mono text-xs">
-                          <span className="font-bold text-white block">{p.internalTransactionId || p.id}</span>
+                          <span className="font-bold text-[var(--text-primary)] block">{p.internalTransactionId || p.id}</span>
                           {p.razorpayOrderId && <span className="text-[10px] text-[var(--text-subtle)]">{p.razorpayOrderId}</span>}
                         </td>
                         <td className="px-4 py-3 font-semibold" style={{ color: "var(--text-primary)" }}>{p.planName}</td>
@@ -480,20 +480,20 @@ export default function BillingPage() {
             <div className="inline-flex rounded-xl border p-1" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
               <button
                 onClick={() => setBillingPeriod("monthly")}
-                className={`rounded-lg px-4 py-1.5 text-xs font-bold transition-all ${
+                className={`rounded-lg px-4 py-1.5 text-xs font-bold transition-all cursor-pointer ${
                   billingPeriod === "monthly"
                     ? "bg-[#7B61FF] text-white shadow-sm"
-                    : "text-[var(--text-muted)] hover:text-white"
+                    : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                 }`}
               >
                 Monthly
               </button>
               <button
                 onClick={() => setBillingPeriod("yearly")}
-                className={`rounded-lg px-4 py-1.5 text-xs font-bold transition-all ${
+                className={`rounded-lg px-4 py-1.5 text-xs font-bold transition-all cursor-pointer ${
                   billingPeriod === "yearly"
                     ? "bg-[#7B61FF] text-white shadow-sm"
-                    : "text-[var(--text-muted)] hover:text-white"
+                    : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                 }`}
               >
                 Yearly

@@ -6,9 +6,18 @@ import { readSiteContent } from "@/backend/site-content";
 import { ContentPageSkeleton } from "@/components/Skeletons";
 
 export const metadata: Metadata = {
-  title: "Features — RUHGEN",
+  title: "AI Generation Features & Creative Tools",
   description:
-    "Generation modes, pipelines, collaboration, and delivery—everything you need to ship visuals faster.",
+    "Explore RUHGEN's AI generation capabilities: ultra-fast image synthesis, cinematic video rendering, custom aspect ratios, style presets, and team workflows.",
+  alternates: {
+    canonical: "/features",
+  },
+  openGraph: {
+    title: "AI Generation Features & Creative Tools | RUHGEN",
+    description:
+      "Ultra-fast image synthesis, cinematic video rendering, custom aspect ratios, style presets, and team workflows.",
+    url: "/features",
+  },
 };
 
 async function FeaturesContent() {

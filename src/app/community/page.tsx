@@ -3,9 +3,17 @@ import { CommunityPageContent } from "@/components/marketing/CommunityPageConten
 import { MarketingShell } from "@/components/MarketingShell";
 
 export const metadata: Metadata = {
-  title: "Community — RUHGEN",
+  title: "Creator Community & Visual Drops",
   description:
-    "Where creators show their craft. Browse photo, video, and template drops from the RUHGEN community, follow the makers behind them, and share your own.",
+    "Discover community prompts, image showcases, and video drops from global creators using RUHGEN. Share your work and fork creative styles.",
+  alternates: {
+    canonical: "/community",
+  },
+  openGraph: {
+    title: "Creator Community & Visual Drops | RUHGEN",
+    description: "Discover community prompts, image showcases, and video drops from global creators using RUHGEN.",
+    url: "/community",
+  },
 };
 
 export default function CommunityPage() {

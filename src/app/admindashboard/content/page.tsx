@@ -17,7 +17,7 @@ export default function DashboardContentPage() {
   const [content, setContent] = useState<SiteContent | null>(null);
   const [status, setStatus] = useState<string>("");
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"hero" | "homepage" | "visualizer" | "features" | "pricing">("hero");
+  const [activeTab, setActiveTab] = useState<"hero" | "homepage" | "visualizer" | "features" | "pricing" | "socials">("hero");
 
   useEffect(() => {
     let ok = true;
@@ -45,6 +45,9 @@ export default function DashboardContentPage() {
         }
         if (!data.featuresCalibration) {
           data.featuresCalibration = PUBLIC_DEFAULT_SITE_CONTENT.featuresCalibration;
+        }
+        if (!data.socialLinks) {
+          data.socialLinks = PUBLIC_DEFAULT_SITE_CONTENT.socialLinks || [];
         }
         
         setContent(data);
@@ -246,6 +249,17 @@ export default function DashboardContentPage() {
               >
                 Pricing Page
                 {activeTab === "pricing" && (
+                  <motion.div layoutId="adminActiveTabLine" className="absolute bottom-0 inset-x-0 h-0.5 bg-gradient-to-r from-[var(--primary-purple)] to-[var(--primary-cyan)]" />
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("socials")}
+                className="pb-3.5 text-sm font-bold uppercase tracking-wider transition-all relative outline-none shrink-0"
+                style={{ color: activeTab === "socials" ? "var(--text-primary)" : "var(--text-subtle)" }}
+              >
+                Social Links
+                {activeTab === "socials" && (
                   <motion.div layoutId="adminActiveTabLine" className="absolute bottom-0 inset-x-0 h-0.5 bg-gradient-to-r from-[var(--primary-purple)] to-[var(--primary-cyan)]" />
                 )}
               </button>
@@ -1176,6 +1190,161 @@ export default function DashboardContentPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            </section>
+          )}
+
+          {/* Social Media Links Editor */}
+          {activeTab === "socials" && (
+            <section className="rounded-2xl border p-5 sm:p-7" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
+              <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+                <div>
+                  <h2 className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>Social Media Links</h2>
+                  <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>Manage official platform social links displayed dynamically across the footer and contact pages.</p>
+                </div>
+                <motion.button
+                  type="button"
+                  whileTap={reduce ? undefined : { scale: 0.98 }}
+                  onClick={() => {
+                    const next = structuredClone(content);
+                    if (!next.socialLinks) {
+                      next.socialLinks = [];
+                    }
+                    next.socialLinks.push({
+                      id: `soc-${Date.now()}`,
+                      platform: "New Platform",
+                      url: "https://",
+                      enabled: true
+                    });
+                    setContent(next);
+                    setStatus("");
+                  }}
+                  className="rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all hover:bg-white/5 active:scale-95 flex items-center gap-1.5"
+                  style={{
+                    borderColor: "var(--border-subtle)",
+                    background: "var(--deep-black)",
+                    color: "var(--text-primary)",
+                  }}
+                >
+                  <Plus className="h-4 w-4 text-[#00D4FF]" /> Add Social Link
+                </motion.button>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {content.socialLinks?.map((soc, idx) => {
+                  const isValidUrl = /^https?:\/\/.+/i.test(soc.url.trim());
+                  return (
+                    <div key={soc.id || idx} className="editor-card p-4 flex flex-col gap-3 rounded-xl border border-white/5 bg-[#0a0a0d]">
+                      <div className="flex items-center justify-between border-b border-white/[0.04] pb-2">
+                        <span className="text-xs font-mono text-[#00D4FF]">Link {idx + 1}</span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            disabled={idx === 0}
+                            onClick={() => {
+                              const next = structuredClone(content);
+                              if (!next.socialLinks) return;
+                              const tmp = next.socialLinks[idx - 1];
+                              next.socialLinks[idx - 1] = next.socialLinks[idx];
+                              next.socialLinks[idx] = tmp;
+                              setContent(next);
+                            }}
+                            className="text-xs text-neutral-400 hover:text-white disabled:opacity-30"
+                          >
+                            ↑
+                          </button>
+                          <button
+                            type="button"
+                            disabled={idx === (content.socialLinks?.length || 0) - 1}
+                            onClick={() => {
+                              const next = structuredClone(content);
+                              if (!next.socialLinks) return;
+                              const tmp = next.socialLinks[idx + 1];
+                              next.socialLinks[idx + 1] = next.socialLinks[idx];
+                              next.socialLinks[idx] = tmp;
+                              setContent(next);
+                            }}
+                            className="text-xs text-neutral-400 hover:text-white disabled:opacity-30"
+                          >
+                            ↓
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const next = structuredClone(content);
+                              if (!next.socialLinks) return;
+                              next.socialLinks.splice(idx, 1);
+                              setContent(next);
+                              setStatus("");
+                            }}
+                            className="text-xs font-semibold text-[#FF2E9A] hover:underline"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="grid gap-2.5">
+                        <div>
+                          <label className="text-[9px] font-semibold uppercase tracking-wider text-white/40">Platform Name</label>
+                          <input
+                            value={soc.platform}
+                            onChange={(e) => {
+                              const next = structuredClone(content);
+                              if (!next.socialLinks) return;
+                              next.socialLinks[idx].platform = e.target.value;
+                              setContent(next);
+                            }}
+                            className="min-h-[38px] w-full rounded-lg border px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-[#7B61FF]/40"
+                            style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
+                            placeholder="e.g. Instagram, X / Twitter, Discord"
+                          />
+                        </div>
+
+                        <div>
+                          <div className="flex items-center justify-between">
+                            <label className="text-[9px] font-semibold uppercase tracking-wider text-white/40">URL Address</label>
+                            <span className={`text-[9px] font-semibold ${isValidUrl ? "text-[#5eead4]" : "text-[#fb7185]"}`}>
+                              {isValidUrl ? "Valid URL" : "Invalid (requires http:// or https://)"}
+                            </span>
+                          </div>
+                          <input
+                            value={soc.url}
+                            onChange={(e) => {
+                              const next = structuredClone(content);
+                              if (!next.socialLinks) return;
+                              next.socialLinks[idx].url = e.target.value;
+                              setContent(next);
+                            }}
+                            className={`min-h-[38px] w-full rounded-lg border px-3 py-1.5 text-xs outline-none focus:ring-2 ${
+                              isValidUrl ? "border-white/10 focus:ring-[#7B61FF]/40" : "border-rose-500/50 focus:ring-rose-500/40"
+                            }`}
+                            style={{ background: "var(--deep-black)", color: "var(--text-primary)" }}
+                            placeholder="https://instagram.com/yourhandle"
+                          />
+                        </div>
+
+                        <div className="flex items-center gap-2 pt-1">
+                          <input
+                            type="checkbox"
+                            id={`soc-enabled-${idx}`}
+                            checked={soc.enabled}
+                            onChange={(e) => {
+                              const next = structuredClone(content);
+                              if (!next.socialLinks) return;
+                              next.socialLinks[idx].enabled = e.target.checked;
+                              setContent(next);
+                            }}
+                            className="rounded border-neutral-700 bg-neutral-900 text-[#7B61FF]"
+                          />
+                          <label htmlFor={`soc-enabled-${idx}`} className="text-xs font-semibold select-none cursor-pointer" style={{ color: "var(--text-primary)" }}>
+                            Visible on Public Site
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </section>
           )}

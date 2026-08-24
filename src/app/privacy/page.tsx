@@ -4,8 +4,11 @@ import { MarketingShell } from "@/components/MarketingShell";
 import { PageHeader } from "@/components/PageHeader";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — RUHGEN",
-  description: "How RUHGEN handles personal data, retention, and your rights.",
+  title: "Privacy Policy",
+  description: "How RUHGEN handles personal data, data security, retention, and user privacy rights.",
+  alternates: {
+    canonical: "/privacy",
+  },
 };
 
 export default function PrivacyPage() {

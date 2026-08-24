@@ -56,8 +56,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         ok: false,
-        error:
-          "No NVIDIA API key found. Set NVIDIA_GENAI_API_KEY or NVIDIA_API_KEY in .env.local (same nvapi key as the NVIDIA dashboard).",
+        error: "Image generation service is temporarily unavailable. Please try again later.",
       },
       { status: 503 },
     );

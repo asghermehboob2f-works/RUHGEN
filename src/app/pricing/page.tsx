@@ -6,9 +6,18 @@ import { Suspense } from "react";
 import { ContentPageSkeleton } from "@/components/Skeletons";
 
 export const metadata: Metadata = {
-  title: "Pricing — RUHGEN",
+  title: "Flexible Credit Plans & Pricing",
   description:
-    "Simple tiers for individuals and studios—credits, concurrency, and support that scale with you.",
+    "Transparent pricing and credit packages for creators and studios. Choose Free, Pro, or Studio plans with instant rendering, high concurrency, and dedicated support.",
+  alternates: {
+    canonical: "/pricing",
+  },
+  openGraph: {
+    title: "Flexible Credit Plans & Pricing | RUHGEN",
+    description:
+      "Transparent pricing and credit packages for creators and studios with high concurrency and instant rendering.",
+    url: "/pricing",
+  },
 };
 
 async function PricingContent() {

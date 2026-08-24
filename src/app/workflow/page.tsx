@@ -3,9 +3,17 @@ import { WorkflowPageContent } from "@/components/marketing/WorkflowPageContent"
 import { MarketingShell } from "@/components/MarketingShell";
 
 export const metadata: Metadata = {
-  title: "Workflow — RUHGEN",
+  title: "Production Pipeline & Workflows",
   description:
-    "From prompt to delivery in four clear steps—built for reviews, revisions, and release.",
+    "Discover how RUHGEN streamlines visual creation from initial prompt to final high-resolution render, batch generation, and team review.",
+  alternates: {
+    canonical: "/workflow",
+  },
+  openGraph: {
+    title: "Production Pipeline & Workflows | RUHGEN",
+    description: "Streamline visual creation from prompt to final high-resolution render and team review.",
+    url: "/workflow",
+  },
 };
 
 export default function WorkflowPage() {

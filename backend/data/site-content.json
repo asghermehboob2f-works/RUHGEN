@@ -576,5 +576,13 @@
     "landscape": "/media/homepage/f1b08235-2e9c-4023-ab71-258479ec2bb1.jpeg",
     "square": "/media/homepage/72b22527-78c4-4327-a418-72bf8353470c.jpeg",
     "portrait": "/media/homepage/77a0aae7-4e74-4205-85b8-6767ecbb2408.jpeg"
-  }
+  },
+  "socialLinks": [
+    { "id": "soc-1", "platform": "Instagram", "url": "https://instagram.com/ruhgen", "enabled": true },
+    { "id": "soc-2", "platform": "Facebook", "url": "https://facebook.com/ruhgen", "enabled": true },
+    { "id": "soc-3", "platform": "X / Twitter", "url": "https://x.com/ruhgen", "enabled": true },
+    { "id": "soc-4", "platform": "LinkedIn", "url": "https://linkedin.com/company/ruhgen", "enabled": true },
+    { "id": "soc-5", "platform": "YouTube", "url": "https://youtube.com/@ruhgen", "enabled": true },
+    { "id": "soc-6", "platform": "GitHub", "url": "https://github.com/ruhgen", "enabled": true }
+  ]
 }

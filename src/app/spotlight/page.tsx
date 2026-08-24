@@ -6,9 +6,17 @@ import { readSiteContent } from "@/backend/site-content";
 import { ContentPageSkeleton } from "@/components/Skeletons";
 
 export const metadata: Metadata = {
-  title: "Spotlight — RUHGEN",
+  title: "Creator Spotlight — Showcase",
   description:
-    "Cinematic spotlight for RUHGEN—curated motion and stills you edit from the dashboard, built to feel like a premiere, not a feature list.",
+    "Curated showcase featuring cinematic motion and photorealistic imagery created with the RUHGEN generative suite.",
+  alternates: {
+    canonical: "/spotlight",
+  },
+  openGraph: {
+    title: "Creator Spotlight — Showcase | RUHGEN",
+    description: "Curated showcase featuring cinematic motion and photorealistic imagery created with RUHGEN.",
+    url: "/spotlight",
+  },
 };
 
 async function SpotlightContent() {

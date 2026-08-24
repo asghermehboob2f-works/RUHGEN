@@ -119,6 +119,13 @@ export type PricingPlan = {
   description?: string;
 };
 
+export type SocialLinkItem = {
+  id: string;
+  platform: string;
+  url: string;
+  enabled: boolean;
+};
+
 export type SiteContent = {
   hero: Record<string, unknown>;
   heroBackground: HeroBackgroundConfig;
@@ -133,5 +140,6 @@ export type SiteContent = {
   visualizerPresets?: VisualizerPreset[];
   featuresCalibration?: FeaturesCalibrationConfig;
   plans?: PricingPlan[];
+  socialLinks?: SocialLinkItem[];
 };
 

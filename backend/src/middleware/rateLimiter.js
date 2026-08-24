@@ -45,8 +45,32 @@ function createRateLimiter({ windowMs = 15 * 60 * 1000, max = 100, message = "To
 
 const authLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20, // max 20 login/signup attempts per 15 mins
+  max: 15, // max 15 login/signup attempts per 15 mins
   message: "Too many authentication attempts. Please try again after 15 minutes.",
+});
+
+const passwordResetLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // max 5 password reset requests per 15 mins
+  message: "Too many password reset requests. Please try again after 15 minutes.",
+});
+
+const verificationLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // max 5 verification requests/OTPs per 15 mins
+  message: "Too many verification attempts. Please try again after 15 minutes.",
+});
+
+const contactFormLimiter = createRateLimiter({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10, // max 10 contact/newsletter submissions per hour
+  message: "Too many submissions. Please try again later.",
+});
+
+const studioLimiter = createRateLimiter({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 30, // max 30 studio generation/editing requests per minute
+  message: "Studio generation limit exceeded. Please slow down.",
 });
 
 const apiLimiter = createRateLimiter({
@@ -55,4 +79,12 @@ const apiLimiter = createRateLimiter({
   message: "Rate limit exceeded. Please slow down.",
 });
 
-module.exports = { createRateLimiter, authLimiter, apiLimiter };
+module.exports = {
+  createRateLimiter,
+  authLimiter,
+  passwordResetLimiter,
+  verificationLimiter,
+  contactFormLimiter,
+  studioLimiter,
+  apiLimiter,
+};

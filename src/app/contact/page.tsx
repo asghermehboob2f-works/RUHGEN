@@ -3,8 +3,17 @@ import { ContactPageContent } from "@/components/ContactPageContent";
 import { MarketingShell } from "@/components/MarketingShell";
 
 export const metadata: Metadata = {
-  title: "Contact — RUHGEN",
-  description: "Talk to RUHGEN about Studio plans, partnerships, or support.",
+  title: "Contact Support & Inquiries",
+  description:
+    "Get in touch with the RUHGEN team for support, custom enterprise plans, API access, or partnership inquiries.",
+  alternates: {
+    canonical: "/contact",
+  },
+  openGraph: {
+    title: "Contact Support & Inquiries | RUHGEN",
+    description: "Get in touch with the RUHGEN team for support, custom enterprise plans, or partnership inquiries.",
+    url: "/contact",
+  },
 };
 
 export default function ContactPage() {

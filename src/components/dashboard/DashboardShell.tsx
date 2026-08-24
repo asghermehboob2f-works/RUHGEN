@@ -124,7 +124,7 @@ function DashboardNavLinks({
                     className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors ${
                       isOn
                         ? "border border-[#7B61FF]/40 bg-[#7B61FF]/20 text-[#00D4FF]"
-                        : "border border-[var(--border-subtle)] bg-[var(--deep-black)] text-[var(--text-subtle)] group-hover:text-white"
+                        : "border border-[var(--border-subtle)] bg-[var(--deep-black)] text-[var(--text-subtle)] group-hover:text-[var(--text-primary)]"
                     }`}
                   >
                     <item.icon className="h-3.5 w-3.5" strokeWidth={1.8} />

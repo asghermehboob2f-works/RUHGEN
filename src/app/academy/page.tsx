@@ -3,9 +3,17 @@ import { AcademyPageContent } from "@/components/academy";
 import { MarketingShell } from "@/components/MarketingShell";
 
 export const metadata: Metadata = {
-  title: "Academy — RUHGEN",
+  title: "RUHGEN Academy — Master AI Content Creation",
   description:
-    "Master generative AI tools, discover proven earning strategies, and access premium courses to scale your creative agency.",
+    "Free and premium courses on generative AI prompting, video production techniques, workflow optimization, and creative agency growth.",
+  alternates: {
+    canonical: "/academy",
+  },
+  openGraph: {
+    title: "RUHGEN Academy — Master AI Content Creation",
+    description: "Free and premium courses on generative AI prompting and video production workflows.",
+    url: "/academy",
+  },
 };
 
 export default function AcademyPage() {

@@ -13,8 +13,6 @@ const { verifyAdminToken } = require("./auth");
 const { requireAdmin } = require("./middleware/adminAuth");
 const { requestLogger } = require("./middleware/requestLogger");
 const { errorHandler, notFoundHandler } = require("./middleware/errorHandler");
-const { apiLimiter, authLimiter } = require("./middleware/rateLimiter");
-
 const { mountStudioRoutes } = require("./studio-routes");
 const { mountUserAuthRoutes } = require("./user-auth-routes");
 const { mountCommunityRoutes } = require("./community-routes");
@@ -52,13 +50,28 @@ app.use((_req, res, next) => {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "DENY");
   res.setHeader("X-XSS-Protection", "1; mode=block");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   next();
 });
 
 // --- Standard Security & Utility Middlewares ---
+const allowedOrigins = [
+  process.env.APP_URL,
+  process.env.NEXT_PUBLIC_SITE_URL,
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: true,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, or server-to-server)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.some((allowed) => allowed.replace(/\/$/, "") === origin.replace(/\/$/, ""))) {
+        return callback(null, true);
+      }
+      return callback(null, true); // Dev/permissive fallback
+    },
     credentials: true,
   })
 );
@@ -71,10 +84,20 @@ app.use(
   })
 );
 app.use(requestLogger);
+
+// --- Rate Limiting ---
 app.use("/api/", apiLimiter);
 app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/register", authLimiter);
 app.use("/api/admin/auth/login", authLimiter);
+app.use("/api/auth/forgot-password", passwordResetLimiter);
+app.use("/api/auth/reset-password", passwordResetLimiter);
+app.use("/api/verify-email", verificationLimiter);
+app.use("/api/verification", verificationLimiter);
+app.use("/api/contact", contactFormLimiter);
+app.use("/api/newsletter", contactFormLimiter);
+app.use("/api/studio/generate", studioLimiter);
+app.use("/api/studio/generate-video", studioLimiter);
 
 // --- Static Media Serving with Video Streaming Header Support ---
 const mediaStaticOptions = {

@@ -1,14 +1,13 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Sign in — RUHGEN",
-  description: "Sign in to your RUHGEN workspace.",
+  title: "Sign In",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
-export default function SignInLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return children;
+export default function SignInLayout({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
 }

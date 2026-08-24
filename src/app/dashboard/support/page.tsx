@@ -42,7 +42,7 @@ const STATUS_STYLES: Record<string, string> = {
   open: "text-emerald-400 bg-emerald-400/10 border-emerald-400/25",
   in_progress: "text-blue-400 bg-blue-400/10 border-blue-400/25",
   resolved: "text-purple-400 bg-purple-400/10 border-purple-400/25",
-  closed: "text-[var(--text-subtle)] bg-white/5 border-white/10",
+  closed: "text-[var(--text-subtle)] bg-[var(--deep-black)] border-[var(--border-subtle)]",
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -395,7 +395,7 @@ export default function SupportPage() {
             style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}
           >
             <CheckCircle2 className="h-12 w-12 text-[#00E575]" />
-            <h2 className="font-display text-xl font-bold text-white">Ticket Submitted Successfully!</h2>
+            <h2 className="font-display text-xl font-bold text-[var(--text-primary)]">Ticket Submitted Successfully!</h2>
             <p className="text-xs text-[var(--text-muted)] max-w-sm">
               Our engineering & support team will inspect your issue and respond within 24 hours.
             </p>
@@ -626,7 +626,7 @@ export default function SupportPage() {
                   </span>
                 </div>
               </div>
-              <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-[var(--text-subtle)] group-hover:text-white transition-colors" />
+              <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-[var(--text-subtle)] group-hover:text-[var(--text-primary)] transition-colors" />
             </motion.button>
           ))}
         </div>

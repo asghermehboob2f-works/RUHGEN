@@ -101,17 +101,68 @@ export const viewport = {
   ],
 };
 
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || process.env.APP_URL || "https://ruhgen.com").replace(/\/$/, "");
+
 export const metadata: Metadata = {
-  title: "RUHGEN — Where imagination becomes reality",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "RUHGEN — AI Image & Video Generation Platform",
+    template: "%s | RUHGEN",
+  },
   description:
-    "Ultimate AI generation platform for images and video. Cinematic quality, real-time previews, built for creators and studios.",
+    "Transform prompts and ideas into ultra-high-definition images and cinematic video clips. Professional generative AI suite built for visual artists, agencies, and studios.",
   keywords: [
-    "AI",
-    "image generation",
-    "video generation",
-    "creators",
+    "AI image generator",
+    "AI video generator",
+    "cinematic AI generator",
+    "text to image",
+    "text to video",
+    "generative studio",
     "RUHGEN",
+    "Qwen AI",
+    "FLUX AI",
   ],
+  authors: [{ name: "RUHGEN Platform" }],
+  creator: "RUHGEN Studio",
+  publisher: "RUHGEN Generative AI",
+  alternates: {
+    canonical: "./",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: siteUrl,
+    siteName: "RUHGEN Generative AI",
+    title: "RUHGEN — AI Image & Video Generation Platform",
+    description:
+      "Transform prompts and ideas into ultra-high-definition images and cinematic video clips. Professional generative AI suite for creators and studios.",
+    images: [
+      {
+        url: BRAND_LOGO_SRC,
+        width: 512,
+        height: 512,
+        alt: "RUHGEN Generative AI Platform",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "RUHGEN — AI Image & Video Generation Platform",
+    description:
+      "Transform prompts and ideas into ultra-high-definition images and cinematic video clips.",
+    images: [BRAND_LOGO_SRC],
+  },
   icons: {
     icon: BRAND_LOGO_SRC,
     apple: BRAND_LOGO_SRC,
@@ -123,12 +174,44 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "RUHGEN",
+    url: siteUrl,
+    logo: `${siteUrl}${BRAND_LOGO_SRC}`,
+    description: "Professional generative AI studio for image and video synthesis.",
+    sameAs: [],
+  };
+
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "RUHGEN",
+    url: siteUrl,
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${siteUrl}/community?search={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
+  };
+
   return (
     <html
       lang="en"
       className={`${inter.variable} ${jetbrains.variable} ${syne.variable} ${bricolage.variable} ${orithDisplay.variable} ${grooteRegular.variable} ${shootingStar.variable} ${audiowide.variable} ${calsans.variable} ${zendots.variable} ${elmsSans.variable} ${bungeeHairline.variable} ${ningetan.variable} ${signatie.variable} h-full scroll-smooth antialiased`}
       suppressHydrationWarning
     >
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        />
+      </head>
       <body
         className="min-h-full font-sans"
         style={{

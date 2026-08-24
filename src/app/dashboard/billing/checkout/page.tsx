@@ -127,7 +127,7 @@ function CheckoutContent() {
           <p className="text-[10px] font-bold uppercase tracking-[0.25em]" style={{ color: "var(--text-subtle)" }}>
             Review Order
           </p>
-          <h1 className="font-display text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+          <h1 className="font-display text-2xl font-extrabold tracking-tight text-[var(--text-primary)] sm:text-3xl">
             Checkout
           </h1>
         </div>
@@ -159,14 +159,14 @@ function CheckoutContent() {
                 <span className="rounded bg-[#7B61FF]/10 border border-[#7B61FF]/25 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-[#A08AFF]">
                   Subscription Plan
                 </span>
-                <h2 className="font-display mt-2 text-2xl font-black text-white">
+                <h2 className="font-display mt-2 text-2xl font-black text-[var(--text-primary)]">
                   {selectedPlan.name}
                 </h2>
                 <p className="mt-1 text-sm text-[var(--text-muted)]">{selectedPlan.description}</p>
               </div>
               <div className="text-right">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)] block">Price</span>
-                <span className="font-display text-3xl font-extrabold text-white">
+                <span className="font-display text-3xl font-extrabold text-[var(--text-primary)]">
                   {selectedPlan.price_display}
                 </span>
               </div>
@@ -186,7 +186,7 @@ function CheckoutContent() {
               <div className="flex items-center gap-2.5">
                 <Coins className="h-5 w-5 text-[#00D4FF]" />
                 <div>
-                  <span className="text-sm font-extrabold text-white block">
+                  <span className="text-sm font-extrabold text-[var(--text-primary)] block">
                     {selectedPlan.credits.toLocaleString()} Credits Included
                   </span>
                   <span className="text-[10px] text-[var(--text-muted)]">
@@ -199,7 +199,7 @@ function CheckoutContent() {
 
             {/* Features check list */}
             <div className="mt-8 space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-white">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-primary)]">
                 Included with your plan:
               </h3>
               <ul className="grid gap-3 sm:grid-cols-2">
@@ -231,7 +231,7 @@ function CheckoutContent() {
                 >
                   <s.icon className="h-4 w-4" style={{ color: s.color }} />
                 </div>
-                <h4 className="text-xs font-bold text-white">{s.title}</h4>
+                <h4 className="text-xs font-bold text-[var(--text-primary)]">{s.title}</h4>
                 <p className="mt-1 text-[10px] text-[var(--text-muted)]">{s.desc}</p>
               </div>
             ))}
@@ -244,7 +244,7 @@ function CheckoutContent() {
             className="rounded-2xl border p-6"
             style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}
           >
-            <h3 className="font-display text-lg font-bold text-white mb-4">Summary</h3>
+            <h3 className="font-display text-lg font-bold text-[var(--text-primary)] mb-4">Summary</h3>
 
             {/* Price lines */}
             <div className="space-y-3 text-xs">
@@ -257,7 +257,7 @@ function CheckoutContent() {
                 <span>₹0</span>
               </div>
               <div className="h-[1px] bg-[var(--border-subtle)] my-2" />
-              <div className="flex justify-between text-sm font-bold text-white">
+              <div className="flex justify-between text-sm font-bold text-[var(--text-primary)]">
                 <span>Total Amount Due</span>
                 <span className="text-[#00D4FF]">{selectedPlan.price_display}</span>
               </div>

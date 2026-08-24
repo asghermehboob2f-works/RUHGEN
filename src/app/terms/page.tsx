@@ -3,8 +3,11 @@ import { MarketingShell } from "@/components/MarketingShell";
 import { PageHeader } from "@/components/PageHeader";
 
 export const metadata: Metadata = {
-  title: "Terms of Service — RUHGEN",
-  description: "Terms governing your use of RUHGEN software and services.",
+  title: "Terms of Service",
+  description: "Terms governing your use of RUHGEN software, generative features, and subscription services.",
+  alternates: {
+    canonical: "/terms",
+  },
 };
 
 export default function TermsPage() {
