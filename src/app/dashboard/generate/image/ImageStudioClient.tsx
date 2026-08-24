@@ -978,10 +978,6 @@ export default function ImageStudioClient() {
           </div>
         </div>
 
-        <div className="mb-1 flex items-center justify-between gap-2">
-          <span className="text-[9px] font-bold uppercase tracking-[0.16em] text-zinc-400">Image Prompt</span>
-          <span className="text-[9px] tabular-nums text-zinc-500">{prompt.length}</span>
-        </div>
         <div className="relative flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-900 px-2.5 py-1.5 transition-colors focus-within:border-white/25">
           <label className="sr-only" htmlFor="img-prompt">Prompt</label>
           <textarea
@@ -994,7 +990,7 @@ export default function ImageStudioClient() {
             placeholder={isEdit ? "Describe modifications to the reference image…" : "Describe your image concept in detail…"}
             rows={2}
             disabled={busy}
-            className="no-scrollbar max-h-[160px] min-h-[44px] w-full resize-none bg-transparent text-sm leading-relaxed text-zinc-100 outline-none placeholder:text-zinc-500 sm:text-[14px]"
+            className="no-scrollbar max-h-[160px] min-h-[40px] w-full resize-none bg-transparent text-sm leading-relaxed text-zinc-100 outline-none placeholder:text-zinc-500 sm:text-[13px]"
             style={{ scrollbarWidth: "none" }}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
@@ -1037,7 +1033,7 @@ export default function ImageStudioClient() {
             </div>
           ) : null}
         </div>
-        <div className="mt-2.5">
+        <div className="mt-2">
           <StudioGlowGenerate
             disabled={busy || prompt.trim().length < 2 || Boolean(user?.generationDisabled) || (user?.availableCredits ?? user?.credits ?? 0) < currentCost}
             onClick={() => void run()}
@@ -1066,8 +1062,6 @@ export default function ImageStudioClient() {
             )}
           </StudioGlowGenerate>
         </div>
-        <p className="mt-1.5 text-center text-[10px] text-[var(--text-subtle)]">Enter to generate · Shift+Enter for line break</p>
-        <p className="mt-1.5 text-center text-[10px] text-[var(--text-subtle)]">Enter to generate · Shift+Enter for line break</p>
       </div>
     </div>
   );
@@ -1120,24 +1114,6 @@ export default function ImageStudioClient() {
                   {messages.length === 0 ? "Awaiting your creative prompt" : `${galleryItems.length} frame${galleryItems.length === 1 ? "" : "s"} generated`}
                 </p>
               </div>
-              {studioView === "feed" ? (
-                <div className="hidden shrink-0 items-center gap-1 lg:flex">
-                  {(["all", "running", "ready"] as const).map((f) => (
-                    <button
-                      key={f}
-                      type="button"
-                      onClick={() => setFeedFilter(f)}
-                      className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide transition-all ${
-                        feedFilter === f
-                          ? "bg-[#7B61FF]/25 text-[var(--text-primary)] ring-1 ring-[#7B61FF]/40"
-                          : "border border-border bg-card/35 text-[var(--text-muted)] hover:border-border/80"
-                      }`}
-                    >
-                      {f === "all" ? "All" : f === "running" ? "Live" : "Ready"}
-                    </button>
-                  ))}
-                </div>
-              ) : null}
               <div className="flex shrink-0 items-center gap-1 rounded-lg border border-border bg-card/45 p-0.5">
                 <button
                   type="button"
@@ -1419,60 +1395,20 @@ export default function ImageStudioClient() {
             </div>
 
             <div
-              className="shrink-0 border-t px-3 py-2 backdrop-blur-xl lg:hidden"
+              ref={promptDockRef}
+              className="shrink-0 border-t border-white/10 px-3 py-2.5 backdrop-blur-2xl"
               style={{
                 borderColor: "color-mix(in srgb, white 8%, transparent)",
                 background:
-                  "linear-gradient(180deg, color-mix(in srgb, var(--rich-black) 60%, transparent) 0%, color-mix(in srgb, var(--deep-black) 92%, transparent) 100%)",
+                  "linear-gradient(180deg, color-mix(in srgb, var(--rich-black) 70%, transparent) 0%, color-mix(in srgb, var(--deep-black) 95%, transparent) 100%)",
                 boxShadow: "0 -20px 40px -28px rgba(0,0,0,0.75)",
+                paddingBottom: "max(0.625rem, env(safe-area-inset-bottom))",
               }}
             >
-              <div className="flex items-center gap-2">
-                <textarea
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      void run();
-                    }
-                  }}
-                  disabled={busy}
-                  placeholder={isEdit ? "Describe image modifications…" : "Describe your image concept…"}
-                  rows={1}
-                  className="studio-prompt-focus-image min-h-[36px] max-h-24 flex-1 resize-none rounded-lg border border-white/10 bg-black/45 px-2.5 py-1.5 text-xs leading-normal text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)]"
-                />
-                <StudioGlowGenerate
-                  disabled={busy || prompt.trim().length < 2 || Boolean(user?.generationDisabled) || (user?.availableCredits ?? user?.credits ?? 0) < currentCost}
-                  onClick={() => void run()}
-                  size="md"
-                >
-                  {busy ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin text-zinc-950" />
-                  ) : (
-                    <div className="flex items-center gap-1.5 px-0.5 font-bold text-zinc-950 text-xs">
-                      <Sparkles className="h-3.5 w-3.5 text-zinc-950" strokeWidth={2.2} />
-                      <span>Generate</span>
-                    </div>
-                  )}
-                </StudioGlowGenerate>
-              </div>
-            </div>
-          </div>
-
-          {showCanvasDock ? (
-            <div
-              ref={promptDockRef}
-              className="shrink-0 rounded-2xl border border-white/10 px-3 pt-3 shadow-[0_-12px_48px_-28px_rgba(0,0,0,0.55)] backdrop-blur-2xl"
-              style={{
-                background:
-                  "linear-gradient(165deg, color-mix(in srgb, white 5%, transparent) 0%, color-mix(in srgb, var(--rich-black) 92%, transparent) 100%)",
-                boxShadow: "inset 0 1px 0 color-mix(in srgb, white 6%, transparent), 0 -20px 56px -24px rgba(0,0,0,0.5)",
-                paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))",
-              }}
-            >
-              <div className="mb-2 flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.02] px-2 py-1 text-[11px]">
-                <span className="font-semibold text-white">Cost: <strong className={((user?.availableCredits ?? user?.credits ?? 0) < currentCost) ? "text-rose-400 font-bold" : "text-[#00D4FF] font-bold"}>{currentCost} credits ({activeTierObj.label})</strong></span>
+              <div className="mb-1.5 flex items-center justify-between px-0.5 text-[11px]">
+                <span className="font-semibold text-white">
+                  Cost: <strong className={((user?.availableCredits ?? user?.credits ?? 0) < currentCost) ? "text-rose-400 font-bold" : "text-[#00D4FF] font-bold"}>{currentCost} credits ({activeTierObj.label})</strong>
+                </span>
                 <span className="text-[var(--text-subtle)]">Available: {user?.availableCredits ?? user?.credits ?? 0}</span>
               </div>
 
@@ -1487,9 +1423,9 @@ export default function ImageStudioClient() {
                     }
                   }}
                   disabled={busy}
-                  placeholder="Describe your image concept…"
+                  placeholder={isEdit ? "Describe image modifications…" : "Describe your image concept…"}
                   rows={1}
-                  className="studio-prompt-focus-image min-h-[36px] max-h-24 flex-1 resize-none rounded-lg border border-white/10 bg-black/45 px-2.5 py-1.5 text-xs leading-normal text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)]"
+                  className="studio-prompt-focus-image min-h-[38px] max-h-24 flex-1 resize-none rounded-xl border border-white/10 bg-black/45 px-3 py-2 text-xs leading-normal text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)]"
                 />
                 <StudioGlowGenerate
                   disabled={busy || prompt.trim().length < 2 || Boolean(user?.generationDisabled) || (user?.availableCredits ?? user?.credits ?? 0) < currentCost}
@@ -1499,7 +1435,7 @@ export default function ImageStudioClient() {
                   {busy ? (
                     <Loader2 className="h-3.5 w-3.5 animate-spin text-zinc-950" />
                   ) : (
-                    <div className="flex items-center gap-1.5 px-0.5 font-bold text-zinc-950 text-xs shrink-0">
+                    <div className="flex items-center gap-1.5 px-1 font-bold text-zinc-950 text-xs shrink-0">
                       <Sparkles className="h-3.5 w-3.5 text-zinc-950" strokeWidth={2.2} />
                       <span>Generate</span>
                     </div>
@@ -1507,7 +1443,7 @@ export default function ImageStudioClient() {
                 </StudioGlowGenerate>
               </div>
             </div>
-          ) : null}
+          </div>
         </div>
 
         {downloadError ? (
