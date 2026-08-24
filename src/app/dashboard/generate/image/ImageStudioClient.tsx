@@ -1405,14 +1405,7 @@ export default function ImageStudioClient() {
                 paddingBottom: "max(0.625rem, env(safe-area-inset-bottom))",
               }}
             >
-              <div className="mb-1.5 flex items-center justify-between px-0.5 text-[11px]">
-                <span className="font-semibold text-white">
-                  Cost: <strong className={((user?.availableCredits ?? user?.credits ?? 0) < currentCost) ? "text-rose-400 font-bold" : "text-[#00D4FF] font-bold"}>{currentCost} credits ({activeTierObj.label})</strong>
-                </span>
-                <span className="text-[var(--text-subtle)]">Available: {user?.availableCredits ?? user?.credits ?? 0}</span>
-              </div>
-
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col gap-2">
                 <textarea
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
@@ -1424,8 +1417,8 @@ export default function ImageStudioClient() {
                   }}
                   disabled={busy}
                   placeholder={isEdit ? "Describe image modifications…" : "Describe your image concept…"}
-                  rows={1}
-                  className="studio-prompt-focus-image min-h-[38px] max-h-24 flex-1 resize-none rounded-xl border border-white/10 bg-black/45 px-3 py-2 text-xs leading-normal text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)]"
+                  rows={2}
+                  className="studio-prompt-focus-image min-h-[44px] max-h-28 w-full resize-none rounded-xl border border-white/10 bg-black/50 px-3 py-2 text-xs leading-relaxed text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)]"
                 />
                 <StudioGlowGenerate
                   disabled={busy || prompt.trim().length < 2 || Boolean(user?.generationDisabled) || (user?.availableCredits ?? user?.credits ?? 0) < currentCost}
@@ -1433,11 +1426,14 @@ export default function ImageStudioClient() {
                   size="md"
                 >
                   {busy ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin text-zinc-950" />
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin text-zinc-950" />
+                      <span className="font-bold text-xs text-zinc-950">Synthesizing Image…</span>
+                    </>
                   ) : (
-                    <div className="flex items-center gap-1.5 px-1 font-bold text-zinc-950 text-xs shrink-0">
+                    <div className="flex items-center justify-center gap-1.5 font-bold text-zinc-950 text-xs py-0.5">
                       <Sparkles className="h-3.5 w-3.5 text-zinc-950" strokeWidth={2.2} />
-                      <span>Generate</span>
+                      <span>Generate Image</span>
                     </div>
                   )}
                 </StudioGlowGenerate>
