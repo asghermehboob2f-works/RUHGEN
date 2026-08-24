@@ -978,93 +978,55 @@ export default function ImageStudioClient() {
           </div>
         </div>
 
-        <div className="mb-1 flex items-center justify-between gap-2">
-          <span className="text-[9px] font-bold uppercase tracking-[0.16em] text-zinc-400">Image Prompt</span>
-          <span className="text-[9px] tabular-nums text-zinc-500">{prompt.length}</span>
-        </div>
-        <div className="relative flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-900 px-2.5 py-1.5 transition-colors focus-within:border-white/25">
-          <label className="sr-only" htmlFor="img-prompt">Prompt</label>
-          <textarea
-            ref={imagePromptRef}
-            id="img-prompt"
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            autoComplete="off"
-            spellCheck={false}
-            placeholder={isEdit ? "Describe modifications to the reference image…" : "Describe your image concept in detail…"}
-            rows={2}
-            disabled={busy}
-            className="no-scrollbar max-h-[160px] min-h-[44px] w-full resize-none bg-transparent text-sm leading-relaxed text-zinc-100 outline-none placeholder:text-zinc-500 sm:text-[14px]"
-            style={{ scrollbarWidth: "none" }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                void run();
-              }
-            }}
-          />
+        <div className="mt-1 flex items-center gap-2">
+          <div className="relative flex min-h-[36px] flex-1 items-center gap-1.5 rounded-lg border border-white/10 bg-zinc-900 px-2.5 py-1 transition-colors focus-within:border-white/25">
+            <label className="sr-only" htmlFor="img-prompt">Prompt</label>
+            <textarea
+              ref={imagePromptRef}
+              id="img-prompt"
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              autoComplete="off"
+              spellCheck={false}
+              placeholder={isEdit ? "Describe image modifications…" : "Describe your image concept…"}
+              rows={1}
+              disabled={busy}
+              className="no-scrollbar max-h-20 min-h-[24px] w-full flex-1 resize-none bg-transparent text-xs leading-normal text-zinc-100 outline-none placeholder:text-zinc-500"
+              style={{ scrollbarWidth: "none" }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  void run();
+                }
+              }}
+            />
+            <button
+              type="button"
+              onClick={enhancePromptManually}
+              disabled={busy || !prompt.trim()}
+              title="Enhance prompt with AI details"
+              className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-white/10 bg-white/5 text-zinc-400 hover:text-white disabled:opacity-30 cursor-pointer"
+            >
+              <Sparkles className="h-3 w-3 text-purple-400" />
+            </button>
+          </div>
 
-          {/* Up / Down Arrow Glass Buttons - Only visible when text is long */}
-          {prompt.length > 70 ? (
-            <div className="flex flex-col gap-1 shrink-0 select-none transition-opacity duration-200">
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => {
-                  if (imagePromptRef.current) {
-                    imagePromptRef.current.scrollTop -= 32;
-                  }
-                }}
-                className="flex h-5 w-5 items-center justify-center rounded-md border border-white/10 bg-zinc-800 text-zinc-300 transition-colors hover:bg-zinc-700 hover:text-white cursor-pointer disabled:opacity-30"
-                title="Scroll Up"
-                aria-label="Scroll Up"
-              >
-                <ChevronUp className="h-3 w-3" strokeWidth={2.5} />
-              </button>
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => {
-                  if (imagePromptRef.current) {
-                    imagePromptRef.current.scrollTop += 32;
-                  }
-                }}
-                className="flex h-5 w-5 items-center justify-center rounded-md border border-white/12 bg-white/[0.05] text-slate-300 transition-all hover:border-indigo-400/60 hover:bg-indigo-500/25 hover:text-white active:scale-95 cursor-pointer disabled:opacity-30"
-                title="Scroll Down"
-                aria-label="Scroll Down"
-              >
-                <ChevronDown className="h-3 w-3" strokeWidth={2.5} />
-              </button>
-            </div>
-          ) : null}
-        </div>
-        <div className="mt-2.5">
           <StudioGlowGenerate
-            tone="purple"
-            size="lg"
             disabled={busy || prompt.trim().length < 2 || Boolean(user?.generationDisabled) || (user?.availableCredits ?? user?.credits ?? 0) < currentCost}
             onClick={() => void run()}
+            size="md"
           >
             {busy ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin text-zinc-950" />
-                <span className="font-bold tracking-wide text-zinc-950">Synthesizing Image…</span>
-              </>
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-zinc-950" />
             ) : user?.generationDisabled ? (
-              <>
-                <X className="h-4 w-4 text-rose-700" strokeWidth={2.5} />
-                <span className="font-bold tracking-wide text-rose-800">Access Disabled</span>
-              </>
+              <span className="font-bold text-xs text-rose-800">Disabled</span>
             ) : (user?.availableCredits ?? user?.credits ?? 0) < currentCost ? (
-              <>
-                <X className="h-4 w-4 text-rose-700" strokeWidth={2.5} />
-                <span className="font-bold tracking-wide text-rose-800">Insufficient Credits</span>
-              </>
+              <span className="font-bold text-xs text-rose-800">No Credits</span>
             ) : (
-              <>
-                <Sparkles className="h-4 w-4 text-zinc-950" strokeWidth={2.2} />
-                <span className="font-bold tracking-wide text-zinc-950">Generate Image</span>
-              </>
+              <div className="flex items-center gap-1.5 px-0.5 font-bold text-zinc-950 text-xs shrink-0">
+                <Sparkles className="h-3.5 w-3.5 text-zinc-950" strokeWidth={2.2} />
+                <span>Generate</span>
+              </div>
             )}
           </StudioGlowGenerate>
         </div>
@@ -1477,10 +1439,7 @@ export default function ImageStudioClient() {
                 <span className="text-[var(--text-subtle)]">Available: {user?.availableCredits ?? user?.credits ?? 0}</span>
               </div>
 
-              <p className="mb-1.5 text-[9px] font-bold uppercase tracking-[0.14em]" style={{ color: "var(--text-subtle)" }}>
-                Prompt
-              </p>
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+              <div className="flex items-center gap-2">
                 <textarea
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
@@ -1492,35 +1451,21 @@ export default function ImageStudioClient() {
                   }}
                   disabled={busy}
                   placeholder="Describe your image concept…"
-                  rows={2}
-                  className="studio-prompt-focus-image min-h-[44px] w-full flex-1 resize-none rounded-xl border border-white/10 bg-black/35 px-3 py-2.5 text-sm leading-relaxed text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)]"
+                  rows={1}
+                  className="studio-prompt-focus-image min-h-[36px] max-h-24 flex-1 resize-none rounded-lg border border-white/10 bg-black/45 px-2.5 py-1.5 text-xs leading-normal text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)]"
                 />
                 <StudioGlowGenerate
-                  tone="purple"
-                  size="lg"
                   disabled={busy || prompt.trim().length < 2 || Boolean(user?.generationDisabled) || (user?.availableCredits ?? user?.credits ?? 0) < currentCost}
                   onClick={() => void run()}
+                  size="md"
                 >
                   {busy ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin text-violet-200" />
-                      <span className="font-semibold tracking-wide">Synthesizing…</span>
-                    </>
-                  ) : user?.generationDisabled ? (
-                    <>
-                      <X className="h-4 w-4 text-rose-300" strokeWidth={2} />
-                      <span className="font-semibold tracking-wide">Access Disabled</span>
-                    </>
-                  ) : (user?.availableCredits ?? user?.credits ?? 0) < currentCost ? (
-                    <>
-                      <X className="h-4 w-4 text-rose-300" strokeWidth={2} />
-                      <span className="font-semibold tracking-wide">Insufficient</span>
-                    </>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-zinc-950" />
                   ) : (
-                    <>
-                      <Sparkles className="h-4 w-4 text-white" strokeWidth={2.2} />
-                      <span className="font-medium tracking-wide text-white">Generate Image</span>
-                    </>
+                    <div className="flex items-center gap-1.5 px-0.5 font-bold text-zinc-950 text-xs shrink-0">
+                      <Sparkles className="h-3.5 w-3.5 text-zinc-950" strokeWidth={2.2} />
+                      <span>Generate</span>
+                    </div>
                   )}
                 </StudioGlowGenerate>
               </div>
