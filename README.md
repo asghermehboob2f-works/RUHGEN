@@ -370,12 +370,7 @@ npm run build
 
 Official platform channels configured within the dynamic CMS:
 
-- **Instagram**: [https://instagram.com/ruhgen](https://instagram.com/ruhgen)
-- **Facebook**: [https://facebook.com/ruhgen](https://facebook.com/ruhgen)
-- **X / Twitter**: [https://x.com/ruhgen](https://x.com/ruhgen)
-- **LinkedIn**: [https://linkedin.com/company/ruhgen](https://linkedin.com/company/ruhgen)
-- **YouTube**: [https://youtube.com/@ruhgen](https://youtube.com/@ruhgen)
-- **GitHub**: [https://github.com/ruhgen](https://github.com/ruhgen)
+- **Instagram**: [https://instagram.com/ruhgen](https://instagram.com/ruhgen.in)
 
 ---
 
