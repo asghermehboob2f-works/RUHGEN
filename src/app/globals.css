@@ -149,8 +149,27 @@ html.light .nav-scroll-x {
   scrollbar-color: rgba(103, 80, 220, 0.48) rgba(0, 0, 0, 0.07);
 }
 
-.nav-scroll-x::-webkit-scrollbar {
+/* Ultra-Slim Global Scrollbars */
+::-webkit-scrollbar {
+  width: 4px;
   height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.nav-scroll-x::-webkit-scrollbar {
+  height: 3px;
 }
 
 .nav-scroll-x::-webkit-scrollbar-track {
@@ -162,19 +181,22 @@ html.light .nav-scroll-x {
 .nav-scroll-x::-webkit-scrollbar-thumb {
   border-radius: 9999px;
   border: 1px solid transparent;
-  background: linear-gradient(90deg, var(--primary-purple), var(--primary-cyan));
+  background: rgba(255, 255, 255, 0.2);
   background-clip: padding-box;
 }
 
 .nav-scroll-y {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
 }
 
 .nav-scroll-y::-webkit-scrollbar {
-  display: none;
-  width: 0;
-  height: 0;
+  width: 4px;
+}
+
+.nav-scroll-y::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
 }
 
 ::selection {

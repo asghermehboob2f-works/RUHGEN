@@ -950,31 +950,32 @@ export default function ImageStudioClient() {
         </div>
 
       {/* Sticky prompt + generate (Section 8: Generation Area) */}
-      <div className="shrink-0 border-t border-white/10 bg-[#121215] px-3.5 pb-3.5 pt-3.5">
-        {/* Tier & Credit Summary */}
-        <div className="mb-2.5 flex items-center justify-between rounded-lg border border-white/10 bg-zinc-900/90 px-3 py-1.5 text-xs text-zinc-300">
-          <div className="flex items-center gap-2">
-            <span className="text-zinc-400">Model Tier:</span>
-            <span className="font-display font-semibold text-white flex items-center gap-1">
+      <div className="shrink-0 border-t border-white/10 bg-[#121215] px-3 pb-3 pt-2.5">
+        {/* Slim Single-Line Tier & Credit Summary Badge */}
+        <div className="mb-2 flex items-center justify-between gap-2 rounded-md border border-white/10 bg-zinc-900/90 px-2.5 py-1 text-[10px] text-zinc-300 whitespace-nowrap overflow-x-auto scrollbar-none">
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="font-display font-semibold text-white flex items-center gap-1.5">
               <Sparkles className="h-3 w-3 text-zinc-300" />
-              {activeTierObj.label}
+              {selectedTier === "quality" ? "Prem Tier" : "Std Tier"}
             </span>
+            <span className="text-zinc-600">|</span>
+            <span className="text-zinc-200 font-medium">{ASPECT_RATIOS[selectedRatioIdx]?.ratio || "1:1"}</span>
           </div>
-          <div className="flex items-center gap-4 text-zinc-400">
+          <div className="flex items-center gap-3 shrink-0 text-[10px] text-zinc-400">
             <span>
-              Available: <strong className="text-zinc-100 tabular-nums">{user?.availableCredits ?? user?.credits ?? 0}</strong>
+              Avail: <strong className="text-zinc-100 tabular-nums">{user?.availableCredits ?? user?.credits ?? 0}</strong>
             </span>
             <span>
-              Cost: <strong className={((user?.availableCredits ?? user?.credits ?? 0) < currentCost) ? "text-rose-400 font-bold" : "text-emerald-400 font-bold"}>{currentCost} credits</strong>
+              Cost: <strong className={((user?.availableCredits ?? user?.credits ?? 0) < currentCost) ? "text-rose-400 font-bold" : "text-emerald-400 font-bold"}>{currentCost} cr</strong>
             </span>
           </div>
         </div>
 
-        <div className="mb-1.5 flex items-center justify-between gap-2">
-          <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-400">Image Prompt</span>
-          <span className="text-[10px] tabular-nums text-zinc-500">{prompt.length}</span>
+        <div className="mb-1 flex items-center justify-between gap-2">
+          <span className="text-[9px] font-bold uppercase tracking-[0.16em] text-zinc-400">Image Prompt</span>
+          <span className="text-[9px] tabular-nums text-zinc-500">{prompt.length}</span>
         </div>
-        <div className="relative flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 transition-colors focus-within:border-white/25">
+        <div className="relative flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-900 px-2.5 py-1.5 transition-colors focus-within:border-white/25">
           <label className="sr-only" htmlFor="img-prompt">Prompt</label>
           <textarea
             ref={imagePromptRef}

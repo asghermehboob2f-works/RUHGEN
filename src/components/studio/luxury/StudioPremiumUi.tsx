@@ -107,7 +107,7 @@ export function StudioGlowGenerate({
   onClick: () => void;
   children: ReactNode;
   tone?: "purple" | "cyan";
-  size?: "md" | "lg" | "icon";
+  size?: "sm" | "md" | "lg" | "icon";
 }) {
   const reduce = useReducedMotion();
   const isIcon = size === "icon";
@@ -118,15 +118,17 @@ export function StudioGlowGenerate({
       disabled={disabled}
       onClick={onClick}
       whileTap={reduce || disabled ? undefined : { scale: 0.98 }}
-      className={`group relative isolate overflow-hidden font-sans font-bold text-zinc-950 bg-white hover:bg-zinc-100 transition-all duration-200 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed border border-white/50 shadow-[0_4px_16px_rgba(255,255,255,0.12)] hover:shadow-[0_6px_20px_rgba(255,255,255,0.2)] ${
+      className={`group relative isolate overflow-hidden font-sans font-bold text-zinc-950 bg-white hover:bg-zinc-100 transition-all duration-200 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed border border-white/50 shadow-[0_4px_14px_rgba(255,255,255,0.12)] hover:shadow-[0_6px_18px_rgba(255,255,255,0.2)] ${
         isIcon
-          ? "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
+          ? "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
           : size === "lg"
-            ? "inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg px-5 text-sm tracking-wide"
-            : "inline-flex min-h-[38px] w-full items-center justify-center gap-2 rounded-lg px-4 text-xs font-bold tracking-wide"
+            ? "inline-flex min-h-[40px] w-full items-center justify-center gap-2 rounded-lg px-4 text-xs tracking-wide"
+            : size === "sm"
+              ? "inline-flex min-h-[30px] w-full items-center justify-center gap-1.5 rounded-md px-3 text-[11px] font-bold tracking-wide"
+              : "inline-flex min-h-[34px] w-full items-center justify-center gap-2 rounded-lg px-3.5 text-xs font-bold tracking-wide"
       }`}
     >
-      <span className="relative z-[1] flex items-center justify-center gap-2 text-zinc-950 font-extrabold tracking-wide [&_*]:text-zinc-950">
+      <span className="relative z-[1] flex items-center justify-center gap-1.5 text-zinc-950 font-extrabold tracking-wide [&_*]:text-zinc-950">
         {children}
       </span>
     </motion.button>
