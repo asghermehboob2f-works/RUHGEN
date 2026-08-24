@@ -73,26 +73,26 @@ function SidebarNavLink({
     <Link
       href={item.href}
       onClick={onNavigate}
-      className={`group flex items-center rounded-xl border transition-all duration-150 ${
+      className={`group flex items-center rounded-lg border transition-all duration-150 ${
         slimmer
-          ? "min-h-[38px] gap-2.5 px-2.5 py-1.5 text-xs font-medium"
-          : "min-h-[40px] gap-2.5 px-3 py-2 text-xs sm:text-sm font-medium"
+          ? "min-h-[36px] gap-2.5 px-2 py-1 text-xs font-medium"
+          : "min-h-[38px] gap-2.5 px-2.5 py-1.5 text-xs sm:text-sm font-medium"
       } ${
         on
-          ? "border-white/15 bg-white/[0.08] text-white shadow-sm font-semibold"
-          : "border-transparent text-zinc-400 hover:border-white/10 hover:bg-white/[0.04] hover:text-zinc-200"
+          ? "border-white/10 bg-white/10 text-white font-semibold shadow-sm"
+          : "border-transparent text-zinc-400 hover:border-white/5 hover:bg-white/[0.04] hover:text-zinc-200"
       }`}
     >
       <span
-        className={`flex shrink-0 items-center justify-center rounded-lg border transition-all ${
-          slimmer ? "h-6.5 w-6.5" : "h-7 w-7"
+        className={`flex shrink-0 items-center justify-center rounded-md border transition-colors ${
+          slimmer ? "h-6 w-6" : "h-6.5 w-6.5"
         } ${
           on
-            ? "border-white/25 bg-white/15 text-white shadow-sm"
-            : "border-white/10 bg-zinc-900/90 text-zinc-400 group-hover:border-white/20 group-hover:bg-zinc-800 group-hover:text-zinc-100"
+            ? "border-white/20 bg-white/15 text-white"
+            : "border-white/5 bg-zinc-800/80 text-zinc-400 group-hover:border-white/10 group-hover:text-zinc-200"
         }`}
       >
-        <item.icon className={slimmer ? "h-3.5 w-3.5" : "h-4 w-4"} strokeWidth={1.75} />
+        <item.icon className="h-3.5 w-3.5" strokeWidth={1.75} />
       </span>
       <span className="min-w-0 truncate">{item.label}</span>
     </Link>
@@ -143,38 +143,41 @@ export function UserDashboardShell({ children }: { children: React.ReactNode }) 
         </div>
 
         {/* Sidebar Body with custom scrollbar */}
-        <div className="studio-scrollbar flex flex-1 flex-col gap-4 overflow-y-auto px-3.5 py-4">
-          <div>
-            <p className="px-1 text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-500">
-              Workspace
-            </p>
-            <nav className="mt-2 flex flex-col gap-1" aria-label="Workspace">
-              {activeWorkspaceNav.map((item) => (
-                <SidebarNavLink key={item.href} item={item} pathname={pathname} />
-              ))}
-            </nav>
-          </div>
+        <div className="studio-scrollbar flex flex-1 flex-col gap-4 overflow-y-auto px-3 py-3.5">
+          {/* Cohesive Navigation Panel Container */}
+          <div className="rounded-xl border border-white/10 bg-zinc-900/50 p-2.5 space-y-4">
+            <div>
+              <p className="px-2 text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-400">
+                Workspace
+              </p>
+              <nav className="mt-1.5 flex flex-col gap-0.5" aria-label="Workspace">
+                {activeWorkspaceNav.map((item) => (
+                  <SidebarNavLink key={item.href} item={item} pathname={pathname} />
+                ))}
+              </nav>
+            </div>
 
-          <div>
-            <p className="px-1 text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-500">
-              Create
-            </p>
-            <nav className="mt-2 flex flex-col gap-1" aria-label="Create">
-              {createNav.map((item) => (
-                <SidebarNavLink key={item.href} item={item} pathname={pathname} />
-              ))}
-            </nav>
-          </div>
+            <div>
+              <p className="px-2 text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-400">
+                Create
+              </p>
+              <nav className="mt-1.5 flex flex-col gap-0.5" aria-label="Create">
+                {createNav.map((item) => (
+                  <SidebarNavLink key={item.href} item={item} pathname={pathname} />
+                ))}
+              </nav>
+            </div>
 
-          <div>
-            <p className="px-1 text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-500">
-              Support
-            </p>
-            <nav className="mt-2 flex flex-col gap-1" aria-label="Support">
-              {supportNav.map((item) => (
-                <SidebarNavLink key={item.href} item={item} pathname={pathname} />
-              ))}
-            </nav>
+            <div>
+              <p className="px-2 text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-400">
+                Support
+              </p>
+              <nav className="mt-1.5 flex flex-col gap-0.5" aria-label="Support">
+                {supportNav.map((item) => (
+                  <SidebarNavLink key={item.href} item={item} pathname={pathname} />
+                ))}
+              </nav>
+            </div>
           </div>
 
           {/* Credits Box Card */}
@@ -394,36 +397,38 @@ export function UserDashboardShell({ children }: { children: React.ReactNode }) 
                   <span className="sr-only">Close</span>
                 </button>
               </div>
-              <div className="flex flex-1 flex-col gap-8 overflow-y-auto p-4">
-                <div>
-                  <p className="px-1 text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: "var(--text-subtle)" }}>
-                    Workspace
-                  </p>
-                  <nav className="mt-3 flex flex-col gap-1.5" aria-label="Workspace mobile">
-                    {activeWorkspaceNav.map((item) => (
-                      <SidebarNavLink key={item.href} item={item} pathname={pathname} onNavigate={() => setMobileOpen(false)} />
-                    ))}
-                  </nav>
-                </div>
-                <div>
-                  <p className="px-1 text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: "var(--text-subtle)" }}>
-                    Create
-                  </p>
-                  <nav className="mt-3 flex flex-col gap-1.5" aria-label="Create mobile">
-                    {createNav.map((item) => (
-                      <SidebarNavLink key={item.href} item={item} pathname={pathname} onNavigate={() => setMobileOpen(false)} />
-                    ))}
-                  </nav>
-                </div>
-                <div>
-                  <p className="px-1 text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: "var(--text-subtle)" }}>
-                    Support
-                  </p>
-                  <nav className="mt-3 flex flex-col gap-1.5" aria-label="Support mobile">
-                    {supportNav.map((item) => (
-                      <SidebarNavLink key={item.href} item={item} pathname={pathname} onNavigate={() => setMobileOpen(false)} />
-                    ))}
-                  </nav>
+              <div className="flex flex-1 flex-col gap-6 overflow-y-auto p-4">
+                <div className="rounded-xl border border-white/10 bg-zinc-900/50 p-3 space-y-4">
+                  <div>
+                    <p className="px-2 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">
+                      Workspace
+                    </p>
+                    <nav className="mt-2 flex flex-col gap-1" aria-label="Workspace mobile">
+                      {activeWorkspaceNav.map((item) => (
+                        <SidebarNavLink key={item.href} item={item} pathname={pathname} onNavigate={() => setMobileOpen(false)} />
+                      ))}
+                    </nav>
+                  </div>
+                  <div>
+                    <p className="px-2 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">
+                      Create
+                    </p>
+                    <nav className="mt-2 flex flex-col gap-1" aria-label="Create mobile">
+                      {createNav.map((item) => (
+                        <SidebarNavLink key={item.href} item={item} pathname={pathname} onNavigate={() => setMobileOpen(false)} />
+                      ))}
+                    </nav>
+                  </div>
+                  <div>
+                    <p className="px-2 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">
+                      Support
+                    </p>
+                    <nav className="mt-2 flex flex-col gap-1" aria-label="Support mobile">
+                      {supportNav.map((item) => (
+                        <SidebarNavLink key={item.href} item={item} pathname={pathname} onNavigate={() => setMobileOpen(false)} />
+                      ))}
+                    </nav>
+                  </div>
                 </div>
                 <Link
                   href="/"
