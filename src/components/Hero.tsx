@@ -3,7 +3,7 @@
 import { motion, useReducedMotion, Variants } from "framer-motion";
 import Link from "next/link";
 import { SITE_CONTAINER } from "@/lib/site-layout";
-import { Play, Sparkles, ArrowRight } from "lucide-react";
+import { Play } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 
 export function Hero() {
@@ -16,22 +16,21 @@ export function Hero() {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.25,
-        delayChildren: 0.4
+        staggerChildren: 0.15,
+        delayChildren: 0.2,
       },
     },
   };
 
-  const fadeUpBlur: Variants = {
-    hidden: { opacity: 0, y: 40, filter: "blur(15px)" },
+  const fadeUp: Variants = {
+    hidden: { opacity: 0, y: 24 },
     visible: {
       opacity: 1,
       y: 0,
-      filter: "blur(0px)",
       transition: {
-        duration: 1.4,
-        ease: [0.16, 1, 0.3, 1]
-      }
+        duration: 0.7,
+        ease: [0.21, 0.47, 0.32, 0.98],
+      },
     },
   };
 
@@ -40,25 +39,15 @@ export function Hero() {
       id="hero"
       className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden pt-24 pb-20"
     >
-      {/* Cinematic Background Atmosphere - Maximum Visibility */}
+      {/* Cinematic Background Atmosphere */}
       <div className="pointer-events-none absolute inset-0 z-0">
         <div
           className="absolute inset-0 transition-colors duration-700"
           style={{
             background: isLight
-              ? "radial-gradient(circle at 50% 50%, rgba(255,255,255,0) 0%, rgba(255,255,255,0.05) 100%)"
+              ? "radial-gradient(circle at 50% 50%, rgba(255,255,255,0) 0%, rgba(0,0,0,0.02) 100%)"
               : "radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 0%, rgba(0,0,0,0.4) 100%)"
           }}
-        />
-
-        {/* Animated Light Leaks/Glows (Softer) */}
-        <motion.div
-          className="absolute top-[20%] left-[20%] w-[40%] h-[40%] bg-blue-500/5 blur-[120px] rounded-full"
-          animate={{
-            scale: [1, 1.1, 1],
-            opacity: [0.2, 0.3, 0.2],
-          }}
-          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
         />
       </div>
 
@@ -68,10 +57,10 @@ export function Hero() {
         initial="hidden"
         animate="visible"
       >
-        {/* 1. HERO HEADING - Classic & High-End */}
+        {/* 1. HERO HEADING - High-End & Crisp */}
         <motion.div
           className="mb-10 sm:mb-12 flex flex-col items-center text-center max-w-5xl"
-          variants={fadeUpBlur}
+          variants={fadeUp}
         >
           <h1 className="font-display text-[clamp(44px,7.5vw,96px)] font-light leading-[0.98] tracking-tightest text-[var(--text-primary)] selection:bg-[var(--text-primary)]/10 drop-shadow-[0_4px_24px_rgba(0,0,0,0.7)]">
             <span className="block bg-gradient-to-b from-[var(--text-primary)] via-[var(--text-primary)] to-[var(--text-primary)]/80 bg-clip-text text-transparent">Where imagination</span>
@@ -80,7 +69,7 @@ export function Hero() {
 
           <motion.div
             className="mt-5 flex items-center justify-center"
-            variants={fadeUpBlur}
+            variants={fadeUp}
           >
             <span className="font-shooting-star text-[clamp(18px,2vw,24px)] font-normal tracking-[0.15em] text-[var(--text-muted)] lowercase">
               — instantly.
@@ -88,67 +77,56 @@ export function Hero() {
           </motion.div>
         </motion.div>
 
-        {/* 2. BUTTONS - Centered Action Deck */}
+        {/* 2. HERO CTA BUTTON SYSTEM - Side-by-Side & Compact Sizing */}
         <motion.div
-          className="flex flex-col gap-4 sm:flex-row sm:items-center justify-center"
-          variants={fadeUpBlur}
+          className="flex flex-row items-center justify-center gap-2.5 sm:gap-3.5 max-w-full px-2"
+          variants={fadeUp}
         >
-          {/* PRIMARY CTA BUTTON: Vibrant Gradient with Subtle Glow & Icon */}
-          <Link href="/sign-up" className="group relative inline-flex">
-            {/* Outer ambient glow */}
-            <div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-[#7B61FF] via-[#00D4FF] to-[#7B61FF] opacity-70 blur-md transition-all duration-500 group-hover:opacity-100 group-hover:blur-lg" />
-            
-            <motion.div 
-              className="relative z-10 flex items-center justify-center gap-2.5 rounded-full bg-gradient-to-r from-[#7B61FF] via-[#258EFF] to-[#00D4FF] px-8 py-3.5 text-white shadow-xl transition-all duration-300 group-hover:brightness-110 active:scale-95 cursor-pointer"
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
+          {/* PRIMARY CTA: Deep Refined Royal Electric Blue */}
+          <Link href="/sign-up" className="group relative inline-flex shrink-0">
+            <div 
+              className="relative z-10 flex items-center justify-center rounded-full border border-blue-400/20 bg-gradient-to-r from-[#1D4ED8] to-[#2563EB] px-5 sm:px-7 py-2.5 sm:py-3 text-white font-sans text-[13.5px] sm:text-[14.5px] font-semibold tracking-tight whitespace-nowrap shadow-sm transition-all duration-250 ease-out group-hover:-translate-y-0.5 group-hover:bg-[#2563EB]/90 group-hover:backdrop-blur-sm group-hover:border-blue-400/40 group-active:translate-y-0 cursor-pointer"
             >
-              <Sparkles className="h-4 w-4 text-cyan-200 animate-pulse" />
-              <span className="font-display text-[15px] font-bold tracking-wide text-white drop-shadow">
+              <span className="relative z-10 text-white">
                 Start Creating Now
               </span>
-              <ArrowRight className="h-4 w-4 text-white transition-transform duration-300 group-hover:translate-x-1" strokeWidth={2.2} />
-            </motion.div>
+            </div>
           </Link>
 
-          {/* SECONDARY CTA BUTTON: Refined Glassmorphism with Hover Glow */}
-          <Link href="/demo" className="group relative inline-flex">
-            <motion.div 
-              className="relative z-10 flex items-center justify-center gap-2.5 rounded-full border border-[var(--border-subtle)] bg-[var(--soft-black)] px-7 py-3.5 backdrop-blur-xl shadow-md transition-all duration-300 group-hover:border-[var(--primary-cyan)]/50 group-hover:bg-[var(--glass-hover)] group-hover:shadow-[0_0_20px_rgba(0,212,255,0.15)] active:scale-95 cursor-pointer"
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
+          {/* SECONDARY CTA: Dark Translucent Charcoal */}
+          <Link href="/demo" className="group relative inline-flex shrink-0">
+            <div 
+              className="relative z-10 flex items-center justify-center gap-1.5 sm:gap-2 rounded-full border border-white/12 bg-[#121215]/45 px-5 sm:px-7 py-2.5 sm:py-3 text-white/90 font-sans text-[13.5px] sm:text-[14.5px] font-medium tracking-tight whitespace-nowrap shadow-sm transition-all duration-250 ease-out group-hover:-translate-y-0.5 group-hover:border-white/25 group-hover:bg-white/[0.08] group-hover:backdrop-blur-sm group-hover:text-white group-active:translate-y-0 cursor-pointer"
             >
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--primary-cyan)]/15 text-[var(--primary-cyan)] transition-colors group-hover:bg-[var(--primary-cyan)] group-hover:text-black">
-                <Play className="h-3 w-3 fill-current ml-0.5" />
-              </div>
-              <span className="font-display text-[15px] font-semibold tracking-wide text-[var(--text-primary)]">
-                Watch Demo
-              </span>
-            </motion.div>
+              <Play className="h-3 w-3 sm:h-3.5 sm:w-3.5 fill-current text-white/90 transition-transform duration-250 group-hover:scale-105" />
+              <span>Watch Demo</span>
+            </div>
           </Link>
         </motion.div>
 
-        {/* 3. SCROLL INDICATOR */}
-        <motion.div
-          className="mt-14 sm:mt-16 flex flex-col items-center gap-4"
-          variants={fadeUpBlur}
-        >
-          <div className="relative flex flex-col items-center">
-            <div className="h-10 w-px bg-gradient-to-b from-[var(--border-subtle)] to-transparent" />
-            <motion.div
-              className="absolute top-0 w-px h-5 bg-[var(--text-muted)]"
-              animate={{
-                y: [0, 20, 0],
-                opacity: [0, 1, 0]
-              }}
-              transition={{
-                duration: 2.5,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-            />
-          </div>
-        </motion.div>
+      {/* 3. SCROLL INDICATOR - Anchored to Hero Bottom */}
+      <motion.div
+        className="absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-4"
+        variants={fadeUp}
+        initial="hidden"
+        animate="visible"
+      >
+        <div className="relative flex flex-col items-center">
+          <div className="h-10 w-px bg-gradient-to-b from-[var(--border-subtle)] to-transparent" />
+          <motion.div
+            className="absolute top-0 w-px h-5 bg-[var(--text-muted)]"
+            animate={{
+              y: [0, 20, 0],
+              opacity: [0, 1, 0]
+            }}
+            transition={{
+              duration: 2.5,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+        </div>
+      </motion.div>
       </motion.div>
     </section>
   );
