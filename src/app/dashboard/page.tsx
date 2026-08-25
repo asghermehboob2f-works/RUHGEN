@@ -172,7 +172,7 @@ export default function DashboardPage() {
         initial={reduce ? false : { opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="relative overflow-hidden rounded-xl border border-zinc-800 bg-[#121215] p-4 sm:p-5 lg:p-6 shadow-sm"
+        className="relative overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[var(--rich-black)] p-4 sm:p-5 lg:p-6 shadow-sm transition-colors duration-200"
       >
         <div className="relative grid gap-4 lg:grid-cols-12 lg:items-center">
           {/* Left Column: Compact Greeting & Status */}
@@ -182,21 +182,21 @@ export default function DashboardPage() {
                 type="button"
                 onClick={() => fetchDashboardMetrics(true)}
                 title="Refresh real-time workspace stats"
-                className="group inline-flex items-center gap-1.5 rounded-full border border-zinc-700 bg-zinc-800/80 px-2.5 py-0.5 text-[10px] font-medium text-zinc-300 transition-all hover:bg-zinc-700 hover:text-white active:scale-95"
+                className="group inline-flex items-center gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--glass)] px-2.5 py-0.5 text-[10px] font-medium text-[var(--text-muted)] transition-all hover:bg-[var(--glass-elevated)] hover:text-[var(--text-primary)] active:scale-95 cursor-pointer"
               >
-                <RefreshCw className={`h-2.5 w-2.5 transition-transform ${isRefreshing ? "animate-spin text-zinc-100" : "group-hover:rotate-180 duration-500"}`} />
+                <RefreshCw className={`h-2.5 w-2.5 transition-transform ${isRefreshing ? "animate-spin text-[var(--text-primary)]" : "group-hover:rotate-180 duration-500"}`} />
                 <span>Live sync</span>
               </button>
             </div>
 
-            <h1 className="font-display mt-2 text-xl font-extrabold tracking-tight text-zinc-100 sm:text-2xl lg:text-3xl">
+            <h1 className="font-display mt-2 text-xl font-extrabold tracking-tight text-[var(--text-primary)] sm:text-2xl lg:text-3xl">
               {greeting},{" "}
-              <span className="text-zinc-100">
+              <span className="text-[var(--text-primary)]">
                 {firstName}
               </span>
             </h1>
 
-            <p className="mt-1 max-w-lg text-xs leading-relaxed text-zinc-400">
+            <p className="mt-1 max-w-lg text-xs leading-relaxed text-[var(--text-muted)]">
               Your workspace is synchronized. Monitor credits, track active job queues, and access pipelines.
             </p>
           </div>
@@ -215,39 +215,39 @@ export default function DashboardPage() {
                   href={stat.href}
                   className={`group relative block overflow-hidden rounded-lg border p-3 transition-all duration-200 ${
                     stat.isLiveProcessing
-                      ? "border-amber-500/40 bg-amber-950/20"
-                      : "border-zinc-800 bg-zinc-900/60 hover:border-zinc-700 hover:bg-zinc-800/80"
+                      ? "border-amber-500/40 bg-amber-500/10"
+                      : "border-[var(--border-subtle)] bg-[var(--soft-black)] hover:border-[var(--border-subtle)] hover:bg-[var(--glass-elevated)]"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-1.5">
-                    <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-zinc-400 group-hover:text-zinc-300 transition-colors">
+                    <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)] group-hover:text-[var(--text-muted)] transition-colors">
                       {stat.label}
                     </p>
                     <div
-                      className="flex h-6 w-6 items-center justify-center rounded border border-zinc-800 bg-zinc-900 text-zinc-300 transition-all duration-200 group-hover:border-zinc-700 group-hover:text-zinc-100"
+                      className="flex h-6 w-6 items-center justify-center rounded border border-[var(--border-subtle)] bg-[var(--glass)] text-[var(--text-muted)] transition-all duration-200 group-hover:text-[var(--text-primary)]"
                     >
                       <stat.icon
-                        className={`h-3.5 w-3.5 ${stat.isLiveProcessing ? "animate-pulse text-amber-400" : "text-zinc-300"}`}
+                        className={`h-3.5 w-3.5 ${stat.isLiveProcessing ? "animate-pulse text-amber-400" : "text-[var(--text-muted)] group-hover:text-[var(--text-primary)]"}`}
                         strokeWidth={2}
                       />
                     </div>
                   </div>
 
                   <div className="mt-1 flex items-baseline justify-between gap-1.5">
-                    <p className="font-display text-base sm:text-lg font-extrabold tracking-tight tabular-nums text-zinc-100 transition-colors">
+                    <p className="font-display text-base sm:text-lg font-extrabold tracking-tight tabular-nums text-[var(--text-primary)] transition-colors">
                       {stat.value}
                     </p>
 
                     {stat.badge && (
                       <span
-                        className="rounded px-1.5 py-0.2 text-[8px] font-extrabold tracking-wider uppercase border border-zinc-700 bg-zinc-800 text-zinc-300"
+                        className="rounded px-1.5 py-0.2 text-[8px] font-extrabold tracking-wider uppercase border border-[var(--border-subtle)] bg-[var(--glass)] text-[var(--text-muted)]"
                       >
                         {stat.badge}
                       </span>
                     )}
                   </div>
 
-                  <p className="text-[9px] text-zinc-400 mt-0.5 truncate">
+                  <p className="text-[9px] text-[var(--text-muted)] mt-0.5 truncate">
                     {stat.hint}
                   </p>
                 </Link>
@@ -261,10 +261,10 @@ export default function DashboardPage() {
       <section aria-labelledby="dash-create-heading">
         <div className="mb-3 flex items-end justify-between gap-4">
           <div>
-            <h2 id="dash-create-heading" className="font-display text-lg font-bold text-zinc-100 sm:text-xl">
+            <h2 id="dash-create-heading" className="font-display text-lg font-bold text-[var(--text-primary)] sm:text-xl">
               Create
             </h2>
-            <p className="mt-0.5 text-xs text-zinc-400">
+            <p className="mt-0.5 text-xs text-[var(--text-muted)]">
               Choose a pipeline — each opens your dedicated studio.
             </p>
           </div>
@@ -280,24 +280,24 @@ export default function DashboardPage() {
             >
               <Link
                 href={t.href}
-                className="group relative flex min-h-[160px] flex-col overflow-hidden rounded-xl border border-zinc-800 bg-[#121215] p-5 transition-all duration-300 hover:border-zinc-700 hover:bg-zinc-900/60 shadow-sm"
+                className="group relative flex min-h-[160px] flex-col overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[var(--rich-black)] p-5 transition-all duration-300 hover:border-[var(--border-subtle)] hover:bg-[var(--glass-elevated)] shadow-sm"
               >
                 <span
-                  className="flex h-10 w-10 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-900 text-zinc-300 transition-all duration-200 group-hover:border-zinc-700 group-hover:bg-zinc-800 group-hover:text-zinc-100"
+                  className="flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--soft-black)] text-[var(--text-primary)] transition-all duration-200 group-hover:border-[var(--border-subtle)] group-hover:bg-[var(--glass)]"
                 >
                   <t.icon className="h-4.5 w-4.5" strokeWidth={1.75} />
                 </span>
 
                 <div className="relative mt-3">
-                  <p className="font-display text-base font-bold text-zinc-100 transition-colors duration-200">
+                  <p className="font-display text-base font-bold text-[var(--text-primary)] transition-colors duration-200">
                     {t.title}
                   </p>
-                  <p className="mt-1 max-w-sm text-xs leading-relaxed text-zinc-400 transition-colors duration-200">
+                  <p className="mt-1 max-w-sm text-xs leading-relaxed text-[var(--text-muted)] transition-colors duration-200">
                     {t.desc}
                   </p>
                 </div>
 
-                <span className="relative mt-auto inline-flex items-center gap-1.5 pt-3 text-[10px] font-bold uppercase tracking-wider text-zinc-300 group-hover:text-white transition-colors duration-200">
+                <span className="relative mt-auto inline-flex items-center gap-1.5 pt-3 text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] group-hover:text-[var(--text-primary)] transition-colors duration-200">
                   Open studio
                   <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-1" strokeWidth={2.5} />
                 </span>
@@ -311,10 +311,10 @@ export default function DashboardPage() {
       <section aria-labelledby="dash-shortcuts-heading">
         <div className="mb-3 flex items-end justify-between gap-4">
           <div>
-            <h2 id="dash-shortcuts-heading" className="font-display text-lg font-bold text-zinc-100 sm:text-xl">
+            <h2 id="dash-shortcuts-heading" className="font-display text-lg font-bold text-[var(--text-primary)] sm:text-xl">
               Shortcuts
             </h2>
-            <p className="mt-0.5 text-xs text-zinc-400">
+            <p className="mt-0.5 text-xs text-[var(--text-muted)]">
               Billing, preferences, and help in one tap.
             </p>
           </div>
@@ -330,22 +330,22 @@ export default function DashboardPage() {
             >
               <Link
                 href={q.href}
-                className="group relative overflow-hidden flex items-center gap-3.5 rounded-xl border border-zinc-800 bg-[#121215] p-3.5 transition-all duration-200 hover:border-zinc-700 hover:bg-zinc-900/60"
+                className="group relative overflow-hidden flex items-center gap-3.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--rich-black)] p-3.5 transition-all duration-200 hover:border-[var(--border-subtle)] hover:bg-[var(--glass-elevated)]"
               >
                 <div
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-900 text-zinc-400 transition-all duration-200 group-hover:border-zinc-700 group-hover:bg-zinc-800 group-hover:text-zinc-100"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--soft-black)] text-[var(--text-muted)] transition-all duration-200 group-hover:text-[var(--text-primary)]"
                 >
                   <q.icon className="h-4 w-4" strokeWidth={1.75} />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <span className="block text-sm font-bold tracking-tight text-zinc-100 group-hover:text-white transition-colors">
+                  <span className="block text-sm font-bold tracking-tight text-[var(--text-primary)] transition-colors">
                     {q.label}
                   </span>
-                  <span className="mt-0.5 block text-xs text-zinc-400 transition-colors">
+                  <span className="mt-0.5 block text-xs text-[var(--text-muted)] transition-colors">
                     {q.hint}
                   </span>
                 </div>
-                <ArrowRight className="h-4 w-4 shrink-0 text-zinc-500 opacity-0 -translate-x-2 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0" />
+                <ArrowRight className="h-4 w-4 shrink-0 text-[var(--text-subtle)] opacity-0 -translate-x-2 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0 group-hover:text-[var(--text-primary)]" />
               </Link>
             </motion.div>
           ))}

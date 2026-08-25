@@ -25,7 +25,7 @@ export function StudioCollapsible({
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div
-      className={`rounded-2xl border border-white/10 bg-[#161824]/80 shadow-sm backdrop-blur-xl ${className}`}
+      className={`rounded-2xl border border-[var(--border-subtle)] bg-[var(--soft-black)] shadow-sm transition-colors duration-200 ${className}`}
     >
       <button
         type="button"
@@ -33,19 +33,19 @@ export function StudioCollapsible({
         aria-expanded={open}
         aria-controls={`${id}-panel`}
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition-colors hover:bg-white/[0.04] active:bg-white/[0.08] sm:px-3.5 sm:py-3"
+        className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition-colors hover:bg-[var(--glass)] active:bg-[var(--glass-elevated)] sm:px-3.5 sm:py-3 cursor-pointer"
       >
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-display text-[13px] font-bold tracking-tight text-white sm:text-sm">{title}</span>
+            <span className="font-display text-[13px] font-bold tracking-tight text-[var(--text-primary)] sm:text-sm">{title}</span>
             {badge}
           </div>
-          {subtitle ? <p className="mt-0.5 text-[11px] leading-snug text-slate-400">{subtitle}</p> : null}
+          {subtitle ? <p className="mt-0.5 text-[11px] leading-snug text-[var(--text-muted)]">{subtitle}</p> : null}
         </div>
         <motion.span
           animate={{ rotate: open ? 180 : 0 }}
           transition={{ duration: reduce ? 0 : 0.22, ease: [0.22, 1, 0.36, 1] }}
-          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.05] text-slate-400"
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--glass)] text-[var(--text-muted)]"
         >
           <ChevronDown className="h-4 w-4" strokeWidth={2} />
         </motion.span>
@@ -62,7 +62,7 @@ export function StudioCollapsible({
             transition={{ duration: reduce ? 0 : 0.28, ease: [0.22, 1, 0.36, 1] }}
             className="overflow-hidden"
           >
-            <div className="border-t border-border/50 px-3 pb-3.5 pt-3 sm:px-3.5">{children}</div>
+            <div className="border-t border-[var(--border-subtle)] px-3 pb-3.5 pt-3 sm:px-3.5">{children}</div>
           </motion.div>
         ) : null}
       </AnimatePresence>

@@ -104,39 +104,39 @@ export function LuxuryStudioLayout({
         onTouchStart={swipe.onTouchStart}
         onTouchEnd={swipe.onTouchEnd}
       >
-        <div className="pointer-events-none absolute inset-0 z-0 bg-[#08080a]" aria-hidden />
+        <div className="pointer-events-none absolute inset-0 z-0 bg-[var(--deep-black)] transition-colors duration-200" aria-hidden />
 
         <header className="relative z-10 mb-2 shrink-0 lg:mb-3">
-          <div className="flex items-center gap-2 rounded-xl border border-zinc-800 bg-[#121215] p-2 shadow-md backdrop-blur-xl sm:gap-3 sm:p-2.5 lg:pl-3.5">
+          <div className="flex items-center gap-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--rich-black)] p-2 shadow-md backdrop-blur-xl sm:gap-3 sm:p-2.5 lg:pl-3.5 transition-colors duration-200">
             <span
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-zinc-700/60 bg-zinc-800 text-zinc-100 sm:h-10 sm:w-10 shadow-sm"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--soft-black)] text-[var(--text-primary)] sm:h-10 sm:w-10 shadow-sm"
             >
-              <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-zinc-200" strokeWidth={2} />
+              <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-[var(--text-primary)]" strokeWidth={2} />
             </span>
 
             <div className="min-w-0 flex-1 overflow-hidden">
-              <p className="font-mono text-[9px] font-bold uppercase leading-none tracking-[0.2em] sm:tracking-[0.26em] text-zinc-400 truncate">
+              <p className="font-mono text-[9px] font-bold uppercase leading-none tracking-[0.2em] sm:tracking-[0.26em] text-[var(--text-subtle)] truncate">
                 {eyebrow}
               </p>
               <div className="mt-0.5 sm:mt-1 flex min-w-0 items-baseline gap-x-2.5">
-                <h1 className="truncate font-display text-[13px] sm:text-lg font-black leading-tight tracking-tight text-zinc-100 drop-shadow-sm">
+                <h1 className="truncate font-display text-[13px] sm:text-lg font-black leading-tight tracking-tight text-[var(--text-primary)] drop-shadow-sm">
                   {title}
                 </h1>
-                <p className="hidden min-w-0 max-w-[min(100%,28rem)] truncate text-[11px] font-medium leading-snug text-zinc-400 lg:block">
+                <p className="hidden min-w-0 max-w-[min(100%,28rem)] truncate text-[11px] font-medium leading-snug text-[var(--text-muted)] lg:block">
                   {subtitle}
                 </p>
               </div>
             </div>
 
             <nav
-              className="ml-auto flex shrink-0 items-center gap-1 rounded-lg border border-zinc-800 bg-zinc-900/90 p-1"
+              className="ml-auto flex shrink-0 items-center gap-1 rounded-lg border border-[var(--border-subtle)] bg-[var(--glass)] p-1"
               aria-label="Studio mode"
             >
               <Link
                 href="/dashboard/generate/image"
                 className={`flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-semibold transition-all cursor-pointer ${pathname.startsWith("/dashboard/generate/image")
-                    ? "bg-zinc-800 text-zinc-100 border border-zinc-700/60 shadow-sm"
-                    : "text-zinc-400 hover:text-zinc-200"
+                    ? "bg-[var(--soft-black)] text-[var(--text-primary)] border border-[var(--border-subtle)] shadow-sm"
+                    : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                   }`}
               >
                 <ImageIcon className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
@@ -145,8 +145,8 @@ export function LuxuryStudioLayout({
               <Link
                 href="/dashboard/generate/video"
                 className={`flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-semibold transition-all cursor-pointer ${pathname.startsWith("/dashboard/generate/video")
-                    ? "bg-zinc-800 text-zinc-100 border border-zinc-700/60 shadow-sm"
-                    : "text-zinc-400 hover:text-zinc-200"
+                    ? "bg-[var(--soft-black)] text-[var(--text-primary)] border border-[var(--border-subtle)] shadow-sm"
+                    : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                   }`}
               >
                 <Video className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
@@ -158,12 +158,12 @@ export function LuxuryStudioLayout({
               <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">{topActions}</div>
             ) : null}
           </div>
-          <div className="pointer-events-none mt-1 h-[1px] w-full bg-zinc-800/80" aria-hidden />
+          <div className="pointer-events-none mt-1 h-[1px] w-full bg-[var(--border-subtle)]" aria-hidden />
         </header>
 
         <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden">
           <div
-            className="mb-2 flex shrink-0 gap-1 rounded-xl border border-zinc-800 p-1 shadow-sm lg:hidden bg-zinc-900/90"
+            className="mb-2 flex shrink-0 gap-1 rounded-xl border border-[var(--border-subtle)] p-1 shadow-sm lg:hidden bg-[var(--glass)]"
             role="tablist"
             aria-label="Studio workspace"
           >
@@ -181,12 +181,11 @@ export function LuxuryStudioLayout({
                     el?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "nearest" });
                   });
                 }}
-                className={mobilePaneTabBase}
-                style={{
-                  background: mobilePane === pane ? "rgba(255, 255, 255, 0.12)" : "transparent",
-                  color: mobilePane === pane ? "#f4f4f5" : "#a1a1aa",
-                  border: mobilePane === pane ? "1px solid rgba(255, 255, 255, 0.15)" : "1px solid transparent",
-                }}
+                className={`${mobilePaneTabBase} ${
+                  mobilePane === pane
+                    ? "border border-[var(--border-subtle)] bg-[var(--soft-black)] text-[var(--text-primary)] shadow-sm"
+                    : "border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                }`}
               >
                 {pane === "output" ? (
                   <LayoutGrid className="h-4 w-4 shrink-0 opacity-95" strokeWidth={1.75} aria-hidden />
@@ -212,7 +211,7 @@ export function LuxuryStudioLayout({
                 } ${collapsed ? "lg:hidden" : "lg:flex"}`}
               aria-label="Generation controls"
             >
-              <div className="flex min-h-0 flex-1 flex-col rounded-xl border border-zinc-800 bg-[#121215] shadow-md max-lg:min-h-max lg:h-full lg:max-h-full lg:overflow-hidden">
+              <div className="flex min-h-0 flex-1 flex-col rounded-xl border border-[var(--border-subtle)] bg-[var(--rich-black)] shadow-md max-lg:min-h-max lg:h-full lg:max-h-full lg:overflow-hidden transition-colors duration-200">
                 {leftPanel}
               </div>
             </motion.aside>

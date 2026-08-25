@@ -548,30 +548,30 @@ export default function ImageStudioClient() {
     <div className="flex flex-col w-full max-lg:min-h-max lg:min-h-0 lg:flex-1 lg:overflow-hidden">
       <p className="sr-only">Press Enter to generate. Shift+Enter for a new line.</p>
       <div className="p-2.5 sm:p-3 max-lg:min-h-max lg:studio-scrollbar lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-y-contain [-webkit-overflow-scrolling:touch] touch-pan-y">
-        <div className="rounded-xl border border-zinc-800 bg-[#121215] p-3 sm:p-3.5 shadow-sm">
+        <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--rich-black)] p-3 sm:p-3.5 shadow-sm transition-colors duration-200">
           {/* Control Deck Header */}
-          <div className="mb-3 flex items-center justify-between gap-2 border-b border-zinc-800 pb-2.5">
+          <div className="mb-3 flex items-center justify-between gap-2 border-b border-[var(--border-subtle)] pb-2.5">
             <div className="flex min-w-0 items-center gap-2.5">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-zinc-700/60 bg-zinc-800 text-zinc-100 shadow-sm">
-                <Wand2 className="h-3.5 w-3.5 text-zinc-200" strokeWidth={2} />
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--soft-black)] text-[var(--text-primary)] shadow-sm">
+                <Wand2 className="h-3.5 w-3.5 text-[var(--text-primary)]" strokeWidth={2} />
               </span>
               <div className="min-w-0">
-                <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-400">RUHGEN Studio</p>
-                <p className="truncate font-display text-xs font-bold text-zinc-100">Image Creation Panel</p>
+                <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[var(--text-subtle)]">RUHGEN Studio</p>
+                <p className="truncate font-display text-xs font-bold text-[var(--text-primary)]">Image Creation Panel</p>
               </div>
             </div>
             {referenceImageUrl ? (
-              <span className="shrink-0 rounded-full border border-zinc-700/80 bg-zinc-800 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-zinc-200">
+              <span className="shrink-0 rounded-full border border-[var(--border-subtle)] bg-[var(--soft-black)] px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-[var(--text-primary)]">
                 Ref Guided
               </span>
             ) : null}
           </div>
 
           {/* Slim Top RUHGEN Version Tier Selector */}
-          <div className="mb-3.5 rounded-lg border border-zinc-800 bg-zinc-900/90 p-1 shadow-inner">
-            <div className="mb-1 px-1 flex items-center justify-between text-[9px] font-bold uppercase tracking-[0.14em] text-zinc-400">
+          <div className="mb-3.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--glass)] p-1 shadow-inner">
+            <div className="mb-1 px-1 flex items-center justify-between text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
               <span>Model Tier</span>
-              <span className="text-zinc-200 font-mono">{selectedTier === "quality" ? "Premium (3 cr)" : "Standard (2 cr)"}</span>
+              <span className="text-[var(--text-primary)] font-mono">{selectedTier === "quality" ? "Premium (3 cr)" : "Standard (2 cr)"}</span>
             </div>
             <div className="grid grid-cols-2 gap-1" role="radiogroup" aria-label="RUHGEN Version Tier">
               {RUHGEN_IMAGE_TIERS.map((tier) => {
@@ -586,11 +586,11 @@ export default function ImageStudioClient() {
                     disabled={busy}
                     onClick={() => setSelectedTier(tier.id)}
                     className={`flex items-center justify-center gap-1.5 rounded-md py-1.5 px-2 text-[11px] font-bold transition-all cursor-pointer ${active
-                        ? "bg-zinc-800 text-zinc-100 shadow-sm border border-zinc-700/80"
-                        : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40"
+                        ? "bg-[var(--soft-black)] text-[var(--text-primary)] shadow-sm border border-[var(--border-subtle)]"
+                        : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass)]"
                       }`}
                   >
-                    <Icon className={`h-3 w-3 ${active ? "text-zinc-100" : "text-zinc-400"}`} />
+                    <Icon className={`h-3 w-3 ${active ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"}`} />
                     <span className="truncate">{tier.label}</span>
                   </button>
                 );
@@ -624,21 +624,21 @@ export default function ImageStudioClient() {
               />
 
               {referenceImageUrl ? (
-                <div className="flex items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-900/90 p-2">
-                  <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md border border-zinc-700 bg-black">
+                <div className="flex items-center gap-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--glass)] p-2">
+                  <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md border border-[var(--border-subtle)] bg-black">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={referenceImageUrl} alt="Reference" className="h-full w-full object-cover" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs font-bold text-zinc-100">Active Reference</p>
-                    <p className="text-[10px] text-zinc-400">Guides structure & composition</p>
+                    <p className="text-xs font-bold text-[var(--text-primary)]">Active Reference</p>
+                    <p className="text-[10px] text-[var(--text-muted)]">Guides structure & composition</p>
                   </div>
                   <div className="flex flex-col gap-1 shrink-0">
                     <button
                       type="button"
                       disabled={busy || refUploading}
                       onClick={() => refFileInput.current?.click()}
-                      className="rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1 text-[9px] font-bold uppercase text-zinc-200 hover:bg-zinc-700 cursor-pointer"
+                      className="rounded-md border border-[var(--border-subtle)] bg-[var(--soft-black)] px-2 py-1 text-[9px] font-bold uppercase text-[var(--text-primary)] hover:bg-[var(--glass-elevated)] cursor-pointer"
                     >
                       Replace
                     </button>
@@ -657,17 +657,17 @@ export default function ImageStudioClient() {
                   type="button"
                   disabled={busy || refUploading}
                   onClick={() => refFileInput.current?.click()}
-                  className="flex min-h-[44px] w-full flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-zinc-700 bg-zinc-900/40 p-2.5 text-center transition-all hover:border-zinc-500 hover:bg-zinc-800/40 cursor-pointer"
+                  className="flex min-h-[44px] w-full flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-[var(--border-subtle)] bg-[var(--glass)] p-2.5 text-center transition-all hover:border-[var(--text-muted)] hover:bg-[var(--glass-elevated)] cursor-pointer"
                 >
                   {refUploading ? (
-                    <Loader2 className="h-4 w-4 animate-spin text-zinc-300" />
+                    <Loader2 className="h-4 w-4 animate-spin text-[var(--text-primary)]" />
                   ) : (
                     <div className="flex items-center gap-2">
-                      <ImagePlus className="h-4 w-4 text-zinc-300" />
-                      <span className="text-xs font-bold text-zinc-200">Upload Reference Photo</span>
+                      <ImagePlus className="h-4 w-4 text-[var(--text-primary)]" />
+                      <span className="text-xs font-bold text-[var(--text-primary)]">Upload Reference Photo</span>
                     </div>
                   )}
-                  <span className="text-[10px] text-zinc-400">JPEG, PNG or WebP · Optional guide</span>
+                  <span className="text-[10px] text-[var(--text-muted)]">JPEG, PNG or WebP · Optional guide</span>
                 </button>
               )}
               {refUploadError ? <p className="mt-1.5 text-[10px] text-rose-400">{refUploadError}</p> : null}
@@ -687,20 +687,20 @@ export default function ImageStudioClient() {
                       disabled={busy}
                       onClick={() => setSelectedRatioIdx(idx)}
                       className={`flex flex-col items-center justify-center gap-1 rounded-lg border py-2 px-1 text-center transition-all cursor-pointer ${on
-                          ? "border-zinc-700 bg-zinc-800 text-zinc-100 shadow-sm font-semibold"
-                          : "border-zinc-800 bg-zinc-900/40 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
+                          ? "border-[var(--border-subtle)] bg-[var(--soft-black)] text-[var(--text-primary)] shadow-sm font-semibold"
+                          : "border-[var(--border-subtle)] bg-[var(--glass)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                         }`}
                     >
                       <div className="flex h-5 items-center justify-center">
                         <div
-                          className={`rounded-[2px] border transition-all ${on ? "border-zinc-100 bg-zinc-300/40" : "border-zinc-500"
+                          className={`rounded-[2px] border transition-all ${on ? "border-[var(--text-primary)] bg-[var(--text-primary)]/20" : "border-[var(--text-muted)]"
                             }`}
                           style={{ width: `${item.iconW}px`, height: `${item.iconH}px` }}
                         />
                       </div>
                       <div className="leading-none">
-                        <p className="font-mono text-[11px] font-bold text-zinc-200">{item.ratio}</p>
-                        <p className="mt-0.5 text-[9px] font-medium text-zinc-400">{item.label}</p>
+                        <p className="font-mono text-[11px] font-bold text-[var(--text-primary)]">{item.ratio}</p>
+                        <p className="mt-0.5 text-[9px] font-medium text-[var(--text-muted)]">{item.label}</p>
                       </div>
                     </button>
                   );
@@ -830,7 +830,7 @@ export default function ImageStudioClient() {
                   },
                 ].map((group) => (
                   <div key={group.category} className="space-y-1.5">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">
                       {group.category}
                     </p>
                     <div className="flex flex-wrap gap-1.5">
@@ -849,7 +849,7 @@ export default function ImageStudioClient() {
                               return `${trimmed}, ${item.value}`;
                             });
                           }}
-                          className="rounded-md border border-zinc-800 bg-zinc-900/60 px-2 py-1 text-[10px] font-semibold text-zinc-300 transition-all hover:border-zinc-700 hover:bg-zinc-800 hover:text-zinc-100 cursor-pointer disabled:opacity-40"
+                          className="rounded-md border border-[var(--border-subtle)] bg-[var(--glass)] px-2 py-1 text-[10px] font-semibold text-[var(--text-muted)] transition-all hover:bg-[var(--soft-black)] hover:text-[var(--text-primary)] cursor-pointer disabled:opacity-40"
                           title={`Inserts: "${item.value}"`}
                         >
                           + {item.label}
@@ -865,10 +865,10 @@ export default function ImageStudioClient() {
             <StudioCollapsible title="4. Negative Prompt" subtitle="Optional elements to exclude from synthesis" defaultOpen={false}>
               <div>
                 <div className="mb-1 flex items-center justify-between">
-                  <label htmlFor="img-neg" className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">
+                  <label htmlFor="img-neg" className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
                     Unwanted Elements
                   </label>
-                  <span className="tabular-nums text-[9px] text-zinc-500">{negativePrompt.length}/2000</span>
+                  <span className="tabular-nums text-[9px] text-[var(--text-subtle)]">{negativePrompt.length}/2000</span>
                 </div>
                 <textarea
                   id="img-neg"
@@ -877,7 +877,7 @@ export default function ImageStudioClient() {
                   disabled={busy}
                   placeholder="Describe unwanted objects, text, watermarks, blurry details, deformities…"
                   rows={2}
-                  className="w-full resize-none rounded-lg border border-zinc-800 bg-zinc-900/80 px-3 py-2 text-xs text-zinc-100 outline-none transition-all focus:border-zinc-700 focus:ring-1 focus:ring-zinc-700"
+                  className="w-full resize-none rounded-lg border border-[var(--border-subtle)] bg-[var(--glass)] px-3 py-2 text-xs text-[var(--text-primary)] outline-none transition-all focus:border-[var(--text-muted)] focus:ring-1 focus:ring-[var(--border-subtle)]"
                 />
               </div>
             </StudioCollapsible>
@@ -895,11 +895,11 @@ export default function ImageStudioClient() {
                       disabled={busy}
                       onClick={() => setSelectedStyle(st.id)}
                       className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-left transition-all cursor-pointer ${active
-                          ? "border-zinc-700 bg-zinc-800 text-zinc-100 shadow-sm font-semibold"
-                          : "border-zinc-800 bg-zinc-900/40 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
+                          ? "border-[var(--border-subtle)] bg-[var(--soft-black)] text-[var(--text-primary)] shadow-sm font-semibold"
+                          : "border-[var(--border-subtle)] bg-[var(--glass)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                         }`}
                     >
-                      <StIcon className={`h-3.5 w-3.5 shrink-0 ${active ? "text-zinc-100" : "text-zinc-400"}`} />
+                      <StIcon className={`h-3.5 w-3.5 shrink-0 ${active ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"}`} />
                       <span className="truncate text-[10px] font-bold tracking-tight">{st.label}</span>
                     </button>
                   );
@@ -912,10 +912,10 @@ export default function ImageStudioClient() {
               <StudioCollapsible title="6. Generation Settings" subtitle="Reference influence & guidance" defaultOpen={false}>
                 <div>
                   <div className="flex items-center justify-between">
-                    <label htmlFor="refine-guidance" className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">
+                    <label htmlFor="refine-guidance" className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
                       Reference Influence Strength
                     </label>
-                    <span className="font-mono text-[10px] font-bold text-zinc-200">
+                    <span className="font-mono text-[10px] font-bold text-[var(--text-primary)]">
                       {Math.round(refineGuidance * 100)}%
                     </span>
                   </div>
@@ -937,32 +937,32 @@ export default function ImageStudioClient() {
         </div>
       </div>
       {/* Sticky desktop prompt + generate (Section 8: Generation Area) */}
-      <div className="hidden shrink-0 border-t border-zinc-800 bg-[#121215] px-3 pb-3 pt-3 backdrop-blur-xl lg:block">
+      <div className="hidden shrink-0 border-t border-[var(--border-subtle)] bg-[var(--rich-black)] px-3 pb-3 pt-3 backdrop-blur-xl lg:block transition-colors duration-200">
         {/* Tier & Credit Summary */}
-        <div className="mb-2.5 flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-900/70 px-3 py-1.5 text-xs">
+        <div className="mb-2.5 flex items-center justify-between rounded-lg border border-[var(--border-subtle)] bg-[var(--glass)] px-3 py-1.5 text-xs">
           <div className="flex items-center gap-2">
-            <span className="text-zinc-400">Tier:</span>
-            <span className="font-display font-bold text-zinc-100 flex items-center gap-1">
-              <Sparkles className="h-3 w-3 text-zinc-300" />
+            <span className="text-[var(--text-muted)]">Tier:</span>
+            <span className="font-display font-bold text-[var(--text-primary)] flex items-center gap-1">
+              <Sparkles className="h-3 w-3 text-[var(--text-primary)]" />
               {activeTierObj.label}
             </span>
           </div>
-          <div className="flex items-center gap-3 text-zinc-400 text-[11px]">
+          <div className="flex items-center gap-3 text-[var(--text-muted)] text-[11px]">
             <span>
-              Available: <strong className="text-zinc-200 tabular-nums font-mono">{user?.availableCredits ?? user?.credits ?? 0}</strong>
+              Available: <strong className="text-[var(--text-primary)] tabular-nums font-mono">{user?.availableCredits ?? user?.credits ?? 0}</strong>
             </span>
-            <span className="text-zinc-600">•</span>
+            <span className="text-[var(--text-subtle)]">•</span>
             <span>
-              Cost: <strong className={((user?.availableCredits ?? user?.credits ?? 0) < currentCost) ? "text-rose-400 font-bold font-mono" : "text-zinc-100 font-bold font-mono"}>{currentCost} credits</strong>
+              Cost: <strong className={((user?.availableCredits ?? user?.credits ?? 0) < currentCost) ? "text-rose-400 font-bold font-mono" : "text-[var(--text-primary)] font-bold font-mono"}>{currentCost} credits</strong>
             </span>
           </div>
         </div>
 
         <div className="mb-1.5 flex items-center justify-between gap-2">
-          <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-400">Image Prompt</span>
-          <span className="text-[10px] tabular-nums text-zinc-500 font-mono">{prompt.length}</span>
+          <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--text-subtle)]">Image Prompt</span>
+          <span className="text-[10px] tabular-nums text-[var(--text-subtle)] font-mono">{prompt.length}</span>
         </div>
-        <div className="relative flex flex-col gap-2 rounded-xl border border-zinc-800 bg-zinc-900/80 p-3 shadow-inner">
+        <div className="relative flex flex-col gap-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--glass)] p-3 shadow-inner">
           <label className="sr-only" htmlFor="img-prompt">Prompt</label>
           <textarea
             ref={imagePromptRef}
@@ -972,7 +972,7 @@ export default function ImageStudioClient() {
             placeholder={isEdit ? "Describe modifications to the reference image…" : "Describe your image concept in detail…"}
             rows={2}
             disabled={busy}
-            className="no-scrollbar max-h-[160px] min-h-[44px] w-full resize-none bg-transparent text-sm leading-relaxed text-zinc-100 outline-none placeholder:text-zinc-500"
+            className="no-scrollbar max-h-[160px] min-h-[44px] w-full resize-none bg-transparent text-sm leading-relaxed text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)]"
             style={{ scrollbarWidth: "none" }}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
@@ -992,7 +992,7 @@ export default function ImageStudioClient() {
                     imagePromptRef.current.scrollTop -= 32;
                   }
                 }}
-                className="flex h-5 w-5 items-center justify-center rounded border border-zinc-700 bg-zinc-800 text-zinc-300 hover:text-white cursor-pointer disabled:opacity-30"
+                className="flex h-5 w-5 items-center justify-center rounded border border-[var(--border-subtle)] bg-[var(--soft-black)] text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer disabled:opacity-30"
                 title="Scroll Up"
                 aria-label="Scroll Up"
               >
@@ -1006,7 +1006,7 @@ export default function ImageStudioClient() {
                     imagePromptRef.current.scrollTop += 32;
                   }
                 }}
-                className="flex h-5 w-5 items-center justify-center rounded border border-zinc-700 bg-zinc-800 text-zinc-300 hover:text-white cursor-pointer disabled:opacity-30"
+                className="flex h-5 w-5 items-center justify-center rounded border border-[var(--border-subtle)] bg-[var(--soft-black)] text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer disabled:opacity-30"
                 title="Scroll Down"
                 aria-label="Scroll Down"
               >
@@ -1019,32 +1019,32 @@ export default function ImageStudioClient() {
             type="button"
             disabled={busy || prompt.trim().length < 2 || Boolean(user?.generationDisabled) || (user?.availableCredits ?? user?.credits ?? 0) < currentCost}
             onClick={() => void run()}
-            className="mt-1 flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-zinc-100 py-2.5 text-xs font-bold text-zinc-950 shadow-sm transition-all hover:bg-white active:scale-[0.99] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+            className="mt-1 flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--soft-black)] py-2.5 text-xs font-bold text-[var(--text-primary)] shadow-sm transition-all hover:bg-[var(--glass-elevated)] active:scale-[0.99] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {busy ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin text-zinc-950" />
+                <Loader2 className="h-4 w-4 animate-spin text-[var(--text-primary)]" />
                 <span>Synthesizing Image…</span>
               </>
             ) : user?.generationDisabled ? (
               <>
-                <X className="h-4 w-4 text-rose-600" strokeWidth={2} />
+                <X className="h-4 w-4 text-rose-500" strokeWidth={2} />
                 <span>Access Disabled</span>
               </>
             ) : (user?.availableCredits ?? user?.credits ?? 0) < currentCost ? (
               <>
-                <X className="h-4 w-4 text-rose-600" strokeWidth={2} />
+                <X className="h-4 w-4 text-rose-500" strokeWidth={2} />
                 <span>Insufficient Credits</span>
               </>
             ) : (
               <>
-                <Sparkles className="h-4 w-4 text-zinc-950" strokeWidth={2} />
+                <Sparkles className="h-4 w-4 text-[var(--text-primary)]" strokeWidth={2} />
                 <span>Generate Image</span>
               </>
             )}
           </button>
         </div>
-        <p className="mt-1.5 text-center text-[10px] text-zinc-500">Enter to generate · Shift+Enter for line break</p>
+        <p className="mt-1.5 text-center text-[10px] text-[var(--text-subtle)]">Enter to generate · Shift+Enter for line break</p>
       </div>
     </div>
   );
@@ -1063,7 +1063,7 @@ export default function ImageStudioClient() {
           <motion.p
             initial={reduce ? false : { opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            className="shrink-0 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-center text-xs font-semibold text-zinc-100 shadow-md"
+            className="shrink-0 rounded-lg border border-[var(--border-subtle)] bg-[var(--soft-black)] px-3 py-1.5 text-center text-xs font-semibold text-[var(--text-primary)] shadow-md"
             role="status"
           >
             {copyToast}
@@ -1074,23 +1074,23 @@ export default function ImageStudioClient() {
           className={`flex min-h-0 flex-1 flex-col gap-2 ${showCanvasDock ? "min-h-0 overflow-y-auto overscroll-contain" : "overflow-hidden"
             }`}
         >
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-zinc-800 bg-[#121215] shadow-md">
-            <div className="sticky top-0 z-10 flex shrink-0 items-center gap-2 border-b border-zinc-800 bg-[#121215] px-3 py-2.5 backdrop-blur-xl">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[var(--rich-black)] shadow-md transition-colors duration-200">
+            <div className="sticky top-0 z-10 flex shrink-0 items-center gap-2 border-b border-[var(--border-subtle)] bg-[var(--rich-black)] px-3 py-2.5 backdrop-blur-xl">
               <div className="min-w-0 flex-1">
-                <p className="text-[9px] font-bold uppercase leading-none tracking-[0.2em] text-zinc-400">
+                <p className="text-[9px] font-bold uppercase leading-none tracking-[0.2em] text-[var(--text-subtle)]">
                   Canvas Timeline
                 </p>
-                <p className="truncate font-display text-[13px] font-bold leading-tight text-zinc-100 sm:text-sm">
+                <p className="truncate font-display text-[13px] font-bold leading-tight text-[var(--text-primary)] sm:text-sm">
                   {messages.length === 0 ? "Awaiting your creative prompt" : `${galleryItems.length} frame${galleryItems.length === 1 ? "" : "s"} generated`}
                 </p>
               </div>
-              <div className="flex shrink-0 items-center gap-1 rounded-lg border border-zinc-800 bg-zinc-900/80 p-0.5">
+              <div className="flex shrink-0 items-center gap-1 rounded-lg border border-[var(--border-subtle)] bg-[var(--glass)] p-0.5">
                 <button
                   type="button"
                   onClick={() => setStudioView("feed")}
                   aria-pressed={studioView === "feed"}
                   aria-label="Feed view"
-                  className={`inline-flex h-7 items-center gap-1 rounded-md px-2 text-[10px] font-bold uppercase tracking-wide transition-all ${studioView === "feed" ? "bg-zinc-800 text-zinc-100 border border-zinc-700/60 shadow-sm" : "text-zinc-400 hover:text-zinc-200"
+                  className={`inline-flex h-7 items-center gap-1 rounded-md px-2 text-[10px] font-bold uppercase tracking-wide transition-all ${studioView === "feed" ? "bg-[var(--soft-black)] text-[var(--text-primary)] border border-[var(--border-subtle)] shadow-sm" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                     }`}
                 >
                   <List className="h-3.5 w-3.5" strokeWidth={2} />
@@ -1100,7 +1100,7 @@ export default function ImageStudioClient() {
                   onClick={() => setStudioView("gallery")}
                   aria-pressed={studioView === "gallery"}
                   aria-label="Gallery view"
-                  className={`inline-flex h-7 items-center gap-1 rounded-md px-2 text-[10px] font-bold uppercase tracking-wide transition-all ${studioView === "gallery" ? "bg-zinc-800 text-zinc-100 border border-zinc-700/60 shadow-sm" : "text-zinc-400 hover:text-zinc-200"
+                  className={`inline-flex h-7 items-center gap-1 rounded-md px-2 text-[10px] font-bold uppercase tracking-wide transition-all ${studioView === "gallery" ? "bg-[var(--soft-black)] text-[var(--text-primary)] border border-[var(--border-subtle)] shadow-sm" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                     }`}
                 >
                   <Grid3x3 className="h-3.5 w-3.5" strokeWidth={2} />
@@ -1109,7 +1109,7 @@ export default function ImageStudioClient() {
               <button
                 type="button"
                 onClick={chrome.toggleCollapsed}
-                className="hidden h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-900/80 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100 lg:inline-flex"
+                className="hidden h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--glass)] text-[var(--text-muted)] transition-colors hover:bg-[var(--glass-elevated)] hover:text-[var(--text-primary)] lg:inline-flex"
                 aria-label={chrome.collapsed ? "Show controls" : "Hide controls"}
                 aria-pressed={chrome.collapsed}
                 title={chrome.collapsed ? "Show controls" : "Hide controls"}
@@ -1119,17 +1119,17 @@ export default function ImageStudioClient() {
             </div>
             <div
               ref={scrollRef}
-              className="studio-scrollbar min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain [-webkit-overflow-scrolling:touch] touch-pan-y px-3 py-3 sm:px-4 bg-[#09090b]"
+              className="studio-scrollbar min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain [-webkit-overflow-scrolling:touch] touch-pan-y px-3 py-3 sm:px-4 bg-[var(--deep-black)] transition-colors duration-200"
             >
               {studioView === "gallery" ? (
                 galleryItems.length === 0 ? (
                   <div className="flex min-h-[240px] flex-col items-center justify-center gap-4 py-12 text-center">
-                    <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900/80 text-zinc-300 shadow-md">
-                      <Grid3x3 className="h-8 w-8 text-zinc-300" strokeWidth={1.5} />
+                    <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl border border-[var(--border-subtle)] bg-[var(--soft-black)] text-[var(--text-primary)] shadow-md">
+                      <Grid3x3 className="h-8 w-8 text-[var(--text-primary)]" strokeWidth={1.5} />
                     </div>
                     <div className="max-w-xs space-y-1.5">
-                      <p className="font-display text-base font-bold text-zinc-100">Gallery Awaits</p>
-                      <p className="text-xs leading-relaxed text-zinc-400">Generated frames accumulate in your personal RUHGEN studio gallery.</p>
+                      <p className="font-display text-base font-bold text-[var(--text-primary)]">Gallery Awaits</p>
+                      <p className="text-xs leading-relaxed text-[var(--text-muted)]">Generated frames accumulate in your personal RUHGEN studio gallery.</p>
                     </div>
                   </div>
                 ) : (
@@ -1142,12 +1142,12 @@ export default function ImageStudioClient() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: reduce ? 0 : Math.min(gi * 0.03, 0.35) }}
                         onClick={() => setLightbox({ src: item.src })}
-                        className="group relative aspect-square overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900 text-left shadow-md transition-transform hover:z-[1] hover:scale-[1.02] hover:border-zinc-600"
+                        className="group relative aspect-square overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[var(--soft-black)] text-left shadow-md transition-transform hover:z-[1] hover:scale-[1.02]"
                       >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={item.src} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
                         <span className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
-                        <span className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-700 bg-zinc-900/90 text-zinc-100 opacity-0 backdrop-blur-md transition-opacity group-hover:opacity-100">
+                        <span className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-lg border border-white/20 bg-black/70 text-white opacity-0 backdrop-blur-md transition-opacity group-hover:opacity-100">
                           <Maximize2 className="h-3.5 w-3.5" strokeWidth={2} />
                         </span>
                       </motion.button>
@@ -1159,13 +1159,13 @@ export default function ImageStudioClient() {
                   <motion.div
                     initial={reduce ? false : { scale: 0.95, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    className="flex h-16 w-16 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900/80 text-zinc-200 shadow-md"
+                    className="flex h-16 w-16 items-center justify-center rounded-2xl border border-[var(--border-subtle)] bg-[var(--soft-black)] text-[var(--text-primary)] shadow-md"
                   >
-                    <Sparkles className="h-7 w-7 text-zinc-200" strokeWidth={1.75} />
+                    <Sparkles className="h-7 w-7 text-[var(--text-primary)]" strokeWidth={1.75} />
                   </motion.div>
                   <div className="max-w-md space-y-1.5 px-3">
-                    <p className="font-display text-base font-bold tracking-tight text-zinc-100">RUHGEN Studio Ready</p>
-                    <p className="text-xs leading-relaxed text-zinc-400">
+                    <p className="font-display text-base font-bold tracking-tight text-[var(--text-primary)]">RUHGEN Studio Ready</p>
+                    <p className="text-xs leading-relaxed text-[var(--text-muted)]">
                       Select your desired aspect ratio, aesthetic style, and model tier. Upload an optional reference photo or type a prompt to synthesize images.
                     </p>
                   </div>
@@ -1177,23 +1177,23 @@ export default function ImageStudioClient() {
                       return (
                         <motion.div key={msg.id} initial={reduce ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex justify-end">
                           <div
-                            className="max-w-[min(100%,580px)] rounded-xl border border-zinc-800 bg-zinc-900/90 px-4 py-3 shadow-md"
+                            className="max-w-[min(100%,580px)] rounded-xl border border-[var(--border-subtle)] bg-[var(--soft-black)] px-4 py-3 shadow-md transition-colors duration-200"
                           >
                             <div className="flex gap-3">
                               {msg.refineFromUrl ? (
-                                <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-zinc-700 bg-black">
+                                <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-[var(--border-subtle)] bg-black">
                                   {/* eslint-disable-next-line @next/next/no-img-element */}
                                   <img src={msg.refineFromUrl} alt="" className="h-full w-full object-cover" />
                                 </div>
                               ) : null}
                               <div className="min-w-0 flex-1">
-                                <p className="whitespace-pre-wrap text-[14px] leading-relaxed text-zinc-100">{msg.content}</p>
+                                <p className="whitespace-pre-wrap text-[14px] leading-relaxed text-[var(--text-primary)]">{msg.content}</p>
                                 <div className="mt-2 flex flex-wrap items-center gap-2">
-                                  <p className="text-[11px] font-medium text-zinc-400">{msg.meta}</p>
+                                  <p className="text-[11px] font-medium text-[var(--text-muted)]">{msg.meta}</p>
                                   <button
                                     type="button"
                                     onClick={() => void copyText(msg.content, "Prompt copied")}
-                                    className="inline-flex items-center gap-1 rounded-md border border-zinc-700 bg-zinc-800 px-2 py-0.5 text-[10px] font-semibold text-zinc-200 hover:bg-zinc-700"
+                                    className="inline-flex items-center gap-1 rounded-md border border-[var(--border-subtle)] bg-[var(--glass)] px-2 py-0.5 text-[10px] font-semibold text-[var(--text-primary)] hover:bg-[var(--glass-elevated)]"
                                   >
                                     <Copy className="h-3 w-3" />
                                     Copy
@@ -1212,18 +1212,18 @@ export default function ImageStudioClient() {
                           className={
                             msg.urls.length > 0 && !msg.loading
                               ? "w-full max-w-[min(100%,760px)]"
-                              : "max-w-[min(100%,760px)] rounded-xl border border-zinc-800 bg-zinc-900/90 px-4 py-3.5 shadow-md"
+                              : "max-w-[min(100%,760px)] rounded-xl border border-[var(--border-subtle)] bg-[var(--soft-black)] px-4 py-3.5 shadow-md transition-colors duration-200"
                           }
                         >
                           {msg.loading ? (
                             <div className="space-y-3 py-2">
-                              <p className="flex items-center gap-2 text-xs font-semibold text-zinc-200">
-                                <Loader2 className="h-4 w-4 shrink-0 animate-spin text-zinc-300" />
+                              <p className="flex items-center gap-2 text-xs font-semibold text-[var(--text-primary)]">
+                                <Loader2 className="h-4 w-4 shrink-0 animate-spin text-[var(--text-primary)]" />
                                 <span className="font-medium">{msg.phase || "Synthesizing frame…"}</span>
                               </p>
-                              <div className="relative h-1.5 w-full max-w-sm overflow-hidden rounded-full bg-zinc-800">
+                              <div className="relative h-1.5 w-full max-w-sm overflow-hidden rounded-full bg-[var(--glass)]">
                                 <motion.div
-                                  className="absolute inset-y-0 left-0 w-2/5 rounded-full bg-zinc-300"
+                                  className="absolute inset-y-0 left-0 w-2/5 rounded-full bg-[var(--text-primary)]"
                                   animate={reduce ? undefined : { x: ["-100%", "280%"] }}
                                   transition={{ duration: 1.35, repeat: Infinity, ease: "linear" }}
                                 />
@@ -1236,7 +1236,7 @@ export default function ImageStudioClient() {
                               {msg.urls.map((src, idx) => (
                                 <div
                                   key={`${msg.id}-${src}`}
-                                  className="group relative overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950"
+                                  className="group relative overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[var(--soft-black)]"
                                 >
                                   <div className="relative overflow-hidden rounded-xl bg-black">
                                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1252,7 +1252,7 @@ export default function ImageStudioClient() {
                                       <button
                                         type="button"
                                         onClick={() => setLightbox({ src })}
-                                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-700 bg-zinc-900/90 text-zinc-100 backdrop-blur-md transition-colors hover:bg-zinc-800"
+                                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/20 bg-black/70 text-white backdrop-blur-md transition-colors hover:bg-black/90"
                                         title="Maximize"
                                       >
                                         <Maximize2 className="h-3.5 w-3.5" />
@@ -1261,7 +1261,7 @@ export default function ImageStudioClient() {
                                         href={src}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-700 bg-zinc-900/90 text-zinc-100 backdrop-blur-md transition-colors hover:bg-zinc-800"
+                                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/20 bg-black/70 text-white backdrop-blur-md transition-colors hover:bg-black/90"
                                         title="Open in new tab"
                                       >
                                         <ExternalLink className="h-3.5 w-3.5" />
@@ -1277,9 +1277,9 @@ export default function ImageStudioClient() {
                                           setPrompt("");
                                           document.getElementById("img-prompt")?.focus();
                                         }}
-                                        className="flex h-8 flex-1 min-w-[70px] items-center justify-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-900/90 text-[11px] font-bold uppercase tracking-wider text-zinc-100 backdrop-blur-md transition-colors hover:bg-zinc-800 disabled:opacity-50 cursor-pointer"
+                                        className="flex h-8 flex-1 min-w-[70px] items-center justify-center gap-1.5 rounded-lg border border-white/20 bg-black/70 text-[11px] font-bold uppercase tracking-wider text-white backdrop-blur-md transition-colors hover:bg-black/90 disabled:opacity-50 cursor-pointer"
                                       >
-                                        <Wand2 className="h-3 w-3 text-zinc-300" />
+                                        <Wand2 className="h-3 w-3 text-white" />
                                         Refine
                                       </button>
                                       <button
@@ -1294,10 +1294,10 @@ export default function ImageStudioClient() {
                                             })
                                             .finally(() => setDownloadingIdx(null));
                                         }}
-                                        className="flex h-8 px-2.5 items-center justify-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-900/90 text-[11px] font-bold uppercase tracking-wider text-zinc-100 backdrop-blur-md transition-colors hover:bg-zinc-800 disabled:opacity-50 cursor-pointer"
+                                        className="flex h-8 px-2.5 items-center justify-center gap-1.5 rounded-lg border border-white/20 bg-black/70 text-[11px] font-bold uppercase tracking-wider text-white backdrop-blur-md transition-colors hover:bg-black/90 disabled:opacity-50 cursor-pointer"
                                       >
                                         {downloadingIdx?.key === msg.id && downloadingIdx.idx === idx ? (
-                                          <Loader2 className="h-3 w-3 animate-spin text-zinc-300" />
+                                          <Loader2 className="h-3 w-3 animate-spin text-white" />
                                         ) : (
                                           <Download className="h-3 w-3" />
                                         )}
@@ -1310,16 +1310,16 @@ export default function ImageStudioClient() {
                                           setShareModalData({ mediaUrl: src, prompt: userPrompt, kind: "image" });
                                           setShareModalOpen(true);
                                         }}
-                                        className="flex h-8 px-2.5 items-center justify-center gap-1.5 rounded-lg border border-zinc-600 bg-zinc-800 text-[11px] font-bold uppercase tracking-wider text-zinc-100 backdrop-blur-md transition-colors hover:bg-zinc-700 shadow-sm cursor-pointer"
+                                        className="flex h-8 px-2.5 items-center justify-center gap-1.5 rounded-lg border border-white/20 bg-black/70 text-[11px] font-bold uppercase tracking-wider text-white backdrop-blur-md transition-colors hover:bg-black/90 shadow-sm cursor-pointer"
                                         title="Share to Community"
                                       >
-                                        <Share2 className="h-3 w-3 text-zinc-300" />
+                                        <Share2 className="h-3 w-3 text-white" />
                                         Post
                                       </button>
                                       <button
                                         type="button"
                                         onClick={() => void copyText(src, "Link copied")}
-                                        className="flex h-8 px-2.5 items-center justify-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-900/90 text-[11px] font-bold uppercase tracking-wider text-zinc-100 backdrop-blur-md transition-colors hover:bg-zinc-800 cursor-pointer"
+                                        className="flex h-8 px-2.5 items-center justify-center gap-1.5 rounded-lg border border-white/20 bg-black/70 text-[11px] font-bold uppercase tracking-wider text-white backdrop-blur-md transition-colors hover:bg-black/90 cursor-pointer"
                                       >
                                         <Copy className="h-3 w-3" />
                                         Link
@@ -1340,7 +1340,7 @@ export default function ImageStudioClient() {
             </div>
 
             {/* Mobile Bottom Prompt Dock */}
-            <div className="shrink-0 border-t border-zinc-800 bg-[#121215] px-3 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] backdrop-blur-xl lg:hidden">
+            <div className="shrink-0 border-t border-[var(--border-subtle)] bg-[var(--rich-black)] px-3 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] backdrop-blur-xl lg:hidden transition-colors duration-200">
               <div className="flex items-end gap-2">
                 <textarea
                   value={prompt}
@@ -1354,15 +1354,15 @@ export default function ImageStudioClient() {
                   disabled={busy}
                   placeholder={isEdit ? "Describe image modifications…" : "Describe your image concept…"}
                   rows={1}
-                  className="min-h-[44px] max-h-28 flex-1 resize-none rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2.5 text-sm leading-relaxed text-zinc-100 outline-none placeholder:text-zinc-500 focus:border-zinc-700"
+                  className="min-h-[44px] max-h-28 flex-1 resize-none rounded-lg border border-[var(--border-subtle)] bg-[var(--soft-black)] px-3 py-2.5 text-sm leading-relaxed text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)] focus:border-[var(--text-muted)]"
                 />
                 <button
                   type="button"
                   disabled={busy || prompt.trim().length < 2 || Boolean(user?.generationDisabled) || (user?.availableCredits ?? user?.credits ?? 0) < currentCost}
                   onClick={() => void run()}
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-100 text-zinc-950 shadow-sm transition-all hover:bg-white active:scale-95 disabled:opacity-40 cursor-pointer"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--soft-black)] text-[var(--text-primary)] shadow-sm transition-all hover:bg-[var(--glass-elevated)] active:scale-95 disabled:opacity-40 cursor-pointer"
                 >
-                  {busy ? <Loader2 className="h-5 w-5 animate-spin text-zinc-950" /> : <ArrowUp className="h-5 w-5 text-zinc-950" strokeWidth={2.25} />}
+                  {busy ? <Loader2 className="h-5 w-5 animate-spin text-[var(--text-primary)]" /> : <ArrowUp className="h-5 w-5 text-[var(--text-primary)]" strokeWidth={2.25} />}
                 </button>
               </div>
             </div>
@@ -1371,17 +1371,17 @@ export default function ImageStudioClient() {
           {showCanvasDock ? (
             <div
               ref={promptDockRef}
-              className="shrink-0 rounded-xl border border-zinc-800 bg-[#121215] p-3 shadow-md"
+              className="shrink-0 rounded-xl border border-[var(--border-subtle)] bg-[var(--rich-black)] p-3 shadow-md transition-colors duration-200"
               style={{
                 paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))",
               }}
             >
-              <div className="mb-2 flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-900/60 px-2.5 py-1 text-[11px]">
-                <span className="font-semibold text-zinc-200">Cost: <strong className={((user?.availableCredits ?? user?.credits ?? 0) < currentCost) ? "text-rose-400 font-bold" : "text-zinc-100 font-bold font-mono"}>{currentCost} credits ({activeTierObj.label})</strong></span>
-                <span className="text-zinc-400 font-mono">Available: {user?.availableCredits ?? user?.credits ?? 0}</span>
+              <div className="mb-2 flex items-center justify-between rounded-lg border border-[var(--border-subtle)] bg-[var(--glass)] px-2.5 py-1 text-[11px]">
+                <span className="font-semibold text-[var(--text-primary)]">Cost: <strong className={((user?.availableCredits ?? user?.credits ?? 0) < currentCost) ? "text-rose-400 font-bold" : "text-[var(--text-primary)] font-bold font-mono"}>{currentCost} credits ({activeTierObj.label})</strong></span>
+                <span className="text-[var(--text-muted)] font-mono">Available: {user?.availableCredits ?? user?.credits ?? 0}</span>
               </div>
 
-              <p className="mb-1 text-[9px] font-bold uppercase tracking-[0.14em] text-zinc-400">
+              <p className="mb-1 text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
                 Prompt
               </p>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
@@ -1397,32 +1397,32 @@ export default function ImageStudioClient() {
                   disabled={busy}
                   placeholder="Describe your image concept…"
                   rows={2}
-                  className="min-h-[44px] w-full flex-1 resize-none rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2.5 text-sm leading-relaxed text-zinc-100 outline-none placeholder:text-zinc-500 focus:border-zinc-700"
+                  className="min-h-[44px] w-full flex-1 resize-none rounded-lg border border-[var(--border-subtle)] bg-[var(--glass)] px-3 py-2.5 text-sm leading-relaxed text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)] focus:border-[var(--text-muted)]"
                 />
                 <button
                   type="button"
                   disabled={busy || prompt.trim().length < 2 || Boolean(user?.generationDisabled) || (user?.availableCredits ?? user?.credits ?? 0) < currentCost}
                   onClick={() => void run()}
-                  className="flex h-11 items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-zinc-100 px-4 text-xs font-bold text-zinc-950 shadow-sm transition-all hover:bg-white active:scale-95 disabled:opacity-40 cursor-pointer sm:shrink-0"
+                  className="flex h-11 items-center justify-center gap-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--soft-black)] px-4 text-xs font-bold text-[var(--text-primary)] shadow-sm transition-all hover:bg-[var(--glass-elevated)] active:scale-95 disabled:opacity-40 cursor-pointer sm:shrink-0"
                 >
                   {busy ? (
                     <>
-                      <Loader2 className="h-4 w-4 animate-spin text-zinc-950" />
+                      <Loader2 className="h-4 w-4 animate-spin text-[var(--text-primary)]" />
                       <span>Synthesizing…</span>
                     </>
                   ) : user?.generationDisabled ? (
                     <>
-                      <X className="h-4 w-4 text-rose-600" strokeWidth={2} />
+                      <X className="h-4 w-4 text-rose-500" strokeWidth={2} />
                       <span>Access Disabled</span>
                     </>
                   ) : (user?.availableCredits ?? user?.credits ?? 0) < currentCost ? (
                     <>
-                      <X className="h-4 w-4 text-rose-600" strokeWidth={2} />
+                      <X className="h-4 w-4 text-rose-500" strokeWidth={2} />
                       <span>Insufficient</span>
                     </>
                   ) : (
                     <>
-                      <Sparkles className="h-4 w-4 text-zinc-950" strokeWidth={2} />
+                      <Sparkles className="h-4 w-4 text-[var(--text-primary)]" strokeWidth={2} />
                       <span>Generate Image</span>
                     </>
                   )}
@@ -1433,7 +1433,7 @@ export default function ImageStudioClient() {
         </div>
 
         {downloadError ? (
-          <p className="rounded-xl border border-[#FF2E9A]/35 bg-[#FF2E9A]/10 px-3 py-2 text-xs text-rose-100 sm:text-sm">{downloadError}</p>
+          <p className="rounded-xl border border-rose-500/35 bg-rose-500/10 px-3 py-2 text-xs text-rose-400 sm:text-sm">{downloadError}</p>
         ) : null}
 
         {lightbox ? (
@@ -1458,7 +1458,7 @@ export default function ImageStudioClient() {
             <img
               src={lightbox.src}
               alt="Preview"
-              className="max-h-[min(92vh,920px)] max-w-full rounded-2xl object-contain shadow-[0_0_80px_-20px_rgba(123,97,255,0.5)]"
+              className="max-h-[min(92vh,920px)] max-w-full rounded-2xl object-contain shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             />
           </div>
@@ -1486,7 +1486,7 @@ export default function ImageStudioClient() {
                 if (!window.confirm("Clear session history?")) return;
                 clearChatHistory();
               }}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/[0.04] text-slate-400 transition-all hover:border-white/30 hover:bg-white/12 hover:text-white disabled:opacity-40 cursor-pointer"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[var(--border-subtle)] bg-[var(--glass)] text-[var(--text-muted)] transition-all hover:bg-[var(--glass-elevated)] hover:text-[var(--text-primary)] disabled:opacity-40 cursor-pointer"
               aria-label="Clear session"
               title="Clear session"
             >
@@ -1494,10 +1494,10 @@ export default function ImageStudioClient() {
             </button>
             <Link
               href="/dashboard/billing"
-              className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 sm:gap-2 rounded-full border border-amber-400/35 bg-gradient-to-r from-amber-500/10 via-indigo-500/10 to-violet-500/10 px-2.5 sm:px-4 text-xs font-bold tracking-wider text-amber-200 shadow-md backdrop-blur-md transition-all hover:scale-[1.03] hover:border-amber-400/60 hover:shadow-amber-500/20 active:scale-95 cursor-pointer"
+              className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 sm:gap-2 rounded-full border border-amber-500/40 bg-amber-500/10 px-2.5 sm:px-4 text-xs font-bold tracking-wider text-amber-600 dark:text-amber-300 shadow-sm backdrop-blur-md transition-all hover:scale-[1.03] hover:border-amber-500/60 active:scale-95 cursor-pointer"
             >
-              <Zap className="h-3.5 w-3.5 text-amber-400 fill-amber-400 animate-pulse" />
-              <span className="font-mono text-white text-xs">{user?.availableCredits ?? user?.credits ?? 0}<span className="hidden sm:inline"> Credits</span></span>
+              <Zap className="h-3.5 w-3.5 text-amber-500 fill-amber-500 animate-pulse" />
+              <span className="font-mono text-[var(--text-primary)] text-xs font-bold">{user?.availableCredits ?? user?.credits ?? 0}<span className="hidden sm:inline"> Credits</span></span>
             </Link>
           </>
         }
