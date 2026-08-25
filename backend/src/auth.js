@@ -162,16 +162,21 @@ function clearFailedAttempts(key) {
   failedAttemptsMap.delete(key);
 }
 
+let dynamicFallbackSecret = null;
+
 function getJwtSecret() {
   const s =
     process.env.ADMIN_JWT_SECRET?.trim() ||
     process.env.ADMIN_SECRET?.trim() ||
     process.env.USER_JWT_SECRET?.trim() ||
     process.env.JWT_SECRET?.trim();
-  if (!s) {
-    return "ruhgen-production-fallback-jwt-secret-key-change-in-env-998822";
+  if (s) return s;
+
+  if (!dynamicFallbackSecret) {
+    dynamicFallbackSecret = crypto.randomBytes(32).toString("hex");
+    console.warn("[SECURITY WARNING] No JWT secret configured in environment variables. Generated temporary runtime secret for this process session.");
   }
-  return s;
+  return dynamicFallbackSecret;
 }
 
 /**
