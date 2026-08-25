@@ -104,29 +104,27 @@ export function Hero() {
           </Link>
         </motion.div>
 
-      {/* 3. SCROLL INDICATOR - Anchored to Hero Bottom */}
-      <motion.div
-        className="absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-4"
-        variants={fadeUp}
-        initial="hidden"
-        animate="visible"
-      >
-        <div className="relative flex flex-col items-center">
-          <div className="h-10 w-px bg-gradient-to-b from-[var(--border-subtle)] to-transparent" />
-          <motion.div
-            className="absolute top-0 w-px h-5 bg-[var(--text-muted)]"
-            animate={{
-              y: [0, 20, 0],
-              opacity: [0, 1, 0]
-            }}
-            transition={{
-              duration: 2.5,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-          />
-        </div>
-      </motion.div>
+        {/* 3. SCROLL INDICATOR - Pushed down slightly relative to buttons */}
+        <motion.div
+          className="mt-16 sm:mt-24 flex flex-col items-center gap-4"
+          variants={fadeUp}
+        >
+          <div className="relative flex flex-col items-center">
+            <div className="h-10 w-px bg-gradient-to-b from-[var(--border-subtle)] to-transparent" />
+            <motion.div
+              className="absolute top-0 w-px h-5 bg-[var(--text-muted)]"
+              animate={{
+                y: [0, 20, 0],
+                opacity: [0, 1, 0]
+              }}
+              transition={{
+                duration: 2.5,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            />
+          </div>
+        </motion.div>
       </motion.div>
     </section>
   );
