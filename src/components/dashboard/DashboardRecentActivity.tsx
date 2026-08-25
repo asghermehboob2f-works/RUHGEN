@@ -151,29 +151,20 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
         initial={reduce ? false : { opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: reduce ? 0 : 0.25 }}
-        className="rounded-2xl border p-5 sm:p-6 lg:p-7"
-        style={{
-          borderColor: "var(--border-subtle)",
-          background:
-            "linear-gradient(180deg, var(--soft-black) 0%, rgba(255,255,255,0.01) 100%)",
-        }}
+        className="rounded-xl border border-zinc-800 bg-[#121215] p-5 sm:p-6 lg:p-7 shadow-sm"
       >
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <span
-              className="flex h-10 w-10 items-center justify-center rounded-lg border"
-              style={{
-                borderColor: "var(--border-subtle)",
-                background: "var(--glass)",
-              }}
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-900 text-zinc-300"
             >
-              <History className="h-4.5 w-4.5 text-[var(--primary-cyan)]" strokeWidth={1.75} />
+              <History className="h-4 w-4" strokeWidth={1.75} />
             </span>
             <div>
-              <h3 className="font-display text-base font-bold text-[var(--text-primary)]">
+              <h3 className="font-display text-base font-bold text-zinc-100">
                 Recent prompts
               </h3>
-              <p className="text-xs text-[var(--text-muted)]">
+              <p className="text-xs text-zinc-400">
                 {recent.length > 0
                   ? "Quickly copy, reuse, or share your recent workspace prompts."
                   : "Your prompts will appear here once you start generating."}
@@ -185,12 +176,7 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
               <button
                 type="button"
                 onClick={copyAllPrompts}
-                className="inline-flex min-h-[38px] items-center gap-1.5 rounded-xl border px-4.5 text-xs font-semibold transition-all hover:bg-[color-mix(in_srgb,var(--text-primary)_8%,transparent)]"
-                style={{
-                  borderColor: "var(--border-subtle)",
-                  background: "var(--glass)",
-                  color: "var(--text-primary)",
-                }}
+                className="inline-flex min-h-[36px] items-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-900 px-3.5 text-xs font-semibold text-zinc-300 transition-colors hover:border-zinc-700 hover:bg-zinc-800 hover:text-white"
               >
                 {copiedAll ? (
                   <>
@@ -199,7 +185,7 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
                   </>
                 ) : (
                   <>
-                    <Copy className="h-3.5 w-3.5 text-[var(--primary-cyan)]" />
+                    <Copy className="h-3.5 w-3.5 text-zinc-400" />
                     <span>Copy all</span>
                   </>
                 )}
@@ -208,11 +194,7 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
             <button
               type="button"
               onClick={shareBlank}
-              className="inline-flex min-h-[38px] items-center gap-1.5 rounded-xl px-4 text-xs font-semibold text-white shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.99]"
-              style={{
-                background: "linear-gradient(135deg, var(--primary-purple) 0%, var(--primary-cyan) 100%)",
-                boxShadow: "0 8px 24px -8px rgba(123,97,255,0.45)",
-              }}
+              className="inline-flex min-h-[36px] items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-800 px-3.5 text-xs font-semibold text-zinc-100 transition-colors hover:bg-zinc-700 hover:text-white"
             >
               <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
               Share to community
@@ -222,50 +204,41 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
 
         {recentLoading ? (
           <div
-            className="mt-6 flex min-h-[140px] items-center justify-center gap-2.5 rounded-xl border border-dashed px-4 py-8 text-center text-xs text-[var(--text-muted)]"
-            style={{
-              borderColor: "var(--border-subtle)",
-              background: "color-mix(in srgb, var(--deep-black) 40%, transparent)",
-            }}
+            className="mt-6 flex min-h-[140px] items-center justify-center gap-2.5 rounded-lg border border-dashed border-zinc-800 bg-zinc-900/40 px-4 py-8 text-center text-xs text-zinc-400"
           >
-            <Loader2 className="h-4 w-4 animate-spin text-[var(--primary-cyan)]" />
+            <Loader2 className="h-4 w-4 animate-spin text-zinc-300" />
             <span>Loading recent activity…</span>
           </div>
         ) : recent.length === 0 ? (
           <div
-            className="mt-6 flex min-h-[140px] flex-col items-center justify-center rounded-xl border border-dashed px-4 py-8 text-center"
-            style={{
-              borderColor: "var(--border-subtle)",
-              background: "color-mix(in srgb, var(--deep-black) 40%, transparent)",
-            }}
+            className="mt-6 flex min-h-[140px] flex-col items-center justify-center rounded-lg border border-dashed border-zinc-800 bg-zinc-900/40 px-4 py-8 text-center"
           >
             <span
-              className="flex h-12 w-12 items-center justify-center rounded-xl border"
-              style={{ borderColor: "var(--border-subtle)", background: "var(--glass)" }}
+              className="flex h-10 w-10 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-900 text-zinc-400"
             >
-              <Wand2 className="h-6 w-6 opacity-60 text-[var(--primary-purple)]" strokeWidth={1.75} />
+              <Wand2 className="h-5 w-5" strokeWidth={1.75} />
             </span>
-            <p className="mt-3.5 max-w-sm text-xs leading-relaxed text-[var(--text-muted)]">
+            <p className="mt-3 max-w-sm text-xs leading-relaxed text-zinc-400">
               No generations yet. Open a studio and your recent prompts will show up here.
             </p>
-            <div className="mt-4 flex items-center justify-center gap-3">
+            <div className="mt-3.5 flex items-center justify-center gap-3">
               <Link
                 href="/dashboard/generate/image"
-                className="text-xs font-bold uppercase tracking-wider text-[var(--primary-cyan)] transition-colors hover:text-white"
+                className="text-xs font-bold uppercase tracking-wider text-zinc-300 transition-colors hover:text-white"
               >
                 Image studio
               </Link>
-              <span className="text-[10px] text-[var(--text-subtle)]">·</span>
+              <span className="text-[10px] text-zinc-600">·</span>
               <Link
                 href="/dashboard/generate/video"
-                className="text-xs font-bold uppercase tracking-wider text-[var(--primary-cyan)] transition-colors hover:text-white"
+                className="text-xs font-bold uppercase tracking-wider text-zinc-300 transition-colors hover:text-white"
               >
                 Video studio
               </Link>
             </div>
           </div>
         ) : (
-          <div className="mt-6 space-y-3">
+          <div className="mt-5 space-y-2.5">
             {recent.slice(0, visibleCount).map((item, idx) => {
               const alreadyShared = sharedUrlSet.has(item.previewUrl);
               const isCopied = copiedId === item.id;
@@ -275,32 +248,28 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
                   initial={reduce ? false : { opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: reduce ? 0 : 0.04 * idx }}
-                  className="group flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-xl border p-4 transition-all duration-300 hover:border-brand-cyan/35"
-                  style={{
-                    borderColor: "var(--border-subtle)",
-                    background: "color-mix(in srgb, var(--deep-black) 55%, transparent)",
-                  }}
+                  className="group flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-lg border border-zinc-800 bg-zinc-900/60 p-3.5 transition-all duration-200 hover:border-zinc-700 hover:bg-zinc-900"
                 >
                   <div className="flex items-start gap-3 flex-1 min-w-0">
                     <span
-                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border/40 bg-card/40"
+                      className="flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded border border-zinc-800 bg-zinc-900 text-zinc-400"
                       title={item.kind === "image" ? "Image Prompt" : "Video Prompt"}
                     >
                       {item.kind === "image" ? (
-                        <ImageIcon className="h-4 w-4 text-[var(--primary-purple)]" />
+                        <ImageIcon className="h-3.5 w-3.5" />
                       ) : (
-                        <Video className="h-4 w-4 text-[var(--primary-cyan)]" />
+                        <Video className="h-3.5 w-3.5" />
                       )}
                     </span>
 
                     <div className="min-w-0 flex-1">
-                      <div className="max-h-24 overflow-y-auto pr-1 select-all whitespace-pre-wrap [scrollbar-width:thin] scrollbar-thumb-[var(--border-subtle)]">
-                        <p className="text-sm font-medium leading-relaxed text-[var(--text-primary)]">
+                      <div className="max-h-24 overflow-y-auto pr-1 select-all whitespace-pre-wrap [scrollbar-width:thin] scrollbar-thumb-zinc-800">
+                        <p className="text-xs sm:text-sm font-medium leading-relaxed text-zinc-200">
                           {item.prompt}
                         </p>
                       </div>
-                      <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[10px] text-[var(--text-subtle)] font-medium">
-                        <span className="uppercase tracking-wider text-[var(--primary-cyan)]">{item.kind} workspace</span>
+                      <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px] text-zinc-500 font-medium">
+                        <span className="uppercase tracking-wider text-zinc-400">{item.kind} workspace</span>
                         {item.createdAt && (
                           <>
                             <span>·</span>
@@ -321,7 +290,7 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
                     <button
                       type="button"
                       onClick={() => copyPrompt(item.prompt, item.id)}
-                      className="inline-flex min-h-[32px] items-center gap-1.5 rounded-lg border border-border bg-card/50 px-3 text-xs font-semibold text-[var(--text-primary)] transition-all hover:bg-card/90 active:scale-[0.98]"
+                      className="inline-flex min-h-[30px] items-center gap-1.5 rounded border border-zinc-800 bg-zinc-900 px-2.5 text-xs font-semibold text-zinc-300 transition-colors hover:border-zinc-700 hover:bg-zinc-800 hover:text-white"
                       title="Copy prompt"
                     >
                       {isCopied ? (
@@ -331,7 +300,7 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
                         </>
                       ) : (
                         <>
-                          <Copy className="h-3.5 w-3.5 text-[var(--text-muted)]" />
+                          <Copy className="h-3.5 w-3.5 text-zinc-400" />
                           <span>Copy</span>
                         </>
                       )}
@@ -339,40 +308,31 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
 
                     <Link
                       href={`${item.href}?prompt=${encodeURIComponent(item.prompt)}`}
-                      className="inline-flex min-h-[32px] items-center gap-1.5 rounded-lg border border-border bg-card/50 px-3 text-xs font-semibold text-[var(--text-primary)] transition-all hover:bg-card/90 active:scale-[0.98]"
+                      className="inline-flex min-h-[30px] items-center gap-1.5 rounded border border-zinc-800 bg-zinc-900 px-2.5 text-xs font-semibold text-zinc-300 transition-colors hover:border-zinc-700 hover:bg-zinc-800 hover:text-white"
                     >
-                      <Wand2 className="h-3.5 w-3.5 text-[var(--primary-purple)]" />
+                      <Wand2 className="h-3.5 w-3.5 text-zinc-400" />
                       <span>Use</span>
                     </Link>
 
                     <button
                       type="button"
                       onClick={() => shareGeneration(item)}
-                      className="inline-flex min-h-[32px] items-center gap-1.5 rounded-lg border px-3 text-xs font-semibold transition-all duration-300"
-                      style={{
-                        borderColor: alreadyShared
-                          ? "color-mix(in srgb, var(--primary-cyan) 35%, var(--border-subtle))"
-                          : "var(--border-subtle)",
-                        background: alreadyShared
-                          ? "color-mix(in srgb, var(--primary-cyan) 12%, var(--soft-black))"
-                          : "var(--glass)",
-                        color: "var(--text-primary)",
-                      }}
+                      className="inline-flex min-h-[30px] items-center gap-1.5 rounded border border-zinc-800 bg-zinc-900 px-2.5 text-xs font-semibold text-zinc-300 transition-colors hover:border-zinc-700 hover:bg-zinc-800 hover:text-white"
                     >
-                      <Send className="h-3 w-3" strokeWidth={2.5} />
+                      <Send className="h-3 w-3 text-zinc-400" strokeWidth={2} />
                       <span>{alreadyShared ? "Shared" : "Share"}</span>
                     </button>
                   </div>
                 </motion.div>
-              )
+              );
             })}
 
-            <div className="flex justify-center gap-3 pt-4">
+            <div className="flex justify-center gap-3 pt-3">
               {visibleCount > 4 && (
                 <button
                   type="button"
                   onClick={() => setVisibleCount(4)}
-                  className="inline-flex min-h-[36px] items-center justify-center gap-1.5 rounded-xl border border-border bg-card/45 px-6 text-xs font-semibold text-[var(--text-primary)] transition-all hover:bg-card/85 active:scale-[0.98]"
+                  className="inline-flex min-h-[34px] items-center justify-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-900 px-5 text-xs font-semibold text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-white"
                 >
                   Show less
                 </button>
@@ -381,7 +341,7 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
                 <button
                   type="button"
                   onClick={loadMore}
-                  className="inline-flex min-h-[36px] items-center justify-center gap-1.5 rounded-xl border border-border bg-card/45 px-6 text-xs font-semibold text-[var(--text-primary)] transition-all hover:bg-card/85 active:scale-[0.98]"
+                  className="inline-flex min-h-[34px] items-center justify-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-900 px-5 text-xs font-semibold text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-white"
                 >
                   Load more
                 </button>
@@ -390,19 +350,19 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
           </div>
         )}
 
-        <div className="mt-8 border-t pt-6" style={{ borderColor: "var(--border-subtle)" }}>
+        <div className="mt-6 border-t border-zinc-800 pt-5">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h4 className="font-display text-sm font-bold text-[var(--text-primary)]">
+              <h4 className="font-display text-sm font-bold text-zinc-100">
                 Your community posts
               </h4>
-              <p className="mt-0.5 text-xs text-[var(--text-muted)]">
+              <p className="mt-0.5 text-xs text-zinc-400">
                 Track engagement on work you&apos;ve shared with the feed.
               </p>
             </div>
             <Link
               href="/community"
-              className="text-xs font-bold uppercase tracking-wider text-[var(--primary-cyan)] transition-colors hover:text-white"
+              className="text-xs font-bold uppercase tracking-wider text-zinc-300 transition-colors hover:text-white"
             >
               Open community →
             </Link>
@@ -410,50 +370,38 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
 
           {postsLoading ? (
             <div
-              className="mt-4 flex items-center gap-2 rounded-xl border border-dashed px-4 py-6 text-xs text-[var(--text-muted)]"
-              style={{
-                borderColor: "var(--border-subtle)",
-                background: "color-mix(in srgb, var(--deep-black) 40%, transparent)",
-              }}
+              className="mt-3 flex items-center gap-2 rounded-lg border border-dashed border-zinc-800 bg-zinc-900/40 px-4 py-5 text-xs text-zinc-400"
             >
-              <Loader2 className="h-3.5 w-3.5 animate-spin text-[var(--primary-cyan)]" /> Loading your posts…
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-zinc-300" /> Loading your posts…
             </div>
           ) : postsError ? (
-            <p className="mt-4 text-xs text-[var(--text-subtle)]">
+            <p className="mt-3 text-xs text-zinc-500">
               {postsError}
             </p>
           ) : myPosts.length === 0 ? (
             <p
-              className="mt-4 rounded-xl border border-dashed px-4 py-6 text-center text-xs text-[var(--text-muted)]"
-              style={{
-                borderColor: "var(--border-subtle)",
-                background: "color-mix(in srgb, var(--deep-black) 40%, transparent)",
-              }}
+              className="mt-3 rounded-lg border border-dashed border-zinc-800 bg-zinc-900/40 px-4 py-5 text-center text-xs text-zinc-400"
             >
               You haven&apos;t shared anything yet. Pick a generation above and tap{" "}
-              <span className="font-bold text-[var(--text-primary)]">Share</span>.
+              <span className="font-bold text-zinc-200">Share</span>.
             </p>
           ) : (
-            <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {myPosts.slice(0, 6).map((p) => (
                 <li
                   key={p.id}
-                  className="group flex items-center gap-3 rounded-xl border p-2.5 transition-all duration-300 hover:border-brand-cyan/30"
-                  style={{
-                    borderColor: "var(--border-subtle)",
-                    background: "color-mix(in srgb, var(--deep-black) 55%, transparent)",
-                  }}
+                  className="group flex items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-900/60 p-2.5 transition-all duration-200 hover:border-zinc-700 hover:bg-zinc-900"
                 >
                   <Link
                     href={`/community#${p.id}`}
-                    className="relative h-14 w-18 shrink-0 overflow-hidden rounded-lg bg-card/40"
+                    className="relative h-14 w-18 shrink-0 overflow-hidden rounded bg-zinc-950"
                   >
                     {p.kind === "image" ? (
                       // eslint-disable-next-line @next/next/no-img-element -- arbitrary remote URL
                       <img
                         src={p.mediaUrl}
                         alt={p.title || ""}
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                         loading="lazy"
                         decoding="async"
                       />
@@ -463,30 +411,30 @@ export function DashboardRecentActivity({ userId }: { userId: string }) {
                         muted
                         playsInline
                         preload="metadata"
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                       />
                     )}
                   </Link>
                   <div className="flex min-w-0 flex-1 flex-col">
                     <p
-                      className="line-clamp-1 text-xs font-bold text-[var(--text-primary)] group-hover:text-white transition-colors duration-300"
+                      className="line-clamp-1 text-xs font-bold text-zinc-200 group-hover:text-white transition-colors duration-200"
                     >
                       {p.title || p.prompt || "Untitled"}
                     </p>
-                    <p className="text-[10px] text-[var(--text-subtle)] mt-0.5">
+                    <p className="text-[10px] text-zinc-500 mt-0.5">
                       {timeAgo(p.createdAt)}
                     </p>
                     <div
-                      className="mt-1 flex items-center gap-2.5 text-[10px] font-bold tracking-tight tabular-nums text-[var(--text-muted)]"
+                      className="mt-1 flex items-center gap-2.5 text-[10px] font-bold tracking-tight tabular-nums text-zinc-400"
                     >
                       <span className="flex items-center gap-0.5">
-                        <span className="text-[var(--accent-pink)]">♥</span> {p.likes}
+                        <span className="text-rose-400">♥</span> {p.likes}
                       </span>
                       <span className="flex items-center gap-0.5">
-                        <span className="text-[var(--primary-cyan)]">💬</span> {p.comments}
+                        <span className="text-zinc-300">💬</span> {p.comments}
                       </span>
                       <span className="flex items-center gap-0.5">
-                        <span className="text-[var(--primary-purple)]">👁</span> {p.views}
+                        <span className="text-zinc-400">👁</span> {p.views}
                       </span>
                     </div>
                   </div>

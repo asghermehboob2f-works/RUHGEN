@@ -3,6 +3,9 @@
 import { motion, useReducedMotion } from "framer-motion";
 import {
   ArrowUp,
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
   Check,
   Clapperboard,
   Clock,
@@ -14,13 +17,17 @@ import {
   ImagePlus,
   List,
   Loader2,
+  Lock,
   Maximize2,
+  MoveUp,
   PanelLeft,
   PanelLeftClose,
   RectangleHorizontal,
+  RotateCw,
   Smartphone,
   Sparkles,
   Square,
+  Target,
   Trash2,
   Wand2,
   X,
@@ -33,6 +40,8 @@ import {
   ChevronUp,
   ChevronDown,
   Share2,
+  ZoomIn,
+  ZoomOut,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -73,18 +82,18 @@ const ASPECT_RATIOS = [
 
 /** Cinematic Camera Movements */
 const CAMERA_MOVEMENTS = [
-  { id: "static", label: "Static", icon: "🔒", desc: "Locked tripod shot", tag: "locked tripod static shot, steady composition" },
-  { id: "push_in", label: "Push In", icon: "🔍", desc: "Dolly in towards subject", tag: "slow dolly push in camera movement" },
-  { id: "pull_out", label: "Pull Out", icon: "⏪", desc: "Reverse dolly move", tag: "smooth reverse pull out camera shot" },
-  { id: "pan_left", label: "Pan Left", icon: "⬅️", desc: "Horizontal left pan", tag: "cinematic smooth left pan shot" },
-  { id: "pan_right", label: "Pan Right", icon: "➡️", desc: "Horizontal right pan", tag: "cinematic smooth right pan shot" },
-  { id: "tilt_up", label: "Tilt Up", icon: "⬆️", desc: "Vertical upward tilt", tag: "vertical tilt up camera shot" },
-  { id: "tilt_down", label: "Tilt Down", icon: "⬇️", desc: "Vertical downward tilt", tag: "vertical tilt down camera shot" },
-  { id: "orbit", label: "Orbit", icon: "🔄", desc: "360° rotational camera", tag: "360 degree orbital camera sweep around subject" },
-  { id: "tracking", label: "Tracking", icon: "🎯", desc: "Dynamic subject tracking", tag: "dynamic subject tracking camera move" },
-  { id: "crane", label: "Crane", icon: "🏗️", desc: "Elevated sweeping crane", tag: "sweeping elevated crane shot" },
-  { id: "handheld", label: "Handheld", icon: "📱", desc: "Organic micro-shake", tag: "cinematic handheld micro-shake feel" },
-  { id: "dolly", label: "Dolly", icon: "🎥", desc: "Smooth tracking dolly", tag: "smooth tracking dolly shot" },
+  { id: "static", label: "Static", icon: Lock, desc: "Locked tripod shot", tag: "locked tripod static shot, steady composition" },
+  { id: "push_in", label: "Push In", icon: ZoomIn, desc: "Dolly in towards subject", tag: "slow dolly push in camera movement" },
+  { id: "pull_out", label: "Pull Out", icon: ZoomOut, desc: "Reverse dolly move", tag: "smooth reverse pull out camera shot" },
+  { id: "pan_left", label: "Pan Left", icon: ArrowLeft, desc: "Horizontal left pan", tag: "cinematic smooth left pan shot" },
+  { id: "pan_right", label: "Pan Right", icon: ArrowRight, desc: "Horizontal right pan", tag: "cinematic smooth right pan shot" },
+  { id: "tilt_up", label: "Tilt Up", icon: ArrowUp, desc: "Vertical upward tilt", tag: "vertical tilt up camera shot" },
+  { id: "tilt_down", label: "Tilt Down", icon: ArrowDown, desc: "Vertical downward tilt", tag: "vertical tilt down camera shot" },
+  { id: "orbit", label: "Orbit", icon: RotateCw, desc: "360° rotational camera", tag: "360 degree orbital camera sweep around subject" },
+  { id: "tracking", label: "Tracking", icon: Target, desc: "Dynamic subject tracking", tag: "dynamic subject tracking camera move" },
+  { id: "crane", label: "Crane", icon: MoveUp, desc: "Elevated sweeping crane", tag: "sweeping elevated crane shot" },
+  { id: "handheld", label: "Handheld", icon: Video, desc: "Organic micro-shake", tag: "cinematic handheld micro-shake feel" },
+  { id: "dolly", label: "Dolly", icon: Camera, desc: "Smooth tracking dolly", tag: "smooth tracking dolly shot" },
 ] as const;
 
 /** Motion Vocabulary Concepts */
@@ -606,36 +615,30 @@ export default function VideoStudioClient() {
     <div className="flex flex-col w-full max-lg:min-h-max lg:min-h-0 lg:flex-1 lg:overflow-hidden">
       <p className="sr-only">Press Enter to generate video. Shift+Enter for newline.</p>
       <div className="p-2.5 sm:p-3 max-lg:min-h-max lg:studio-scrollbar lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-y-contain [-webkit-overflow-scrolling:touch] touch-pan-y">
-        <div className="rounded-2xl border border-white/10 bg-[#121420] p-3.5 sm:p-4 shadow-sm">
+        <div className="rounded-xl border border-zinc-800 bg-[#121215] p-3 sm:p-3.5 shadow-sm">
           {/* Header Title */}
-          <div className="mb-3 flex items-center justify-between gap-2 border-b border-white/[0.08] pb-2.5">
+          <div className="mb-3 flex items-center justify-between gap-2 border-b border-zinc-800 pb-2.5">
             <div className="flex min-w-0 items-center gap-2.5">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-400/35 to-[var(--primary-cyan)]/45 ring-1 ring-white/20 shadow-[0_4px_16px_-4px_rgba(0,212,255,0.5)]">
-                <Clapperboard className="h-4 w-4 text-cyan-50" strokeWidth={2} />
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-zinc-700/60 bg-zinc-800 text-zinc-100 shadow-sm">
+                <Clapperboard className="h-3.5 w-3.5 text-zinc-200" strokeWidth={2} />
               </span>
               <div className="min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[var(--text-subtle)]">RUHGEN Studio</p>
-                  <span className="h-1.5 w-1.5 rounded-full bg-[var(--primary-cyan)] animate-pulse" />
-                </div>
-                <p className="truncate font-display text-xs font-bold text-[var(--text-primary)]">Video Creation Panel</p>
+                <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-400">RUHGEN Studio</p>
+                <p className="truncate font-display text-xs font-bold text-zinc-100">Video Creation Panel</p>
               </div>
             </div>
             {referenceUrl ? (
-              <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider ${referenceType === "video"
-                  ? "border-purple-400/30 bg-purple-500/15 text-purple-200"
-                  : "border-cyan-400/30 bg-cyan-500/15 text-cyan-200"
-                }`}>
+              <span className="shrink-0 rounded-md border border-zinc-700 bg-zinc-800 px-2 py-0.5 text-[9px] font-mono text-zinc-300">
                 {referenceType === "video" ? "Video Guided" : "Image Guided"}
               </span>
             ) : null}
           </div>
 
           {/* Slim Top RUHGEN Version Tier Selector */}
-          <div className="mb-3.5 rounded-xl border border-white/10 bg-black/50 p-1 shadow-inner">
-            <div className="mb-1 px-1.5 flex items-center justify-between text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
-              <span>RUHGEN Version</span>
-              <span className="text-[var(--primary-cyan)]">{selectedTier === "quality" ? "Premium (8 cr/s)" : "Standard (5 cr/s)"}</span>
+          <div className="mb-3 rounded-lg border border-zinc-800 bg-zinc-950/60 p-1">
+            <div className="mb-1 px-1 flex items-center justify-between text-[9px] font-bold uppercase tracking-[0.14em] text-zinc-400">
+              <span>Model Tier</span>
+              <span className="font-mono text-zinc-300">{selectedTier === "quality" ? "Premium (8 cr/s)" : "Standard (5 cr/s)"}</span>
             </div>
             <div className="grid grid-cols-2 gap-1" role="radiogroup" aria-label="RUHGEN Video Version Tier">
               {RUHGEN_VIDEO_TIERS.map((tier) => {
@@ -649,12 +652,12 @@ export default function VideoStudioClient() {
                     aria-checked={active}
                     disabled={busy}
                     onClick={() => setSelectedTier(tier.id)}
-                    className={`flex items-center justify-center gap-1.5 rounded-lg py-1.5 px-2 text-[11px] font-bold transition-all cursor-pointer ${active
-                        ? "bg-gradient-to-r from-cyan-600 to-[var(--primary-cyan)] text-white shadow-[0_2px_10px_rgba(0,212,255,0.45)] ring-1 ring-white/20"
-                        : "text-[var(--text-muted)] hover:text-white hover:bg-white/[0.05]"
+                    className={`flex items-center justify-center gap-1.5 rounded-md py-1.5 px-2 text-[11px] font-bold transition-all cursor-pointer ${active
+                        ? "bg-zinc-800 text-zinc-100 border border-zinc-700 shadow-sm"
+                        : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60"
                       }`}
                   >
-                    <Icon className={`h-3 w-3 ${active ? "text-cyan-100" : "text-white/50"}`} />
+                    <Icon className={`h-3 w-3 ${active ? "text-zinc-100" : "text-zinc-500"}`} />
                     <span className="truncate">{tier.label}</span>
                   </button>
                 );
@@ -662,32 +665,32 @@ export default function VideoStudioClient() {
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             {/* 1. MEDIA REFERENCE (IMAGE / VIDEO) */}
-            <div className="rounded-2xl border border-cyan-500/25 bg-gradient-to-br from-cyan-500/10 via-black/40 to-transparent p-3.5 shadow-sm">
+            <div className="rounded-lg border border-zinc-800 bg-zinc-900/40 p-3">
               <div className="mb-2 flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   {activeRefTab === "video" ? (
-                    <Film className="h-3.5 w-3.5 text-cyan-300" strokeWidth={2} />
+                    <Film className="h-3.5 w-3.5 text-zinc-300" strokeWidth={2} />
                   ) : (
-                    <ImagePlus className="h-3.5 w-3.5 text-cyan-300" strokeWidth={2} />
+                    <ImagePlus className="h-3.5 w-3.5 text-zinc-300" strokeWidth={2} />
                   )}
-                  <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-cyan-200">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-300">
                     1. Media Reference
                   </span>
                 </div>
-                <span className="text-[9px] font-semibold uppercase tracking-wider text-[var(--text-subtle)]">Optional</span>
+                <span className="text-[9px] font-semibold uppercase tracking-wider text-zinc-500">Optional</span>
               </div>
 
               {/* Reference Mode Selector */}
-              <div className="mb-3 grid grid-cols-2 gap-1 rounded-xl border border-white/10 bg-black/60 p-1">
+              <div className="mb-2.5 grid grid-cols-2 gap-1 rounded-lg border border-zinc-800 bg-zinc-950/60 p-1">
                 <button
                   type="button"
                   disabled={busy || refUploading}
                   onClick={() => setActiveRefTab("image")}
-                  className={`flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${activeRefTab === "image"
-                      ? "bg-gradient-to-r from-cyan-600/90 to-cyan-500 text-white shadow-sm ring-1 ring-white/20"
-                      : "text-[var(--text-muted)] hover:text-white hover:bg-white/[0.05]"
+                  className={`flex items-center justify-center gap-1.5 rounded-md py-1 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${activeRefTab === "image"
+                      ? "bg-zinc-800 text-zinc-100 border border-zinc-700 shadow-sm"
+                      : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60"
                     }`}
                 >
                   <ImagePlus className="h-3 w-3" />
@@ -697,9 +700,9 @@ export default function VideoStudioClient() {
                   type="button"
                   disabled={busy || refUploading}
                   onClick={() => setActiveRefTab("video")}
-                  className={`flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${activeRefTab === "video"
-                      ? "bg-gradient-to-r from-cyan-600/90 to-cyan-500 text-white shadow-sm ring-1 ring-white/20"
-                      : "text-[var(--text-muted)] hover:text-white hover:bg-white/[0.05]"
+                  className={`flex items-center justify-center gap-1.5 rounded-md py-1 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${activeRefTab === "video"
+                      ? "bg-zinc-800 text-zinc-100 border border-zinc-700 shadow-sm"
+                      : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60"
                     }`}
                 >
                   <Film className="h-3 w-3" />
@@ -823,7 +826,7 @@ export default function VideoStudioClient() {
             </div>
 
             {/* 2. ASPECT RATIO */}
-            <StudioCollapsible title="2. Aspect Ratio" defaultOpen>
+            <StudioCollapsible title="2. Aspect Ratio" defaultOpen={false}>
               <div className="grid grid-cols-3 gap-1.5" role="radiogroup" aria-label="Aspect Ratio">
                 {ASPECT_RATIOS.map((item) => {
                   const on = aspect === item.key;
@@ -835,21 +838,21 @@ export default function VideoStudioClient() {
                       aria-checked={on}
                       disabled={busy}
                       onClick={() => setAspect(item.key as any)}
-                      className={`flex flex-col items-center justify-center gap-1.5 rounded-xl border py-2 px-1.5 text-center transition-all cursor-pointer ${on
-                          ? "border-white/30 bg-white/15 text-white shadow-sm ring-1 ring-white/20 font-semibold"
-                          : "border-white/[0.08] bg-white/[0.03] text-slate-400 hover:border-white/20 hover:text-white"
+                      className={`flex flex-col items-center justify-center gap-1.5 rounded-lg border py-2 px-1.5 text-center transition-all cursor-pointer ${on
+                          ? "border-zinc-700 bg-zinc-800 text-zinc-100 shadow-sm font-semibold"
+                          : "border-zinc-800 bg-zinc-900/40 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
                         }`}
                     >
                       <div className="flex h-5 items-center justify-center">
                         <div
-                          className={`rounded-[2px] border-2 transition-all ${on ? "border-white bg-white/35 shadow-[0_0_8px_rgba(255,255,255,0.3)]" : "border-white/40"
+                          className={`rounded-[2px] border transition-all ${on ? "border-zinc-100 bg-zinc-100/40 shadow-sm" : "border-zinc-600"
                             }`}
                           style={{ width: `${item.iconW}px`, height: `${item.iconH}px` }}
                         />
                       </div>
                       <div className="leading-none">
-                        <p className="font-mono text-[11px] font-bold text-white">{item.ratio}</p>
-                        <p className="mt-0.5 text-[9px] font-medium text-slate-400">{item.label}</p>
+                        <p className="font-mono text-[11px] font-bold text-zinc-200">{item.ratio}</p>
+                        <p className="mt-0.5 text-[9px] font-medium text-zinc-400">{item.label}</p>
                       </div>
                     </button>
                   );
@@ -858,19 +861,18 @@ export default function VideoStudioClient() {
             </StudioCollapsible>
 
             {/* 3. VIDEO DURATION */}
-            <StudioCollapsible title="3. Video Duration" subtitle="Select target clip duration in seconds" defaultOpen>
+            <StudioCollapsible title="3. Video Duration" subtitle="Select target clip duration in seconds" defaultOpen={false}>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
-                    <Clock className="h-3.5 w-3.5 text-cyan-400" />
-                    <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">Clip Length</span>
+                    <Clock className="h-3.5 w-3.5 text-zinc-300" />
+                    <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">Clip Length</span>
                   </div>
-                  <span className="font-mono text-xs font-bold text-cyan-300 bg-cyan-500/10 px-2.5 py-0.5 rounded-md border border-cyan-400/25 shadow-[0_0_12px_rgba(0,212,255,0.2)]">
+                  <span className="font-mono text-xs font-bold text-zinc-200 bg-zinc-800 px-2.5 py-0.5 rounded-md border border-zinc-700">
                     {duration} Seconds
                   </span>
                 </div>
 
-                {/* Ultra-Slim Minimalist Glass Slider */}
                 <div className="relative pt-2 pb-1">
                   <div className="relative flex items-center">
                     <input
@@ -881,10 +883,10 @@ export default function VideoStudioClient() {
                       value={duration}
                       onChange={(e) => setDuration(Number(e.target.value))}
                       disabled={busy}
-                      className="studio-range-premium h-[2px] w-full cursor-pointer appearance-none rounded-full bg-white/15 outline-none transition-all"
+                      className="studio-range-premium h-[2px] w-full cursor-pointer appearance-none rounded-full bg-zinc-800 outline-none transition-all"
                     />
                   </div>
-                  <div className="mt-2 flex justify-between px-0.5 font-mono text-[10px] font-bold text-slate-400">
+                  <div className="mt-2 flex justify-between px-0.5 font-mono text-[10px] font-bold text-zinc-400">
                     {[5, 6, 7, 8, 9, 10].map((s) => (
                       <button
                         key={s}
@@ -892,8 +894,8 @@ export default function VideoStudioClient() {
                         disabled={busy}
                         onClick={() => setDuration(s)}
                         className={`cursor-pointer transition-colors ${duration === s
-                            ? "text-cyan-300 font-extrabold"
-                            : "hover:text-white"
+                            ? "text-zinc-100 font-extrabold"
+                            : "hover:text-zinc-200"
                           }`}
                       >
                         {s}s
@@ -905,7 +907,7 @@ export default function VideoStudioClient() {
             </StudioCollapsible>
 
             {/* 4. MOTION VOCABULARY */}
-            <StudioCollapsible title="4. Motion Vocabulary" subtitle="Interactive kinetic action, atmosphere & physical motion" defaultOpen>
+            <StudioCollapsible title="4. Motion Vocabulary" subtitle="Interactive kinetic action & atmospheric motion" defaultOpen={false}>
               <div className="space-y-3">
                 {[
                   {
@@ -952,36 +954,11 @@ export default function VideoStudioClient() {
                         label: "wind-blown fabric motion",
                         value: "dramatic wind gusts blowing silk fabric, flowing organic wave movement, billowing clothing physics",
                       },
-                      {
-                        label: "glowing bioluminescent pulse",
-                        value: "rhythmic bioluminescent light pulse, pulsing cyan and violet ambient glow, shimmering energy waves",
-                      },
-                    ],
-                  },
-                  {
-                    category: "Lighting & Cinema FX",
-                    items: [
-                      {
-                        label: "anamorphic lens streak",
-                        value: "horizontal blue anamorphic streak lens flare, cinematic anamorphic bokeh, 2.39:1 scope motion focus",
-                      },
-                      {
-                        label: "dramatic shutter sweep",
-                        value: "180-degree cinema shutter angle, authentic motion blur, crisp optical dynamic range",
-                      },
-                      {
-                        label: "rim light specular highlights",
-                        value: "intense rear studio rim lighting, glinting specular edge highlights on moving surfaces",
-                      },
-                      {
-                        label: "neon night reflections",
-                        value: "cyberpunk wet street neon reflections, shimmering puddle light distortion, high-contrast night atmosphere",
-                      },
                     ],
                   },
                 ].map((group) => (
                   <div key={group.category} className="space-y-1.5">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-cyan-300/80">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
                       {group.category}
                     </p>
                     <div className="flex flex-wrap gap-1.5">
@@ -993,7 +970,7 @@ export default function VideoStudioClient() {
                           onClick={() => {
                             appendPromptChip(item.value);
                           }}
-                          className="rounded-lg border border-white/12 bg-white/[0.04] px-2.5 py-1 text-[10px] font-semibold text-slate-300 transition-all hover:border-cyan-400/60 hover:bg-cyan-500/20 hover:text-white cursor-pointer disabled:opacity-40"
+                          className="rounded-md border border-zinc-800 bg-zinc-900/60 px-2 py-1 text-[10px] font-semibold text-zinc-300 transition-all hover:border-zinc-700 hover:bg-zinc-800 hover:text-zinc-100 cursor-pointer disabled:opacity-40"
                           title={`Inserts: "${item.value}"`}
                         >
                           + {item.label}
@@ -1006,10 +983,11 @@ export default function VideoStudioClient() {
             </StudioCollapsible>
 
             {/* 5. CAMERA MOVEMENT */}
-            <StudioCollapsible title="5. Camera Movement" subtitle="Direct virtual camera paths & dynamics" defaultOpen>
+            <StudioCollapsible title="5. Camera Movement" subtitle="Direct virtual camera paths & dynamics" defaultOpen={false}>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
                 {CAMERA_MOVEMENTS.map((cam) => {
                   const active = selectedCamera === cam.id;
+                  const CamIcon = cam.icon;
                   return (
                     <button
                       key={cam.id}
@@ -1020,15 +998,15 @@ export default function VideoStudioClient() {
                         appendPromptChip(cam.tag);
                       }}
                       className={`flex flex-col items-start gap-0.5 rounded-lg border p-2 transition-all text-left cursor-pointer ${active
-                          ? "border-[var(--primary-cyan)] bg-[var(--primary-cyan)]/20 text-white shadow-[0_2px_8px_rgba(0,212,255,0.4)]"
-                          : "border-white/[0.06] bg-white/[0.02] text-[var(--text-muted)] hover:border-white/20 hover:text-white"
+                          ? "border-zinc-700 bg-zinc-800 text-zinc-100 shadow-sm font-semibold"
+                          : "border-zinc-800 bg-zinc-900/40 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
                         }`}
                     >
                       <div className="flex items-center gap-1.5 w-full">
-                        <span className="text-xs">{cam.icon}</span>
-                        <span className="truncate text-[10px] font-bold tracking-tight text-white">{cam.label}</span>
+                        <CamIcon className={`h-3.5 w-3.5 shrink-0 ${active ? "text-zinc-100" : "text-zinc-400"}`} />
+                        <span className="truncate text-[10px] font-bold tracking-tight text-zinc-200">{cam.label}</span>
                       </div>
-                      <span className="text-[9px] text-[var(--text-subtle)] truncate w-full">{cam.desc}</span>
+                      <span className="text-[9px] text-zinc-400 truncate w-full">{cam.desc}</span>
                     </button>
                   );
                 })}
@@ -1039,10 +1017,10 @@ export default function VideoStudioClient() {
             <StudioCollapsible title="6. Negative Prompt" subtitle="Exclude unwanted motion or visual artifacts" defaultOpen={false}>
               <div>
                 <div className="mb-1 flex items-center justify-between">
-                  <label htmlFor="vid-neg" className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
+                  <label htmlFor="vid-neg" className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">
                     Unwanted Motion & Artifacts
                   </label>
-                  <span className="tabular-nums text-[9px] text-[var(--text-subtle)]">{negativePrompt.length}/2500</span>
+                  <span className="font-mono text-[9px] text-zinc-500">{negativePrompt.length}/2500</span>
                 </div>
                 <textarea
                   id="vid-neg"
@@ -1051,8 +1029,7 @@ export default function VideoStudioClient() {
                   disabled={busy}
                   placeholder="Describe unwanted camera shake, morphing, flickering, artifacts, bad physics…"
                   rows={2}
-                  className="w-full resize-none rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-xs outline-none transition-all focus:border-[var(--primary-cyan)]/60 focus:ring-1 focus:ring-[var(--primary-cyan)]/20"
-                  style={{ color: "var(--text-primary)" }}
+                  className="w-full resize-none rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs text-zinc-100 outline-none placeholder:text-zinc-500 focus:border-zinc-700"
                 />
               </div>
             </StudioCollapsible>
@@ -1061,42 +1038,27 @@ export default function VideoStudioClient() {
       </div>
 
       {/* Sticky desktop prompt + generate (Section 8: Video Generation Area) */}
-      <div
-        className="hidden shrink-0 border-t px-3 pb-3 pt-3 backdrop-blur-xl lg:block"
-        style={{
-          borderColor: "color-mix(in srgb, white 8%, transparent)",
-          background:
-            "linear-gradient(180deg, color-mix(in srgb, var(--deep-black) 55%, transparent) 0%, color-mix(in srgb, var(--deep-black) 88%, transparent) 100%)",
-        }}
-      >
+      <div className="hidden shrink-0 border-t border-zinc-800 bg-[#121215] px-3 pb-3 pt-3 backdrop-blur-xl lg:block">
         {/* Tier & Credit Summary */}
-        <div className="mb-2.5 flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.02] px-3 py-1.5 text-xs">
-          <div className="flex items-center gap-3">
-            <span className="font-display font-bold text-white flex items-center gap-1.5">
-              <Clapperboard className="h-3.5 w-3.5 text-[var(--primary-cyan)]" />
-              {activeTierObj.label}
+        <div className="mb-2.5 flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-900/70 px-3 py-1.5 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="text-zinc-400">Tier:</span>
+            <span className="font-display font-bold text-zinc-100 flex items-center gap-1">
+              <Clapperboard className="h-3 w-3 text-zinc-300" />
+              {activeTierObj.label} ({duration}s Clip)
             </span>
-            <span className="text-[var(--text-subtle)]">|</span>
-            <span className="text-white font-medium">{duration}s Clip</span>
           </div>
-          <div className="flex items-center gap-4 text-[var(--text-muted)]">
-            <span>
-              Available: <strong className="text-[var(--text-primary)] tabular-nums">{user?.availableCredits ?? user?.credits ?? 0}</strong>
-            </span>
-            <span>
-              Cost: <strong className={((user?.availableCredits ?? user?.credits ?? 0) < currentCost) ? "text-rose-400 font-bold" : "text-[#00D4FF] font-bold"}>{currentCost} credits</strong>
-            </span>
+          <div className="flex items-center gap-3 text-zinc-400 text-[11px]">
+            <span>Available: <strong className="text-zinc-100 font-mono">{user?.availableCredits ?? user?.credits ?? 0}</strong></span>
+            <span>Cost: <strong className={((user?.availableCredits ?? user?.credits ?? 0) < currentCost) ? "text-rose-400 font-bold" : "text-zinc-100 font-bold font-mono"}>{currentCost} cr</strong></span>
           </div>
         </div>
 
-        <div className="mb-1.5 flex items-center justify-between gap-2">
-          <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--text-muted)]">Video Motion Prompt</span>
-          <span className="text-[10px] tabular-nums text-[var(--text-subtle)]">{prompt.length}</span>
+        <div className="mb-1 flex items-center justify-between gap-2">
+          <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">Video Motion Prompt</span>
+          <span className="font-mono text-[10px] text-zinc-500">{prompt.length}</span>
         </div>
-        <div
-          className="studio-prompt-focus-video relative flex items-center gap-2 rounded-xl border border-border bg-card/65 px-3 py-2 transition-shadow"
-          style={{ boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)" }}
-        >
+        <div className="relative flex items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2">
           <label className="sr-only" htmlFor="vid-prompt">Prompt</label>
           <textarea
             ref={videoPromptRef}
@@ -1106,8 +1068,7 @@ export default function VideoStudioClient() {
             placeholder={isImg2Video ? "Describe action & movement for reference image…" : "Describe cinematic video scene & motion…"}
             rows={2}
             disabled={busy}
-            className="no-scrollbar max-h-[160px] min-h-[44px] w-full resize-none bg-transparent text-sm leading-relaxed outline-none placeholder:text-[var(--text-subtle)] sm:text-[14px]"
-            style={{ color: "var(--text-primary)", scrollbarWidth: "none" }}
+            className="no-scrollbar max-h-[160px] min-h-[44px] w-full resize-none bg-transparent text-sm leading-relaxed text-zinc-100 outline-none placeholder:text-zinc-500"
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
@@ -1116,9 +1077,8 @@ export default function VideoStudioClient() {
             }}
           />
 
-          {/* Up / Down Arrow Glass Buttons - Only visible when text is long */}
           {prompt.length > 70 ? (
-            <div className="flex flex-col gap-1 shrink-0 select-none transition-opacity duration-200">
+            <div className="flex flex-col gap-1 shrink-0 select-none">
               <button
                 type="button"
                 disabled={busy}
@@ -1127,7 +1087,7 @@ export default function VideoStudioClient() {
                     videoPromptRef.current.scrollTop -= 32;
                   }
                 }}
-                className="flex h-5 w-5 items-center justify-center rounded-md border border-white/12 bg-white/[0.05] text-slate-300 transition-all hover:border-cyan-400/60 hover:bg-cyan-500/25 hover:text-white active:scale-95 cursor-pointer disabled:opacity-30"
+                className="flex h-5 w-5 items-center justify-center rounded border border-zinc-700 bg-zinc-800 text-zinc-300 hover:text-zinc-100 cursor-pointer disabled:opacity-30"
                 title="Scroll Up"
                 aria-label="Scroll Up"
               >
@@ -1141,7 +1101,7 @@ export default function VideoStudioClient() {
                     videoPromptRef.current.scrollTop += 32;
                   }
                 }}
-                className="flex h-5 w-5 items-center justify-center rounded-md border border-white/12 bg-white/[0.05] text-slate-300 transition-all hover:border-cyan-400/60 hover:bg-cyan-500/25 hover:text-white active:scale-95 cursor-pointer disabled:opacity-30"
+                className="flex h-5 w-5 items-center justify-center rounded border border-zinc-700 bg-zinc-800 text-zinc-300 hover:text-zinc-100 cursor-pointer disabled:opacity-30"
                 title="Scroll Down"
                 aria-label="Scroll Down"
               >
@@ -1151,36 +1111,36 @@ export default function VideoStudioClient() {
           ) : null}
         </div>
         <div className="mt-2.5">
-          <StudioGlowGenerate
-            tone="cyan"
-            size="lg"
+          <button
+            type="button"
             disabled={busy || prompt.trim().length < 2 || Boolean(user?.generationDisabled) || (user?.availableCredits ?? user?.credits ?? 0) < currentCost}
             onClick={() => void run()}
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-zinc-100 px-4 text-xs font-bold text-zinc-950 shadow-sm transition-all hover:bg-white active:scale-95 disabled:opacity-40 cursor-pointer"
           >
             {busy ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin text-cyan-200" />
-                <span className="font-semibold tracking-wide">Rendering Video ({duration}s)…</span>
+                <Loader2 className="h-4 w-4 animate-spin text-zinc-950" />
+                <span>Rendering Video ({duration}s)…</span>
               </>
             ) : user?.generationDisabled ? (
               <>
-                <X className="h-4 w-4 text-rose-300" strokeWidth={2} />
-                <span className="font-semibold tracking-wide">Access Disabled</span>
+                <X className="h-4 w-4 text-rose-600" strokeWidth={2} />
+                <span>Access Disabled</span>
               </>
             ) : (user?.availableCredits ?? user?.credits ?? 0) < currentCost ? (
               <>
-                <X className="h-4 w-4 text-rose-300" strokeWidth={2} />
-                <span className="font-semibold tracking-wide">Insufficient Credits</span>
+                <X className="h-4 w-4 text-rose-600" strokeWidth={2} />
+                <span>Insufficient Credits</span>
               </>
             ) : (
               <>
-                <Clapperboard className="h-4 w-4 text-white" strokeWidth={2.2} />
-                <span className="font-medium tracking-wide text-white">Generate Video</span>
+                <Clapperboard className="h-4 w-4 text-zinc-950" strokeWidth={2} />
+                <span>Generate Video</span>
               </>
             )}
-          </StudioGlowGenerate>
+          </button>
         </div>
-        <p className="mt-1.5 text-center text-[10px] text-[var(--text-subtle)]">Enter to generate · Shift+Enter for line break</p>
+        <p className="mt-1.5 text-center text-[10px] text-zinc-500">Enter to generate · Shift+Enter for line break</p>
       </div>
     </div>
   );
@@ -1215,47 +1175,23 @@ export default function VideoStudioClient() {
           className={`flex min-h-0 flex-1 flex-col gap-2 ${showCanvasDock ? "min-h-0 overflow-y-auto overscroll-contain" : "overflow-hidden"
             }`}
         >
-          <div className="luxury-glass-panel flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl">
-            <div
-              className="sticky top-0 z-10 flex shrink-0 items-center gap-2 border-b px-3 py-2 backdrop-blur-xl"
-              style={{
-                borderColor: "color-mix(in srgb, white 9%, transparent)",
-                background:
-                  "linear-gradient(180deg, color-mix(in srgb, var(--rich-black) 94%, transparent) 0%, color-mix(in srgb, var(--rich-black) 78%, transparent) 100%)",
-              }}
-            >
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-zinc-800 bg-[#121215]">
+            <div className="sticky top-0 z-10 flex shrink-0 items-center gap-2 border-b border-zinc-800 bg-[#121215] px-3 py-2">
               <div className="min-w-0 flex-1">
-                <p className="text-[9px] font-bold uppercase leading-none tracking-[0.2em]" style={{ color: "var(--text-subtle)" }}>
+                <p className="text-[9px] font-bold uppercase leading-none tracking-[0.2em] text-zinc-400">
                   Motion Canvas
                 </p>
-                <p className="truncate font-display text-[13px] font-bold leading-tight sm:text-sm" style={{ color: "var(--text-primary)" }}>
+                <p className="truncate font-display text-[13px] font-bold leading-tight text-zinc-100 sm:text-sm">
                   {messages.length === 0 ? "Awaiting video motion description" : `${galleryItems.length} video clip${galleryItems.length === 1 ? "" : "s"} rendered`}
                 </p>
               </div>
-              {studioView === "feed" ? (
-                <div className="hidden shrink-0 items-center gap-1 sm:flex">
-                  {(["all", "running", "ready"] as const).map((f) => (
-                    <button
-                      key={f}
-                      type="button"
-                      onClick={() => setFeedFilter(f)}
-                      className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide transition-all ${feedFilter === f
-                          ? "bg-[var(--primary-cyan)]/25 text-[var(--text-primary)] ring-1 ring-[var(--primary-cyan)]/40"
-                          : "border border-border bg-card/35 text-[var(--text-muted)] hover:border-border/80"
-                        }`}
-                    >
-                      {f === "all" ? "All" : f === "running" ? "Live" : "Ready"}
-                    </button>
-                  ))}
-                </div>
-              ) : null}
-              <div className="flex shrink-0 items-center gap-1 rounded-lg border border-border bg-card/45 p-0.5">
+              <div className="flex shrink-0 items-center gap-1 rounded-lg border border-zinc-800 bg-zinc-900 p-0.5">
                 <button
                   type="button"
                   onClick={() => setStudioView("feed")}
                   aria-pressed={studioView === "feed"}
                   aria-label="Feed view"
-                  className={`inline-flex h-7 items-center gap-1 rounded-md px-1.5 text-[10px] font-bold uppercase tracking-wide transition-all ${studioView === "feed" ? "bg-[color-mix(in_srgb,var(--text-primary)_12%,transparent)] text-[var(--text-primary)] shadow-inner" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                  className={`inline-flex h-7 items-center gap-1 rounded-md px-1.5 text-[10px] font-bold uppercase tracking-wide transition-all ${studioView === "feed" ? "bg-zinc-800 text-zinc-100 shadow-sm" : "text-zinc-400 hover:text-zinc-200"
                     }`}
                 >
                   <List className="h-3.5 w-3.5" strokeWidth={2} />
@@ -1265,7 +1201,7 @@ export default function VideoStudioClient() {
                   onClick={() => setStudioView("gallery")}
                   aria-pressed={studioView === "gallery"}
                   aria-label="Gallery view"
-                  className={`inline-flex h-7 items-center gap-1 rounded-md px-1.5 text-[10px] font-bold uppercase tracking-wide transition-all ${studioView === "gallery" ? "bg-[color-mix(in_srgb,var(--text-primary)_12%,transparent)] text-[var(--text-primary)] shadow-inner" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                  className={`inline-flex h-7 items-center gap-1 rounded-md px-1.5 text-[10px] font-bold uppercase tracking-wide transition-all ${studioView === "gallery" ? "bg-zinc-800 text-zinc-100 shadow-sm" : "text-zinc-400 hover:text-zinc-200"
                     }`}
                 >
                   <Grid3x3 className="h-3.5 w-3.5" strokeWidth={2} />
@@ -1274,12 +1210,7 @@ export default function VideoStudioClient() {
               <button
                 type="button"
                 onClick={chrome.toggleCollapsed}
-                className="hidden h-7 w-7 shrink-0 items-center justify-center rounded-lg border transition-colors hover:bg-white/[0.06] lg:inline-flex"
-                style={{
-                  borderColor: "color-mix(in srgb, white 8%, transparent)",
-                  color: "var(--text-muted)",
-                  background: "color-mix(in srgb, var(--deep-black) 40%, transparent)",
-                }}
+                className="hidden h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-900 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100 lg:inline-flex"
                 aria-label={chrome.collapsed ? "Show controls" : "Hide controls"}
                 aria-pressed={chrome.collapsed}
                 title={chrome.collapsed ? "Show controls" : "Hide controls"}
@@ -1287,23 +1218,6 @@ export default function VideoStudioClient() {
                 {chrome.collapsed ? <PanelLeft className="h-3.5 w-3.5" strokeWidth={2} /> : <PanelLeftClose className="h-3.5 w-3.5" strokeWidth={2} />}
               </button>
             </div>
-            {studioView === "feed" ? (
-              <div className="flex shrink-0 items-center gap-1 border-b border-border/30 px-3 py-1.5 sm:hidden">
-                {(["all", "running", "ready"] as const).map((f) => (
-                  <button
-                    key={f}
-                    type="button"
-                    onClick={() => setFeedFilter(f)}
-                    className={`flex-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide transition-all ${feedFilter === f
-                        ? "bg-[var(--primary-cyan)]/25 text-[var(--text-primary)] ring-1 ring-[var(--primary-cyan)]/40"
-                        : "border border-border bg-card/35 text-[var(--text-muted)]"
-                      }`}
-                  >
-                    {f === "all" ? "All" : f === "running" ? "Live" : "Ready"}
-                  </button>
-                ))}
-              </div>
-            ) : null}
             <div
               ref={scrollRef}
               className="studio-scrollbar min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain [-webkit-overflow-scrolling:touch] touch-pan-y px-3 py-3 sm:px-4"
@@ -1311,12 +1225,12 @@ export default function VideoStudioClient() {
               {studioView === "gallery" ? (
                 galleryItems.length === 0 ? (
                   <div className="flex min-h-[240px] flex-col items-center justify-center gap-4 py-12 text-center">
-                    <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl border border-border bg-gradient-to-br from-cyan-600/15 to-violet-500/10 shadow-[0_0_60px_-20px_rgba(0,212,255,0.55)]">
-                      <Grid3x3 className="h-9 w-9 text-white/90" strokeWidth={1.5} />
+                    <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900/60 shadow-sm">
+                      <Grid3x3 className="h-9 w-9 text-zinc-400" strokeWidth={1.5} />
                     </div>
                     <div className="max-w-xs space-y-2">
-                      <p className="font-display text-lg font-bold text-[var(--text-primary)]">Video Gallery Awaits</p>
-                      <p className="text-sm leading-relaxed text-[var(--text-muted)]">Rendered video clips collect in your personal RUHGEN motion vault.</p>
+                      <p className="font-display text-lg font-bold text-zinc-100">Video Gallery Awaits</p>
+                      <p className="text-sm leading-relaxed text-zinc-400">Rendered video clips collect in your personal RUHGEN motion vault.</p>
                     </div>
                   </div>
                 ) : (
@@ -1327,12 +1241,12 @@ export default function VideoStudioClient() {
                         initial={reduce ? false : { opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: reduce ? 0 : Math.min(gi * 0.03, 0.35) }}
-                        className="group relative overflow-hidden rounded-2xl border border-border bg-card/45 shadow-lg ring-1 ring-border/20"
+                        className="group relative overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/40 shadow-sm"
                       >
                         <video
                           src={item.src}
                           controls
-                          className="w-full h-auto block rounded-2xl bg-black"
+                          className="w-full h-auto block rounded-xl bg-black"
                           preload="metadata"
                         />
                       </motion.div>
@@ -1344,13 +1258,13 @@ export default function VideoStudioClient() {
                   <motion.div
                     initial={reduce ? false : { scale: 0.92, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    className="relative flex h-24 w-24 items-center justify-center rounded-3xl border border-cyan-400/30 bg-gradient-to-br from-cyan-600/40 via-[var(--deep-black)] to-violet-500/25 shadow-[0_0_80px_-24px_rgba(0,212,255,0.65)]"
+                    className="relative flex h-20 w-20 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900 shadow-sm"
                   >
-                    <Clapperboard className="h-10 w-10 text-cyan-200" strokeWidth={1.5} />
+                    <Clapperboard className="h-9 w-9 text-zinc-300" strokeWidth={1.5} />
                   </motion.div>
                   <div className="max-w-md space-y-2 px-2">
-                    <p className="font-display text-xl font-bold tracking-tight text-[var(--text-primary)]">RUHGEN Video Studio Online</p>
-                    <p className="text-sm leading-relaxed text-[var(--text-muted)]">
+                    <p className="font-display text-xl font-bold tracking-tight text-zinc-100">RUHGEN Video Studio Online</p>
+                    <p className="text-sm leading-relaxed text-zinc-400">
                       Set duration slider, camera path, aspect ratio, and RUHGEN tier. Upload an optional image reference to direct the scene.
                     </p>
                   </div>
@@ -1362,15 +1276,15 @@ export default function VideoStudioClient() {
                       return (
                         <motion.div key={msg.id} initial={reduce ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex justify-end">
                           <div
-                            className="max-w-[min(100%,580px)] rounded-2xl rounded-br-md border border-cyan-400/25 bg-gradient-to-br from-cyan-500/15 to-card/40 px-4 py-3.5 shadow-[0_16px_48px_-28px_rgba(0,212,255,0.45)] ring-1 ring-border/20 backdrop-blur-md"
+                            className="max-w-[min(100%,580px)] rounded-xl rounded-br-sm border border-zinc-700 bg-zinc-800 px-4 py-3 shadow-sm"
                           >
-                            <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-[var(--text-primary)]">{msg.content}</p>
+                            <p className="whitespace-pre-wrap text-[14px] leading-relaxed text-zinc-100">{msg.content}</p>
                             <div className="mt-2 flex flex-wrap items-center gap-2">
-                              <p className="text-[11px] font-medium text-[var(--text-subtle)]">{msg.meta}</p>
+                              <p className="text-[11px] font-medium text-zinc-400">{msg.meta}</p>
                               <button
                                 type="button"
                                 onClick={() => void copyText(msg.content, "Prompt copied")}
-                                className="inline-flex items-center gap-1 rounded-lg border border-border bg-card/50 px-2 py-1 text-[11px] font-semibold text-[var(--text-primary)] transition-all hover:bg-card/90 active:scale-[0.98]"
+                                className="inline-flex items-center gap-1 rounded border border-zinc-700 bg-zinc-900 px-2 py-0.5 text-[11px] font-semibold text-zinc-200 transition-all hover:bg-zinc-700 active:scale-[0.98]"
                               >
                                 <Copy className="h-3 w-3" />
                                 Copy
@@ -1387,29 +1301,29 @@ export default function VideoStudioClient() {
                           className={
                             msg.urls.length > 0 && !msg.loading
                               ? "w-full max-w-[min(100%,760px)]"
-                              : "max-w-[min(100%,760px)] rounded-2xl rounded-bl-md border border-border bg-card/45 px-4 py-3.5 shadow-xl ring-1 ring-border/20 backdrop-blur-md"
+                              : "max-w-[min(100%,760px)] rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-3.5 shadow-sm"
                           }
                         >
                           {msg.loading ? (
                             <div className="space-y-3">
-                              <p className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
-                                <Loader2 className="h-4 w-4 shrink-0 animate-spin text-[var(--primary-cyan)]" />
+                              <p className="flex items-center gap-2 text-sm text-zinc-300">
+                                <Loader2 className="h-4 w-4 shrink-0 animate-spin text-zinc-400" />
                                 <span className="font-medium">{msg.phase || "Rendering video clip…"}</span>
                               </p>
-                              <div className="relative h-1.5 w-full max-w-sm overflow-hidden rounded-full bg-white/10">
+                              <div className="relative h-1.5 w-full max-w-sm overflow-hidden rounded-full bg-zinc-800">
                                 <motion.div
-                                  className="absolute inset-y-0 left-0 w-2/5 rounded-full bg-gradient-to-r from-[#00D4FF] via-[#7B61FF] to-[#00D4FF]"
+                                  className="absolute inset-y-0 left-0 w-2/5 rounded-full bg-zinc-100"
                                   animate={reduce ? undefined : { x: ["-100%", "280%"] }}
                                   transition={{ duration: 1.35, repeat: Infinity, ease: "linear" }}
                                 />
                               </div>
                             </div>
                           ) : null}
-                          {msg.error ? <p className="text-sm text-rose-100">{msg.error}</p> : null}
+                          {msg.error ? <p className="text-sm text-rose-300">{msg.error}</p> : null}
                           {msg.urls.length > 0 ? (
                             <div className="space-y-4">
                               {msg.urls.map((src, vidx) => (
-                                <div key={`${msg.id}-${vidx}`} className="group relative overflow-hidden rounded-2xl border border-white/10 bg-black shadow-2xl">
+                                <div key={`${msg.id}-${vidx}`} className="group relative overflow-hidden rounded-xl border border-zinc-800 bg-black shadow-md">
                                   <video
                                     src={src}
                                     controls
@@ -1417,10 +1331,10 @@ export default function VideoStudioClient() {
                                     loop
                                     muted
                                     playsInline
-                                    className="w-full h-auto block rounded-2xl max-h-[560px] object-contain"
+                                    className="w-full h-auto block rounded-xl max-h-[560px] object-contain"
                                   />
-                                  <div className="flex items-center justify-between gap-2 p-3 bg-card/80 backdrop-blur-md border-t border-white/10">
-                                    <span className="text-xs font-semibold text-[var(--text-muted)]">RUHGEN Video Clip</span>
+                                  <div className="flex items-center justify-between gap-2 p-3 bg-zinc-900/90 border-t border-zinc-800">
+                                    <span className="text-xs font-semibold text-zinc-400">RUHGEN Video Clip</span>
                                     <div className="flex items-center gap-2">
                                       <button
                                         type="button"
@@ -1434,12 +1348,12 @@ export default function VideoStudioClient() {
                                             })
                                             .finally(() => setDownloadingKey(null));
                                         }}
-                                        className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-bold text-white transition-all hover:bg-white/15 cursor-pointer"
+                                        className="inline-flex items-center gap-1.5 rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs font-bold text-zinc-200 transition-all hover:bg-zinc-700 cursor-pointer"
                                       >
                                         {downloadingKey === `${msg.id}-${vidx}` ? (
                                           <Loader2 className="h-3.5 w-3.5 animate-spin" />
                                         ) : (
-                                          <Download className="h-3.5 w-3.5" />
+                                          <Download className="h-3.5 w-3.5 text-zinc-300" />
                                         )}
                                         Save Video
                                       </button>
@@ -1450,18 +1364,18 @@ export default function VideoStudioClient() {
                                           setShareModalData({ mediaUrl: src, prompt: userPrompt, kind: "video" });
                                           setShareModalOpen(true);
                                         }}
-                                        className="inline-flex items-center gap-1.5 rounded-lg border border-cyan-400/40 bg-cyan-600/80 px-3 py-1.5 text-xs font-bold text-white transition-all hover:bg-cyan-600 cursor-pointer shadow-md"
+                                        className="inline-flex items-center gap-1.5 rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs font-bold text-zinc-200 transition-all hover:bg-zinc-700 cursor-pointer"
                                         title="Share to Community"
                                       >
-                                        <Share2 className="h-3.5 w-3.5 text-cyan-200" />
+                                        <Share2 className="h-3.5 w-3.5 text-zinc-300" />
                                         Post
                                       </button>
                                       <button
                                         type="button"
                                         onClick={() => void copyText(src, "Video link copied")}
-                                        className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-bold text-white transition-all hover:bg-white/15 cursor-pointer"
+                                        className="inline-flex items-center gap-1.5 rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs font-bold text-zinc-200 transition-all hover:bg-zinc-700 cursor-pointer"
                                       >
-                                        <Copy className="h-3.5 w-3.5" />
+                                        <Copy className="h-3.5 w-3.5 text-zinc-300" />
                                         Copy Link
                                       </button>
                                     </div>
@@ -1480,13 +1394,7 @@ export default function VideoStudioClient() {
             </div>
 
             <div
-              className="shrink-0 border-t px-3 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] backdrop-blur-xl lg:hidden"
-              style={{
-                borderColor: "color-mix(in srgb, white 8%, transparent)",
-                background:
-                  "linear-gradient(180deg, color-mix(in srgb, var(--rich-black) 60%, transparent) 0%, color-mix(in srgb, var(--deep-black) 92%, transparent) 100%)",
-                boxShadow: "0 -20px 40px -28px rgba(0,0,0,0.75)",
-              }}
+              className="shrink-0 border-t border-zinc-800 bg-[#121215] px-3 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] backdrop-blur-xl lg:hidden"
             >
               <div className="flex items-end gap-2">
                 <textarea
@@ -1501,16 +1409,16 @@ export default function VideoStudioClient() {
                   disabled={busy}
                   placeholder={isImg2Video ? "Describe action for reference photo…" : "Describe video motion scene…"}
                   rows={1}
-                  className="studio-scrollbar studio-prompt-focus-video min-h-[44px] max-h-28 flex-1 resize-none rounded-xl border border-white/10 bg-black/45 px-3 py-2.5 text-sm leading-relaxed text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)]"
+                  className="studio-scrollbar min-h-[44px] max-h-28 flex-1 resize-none rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2.5 text-sm leading-relaxed text-zinc-100 outline-none placeholder:text-zinc-500"
                 />
-                <StudioGlowGenerate
-                  tone="cyan"
-                  size="icon"
+                <button
+                  type="button"
                   disabled={busy || prompt.trim().length < 2 || Boolean(user?.generationDisabled) || (user?.availableCredits ?? user?.credits ?? 0) < currentCost}
                   onClick={() => void run()}
+                  className="flex h-11 w-11 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-100 text-zinc-950 shadow-sm transition-all hover:bg-white active:scale-95 disabled:opacity-40 cursor-pointer shrink-0"
                 >
-                  {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowUp className="h-5 w-5" strokeWidth={2.25} />}
-                </StudioGlowGenerate>
+                  {busy ? <Loader2 className="h-5 w-5 animate-spin text-zinc-950" /> : <ArrowUp className="h-5 w-5 text-zinc-950" strokeWidth={2.25} />}
+                </button>
               </div>
             </div>
           </div>
@@ -1518,20 +1426,17 @@ export default function VideoStudioClient() {
           {showCanvasDock ? (
             <div
               ref={promptDockRef}
-              className="shrink-0 rounded-2xl border border-white/10 px-3 pt-3 shadow-[0_-12px_48px_-28px_rgba(0,0,0,0.55)] backdrop-blur-2xl"
+              className="shrink-0 rounded-xl border border-zinc-800 bg-[#121215] p-3 shadow-md"
               style={{
-                background:
-                  "linear-gradient(165deg, color-mix(in srgb, white 5%, transparent) 0%, color-mix(in srgb, var(--rich-black) 92%, transparent) 100%)",
-                boxShadow: "inset 0 1px 0 color-mix(in srgb, white 6%, transparent), 0 -20px 56px -24px rgba(0,0,0,0.5)",
                 paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))",
               }}
             >
-              <div className="mb-2 flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.02] px-2 py-1 text-[11px]">
-                <span className="font-semibold text-white">Cost: <strong className={((user?.availableCredits ?? user?.credits ?? 0) < currentCost) ? "text-rose-400 font-bold" : "text-[#00D4FF] font-bold"}>{currentCost} credits ({duration}s clip)</strong></span>
-                <span className="text-[var(--text-subtle)]">Available: {user?.availableCredits ?? user?.credits ?? 0}</span>
+              <div className="mb-2 flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-900/60 px-2.5 py-1 text-[11px]">
+                <span className="font-semibold text-zinc-200">Cost: <strong className={((user?.availableCredits ?? user?.credits ?? 0) < currentCost) ? "text-rose-400 font-bold" : "text-zinc-100 font-bold font-mono"}>{currentCost} credits ({duration}s clip)</strong></span>
+                <span className="text-zinc-400 font-mono">Available: {user?.availableCredits ?? user?.credits ?? 0}</span>
               </div>
 
-              <p className="mb-1.5 text-[9px] font-bold uppercase tracking-[0.14em]" style={{ color: "var(--text-subtle)" }}>
+              <p className="mb-1 text-[9px] font-bold uppercase tracking-[0.14em] text-zinc-400">
                 Video Motion Prompt
               </p>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
@@ -1547,36 +1452,36 @@ export default function VideoStudioClient() {
                   disabled={busy}
                   placeholder="Describe your video motion scene…"
                   rows={2}
-                  className="studio-prompt-focus-video min-h-[44px] w-full flex-1 resize-none rounded-xl border border-white/10 bg-black/35 px-3 py-2.5 text-sm leading-relaxed text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)]"
+                  className="min-h-[44px] w-full flex-1 resize-none rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2.5 text-sm leading-relaxed text-zinc-100 outline-none placeholder:text-zinc-500 focus:border-zinc-700"
                 />
-                <StudioGlowGenerate
-                  tone="cyan"
-                  size="lg"
+                <button
+                  type="button"
                   disabled={busy || prompt.trim().length < 2 || Boolean(user?.generationDisabled) || (user?.availableCredits ?? user?.credits ?? 0) < currentCost}
                   onClick={() => void run()}
+                  className="flex h-11 items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-zinc-100 px-4 text-xs font-bold text-zinc-950 shadow-sm transition-all hover:bg-white active:scale-95 disabled:opacity-40 cursor-pointer sm:shrink-0"
                 >
                   {busy ? (
                     <>
-                      <Loader2 className="h-4 w-4 animate-spin text-cyan-200" />
-                      <span className="font-semibold tracking-wide">Rendering…</span>
+                      <Loader2 className="h-4 w-4 animate-spin text-zinc-950" />
+                      <span>Rendering…</span>
                     </>
                   ) : user?.generationDisabled ? (
                     <>
-                      <X className="h-4 w-4 text-rose-300" strokeWidth={2} />
-                      <span className="font-semibold tracking-wide">Access Disabled</span>
+                      <X className="h-4 w-4 text-rose-600" strokeWidth={2} />
+                      <span>Access Disabled</span>
                     </>
                   ) : (user?.availableCredits ?? user?.credits ?? 0) < currentCost ? (
                     <>
-                      <X className="h-4 w-4 text-rose-300" strokeWidth={2} />
-                      <span className="font-semibold tracking-wide">Insufficient</span>
+                      <X className="h-4 w-4 text-rose-600" strokeWidth={2} />
+                      <span>Insufficient</span>
                     </>
                   ) : (
                     <>
-                      <Clapperboard className="h-4 w-4 text-white" strokeWidth={2.2} />
-                      <span className="font-medium tracking-wide text-white">Generate Video</span>
+                      <Clapperboard className="h-4 w-4 text-zinc-950" strokeWidth={2} />
+                      <span>Generate Video</span>
                     </>
                   )}
-                </StudioGlowGenerate>
+                </button>
               </div>
             </div>
           ) : null}

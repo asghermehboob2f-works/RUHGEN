@@ -172,35 +172,8 @@ export default function DashboardPage() {
         initial={reduce ? false : { opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="relative overflow-hidden rounded-xl border p-3.5 sm:p-4 lg:p-5"
-        style={{
-          borderColor: "rgba(255, 255, 255, 0.08)",
-          background:
-            "linear-gradient(135deg, color-mix(in srgb, var(--soft-black) 94%, transparent) 0%, color-mix(in srgb, var(--deep-black) 98%, transparent) 100%)",
-          boxShadow: "0 10px 30px -15px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06)",
-        }}
+        className="relative overflow-hidden rounded-xl border border-zinc-800 bg-[#121215] p-4 sm:p-5 lg:p-6 shadow-sm"
       >
-        {/* Subtle grid pattern background */}
-        <div
-          className="absolute inset-0 opacity-[0.05] mix-blend-overlay pointer-events-none"
-          style={{
-            backgroundImage: "radial-gradient(var(--primary-purple) 1px, transparent 0)",
-            backgroundSize: "20px 20px",
-          }}
-        />
-
-        {/* Subtle ambient light glows */}
-        <div
-          className="pointer-events-none absolute -right-20 -top-20 h-36 w-36 rounded-full opacity-20 blur-2xl"
-          style={{ background: "var(--primary-purple)" }}
-          aria-hidden
-        />
-        <div
-          className="pointer-events-none absolute -bottom-16 left-1/4 h-32 w-32 rounded-full opacity-15 blur-2xl"
-          style={{ background: "var(--primary-cyan)" }}
-          aria-hidden
-        />
-
         <div className="relative grid gap-4 lg:grid-cols-12 lg:items-center">
           {/* Left Column: Compact Greeting & Status */}
           <div className="lg:col-span-6 flex flex-col justify-center">
@@ -209,21 +182,21 @@ export default function DashboardPage() {
                 type="button"
                 onClick={() => fetchDashboardMetrics(true)}
                 title="Refresh real-time workspace stats"
-                className="group inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-[9px] font-medium text-[var(--text-muted)] transition-all hover:bg-white/10 hover:border-white/20 hover:text-white active:scale-95"
+                className="group inline-flex items-center gap-1.5 rounded-full border border-zinc-700 bg-zinc-800/80 px-2.5 py-0.5 text-[10px] font-medium text-zinc-300 transition-all hover:bg-zinc-700 hover:text-white active:scale-95"
               >
-                <RefreshCw className={`h-2.5 w-2.5 transition-transform ${isRefreshing ? "animate-spin text-white" : "group-hover:rotate-180 duration-500"}`} />
+                <RefreshCw className={`h-2.5 w-2.5 transition-transform ${isRefreshing ? "animate-spin text-zinc-100" : "group-hover:rotate-180 duration-500"}`} />
                 <span>Live sync</span>
               </button>
             </div>
 
-            <h1 className="font-display mt-2 text-xl font-extrabold tracking-tight sm:text-2xl lg:text-3xl text-[var(--text-primary)]">
+            <h1 className="font-display mt-2 text-xl font-extrabold tracking-tight text-zinc-100 sm:text-2xl lg:text-3xl">
               {greeting},{" "}
-              <span className="bg-gradient-to-r from-[#7B61FF] via-[#00D4FF] to-[#FF2E9A] bg-clip-text text-transparent">
+              <span className="text-zinc-100">
                 {firstName}
               </span>
             </h1>
 
-            <p className="mt-1 max-w-lg text-xs leading-relaxed text-[var(--text-muted)]">
+            <p className="mt-1 max-w-lg text-xs leading-relaxed text-zinc-400">
               Your workspace is synchronized. Monitor credits, track active job queues, and access pipelines.
             </p>
           </div>
@@ -240,61 +213,41 @@ export default function DashboardPage() {
               >
                 <Link
                   href={stat.href}
-                  className="group relative block overflow-hidden rounded-lg border p-2.5 sm:p-3 transition-all duration-300"
-                  style={{
-                    borderColor: stat.isLiveProcessing
-                      ? "rgba(255, 171, 0, 0.4)"
-                      : "rgba(255, 255, 255, 0.07)",
-                    background: stat.isLiveProcessing
-                      ? "linear-gradient(135deg, rgba(255,171,0,0.1) 0%, color-mix(in srgb, var(--deep-black) 95%, transparent) 100%)"
-                      : "linear-gradient(135deg, color-mix(in srgb, var(--deep-black) 95%, transparent) 0%, color-mix(in srgb, var(--soft-black) 70%, transparent) 100%)",
-                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03)",
-                  }}
+                  className={`group relative block overflow-hidden rounded-lg border p-3 transition-all duration-200 ${
+                    stat.isLiveProcessing
+                      ? "border-amber-500/40 bg-amber-950/20"
+                      : "border-zinc-800 bg-zinc-900/60 hover:border-zinc-700 hover:bg-zinc-800/80"
+                  }`}
                 >
-                  {/* Subtle border glow on hover */}
-                  <div
-                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-400 pointer-events-none rounded-lg"
-                    style={{
-                      border: `1px solid color-mix(in srgb, ${stat.color} 30%, transparent)`,
-                    }}
-                  />
-
                   <div className="flex items-center justify-between gap-1.5">
-                    <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)] group-hover:text-[var(--text-muted)] transition-colors">
+                    <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-zinc-400 group-hover:text-zinc-300 transition-colors">
                       {stat.label}
                     </p>
                     <div
-                      className="flex h-5.5 w-5.5 items-center justify-center rounded-md border border-white/5 bg-white/[0.02] transition-all duration-300 group-hover:scale-105 group-hover:bg-white/[0.06]"
+                      className="flex h-6 w-6 items-center justify-center rounded border border-zinc-800 bg-zinc-900 text-zinc-300 transition-all duration-200 group-hover:border-zinc-700 group-hover:text-zinc-100"
                     >
                       <stat.icon
-                        className={`h-3 w-3 transition-transform duration-300 ${stat.isLiveProcessing ? "animate-pulse" : ""
-                          }`}
-                        style={{ color: stat.color }}
+                        className={`h-3.5 w-3.5 ${stat.isLiveProcessing ? "animate-pulse text-amber-400" : "text-zinc-300"}`}
                         strokeWidth={2}
                       />
                     </div>
                   </div>
 
                   <div className="mt-1 flex items-baseline justify-between gap-1.5">
-                    <p className="font-display text-base sm:text-lg font-extrabold tracking-tight tabular-nums text-[var(--text-primary)] group-hover:text-white transition-colors">
+                    <p className="font-display text-base sm:text-lg font-extrabold tracking-tight tabular-nums text-zinc-100 transition-colors">
                       {stat.value}
                     </p>
 
                     {stat.badge && (
                       <span
-                        className="rounded-full px-1.5 py-0.2 text-[8px] font-extrabold tracking-wider uppercase"
-                        style={{
-                          background: `color-mix(in srgb, ${stat.badgeColor} 15%, transparent)`,
-                          color: stat.badgeColor,
-                          border: `1px solid color-mix(in srgb, ${stat.badgeColor} 25%, transparent)`,
-                        }}
+                        className="rounded px-1.5 py-0.2 text-[8px] font-extrabold tracking-wider uppercase border border-zinc-700 bg-zinc-800 text-zinc-300"
                       >
                         {stat.badge}
                       </span>
                     )}
                   </div>
 
-                  <p className="text-[9px] text-[var(--text-muted)] mt-0.5 truncate">
+                  <p className="text-[9px] text-zinc-400 mt-0.5 truncate">
                     {stat.hint}
                   </p>
                 </Link>
@@ -306,81 +259,47 @@ export default function DashboardPage() {
 
       {/* Create Section */}
       <section aria-labelledby="dash-create-heading">
-        <div className="mb-4 flex items-end justify-between gap-4">
+        <div className="mb-3 flex items-end justify-between gap-4">
           <div>
-            <h2 id="dash-create-heading" className="font-display text-lg font-bold sm:text-xl text-[var(--text-primary)]">
+            <h2 id="dash-create-heading" className="font-display text-lg font-bold text-zinc-100 sm:text-xl">
               Create
             </h2>
-            <p className="mt-1 text-xs sm:text-sm text-[var(--text-muted)]">
+            <p className="mt-0.5 text-xs text-zinc-400">
               Choose a pipeline — each opens your dedicated studio.
             </p>
           </div>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2">
           {generateTiles.map((t, i) => (
             <motion.div
               key={t.title}
               initial={reduce ? false : { opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: reduce ? 0 : 0.15 + i * 0.05 }}
-              whileHover={{ y: -4 }}
+              whileHover={{ y: -3 }}
             >
               <Link
                 href={t.href}
-                className="group relative flex min-h-[170px] flex-col overflow-hidden rounded-2xl border p-5.5 transition-all duration-500 sm:min-h-[190px] sm:p-6.5"
-                style={{
-                  borderColor: "rgba(255, 255, 255, 0.08)",
-                  background: "linear-gradient(180deg, color-mix(in srgb, var(--soft-black) 85%, transparent) 0%, color-mix(in srgb, var(--deep-black) 98%, transparent) 100%)",
-                  boxShadow: "0 16px 36px -20px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05)",
-                }}
+                className="group relative flex min-h-[160px] flex-col overflow-hidden rounded-xl border border-zinc-800 bg-[#121215] p-5 transition-all duration-300 hover:border-zinc-700 hover:bg-zinc-900/60 shadow-sm"
               >
-                {/* Visual Glow Layer */}
-                <div
-                  className="pointer-events-none absolute inset-0 opacity-[0.08] transition-all duration-700 ease-out group-hover:opacity-[0.18] group-hover:scale-105"
-                  style={{ background: t.gradient }}
-                  aria-hidden
-                />
-
-                {/* Cyber-mesh grid inside card */}
-                <div
-                  className="absolute inset-0 opacity-[0.02] group-hover:opacity-[0.04] transition-opacity duration-500 pointer-events-none"
-                  style={{
-                    backgroundImage: "radial-gradient(white 1px, transparent 0)",
-                    backgroundSize: "16px 16px",
-                  }}
-                />
-
-                {/* Border glow on hover */}
-                <div
-                  className="absolute inset-0 border border-transparent group-hover:border-white/15 transition-all duration-500 rounded-2xl pointer-events-none"
-                  style={{
-                    boxShadow: "inset 0 0 15px rgba(255,255,255,0.02)",
-                  }}
-                />
-
                 <span
-                  className="relative flex h-11 w-11 items-center justify-center rounded-xl border backdrop-blur-md transition-all duration-300 group-hover:scale-105"
-                  style={{
-                    borderColor: "rgba(255,255,255,0.08)",
-                    background: "rgba(255,255,255,0.03)",
-                    boxShadow: "inset 0 1px 1px rgba(255,255,255,0.05)",
-                  }}
+                  className="flex h-10 w-10 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-900 text-zinc-300 transition-all duration-200 group-hover:border-zinc-700 group-hover:bg-zinc-800 group-hover:text-zinc-100"
                 >
-                  <t.icon className="h-4.5 w-4.5 text-[var(--text-muted)] group-hover:text-white transition-colors duration-300" strokeWidth={1.75} />
+                  <t.icon className="h-4.5 w-4.5" strokeWidth={1.75} />
                 </span>
 
-                <div className="relative mt-4">
-                  <p className="font-display text-base font-bold sm:text-lg text-[var(--text-primary)] group-hover:text-white transition-colors duration-300">
+                <div className="relative mt-3">
+                  <p className="font-display text-base font-bold text-zinc-100 transition-colors duration-200">
                     {t.title}
                   </p>
-                  <p className="mt-1 max-w-sm text-xs leading-relaxed text-[var(--text-muted)] group-hover:text-[var(--text-primary)]/90 transition-colors duration-300">
+                  <p className="mt-1 max-w-sm text-xs leading-relaxed text-zinc-400 transition-colors duration-200">
                     {t.desc}
                   </p>
                 </div>
 
-                <span className="relative mt-auto inline-flex items-center gap-1.5 pt-4 text-[10px] font-bold uppercase tracking-wider text-[var(--primary-cyan)] group-hover:text-white transition-colors duration-300">
+                <span className="relative mt-auto inline-flex items-center gap-1.5 pt-3 text-[10px] font-bold uppercase tracking-wider text-zinc-300 group-hover:text-white transition-colors duration-200">
                   Open studio
-                  <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" strokeWidth={2.5} />
+                  <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-1" strokeWidth={2.5} />
                 </span>
               </Link>
             </motion.div>
@@ -390,12 +309,12 @@ export default function DashboardPage() {
 
       {/* Shortcuts Section */}
       <section aria-labelledby="dash-shortcuts-heading">
-        <div className="mb-4 flex items-end justify-between gap-4">
+        <div className="mb-3 flex items-end justify-between gap-4">
           <div>
-            <h2 id="dash-shortcuts-heading" className="font-display text-lg font-bold sm:text-xl text-[var(--text-primary)]">
+            <h2 id="dash-shortcuts-heading" className="font-display text-lg font-bold text-zinc-100 sm:text-xl">
               Shortcuts
             </h2>
-            <p className="mt-1 text-xs sm:text-sm text-[var(--text-muted)]">
+            <p className="mt-0.5 text-xs text-zinc-400">
               Billing, preferences, and help in one tap.
             </p>
           </div>
@@ -407,39 +326,26 @@ export default function DashboardPage() {
               initial={reduce ? false : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: reduce ? 0 : 0.2 + i * 0.04 }}
-              whileHover={{ y: -3 }}
+              whileHover={{ y: -2 }}
             >
               <Link
                 href={q.href}
-                className="group relative overflow-hidden flex items-center gap-4 rounded-xl border p-4 transition-all duration-350"
-                style={{
-                  borderColor: "rgba(255, 255, 255, 0.07)",
-                  background: "linear-gradient(135deg, color-mix(in srgb, var(--soft-black) 92%, transparent) 0%, color-mix(in srgb, var(--deep-black) 98%, transparent) 100%)",
-                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03)",
-                  color: "var(--text-primary)",
-                }}
+                className="group relative overflow-hidden flex items-center gap-3.5 rounded-xl border border-zinc-800 bg-[#121215] p-3.5 transition-all duration-200 hover:border-zinc-700 hover:bg-zinc-900/60"
               >
-                {/* Subtle light pulse background */}
-                <div className="absolute inset-0 bg-white/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl" />
-
                 <div
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border transition-all duration-300 group-hover:scale-105"
-                  style={{
-                    borderColor: "rgba(255, 255, 255, 0.08)",
-                    background: "rgba(255, 255, 255, 0.03)",
-                  }}
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-900 text-zinc-400 transition-all duration-200 group-hover:border-zinc-700 group-hover:bg-zinc-800 group-hover:text-zinc-100"
                 >
-                  <q.icon className="h-4.5 w-4.5 text-[var(--primary-cyan)] group-hover:text-white transition-colors duration-300" strokeWidth={1.75} />
+                  <q.icon className="h-4 w-4" strokeWidth={1.75} />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <span className="block text-sm font-bold tracking-tight text-[var(--text-primary)] group-hover:text-white transition-colors">
+                  <span className="block text-sm font-bold tracking-tight text-zinc-100 group-hover:text-white transition-colors">
                     {q.label}
                   </span>
-                  <span className="mt-0.5 block text-xs text-[var(--text-muted)] group-hover:text-[var(--text-subtle)] transition-colors">
+                  <span className="mt-0.5 block text-xs text-zinc-400 transition-colors">
                     {q.hint}
                   </span>
                 </div>
-                <ArrowRight className="h-4 w-4 shrink-0 text-[var(--text-subtle)] opacity-0 -translate-x-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0" />
+                <ArrowRight className="h-4 w-4 shrink-0 text-zinc-500 opacity-0 -translate-x-2 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0" />
               </Link>
             </motion.div>
           ))}

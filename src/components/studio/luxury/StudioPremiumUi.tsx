@@ -121,13 +121,11 @@ export function StudioGlowGenerate({
 
   const bgStyle =
     tone === "purple"
-      ? "linear-gradient(135deg, #6366F1 0%, #4F46E5 50%, #3730A3 100%)"
-      : "linear-gradient(135deg, #0EA5E9 0%, #0284C7 50%, #075985 100%)";
+      ? "linear-gradient(135deg, #4F46E5 0%, #4338CA 100%)"
+      : "linear-gradient(135deg, #0284C7 0%, #0369A1 100%)";
 
   const glowShadow =
-    tone === "purple"
-      ? "0 0 28px rgba(99, 102, 241, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.4)"
-      : "0 0 28px rgba(14, 165, 233, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.4)";
+    "0 2px 10px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25)";
 
   return (
     <motion.button

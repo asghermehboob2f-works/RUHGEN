@@ -900,37 +900,30 @@ html.light .luxury-glass-panel {
 #mobile-studio-controls::-webkit-scrollbar-thumb,
 #mobile-studio-canvas::-webkit-scrollbar-thumb,
 .studio-scrollbar::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, rgba(123, 97, 255, 0.6) 0%, rgba(0, 212, 255, 0.6) 100%);
+  background: rgba(255, 255, 255, 0.18);
   border-radius: 9999px;
 }
 
 #mobile-studio-controls::-webkit-scrollbar-thumb:hover,
 #mobile-studio-canvas::-webkit-scrollbar-thumb:hover,
 .studio-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, rgba(123, 97, 255, 0.9) 0%, rgba(0, 212, 255, 0.9) 100%);
+  background: rgba(255, 255, 255, 0.32);
 }
 
-[data-studio-mode="image"] #mobile-studio-controls,
-[data-studio-mode="image"] #mobile-studio-canvas,
-[data-studio-mode="image"] .studio-scrollbar {
-  scrollbar-color: rgba(123, 97, 255, 0.6) transparent;
-}
-
-[data-studio-mode="video"] #mobile-studio-controls,
-[data-studio-mode="video"] #mobile-studio-canvas,
-[data-studio-mode="video"] .studio-scrollbar {
-  scrollbar-color: rgba(0, 212, 255, 0.6) transparent;
+.studio-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
 }
 
 /* Global Dark Glass Scrollbar override for textareas & inputs */
 textarea {
   scrollbar-width: thin;
-  scrollbar-color: rgba(99, 102, 241, 0.45) rgba(0, 0, 0, 0.25);
+  scrollbar-color: rgba(255, 255, 255, 0.18) rgba(0, 0, 0, 0.25);
 }
 
 textarea::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 textarea::-webkit-scrollbar-track {
@@ -940,13 +933,12 @@ textarea::-webkit-scrollbar-track {
 }
 
 textarea::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, rgba(99, 102, 241, 0.45) 0%, rgba(79, 70, 229, 0.55) 100%);
+  background: rgba(255, 255, 255, 0.18);
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 textarea::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, rgba(129, 140, 248, 0.75) 0%, rgba(99, 102, 241, 0.85) 100%);
+  background: rgba(255, 255, 255, 0.32);
 }
 
 /* Animated SVG Sine Wave for Latent Calibration Rig */
