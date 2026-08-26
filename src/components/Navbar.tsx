@@ -137,7 +137,7 @@ export function Navbar() {
               showWordmark
               priority
               href="/"
-              className="min-w-0 sm:[&_.font-display]:text-xl"
+              className="min-w-0"
             />
           </div>
 
@@ -430,7 +430,7 @@ export function Navbar() {
                   showWordmark
                   href="/"
                   onNavigate={closeMobile}
-                  className="min-w-0 shrink sm:[&_.font-display]:text-xl"
+                  className="min-w-0 shrink"
                 />
                 <button
                   type="button"

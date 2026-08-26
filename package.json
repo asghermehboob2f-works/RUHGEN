@@ -7,7 +7,8 @@
   ],
   "scripts": {
     "sync:media": "node scripts/sync-media.cjs",
-    "prebuild": "node scripts/sync-media.cjs",
+    "kill:dev": "node scripts/kill-dev-processes.cjs",
+    "prebuild": "node scripts/kill-dev-processes.cjs && node scripts/sync-media.cjs",
     "dev": "concurrently -n next,api -c cyan,magenta \"next dev\" \"npm run dev:backend\"",
     "dev:next": "next dev",
     "dev:webpack": "next dev --webpack",

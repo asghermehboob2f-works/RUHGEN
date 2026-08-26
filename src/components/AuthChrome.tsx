@@ -45,7 +45,7 @@ export function AuthChrome({ title, subtitle, children, footer }: Props) {
           transition={{ duration: 0.5 }}
           className="hidden lg:block"
         >
-          <p className="text-xs font-bold uppercase tracking-[0.25em]" style={{ color: "#00D4FF" }}>
+          <p className="font-quadrat text-xs font-normal uppercase tracking-[0.25em]" style={{ color: "#00D4FF" }}>
             RUHGEN
           </p>
           <h1 className="font-display mt-4 text-4xl font-extrabold leading-tight tracking-tight xl:text-5xl">

@@ -8,6 +8,7 @@ const backend = (
 ).trim().replace(/\/$/, "");
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins: ["ruhgen.in", "*.ruhgen.in"],
   cacheComponents: false,
   turbopack: {
     root: path.resolve(__dirname),

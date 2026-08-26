@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Inter+Tight:ital,wght@0,100..900;1,100..900&display=swap');
 @import "tailwindcss";
 
 @custom-variant light (&:where(.light, .light *));
@@ -85,7 +84,10 @@ html.light {
 @theme inline {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, monospace;
-  --font-display: "Inter Tight", var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-rink), var(--font-ticdar), var(--font-inter-tight), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-rink: var(--font-rink), var(--font-ticdar), var(--font-inter-tight), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-ticdar: var(--font-rink), var(--font-ticdar), var(--font-inter-tight), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-zegion: var(--font-zegion), var(--font-inter-tight), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-premium: var(--font-bricolage), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-orith: var(--font-orith), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-groote: var(--font-groote), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
@@ -95,6 +97,11 @@ html.light {
   --font-zendots: var(--font-zendots), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-elms-sans: var(--font-elms-sans), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-bungee-hairline: var(--font-bungee-hairline), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-quadrat: var(--font-quadrat-grotesk), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-hypnotic: var(--font-hypnotic), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-hypnotic-colr: var(--font-hypnotic-colr), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-hypnotic-outline: var(--font-hypnotic-outline), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-hypnotic-wb-outline: var(--font-hypnotic-wb-outline), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --color-brand-purple: #7b61ff;
   --color-brand-cyan: #00d4ff;
   --color-brand-pink: #ff2e9a;
@@ -183,7 +190,26 @@ html.light .nav-scroll-x {
 }
 
 .font-display {
-  font-family: var(--font-display);
+  font-family: var(--font-rink), var(--font-ticdar), var(--font-inter-tight), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+.font-rink {
+  font-family: var(--font-rink), var(--font-ticdar), var(--font-inter-tight), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+.font-ticdar {
+  font-family: var(--font-rink), var(--font-ticdar), var(--font-inter-tight), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Site-wide Headings Formatting — Standardized to Rink Font (Regular / Medium) */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-rink), var(--font-ticdar), var(--font-inter-tight), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.font-zegion {
+  font-family: var(--font-zegion), var(--font-inter-tight), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
 .font-orith {
@@ -218,6 +244,26 @@ html.light .nav-scroll-x {
 
 .font-bungee-hairline {
   font-family: var(--font-bungee-hairline);
+}
+
+.font-quadrat {
+  font-family: var(--font-quadrat-grotesk), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+.font-hypnotic {
+  font-family: var(--font-hypnotic), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+.font-hypnotic-colr {
+  font-family: var(--font-hypnotic-colr), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+.font-hypnotic-outline {
+  font-family: var(--font-hypnotic-outline), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+.font-hypnotic-wb-outline {
+  font-family: var(--font-hypnotic-wb-outline), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
 .mesh-section {

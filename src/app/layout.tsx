@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, Inter, JetBrains_Mono, Syne } from "next/font/google";
+import { Bricolage_Grotesque, Inter, Inter_Tight, JetBrains_Mono, Syne } from "next/font/google";
 import localFont from "next/font/local";
 import { BRAND_LOGO_SRC } from "@/lib/constants";
 import { AdminAuthProvider } from "@/components/AdminAuthProvider";
@@ -9,6 +9,12 @@ import "./globals.css";
 
 const inter = Inter({
   variable: "--font-inter",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const interTight = Inter_Tight({
+  variable: "--font-inter-tight",
   subsets: ["latin"],
   display: "swap",
 });
@@ -91,6 +97,90 @@ const signatie = localFont({
   variable: "--font-signatie",
   display: "swap",
 });
+
+const quadratGrotesk = localFont({
+  src: "../../public/fonts/Quadrat Grotesk W01 Regular.ttf",
+  variable: "--font-quadrat-grotesk",
+  display: "swap",
+});
+
+const vtksZkla = localFont({
+  src: "../../public/fonts/VTKS ZKLA.ttf",
+  variable: "--font-vtks-zkla",
+  display: "swap",
+});
+
+const kalogen = localFont({
+  src: "../../public/fonts/KalogenDEMO-Regular.ttf",
+  variable: "--font-kalogen",
+  display: "swap",
+});
+
+const zegion = localFont({
+  src: "../../public/fonts/ZegionDemo-Regular.ttf",
+  variable: "--font-zegion",
+  display: "swap",
+});
+
+const hypnotic = localFont({
+  src: "../../public/fonts/Hypnotic 01 Black White Outline-COLR.otf",
+  variable: "--font-hypnotic",
+  display: "swap",
+});
+
+const hypnoticColr = localFont({
+  src: "../../public/fonts/Hypnotic 01-COLR.otf",
+  variable: "--font-hypnotic-colr",
+  display: "swap",
+});
+
+const hypnoticOutline = localFont({
+  src: "../../public/fonts/Hypnotic 01 Outline.otf",
+  variable: "--font-hypnotic-outline",
+  display: "swap",
+});
+
+const hypnoticWbOutline = localFont({
+  src: "../../public/fonts/Hypnotic 01 White Black Outline-COLR.otf",
+  variable: "--font-hypnotic-wb-outline",
+  display: "swap",
+});
+
+const rink = localFont({
+  src: [
+    {
+      path: "../../public/fonts/Rink-Regular.otf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/Rink-Medium.otf",
+      weight: "500 700",
+      style: "normal",
+    },
+  ],
+  variable: "--font-rink",
+  display: "swap",
+});
+
+const ticdar = localFont({
+  src: [
+    {
+      path: "../../public/fonts/Ticdar-Regular.otf",
+      weight: "400 600",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/Ticdar-SemiBold.otf",
+      weight: "700 900",
+      style: "normal",
+    },
+  ],
+  variable: "--font-ticdar",
+  display: "swap",
+});
+
+
 
 export const viewport = {
   width: "device-width",
@@ -199,7 +289,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${jetbrains.variable} ${syne.variable} ${bricolage.variable} ${orithDisplay.variable} ${grooteRegular.variable} ${shootingStar.variable} ${audiowide.variable} ${calsans.variable} ${zendots.variable} ${elmsSans.variable} ${bungeeHairline.variable} ${ningetan.variable} ${signatie.variable} h-full scroll-smooth antialiased`}
+      className={`${inter.variable} ${interTight.variable} ${jetbrains.variable} ${syne.variable} ${bricolage.variable} ${orithDisplay.variable} ${grooteRegular.variable} ${shootingStar.variable} ${audiowide.variable} ${calsans.variable} ${zendots.variable} ${elmsSans.variable} ${bungeeHairline.variable} ${ningetan.variable} ${signatie.variable} ${quadratGrotesk.variable} ${vtksZkla.variable} ${ticdar.variable} ${rink.variable} ${kalogen.variable} ${zegion.variable} ${hypnotic.variable} ${hypnoticColr.variable} ${hypnoticOutline.variable} ${hypnoticWbOutline.variable} h-full scroll-smooth antialiased`}
       suppressHydrationWarning
     >
       <head>

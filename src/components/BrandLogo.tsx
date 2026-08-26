@@ -16,6 +16,13 @@ const heightPx: Record<Size, number> = {
   xl: 64,
 };
 
+const wordmarkSizeClasses: Record<Size, string> = {
+  sm: "text-xs sm:text-sm",
+  md: "text-base sm:text-lg md:text-[1.22rem]",
+  lg: "text-lg sm:text-xl md:text-2xl",
+  xl: "text-xl sm:text-2xl md:text-3xl",
+};
+
 type Props = {
   size?: Size;
   showWordmark?: boolean;
@@ -50,7 +57,7 @@ export function BrandLogo({
     <Link
       href={href}
       onClick={onLogoClick}
-      className={`group relative z-[1] inline-flex shrink-0 cursor-pointer items-center gap-2.5 sm:gap-3 ${className}`}
+      className={`group relative z-[1] inline-flex shrink-0 cursor-pointer items-center gap-2 sm:gap-2.5 ${className}`}
       aria-label="RUHGEN — Home"
     >
       <span
@@ -70,7 +77,7 @@ export function BrandLogo({
       </span>
       {showWordmark && (
         <span
-          className="font-display text-lg font-bold tracking-tight sm:text-xl"
+          className={`font-quadrat inline-flex items-center leading-none font-normal uppercase tracking-[0.04em] ${wordmarkSizeClasses[size]}`}
           style={{ color: "var(--text-primary)" }}
         >
           RUHGEN
@@ -79,3 +86,4 @@ export function BrandLogo({
     </Link>
   );
 }
+
