@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import HeroBackground from "@/components/HeroBackground";
 import Hero from "@/components/Hero";
 import { motion, useReducedMotion } from "framer-motion";
@@ -10,14 +11,23 @@ import { useAdminAuth } from "@/components/AdminAuthProvider";
 import type { SiteContent } from "@/backend/site-content/types";
 import { PUBLIC_DEFAULT_SITE_CONTENT } from "@/backend/site-content/default-content";
 import { UploadCloud, Plus } from "lucide-react";
+import { getSocialIcon } from "@/components/Footer";
 
-export default function DashboardContentPage() {
+function DashboardContentPageInner() {
   const { admin, ready, authHeaders } = useAdminAuth();
+  const searchParams = useSearchParams();
   const reduce = useReducedMotion();
   const [content, setContent] = useState<SiteContent | null>(null);
   const [status, setStatus] = useState<string>("");
   const [previewOpen, setPreviewOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"hero" | "homepage" | "visualizer" | "features" | "pricing" | "socials">("hero");
+
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam && ["hero", "homepage", "visualizer", "features", "pricing", "socials"].includes(tabParam)) {
+      setActiveTab(tabParam as any);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     let ok = true;
@@ -1199,8 +1209,10 @@ export default function DashboardContentPage() {
             <section className="rounded-2xl border p-5 sm:p-7" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
               <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                 <div>
-                  <h2 className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>Social Media Links</h2>
-                  <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>Manage official platform social links displayed dynamically across the footer and contact pages.</p>
+                  <h2 className="font-display text-xl font-bold" style={{ color: "var(--text-primary)" }}>Social Media Links Manager</h2>
+                  <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
+                    Add, edit, reorder, or toggle official platform links displayed dynamically in the site footer.
+                  </p>
                 </div>
                 <motion.button
                   type="button"
@@ -1219,133 +1231,211 @@ export default function DashboardContentPage() {
                     setContent(next);
                     setStatus("");
                   }}
-                  className="rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all hover:bg-white/5 active:scale-95 flex items-center gap-1.5"
+                  className="rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all hover:bg-white/5 active:scale-95 flex items-center gap-1.5 shadow-sm"
                   style={{
                     borderColor: "var(--border-subtle)",
                     background: "var(--deep-black)",
                     color: "var(--text-primary)",
                   }}
                 >
-                  <Plus className="h-4 w-4 text-[#00D4FF]" /> Add Social Link
+                  <Plus className="h-4 w-4 text-[#00D4FF]" /> Add Custom Link
                 </motion.button>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {content.socialLinks?.map((soc, idx) => {
-                  const isValidUrl = /^https?:\/\/.+/i.test(soc.url.trim());
-                  return (
-                    <div key={soc.id || idx} className="editor-card p-4 flex flex-col gap-3 rounded-xl border border-white/5 bg-[#0a0a0d]">
-                      <div className="flex items-center justify-between border-b border-white/[0.04] pb-2">
-                        <span className="text-xs font-mono text-[#00D4FF]">Link {idx + 1}</span>
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            disabled={idx === 0}
-                            onClick={() => {
-                              const next = structuredClone(content);
-                              if (!next.socialLinks) return;
-                              const tmp = next.socialLinks[idx - 1];
-                              next.socialLinks[idx - 1] = next.socialLinks[idx];
-                              next.socialLinks[idx] = tmp;
-                              setContent(next);
-                            }}
-                            className="text-xs text-neutral-400 hover:text-white disabled:opacity-30"
-                          >
-                            ↑
-                          </button>
-                          <button
-                            type="button"
-                            disabled={idx === (content.socialLinks?.length || 0) - 1}
-                            onClick={() => {
-                              const next = structuredClone(content);
-                              if (!next.socialLinks) return;
-                              const tmp = next.socialLinks[idx + 1];
-                              next.socialLinks[idx + 1] = next.socialLinks[idx];
-                              next.socialLinks[idx] = tmp;
-                              setContent(next);
-                            }}
-                            className="text-xs text-neutral-400 hover:text-white disabled:opacity-30"
-                          >
-                            ↓
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const next = structuredClone(content);
-                              if (!next.socialLinks) return;
-                              next.socialLinks.splice(idx, 1);
-                              setContent(next);
-                              setStatus("");
-                            }}
-                            className="text-xs font-semibold text-[#FF2E9A] hover:underline"
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="grid gap-2.5">
-                        <div>
-                          <label className="text-[9px] font-semibold uppercase tracking-wider text-white/40">Platform Name</label>
-                          <input
-                            value={soc.platform}
-                            onChange={(e) => {
-                              const next = structuredClone(content);
-                              if (!next.socialLinks) return;
-                              next.socialLinks[idx].platform = e.target.value;
-                              setContent(next);
-                            }}
-                            className="min-h-[38px] w-full rounded-lg border px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-[#7B61FF]/40"
-                            style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
-                            placeholder="e.g. Instagram, X / Twitter, Discord"
-                          />
-                        </div>
-
-                        <div>
-                          <div className="flex items-center justify-between">
-                            <label className="text-[9px] font-semibold uppercase tracking-wider text-white/40">URL Address</label>
-                            <span className={`text-[9px] font-semibold ${isValidUrl ? "text-[#5eead4]" : "text-[#fb7185]"}`}>
-                              {isValidUrl ? "Valid URL" : "Invalid (requires http:// or https://)"}
-                            </span>
-                          </div>
-                          <input
-                            value={soc.url}
-                            onChange={(e) => {
-                              const next = structuredClone(content);
-                              if (!next.socialLinks) return;
-                              next.socialLinks[idx].url = e.target.value;
-                              setContent(next);
-                            }}
-                            className={`min-h-[38px] w-full rounded-lg border px-3 py-1.5 text-xs outline-none focus:ring-2 ${
-                              isValidUrl ? "border-white/10 focus:ring-[#7B61FF]/40" : "border-rose-500/50 focus:ring-rose-500/40"
-                            }`}
-                            style={{ background: "var(--deep-black)", color: "var(--text-primary)" }}
-                            placeholder="https://instagram.com/yourhandle"
-                          />
-                        </div>
-
-                        <div className="flex items-center gap-2 pt-1">
-                          <input
-                            type="checkbox"
-                            id={`soc-enabled-${idx}`}
-                            checked={soc.enabled}
-                            onChange={(e) => {
-                              const next = structuredClone(content);
-                              if (!next.socialLinks) return;
-                              next.socialLinks[idx].enabled = e.target.checked;
-                              setContent(next);
-                            }}
-                            className="rounded border-neutral-700 bg-neutral-900 text-[#7B61FF]"
-                          />
-                          <label htmlFor={`soc-enabled-${idx}`} className="text-xs font-semibold select-none cursor-pointer" style={{ color: "var(--text-primary)" }}>
-                            Visible on Public Site
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+              {/* Quick Add Presets Bar */}
+              <div className="mb-6 rounded-xl border border-white/5 bg-[#0a0a0d] p-3.5">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-white/40 block mb-2">
+                  1-Click Quick Add Presets
+                </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  {[
+                    { name: "Instagram", defaultUrl: "https://instagram.com/ruhgen" },
+                    { name: "X / Twitter", defaultUrl: "https://x.com/ruhgen" },
+                    { name: "YouTube", defaultUrl: "https://youtube.com/@ruhgen" },
+                    { name: "Facebook", defaultUrl: "https://facebook.com/ruhgen" },
+                    { name: "LinkedIn", defaultUrl: "https://linkedin.com/company/ruhgen" },
+                    { name: "GitHub", defaultUrl: "https://github.com/ruhgen" },
+                    { name: "Discord", defaultUrl: "https://discord.gg/ruhgen" },
+                    { name: "Telegram", defaultUrl: "https://t.me/ruhgen" },
+                    { name: "TikTok", defaultUrl: "https://tiktok.com/@ruhgen" },
+                    { name: "WhatsApp", defaultUrl: "https://wa.me/" },
+                    { name: "Threads", defaultUrl: "https://threads.net/@ruhgen" },
+                  ].map((preset) => {
+                    const exists = content.socialLinks?.some(s => s.platform.toLowerCase().trim() === preset.name.toLowerCase().trim());
+                    return (
+                      <button
+                        key={preset.name}
+                        type="button"
+                        onClick={() => {
+                          const next = structuredClone(content);
+                          if (!next.socialLinks) next.socialLinks = [];
+                          next.socialLinks.push({
+                            id: `soc-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+                            platform: preset.name,
+                            url: preset.defaultUrl,
+                            enabled: true
+                          });
+                          setContent(next);
+                          setStatus("");
+                        }}
+                        className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-all ${
+                          exists 
+                            ? "border-white/10 bg-white/5 text-white/60 hover:text-white" 
+                            : "border-[#7B61FF]/30 bg-[#7B61FF]/10 text-[#00D4FF] hover:bg-[#7B61FF]/20"
+                        }`}
+                      >
+                        <svg className="h-3.5 w-3.5 fill-current">{getSocialIcon(preset.name)}</svg>
+                        + {preset.name}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
+
+              {/* Social Links List Grid */}
+              {(!content.socialLinks || content.socialLinks.length === 0) ? (
+                <div className="rounded-xl border border-dashed border-white/10 p-8 text-center">
+                  <p className="text-sm text-neutral-400">No social media links added yet. Click one of the quick presets above or "Add Custom Link" to get started.</p>
+                </div>
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {content.socialLinks.map((soc, idx) => {
+                    const isValidUrl = /^https?:\/\/.+/i.test(soc.url.trim());
+                    return (
+                      <div key={soc.id || idx} className={`editor-card p-4 flex flex-col gap-3 rounded-xl border transition-all ${soc.enabled ? "border-white/10 bg-[#0a0a0d]" : "border-white/5 bg-[#0a0a0d]/50 opacity-75"}`}>
+                        <div className="flex items-center justify-between border-b border-white/[0.04] pb-2.5">
+                          <div className="flex items-center gap-2">
+                            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/5 border border-white/10 text-[#00D4FF]">
+                              <svg className="h-4 w-4 fill-current">{getSocialIcon(soc.platform)}</svg>
+                            </div>
+                            <span className="text-xs font-mono text-white/60">#{idx + 1}</span>
+                          </div>
+                          
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              disabled={idx === 0}
+                              title="Move Up"
+                              onClick={() => {
+                                const next = structuredClone(content);
+                                if (!next.socialLinks) return;
+                                const tmp = next.socialLinks[idx - 1];
+                                next.socialLinks[idx - 1] = next.socialLinks[idx];
+                                next.socialLinks[idx] = tmp;
+                                setContent(next);
+                              }}
+                              className="h-6 w-6 rounded border border-white/10 flex items-center justify-center text-xs text-neutral-400 hover:text-white hover:bg-white/10 disabled:opacity-20"
+                            >
+                              ↑
+                            </button>
+                            <button
+                              type="button"
+                              disabled={idx === (content.socialLinks?.length || 0) - 1}
+                              title="Move Down"
+                              onClick={() => {
+                                const next = structuredClone(content);
+                                if (!next.socialLinks) return;
+                                const tmp = next.socialLinks[idx + 1];
+                                next.socialLinks[idx + 1] = next.socialLinks[idx];
+                                next.socialLinks[idx] = tmp;
+                                setContent(next);
+                              }}
+                              className="h-6 w-6 rounded border border-white/10 flex items-center justify-center text-xs text-neutral-400 hover:text-white hover:bg-white/10 disabled:opacity-20"
+                            >
+                              ↓
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const next = structuredClone(content);
+                                if (!next.socialLinks) return;
+                                next.socialLinks.splice(idx, 1);
+                                setContent(next);
+                                setStatus("");
+                              }}
+                              className="text-xs font-semibold text-[#FF2E9A] hover:underline ml-1"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="grid gap-3">
+                          <div>
+                            <label className="text-[9px] font-semibold uppercase tracking-wider text-white/40 block mb-1">Platform Name</label>
+                            <input
+                              value={soc.platform}
+                              onChange={(e) => {
+                                const next = structuredClone(content);
+                                if (!next.socialLinks) return;
+                                next.socialLinks[idx].platform = e.target.value;
+                                setContent(next);
+                              }}
+                              className="min-h-[38px] w-full rounded-lg border px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-[#7B61FF]/40"
+                              style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
+                              placeholder="e.g. Instagram, X / Twitter, Discord"
+                            />
+                          </div>
+
+                          <div>
+                            <div className="flex items-center justify-between mb-1">
+                              <label className="text-[9px] font-semibold uppercase tracking-wider text-white/40">URL Address</label>
+                              <span className={`text-[9px] font-semibold ${isValidUrl ? "text-[#5eead4]" : "text-[#fb7185]"}`}>
+                                {isValidUrl ? "Valid Link" : "Requires http:// or https://"}
+                              </span>
+                            </div>
+                            <input
+                              value={soc.url}
+                              onChange={(e) => {
+                                const next = structuredClone(content);
+                                if (!next.socialLinks) return;
+                                next.socialLinks[idx].url = e.target.value;
+                                setContent(next);
+                              }}
+                              className={`min-h-[38px] w-full rounded-lg border px-3 py-1.5 text-xs outline-none focus:ring-2 ${
+                                isValidUrl ? "border-white/10 focus:ring-[#7B61FF]/40" : "border-rose-500/50 focus:ring-rose-500/40"
+                              }`}
+                              style={{ background: "var(--deep-black)", color: "var(--text-primary)" }}
+                              placeholder="https://instagram.com/yourhandle"
+                            />
+                          </div>
+
+                          <div className="flex items-center justify-between pt-1 border-t border-white/[0.04]">
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                id={`soc-enabled-${idx}`}
+                                checked={soc.enabled}
+                                onChange={(e) => {
+                                  const next = structuredClone(content);
+                                  if (!next.socialLinks) return;
+                                  next.socialLinks[idx].enabled = e.target.checked;
+                                  setContent(next);
+                                }}
+                                className="rounded border-neutral-700 bg-neutral-900 text-[#7B61FF] cursor-pointer h-4 w-4"
+                              />
+                              <label htmlFor={`soc-enabled-${idx}`} className="text-xs font-medium select-none cursor-pointer" style={{ color: "var(--text-primary)" }}>
+                                {soc.enabled ? "Visible in Footer" : "Hidden"}
+                              </label>
+                            </div>
+
+                            {isValidUrl && (
+                              <a
+                                href={soc.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[10px] text-[#00D4FF] hover:underline"
+                              >
+                                Test Link ↗
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </section>
           )}
 
@@ -1365,6 +1455,21 @@ export default function DashboardContentPage() {
   </div>
 )}
     </div>
+  );
+}
+
+export default function DashboardContentPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3 text-xs font-semibold text-[#00D4FF]">
+          <span className="loading-orbit h-8 w-8 rounded-full border-2 border-t-transparent border-[#7B61FF]" />
+          Loading Content Studio…
+        </div>
+      }
+    >
+      <DashboardContentPageInner />
+    </Suspense>
   );
 }
 

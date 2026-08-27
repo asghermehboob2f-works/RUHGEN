@@ -465,7 +465,7 @@ export default function DashboardPage() {
                 Content Management Systems (CMS)
               </h2>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
               <Link
                 href="/admindashboard/content"
                 className="group flex flex-col justify-between rounded-2xl border p-5 transition-all hover:border-cyan-500/40 hover:bg-white/[0.02]"
@@ -484,6 +484,28 @@ export default function DashboardPage() {
                 </div>
                 <div className="mt-3 flex items-center justify-between text-xs font-semibold text-cyan-400">
                   <span>Edit Content</span>
+                  <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </Link>
+
+              <Link
+                href="/admindashboard/content?tab=socials"
+                className="group flex flex-col justify-between rounded-2xl border p-5 transition-all hover:border-[#00D4FF]/40 hover:bg-white/[0.02]"
+                style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}
+              >
+                <div className="space-y-2">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#00D4FF]/30 bg-[#00D4FF]/10 text-[#00D4FF]">
+                    <Zap className="h-4 w-4" />
+                  </div>
+                  <h3 className="font-display text-sm font-bold text-white group-hover:text-[#00D4FF] transition-colors">
+                    Footer Social Links
+                  </h3>
+                  <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
+                    Add, edit, reorder, or toggle official platform links in the site footer.
+                  </p>
+                </div>
+                <div className="mt-3 flex items-center justify-between text-xs font-semibold text-[#00D4FF]">
+                  <span>Manage Socials</span>
                   <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </Link>

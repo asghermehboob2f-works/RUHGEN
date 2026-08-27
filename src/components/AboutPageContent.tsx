@@ -920,68 +920,39 @@ export function AboutPageContent() {
         </header>
 
         {/* ====================================================================== */}
-        {/* PARAGRAPH INTRODUCTION STARTS (GRID ROW BELOW HERO) */}
+        {/* PARAGRAPH INTRODUCTION STARTS (CENTER ALIGNED PROLOGUE) */}
         {/* ====================================================================== */}
-        <section className="grid gap-12 lg:grid-cols-12 lg:gap-16 items-start w-full pt-16 border-t border-[var(--border-subtle)]">
-          {/* Left: Paragraph introduction starts */}
+        <section className="w-full pt-20 border-t border-[var(--border-subtle)] flex flex-col items-center text-center">
           <motion.div
-            className="lg:col-span-7 flex flex-col items-start text-left space-y-6 max-w-3xl"
-            initial={reduce ? false : { opacity: 0, y: 12 }}
+            className="flex flex-col items-center text-center space-y-8 max-w-6xl mx-auto px-4"
+            initial={reduce ? false : { opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <span className="text-[9px] font-mono tracking-[0.15em] text-[#00D4FF] uppercase block font-bold">
-              PROLOGUE // COHESIVE CALIBRATION
-            </span>
-            
-            <h2 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text-primary)] leading-tight">
-              A Category of One. <br />
-              Built strictly for visionary directors.
-            </h2>
-            
-            <div className="space-y-5 text-sm sm:text-base leading-relaxed text-[var(--text-muted)] font-light font-sans">
-              <p>
-                We started{" "}
-                <span
-                  style={{ fontFamily: "var(--font-signatie)", textTransform: "none" }}
-                  className="text-[#00D4FF] text-lg sm:text-xl font-normal leading-none px-0.5"
-                >
-                  RUHGEN
-                </span>{" "}
-                with a singular recognition: professional creative tools shouldn&apos;t feel like toys. The gap in visual creation workflows is massive. Not every model is good at everything, yet design teams are currently forced to operate within highly fragmented pipelines.
-              </p>
-              
-              <p className="text-[var(--text-muted)] text-xs sm:text-sm">
-                We engineered an elite, low-overhead orchestration framework to{" "}
-                <span style={{ fontFamily: "var(--font-calsans)" }} className="text-[#7B61FF] font-bold tracking-wide">
-                  unify the world&apos;s most powerful AI engines
-                </span>{" "}
-                under one fluid timeline. Aligned strictly to{" "}
-                <span style={{ fontFamily: "var(--font-ningetan)" }} className="text-[var(--text-primary)] italic text-base sm:text-lg">
-                  cinematic grading standards
-                </span>
-                , our ecosystem provides the{" "}
-                <span
-                  style={{ fontFamily: "var(--font-calsans)" }}
-                  className="text-[#FF2E9A] uppercase tracking-wider text-[10px] font-bold"
-                >
-                  prestige-grade guardrails
-                </span>{" "}
-                required by visual teams shipping premium, high-value brand deliverables.
-              </p>
-            </div>
-          </motion.div>
-
-          {/* Right: Custom Calibration Engine */}
-          <motion.div
-            className="lg:col-span-5 w-full"
-            initial={reduce ? false : { opacity: 0, scale: 0.98 }}
-            whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true, margin: "-60px" }}
             transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           >
-            <CalibrationEngine />
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] backdrop-blur-md px-4 py-1.5 text-[9px] font-mono tracking-[0.25em] text-[#00D4FF] uppercase font-bold shadow-[0_0_20px_rgba(0,212,255,0.1)]">
+              PROLOGUE // COHESIVE CALIBRATION
+            </div>
+
+            <h2
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-[var(--text-primary)] leading-[1.12] max-w-5xl"
+              style={{ fontFamily: "var(--font-calsans)" }}
+            >
+              A Category of One. Built strictly for visionary directors.
+            </h2>
+
+            <div
+              className="space-y-6 text-base sm:text-lg md:text-xl leading-relaxed text-neutral-300 font-normal max-w-6xl mx-auto tracking-wide"
+              style={{ fontFamily: "var(--font-rink)" }}
+            >
+              <p className="max-w-5xl mx-auto leading-relaxed">
+                We started <span className="text-[#00D4FF] font-medium">RUHGEN</span> with a singular recognition: professional creative tools shouldn&apos;t feel like toys. The gap in visual creation workflows is massive. Not every model is good at everything, yet design teams are currently forced to operate within highly fragmented pipelines.
+              </p>
+
+              <p className="max-w-5xl mx-auto text-neutral-300 text-base sm:text-lg md:text-xl leading-relaxed">
+                We engineered an elite, low-overhead orchestration framework to <span className="text-[#7B61FF] font-medium">unify the world&apos;s most powerful AI engines</span> under one fluid timeline. Aligned strictly to <span className="text-white font-medium">cinematic grading standards</span>, our ecosystem provides the <span className="text-[#FF2E9A] font-medium">prestige-grade guardrails</span> required by visual teams shipping premium, high-value brand deliverables.
+              </p>
+            </div>
           </motion.div>
         </section>
 
