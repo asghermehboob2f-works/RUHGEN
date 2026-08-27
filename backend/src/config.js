@@ -137,15 +137,17 @@ function getVideoConfig(tier = "standard") {
   const isStandard =
     tier === "standard" || tier === "std" || tier === "fast";
 
+  const defaultUrl = "https://api.piapi.ai/api/v1/task";
+
   if (isStandard) {
     const apiKey = (process.env.VIDEO_STANDARD_API_KEY || "").trim();
-    const apiUrl = (process.env.VIDEO_STANDARD_API_URL || "").trim();
+    const apiUrl = (process.env.VIDEO_STANDARD_API_URL || defaultUrl).trim();
     const model = (process.env.VIDEO_STANDARD_MODEL || "kling-turbo").trim();
 
     return { tier: "standard", apiKey, apiUrl, model };
   } else {
     const apiKey = (process.env.VIDEO_PREMIUM_API_KEY || "").trim();
-    const apiUrl = (process.env.VIDEO_PREMIUM_API_URL || "").trim();
+    const apiUrl = (process.env.VIDEO_PREMIUM_API_URL || defaultUrl).trim();
     const model = (process.env.VIDEO_PREMIUM_MODEL || "kling-pro").trim();
 
     return { tier: "premium", apiKey, apiUrl, model };
