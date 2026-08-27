@@ -112,7 +112,7 @@ export function RazorpayCheckoutModal({ plan, onClose, onSuccess }: Props) {
     }
 
     // 2. If Simulator mode is active, execute test verification directly
-    if (orderData.keyId === "rzp_test_simulator" || (orderData as any).isSimulator) {
+    if (orderData.keyId === "rzp_test_simulator" || Boolean((orderData as { isSimulator?: boolean }).isSimulator)) {
       try {
         setStep("processing");
         const simPaymentId = `pay_sim_${Date.now()}`;
@@ -189,7 +189,14 @@ export function RazorpayCheckoutModal({ plan, onClose, onSuccess }: Props) {
             setStep("processing");
             setIsSubmitting(true);
 
-            let verifyData: any = null;
+            let verifyData: {
+              ok?: boolean;
+              error?: string;
+              creditsAdded?: number;
+              newBalance?: number;
+              planName?: string;
+              internalTransactionId?: string;
+            } | null = null;
             let attempts = 0;
             const maxAttempts = 3;
 
@@ -221,9 +228,9 @@ export function RazorpayCheckoutModal({ plan, onClose, onSuccess }: Props) {
               setIsSubmitting(false);
               if (verifyData.internalTransactionId) setTxRef(verifyData.internalTransactionId);
               onSuccess({
-                creditsAdded: verifyData.creditsAdded,
-                newBalance: verifyData.newBalance,
-                planName: verifyData.planName,
+                creditsAdded: verifyData.creditsAdded ?? plan.credits,
+                newBalance: verifyData.newBalance ?? 0,
+                planName: verifyData.planName ?? plan.name,
                 internalTransactionId: verifyData.internalTransactionId,
               });
             } else {

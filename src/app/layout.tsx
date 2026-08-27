@@ -38,45 +38,15 @@ const bricolage = Bricolage_Grotesque({
   display: "swap",
 });
 
-const orithDisplay = localFont({
-  src: "../../public/fonts/OrithDisplay-Regular.otf",
-  variable: "--font-orith",
-  display: "swap",
-});
-
-const grooteRegular = localFont({
-  src: "../../public/fonts/Groote-Regular.otf",
-  variable: "--font-groote",
-  display: "swap",
-});
-
 const shootingStar = localFont({
   src: "../../public/fonts/Shooting Star.ttf",
   variable: "--font-shooting-star",
   display: "swap",
 });
 
-const audiowide = localFont({
-  src: "../../public/fonts/Audiowide-Regular.ttf",
-  variable: "--font-audiowide",
-  display: "swap",
-});
-
 const calsans = localFont({
   src: "../../public/fonts/CalSans-Regular.ttf",
   variable: "--font-calsans",
-  display: "swap",
-});
-
-const zendots = localFont({
-  src: "../../public/fonts/ZenDots-Regular.ttf",
-  variable: "--font-zendots",
-  display: "swap",
-});
-
-const elmsSans = localFont({
-  src: "../../public/fonts/ElmsSans-VariableFont_wght.ttf",
-  variable: "--font-elms-sans",
   display: "swap",
 });
 
@@ -104,30 +74,6 @@ const quadratGrotesk = localFont({
   display: "swap",
 });
 
-const vtksZkla = localFont({
-  src: "../../public/fonts/VTKS ZKLA.ttf",
-  variable: "--font-vtks-zkla",
-  display: "swap",
-});
-
-const kalogen = localFont({
-  src: "../../public/fonts/KalogenDEMO-Regular.ttf",
-  variable: "--font-kalogen",
-  display: "swap",
-});
-
-const zegion = localFont({
-  src: "../../public/fonts/ZegionDemo-Regular.ttf",
-  variable: "--font-zegion",
-  display: "swap",
-});
-
-const hypnotic = localFont({
-  src: "../../public/fonts/Hypnotic 01 Black White Outline-COLR.otf",
-  variable: "--font-hypnotic",
-  display: "swap",
-});
-
 const hypnoticColr = localFont({
   src: "../../public/fonts/Hypnotic 01-COLR.otf",
   variable: "--font-hypnotic-colr",
@@ -137,12 +83,6 @@ const hypnoticColr = localFont({
 const hypnoticOutline = localFont({
   src: "../../public/fonts/Hypnotic 01 Outline.otf",
   variable: "--font-hypnotic-outline",
-  display: "swap",
-});
-
-const hypnoticWbOutline = localFont({
-  src: "../../public/fonts/Hypnotic 01 White Black Outline-COLR.otf",
-  variable: "--font-hypnotic-wb-outline",
   display: "swap",
 });
 
@@ -289,7 +229,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${interTight.variable} ${jetbrains.variable} ${syne.variable} ${bricolage.variable} ${orithDisplay.variable} ${grooteRegular.variable} ${shootingStar.variable} ${audiowide.variable} ${calsans.variable} ${zendots.variable} ${elmsSans.variable} ${bungeeHairline.variable} ${ningetan.variable} ${signatie.variable} ${quadratGrotesk.variable} ${vtksZkla.variable} ${ticdar.variable} ${rink.variable} ${kalogen.variable} ${zegion.variable} ${hypnotic.variable} ${hypnoticColr.variable} ${hypnoticOutline.variable} ${hypnoticWbOutline.variable} h-full scroll-smooth antialiased`}
+      className={`${inter.variable} ${interTight.variable} ${jetbrains.variable} ${syne.variable} ${bricolage.variable} ${shootingStar.variable} ${calsans.variable} ${bungeeHairline.variable} ${ningetan.variable} ${signatie.variable} ${quadratGrotesk.variable} ${ticdar.variable} ${rink.variable} ${hypnoticColr.variable} ${hypnoticOutline.variable} h-full scroll-smooth antialiased`}
       suppressHydrationWarning
     >
       <head>

@@ -87,21 +87,13 @@ html.light {
   --font-display: var(--font-rink), var(--font-ticdar), var(--font-inter-tight), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-rink: var(--font-rink), var(--font-ticdar), var(--font-inter-tight), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-ticdar: var(--font-rink), var(--font-ticdar), var(--font-inter-tight), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-zegion: var(--font-zegion), var(--font-inter-tight), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-premium: var(--font-bricolage), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-orith: var(--font-orith), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-groote: var(--font-groote), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-shooting-star: var(--font-shooting-star), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-audiowide: var(--font-audiowide), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-calsans: var(--font-calsans), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-zendots: var(--font-zendots), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-elms-sans: var(--font-elms-sans), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-bungee-hairline: var(--font-bungee-hairline), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-quadrat: var(--font-quadrat-grotesk), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-hypnotic: var(--font-hypnotic), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-hypnotic-colr: var(--font-hypnotic-colr), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-hypnotic-outline: var(--font-hypnotic-outline), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-hypnotic-wb-outline: var(--font-hypnotic-wb-outline), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --color-brand-purple: #7b61ff;
   --color-brand-cyan: #00d4ff;
   --color-brand-pink: #ff2e9a;
@@ -208,38 +200,12 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.01em;
 }
 
-.font-zegion {
-  font-family: var(--font-zegion), var(--font-inter-tight), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-}
-
-.font-orith {
-  font-family: var(--font-orith);
-}
-
-.font-groote {
-  font-family: var(--font-groote);
-}
-
 .font-shooting-star {
   font-family: var(--font-shooting-star);
 }
 
-.font-audiowide {
-  font-family: var(--font-audiowide);
-}
-
 .font-calsans {
   font-family: var(--font-calsans);
-}
-
-.font-zendots {
-  font-family: var(--font-zendots);
-}
-
-.font-elms-sans {
-  font-family: var(--font-elms-sans), sans-serif;
-  font-optical-sizing: auto;
-  font-style: normal;
 }
 
 .font-bungee-hairline {
@@ -250,20 +216,12 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-quadrat-grotesk), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
-.font-hypnotic {
-  font-family: var(--font-hypnotic), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-}
-
 .font-hypnotic-colr {
   font-family: var(--font-hypnotic-colr), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
 .font-hypnotic-outline {
   font-family: var(--font-hypnotic-outline), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-}
-
-.font-hypnotic-wb-outline {
-  font-family: var(--font-hypnotic-wb-outline), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
 .mesh-section {

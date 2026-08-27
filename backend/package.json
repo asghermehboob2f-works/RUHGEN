@@ -16,7 +16,6 @@
     "multer": "^2.1.1",
     "node-cron": "^4.6.0",
     "nodemailer": "^9.0.3",
-    "razorpay": "^2.9.6",
-    "ruhgen": "file:.."
+    "razorpay": "^2.9.6"
   }
 }

@@ -79,7 +79,7 @@ export function PricingHeroGraphic({ className = "" }: { className?: string }) {
         if (data && data.ok && Array.isArray(data.plans)) {
           setDynamicPlans((prev) =>
             prev.map((p) => {
-              const matched = data.plans.find((item: any) => item.id === p.id);
+              const matched = data.plans.find((item: { id: string; name?: string; price_inr?: number; credits?: number }) => item.id === p.id);
               if (matched) {
                 const priceInRupees = matched.price_inr ? Math.round(matched.price_inr / 100).toString() : p.price;
                 const creditStr = matched.credits ? `${matched.credits.toLocaleString("en-IN")} credits / mo` : p.credits;
