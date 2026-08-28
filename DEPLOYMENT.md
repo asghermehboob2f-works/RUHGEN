@@ -1,151 +1,248 @@
-# 🚀 RUHGEN Platform — Production Deployment & Administration Guide
+# 🚀 RUHGEN Platform — Production Deployment Guide
 
-This guide provides step-by-step instructions for deploying, managing, and maintaining the RUHGEN platform across Linux VPS hosting (MilesWeb, DigitalOcean, Hetzner, AWS), Docker containers, PM2 process management, and Nginx reverse proxies.
-
----
-
-## 🏗️ Architectural Overview
-
-- **Frontend Framework**: Next.js 16 (App Router) + React 19 + TypeScript + Tailwind CSS.
-- **Backend API Engine**: Node.js + Express + `better-sqlite3` (WAL mode) + JWT Auth.
-- **Database Storage**: SQLite database stored in `backend/data/ruhgen.sqlite` with WAL mode enabled.
-- **Media Asset Storage**: Persistent assets in `media/` synced to `public/media/`.
-- **API Proxy Strategy**: Next.js transparently proxies relative `/api/*` requests to the Express backend (`http://127.0.0.1:4000`) in local development or via Nginx in production.
+> **One source of truth.** This file supersedes all chat history.
+> Deploy using `npm run deploy` on the server — nothing else.
 
 ---
 
-## 📋 Environment Configuration
+## 🏗️ Architecture
 
-### 1. Monorepo Root `.env` Setup
-Copy `.env.example` to `.env` in the root directory:
+| Layer | Technology |
+|-------|-----------|
+| Frontend | Next.js 16 (App Router) + React 19 + TypeScript + Tailwind CSS v4 |
+| Backend | Node.js + Express + `better-sqlite3` (WAL mode) + JWT Auth |
+| Database | SQLite → `backend/data/ruhgen.sqlite` |
+| Process manager | PM2 (`ecosystem.config.js`) |
+| Reverse proxy | Nginx + Let's Encrypt SSL |
+| Server | MilesWeb website container (Linux, Node v20, NVM-managed) |
+
+---
+
+## ⚠️ Critical Rules — Read Before Touching Anything
+
+| Rule | Why |
+|------|-----|
+| **Never run `npm install` (bare) at root on the server** | Workspace hoisting triggers `better-sqlite3` C compilation via `make`, exhausting the container's fork limit and crashing the install |
+| **Always use `npm run install:frontend` + `npm run install:backend`** | Frontend installs with `--workspaces=false` (no native compile); backend installs in isolation |
+| **Never upload `node_modules`** | Native binaries (`.node` files) are OS-specific. Windows/macOS builds cause "invalid ELF header" on Linux |
+| **Never use `next dev` or `node --watch` in production** | Dev mode disables optimizations and causes EAGAIN thread exhaustion |
+| **Always build on the server** | Ensures native modules and the Next.js build match the server's OS/arch |
+
+---
+
+## 📋 Environment Setup (First Deploy Only)
 
 ```bash
+# On the server
 cp .env.example .env
+nano .env   # fill in all secrets
 ```
 
-Key environment variables:
+Key variables:
 
-| Variable | Description | Production Example |
-| :--- | :--- | :--- |
-| `PORT` | Next.js frontend port | `3000` |
-| `BACKEND_PORT` | Express backend port | `4000` |
-| `BACKEND_URL` | Backend origin URL | `http://127.0.0.1:4000` |
-| `NEXT_PUBLIC_SITE_URL` | Canonical public domain | `https://ruhgen.in` |
-| `ADMIN_JWT_SECRET` | Secret key for Admin JWT tokens | *Generate 64-char random string* |
-| `USER_JWT_SECRET` | Secret key for User JWT tokens | *Generate 64-char random string* |
-| `SMTP_HOST` | Mail server hostname | `mail.ruhgen.in` |
-| `SMTP_PORT` | SSL/TLS mail server port | `465` |
-| `SMTP_PASS` | Mail server password | *Your SMTP Password* |
-| `RAZORPAY_KEY_ID` | Razorpay Live Key ID | `rzp_live_...` |
-| `RAZORPAY_KEY_SECRET` | Razorpay Live Key Secret | *Your Razorpay Secret* |
+| Variable | Production Value |
+|----------|----------------|
+| `NODE_ENV` | `production` |
+| `PORT` | `3000` |
+| `BACKEND_PORT` | `4000` |
+| `BACKEND_URL` | `http://127.0.0.1:4000` |
+| `NEXT_PUBLIC_SITE_URL` | `https://ruhgen.in` |
+| `ADMIN_JWT_SECRET` | 64-char random string |
+| `USER_JWT_SECRET` | 64-char random string |
+| `SMTP_HOST` | `mail.ruhgen.in` |
+| `SMTP_PORT` | `465` |
 
 ---
 
-## 💻 Deployment Method 1: PM2 + Nginx on VPS (MilesWeb / Ubuntu / Debian)
+## 🔁 Standard Deploy (Every Time)
 
-### 1. System Requirements
-- Node.js >= 20.x or 22.x
-- PM2 (`npm install -g pm2`)
-- Nginx & Certbot
+SSH into the server and run **one command**:
 
-### 2. Installation & Build
 ```bash
-# 1. Clone repository
-git clone https://github.com/asghermehboob2f-works/RUHGEN.git /var/www/ruhgen
-cd /var/www/ruhgen
-
-# 2. Install dependencies
-npm ci
-cd backend && npm ci && cd ..
-
-# 3. Create production .env file
-cp .env.example .env
-# Edit .env with your secrets: nano .env
-
-# 4. Build Next.js production bundle
-npm run build
+cd ~/ruhgen1
+npm run deploy
 ```
 
-### 3. Start PM2 Processes
+That's it. The script runs all 8 steps automatically:
+
+1. Kills dev-mode processes (next dev, node --watch, concurrently)
+2. `git pull origin main`
+3. `npm install --workspaces=false` (frontend only, no native compile)
+4. `cd backend && npm ci` (backend, compiles better-sqlite3 for Linux)
+5. Pre-deploy validation (globals.css, next.config.ts, fonts, etc.)
+6. `NODE_ENV=production next build`
+7. `pm2 start ecosystem.config.js && pm2 save`
+8. Health checks on both ports
+
+---
+
+## 🩺 Manual Steps (If `npm run deploy` Fails Mid-Way)
+
+If the automated script fails at a specific step, run steps individually:
+
 ```bash
-pm2 start ecosystem.config.js --env production
-pm2 save
-pm2 startup
+cd ~/ruhgen1
+
+# Kill stale processes
+npm run kill:dev
+pm2 stop all && pm2 delete all
+
+# Pull
+git pull origin main
+
+# Install (CRITICAL: in this exact order, NOT bare npm install)
+npm run install:frontend    # → npm install --workspaces=false
+npm run install:backend     # → cd backend && npm ci
+
+# Verify better-sqlite3
+node -e "require('./backend/node_modules/better-sqlite3'); console.log('OK')"
+
+# Validate config
+npm run check
+
+# Build
+NODE_ENV=production node node_modules/next/dist/bin/next build
+
+# Start
+pm2 start ecosystem.config.js
+pm2 save --force
+pm2 list
 ```
 
-### 4. Configure Nginx & SSL
-Copy `nginx.conf` to `/etc/nginx/sites-available/ruhgen` and link it:
+---
+
+## 🔍 Verification Checklist
+
+Run after every deploy to confirm everything is healthy:
 
 ```bash
+# Both apps online?
+pm2 list
+
+# Backend responding?
+curl http://localhost:4000/api/health
+
+# Frontend responding?
+curl -I http://localhost:3000
+
+# Public site?
+curl -I https://ruhgen.in
+```
+
+**Expected:**
+- `pm2 list` → both `ruhgen-frontend` and `ruhgen-backend` show `online`
+- Backend health → `{"status":"ok",...}` or `200`
+- Frontend → `HTTP 200`
+- ruhgen.in → `HTTP 200` via Nginx
+
+---
+
+## 🧪 Config Invariants (Enforced by `npm run check`)
+
+These are automatically verified before every build. If any fail, the build is blocked:
+
+| Check | Expected |
+|-------|---------|
+| `src/app/globals.css` line 1 | `@import "tailwindcss";` |
+| `next.config.ts` | No `workerThreads`, no `cpus: 1` |
+| `next.config.ts` | `allowedDevOrigins: ["ruhgen.in", "*.ruhgen.in"]` present |
+| `backend/package.json` start | No `--watch` |
+| `ecosystem.config.js` | `watch: false` on both apps |
+| `public/fonts/` | All 12 custom fonts present |
+| `.gitignore` | `/node_modules` and `/backend/node_modules` excluded |
+
+Run manually anytime: `npm run check`
+
+---
+
+## 📁 PM2 Configuration (`ecosystem.config.js`)
+
+```js
+// Both apps use __dirname as cwd — works regardless of install path
+// script: "node_modules/next/dist/bin/next"  ← works without global `next`
+// watch: false                                ← NEVER file-watch in production
+```
+
+To view PM2 logs:
+```bash
+pm2 logs ruhgen-frontend --lines 50
+pm2 logs ruhgen-backend  --lines 50
+```
+
+---
+
+## 🔄 PM2 Persistence (Website Container)
+
+`pm2 startup systemd` is blocked in MilesWeb containers. Use a cron job instead:
+
+```bash
+# Add once — survives container restarts
+PM2_BIN=$(which pm2)
+APPPATH=$(realpath ~/ruhgen1)
+(crontab -l 2>/dev/null; echo "@reboot cd $APPPATH && $PM2_BIN resurrect") | crontab -
+crontab -l   # verify
+```
+
+---
+
+## 🌐 Nginx Configuration
+
+The `nginx.conf` at the project root is the production Nginx config.
+
+```bash
+# First-time setup
 sudo cp nginx.conf /etc/nginx/sites-available/ruhgen
 sudo ln -s /etc/nginx/sites-available/ruhgen /etc/nginx/sites-enabled/
-sudo nginx -t
-sudo systemctl reload nginx
-```
+sudo nginx -t && sudo systemctl reload nginx
 
-Obtain Let's Encrypt SSL certificate:
-```bash
+# SSL
 sudo certbot --nginx -d ruhgen.in -d www.ruhgen.in
 ```
 
 ---
 
-## 🐳 Deployment Method 2: Docker & Docker Compose
-
-Deploy the containerized stack with volume persistence:
+## 🐳 Docker (Alternative)
 
 ```bash
-# 1. Build and start containers in detached mode
 docker-compose up -d --build
-
-# 2. Check container status & health checks
 docker-compose ps
-
-# 3. View live application logs
 docker-compose logs -f
 ```
 
 ---
 
-## ☁️ Deployment Method 3: Render (PaaS)
+## 🗂️ Script Reference
 
-When deploying on Render, npm workspaces automatically install both frontend and backend dependencies during the root `npm install` build step.
-
-### 1. Standalone Backend Service Configuration
-- **Environment**: Node.js
-- **Build Command**: `npm install`
-- **Start Command**: `node backend/src/server.js`
-
-### 2. Multi-Process Single Web Service (Frontend + Backend)
-- **Environment**: Node.js
-- **Build Command**: `npm install && npm run build`
-- **Start Command**: `npm run start:cluster`
-
----
-
-## 🔄 Database Backups & Maintenance
-
-### 1. SQLite WAL Database Backup
-Since SQLite uses WAL mode (`ruhgen.sqlite`, `ruhgen.sqlite-wal`), create backups using `.backup`:
-
-```bash
-# Daily automated backup cron job
-sqlite3 /var/www/ruhgen/backend/data/ruhgen.sqlite ".backup '/var/www/backups/ruhgen-$(date +%F).sqlite'"
-```
-
-### 2. Media Asset Sync
-If uploading new showcase assets via CMS, sync media to public directory:
-
-```bash
-node scripts/sync-media.cjs
-```
+| Script | What it does |
+|--------|-------------|
+| `npm run deploy` | **Full automated production deploy** (use this) |
+| `npm run check` | Run pre-deploy config validation |
+| `npm run kill:dev` | Kill all dev-mode processes |
+| `npm run install:frontend` | `npm install --workspaces=false` (safe for server) |
+| `npm run install:backend` | `cd backend && npm ci` |
+| `npm run install:prod` | Both of the above in sequence |
+| `npm run build` | Next.js production build (runs check first) |
+| `npm run sync:media` | Sync `media/` → `public/media/` |
 
 ---
 
-## 🩺 System Verification Checklist
+## 🔐 Secrets Management
 
-- [x] `npx tsc --noEmit` returns zero type errors.
-- [x] `npm run build` compiles successfully (45/45 routes).
-- [x] Rate limiting active on auth routes (`X-RateLimit-*` headers returned).
-- [x] Health check endpoint responding at `GET /api/health`.
-- [x] PM2 monitoring active (`pm2 status`).
+- Never commit `.env` — it's in `.gitignore`
+- On the server, `.env` lives at `~/ruhgen1/.env`
+- Use `.env.example` as the template — it contains all variable names with safe placeholder values
+- Rotate `ADMIN_JWT_SECRET` and `USER_JWT_SECRET` immediately if ever exposed
+
+---
+
+## 📊 Troubleshooting
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `invalid ELF header` | `better-sqlite3` compiled on wrong OS | `rm -rf backend/node_modules && npm run install:backend` on server |
+| `next: not found` | `npm install` (bare) failed due to fork limit | `npm run install:frontend` instead |
+| `fork: Resource temporarily unavailable` | Too many processes forked by `make`/`node-gyp` | Wait 2 min, then use `npm run install:frontend` + `npm run install:backend` separately |
+| `pm2: command not found` | npm global bin not in PATH | `npm install -g pm2` then retry |
+| `pm2 startup` blocked | Website container, no systemd access | Use `@reboot` cron job (see PM2 Persistence above) |
+| Build fails with CSS error | `@import "tailwindcss"` not first line | Run `npm run check` to identify |
+| Font 404s | Font file missing from `public/fonts/` | Run `npm run check` — lists missing fonts |

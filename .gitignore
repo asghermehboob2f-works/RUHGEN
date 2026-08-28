@@ -1,8 +1,18 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
+# Node dependencies — NEVER committed, NEVER deployed
 /node_modules
 /backend/node_modules
+
+# Next.js build output
+/.next/
+/out/
+
+# Production build
+/build
+
+# Test coverage
+/coverage
+
+# Yarn
 /.pnp
 .pnp.*
 .yarn/*
@@ -11,45 +21,28 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
-/coverage
+# Environment secrets
+.env*
+!.env.example
 
-# next.js
-/.next/
-/out/
+# Vercel
+.vercel
 
-# production
-/build
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
 
-# misc
+# macOS
 .DS_Store
 *.pem
 
-# debug
+# Debug logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
-!.env.example
-
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-
-# newsletter signups (local / server file — do not commit subscriber emails)
-/data/newsletter-subscribers.json
-/backend/data/newsletter-subscribers.json
-# contact form inbox (local / server file — do not commit PII)
-/data/contact-messages.json
-/backend/data/contact-messages.json
-
-# SQLite (Express backend)
+# Database files (SQLite — server-local, never commit)
 *.db
 *.db-journal
 *.db-wal
@@ -57,6 +50,12 @@ next-env.d.ts
 *.sqlite
 *.sqlite-*
 **/data/
+
+# User-uploaded media (server-local)
 **/support_attachments/
 
-
+# Newsletter / contact form PII
+/data/newsletter-subscribers.json
+/backend/data/newsletter-subscribers.json
+/data/contact-messages.json
+/backend/data/contact-messages.json

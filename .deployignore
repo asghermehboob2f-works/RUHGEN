@@ -1,0 +1,44 @@
+# Deploy ignore — used for zip/rsync/FTP uploads
+# Ensures node_modules and build artifacts are never uploaded manually
+
+# Dependencies — ALWAYS reinstalled on server via npm ci
+node_modules/
+backend/node_modules/
+
+# Next.js build output — rebuilt on server via npm run build
+.next/
+out/
+
+# Environment secrets — configure directly on server
+.env
+
+# Database — server-local, never deploy
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite-*
+data/
+backend/data/
+
+# User uploads / media uploads
+backend/uploads/
+support_attachments/
+
+# Logs
+*.log
+npm-debug.log*
+
+# macOS
+.DS_Store
+
+# TypeScript incremental build info
+*.tsbuildinfo
+
+# Git
+.git/
+
+# Editor
+.vscode/
+.idea/

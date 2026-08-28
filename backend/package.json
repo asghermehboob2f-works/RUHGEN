@@ -5,7 +5,9 @@
   "type": "commonjs",
   "scripts": {
     "dev": "node --watch src/server.js",
-    "start": "node src/server.js"
+    "prestart": "node -e \"if(process.env.NODE_ENV!=='production'){console.error('[RUHGEN] ❌ NODE_ENV must be production — refusing to start. Set NODE_ENV=production.');process.exit(1);}console.log('[RUHGEN] ✅ NODE_ENV=production confirmed.');\"",
+    "start": "node src/server.js",
+    "postinstall": "node ../scripts/check-native-os.cjs 2>/dev/null || true"
   },
   "dependencies": {
     "better-sqlite3": "^11.7.0",
