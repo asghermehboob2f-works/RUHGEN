@@ -78,8 +78,8 @@ console.log("  ℹ️  Skipping workspace (backend) to prevent better-sqlite3 fo
 run("npm install --workspaces=false");
 
 step(4, "Install backend deps (isolated native compilation)");
-run("cd backend && npm ci");
-run(`node -e "require('./backend/node_modules/better-sqlite3'); console.log('  ✅ better-sqlite3 OK');"`);
+run("cd backend && npm install --no-workspaces");
+run(`cd backend && node -e "require('better-sqlite3'); console.log('  ✅ better-sqlite3 OK');"`);
 
 step(5, "Pre-deploy validation");
 run("node scripts/predeploy-check.cjs");

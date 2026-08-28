@@ -21,7 +21,7 @@
     "start:frontend": "next start",
     "start:cluster": "node scripts/start-production.js",
     "install:frontend": "npm install --workspaces=false",
-    "install:backend": "npm --prefix backend ci",
+    "install:backend": "cd backend && npm install --no-workspaces",
     "install:prod": "npm run install:frontend && npm run install:backend",
     "deploy": "node scripts/deploy.cjs",
     "lint": "eslint",
