@@ -9,11 +9,12 @@ module.exports = {
       name: "ruhgen-frontend",
       // next binary via full local path — works even when `next` isn't globally in PATH
       script: "node_modules/next/dist/bin/next",
-      args: "start",
+      args: "start -H 0.0.0.0 -p 3000",
       cwd: __dirname, // resolves dynamically to wherever this file lives
       env: {
         NODE_ENV: "production",
         PORT: 3000,
+        HOSTNAME: "0.0.0.0",
       },
       autorestart: true,
       watch: false, // NEVER set to true in production
