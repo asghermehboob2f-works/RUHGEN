@@ -121,7 +121,8 @@ function runTokenCleanup(db) {
   const now = nowIso();
   const r1 = db.prepare("UPDATE users SET verification_token_hash = NULL, verification_token_expiry = NULL WHERE email_verified = 0 AND verification_token_expiry < ?").run(now);
   const r2 = db.prepare("UPDATE users SET otp_hash = NULL, otp_expiry = NULL, otp_attempts = 0 WHERE otp_expiry < ?").run(now);
-  console.log(`[cron] Cleanup: cleared ${r1.changes} expired tokens, ${r2.changes} expired OTPs.`);
+  const r3 = db.prepare("UPDATE users SET reset_token_hash = NULL, reset_token_expiry = NULL, reset_otp_hash = NULL, reset_otp_expiry = NULL, reset_otp_attempts = 0 WHERE (reset_token_expiry IS NOT NULL AND reset_token_expiry < ?) OR (reset_otp_expiry IS NOT NULL AND reset_otp_expiry < ?)").run(now, now);
+  console.log(`[cron] Cleanup: cleared ${r1.changes} expired verification tokens, ${r2.changes} expired verification OTPs, ${r3.changes} expired reset tokens.`);
 }
 
 let activeCronTasks = [];

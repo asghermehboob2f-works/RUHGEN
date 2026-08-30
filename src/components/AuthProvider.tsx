@@ -406,18 +406,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         return { ok: false, error: data.error || "Failed to reset password." };
       } catch {
-        if (params.email) {
-          const e = normalizeEmail(params.email);
-          const users = readUsers();
-          const idx = users.findIndex((x) => x.email === e);
-          if (idx !== -1) {
-            const h = await hashPassword(params.newPassword);
-            users[idx].passwordHash = h;
-            writeUsers(users);
-            return { ok: true };
-          }
-        }
-        return { ok: false, error: "Network error while resetting password." };
+        return { ok: false, error: "Network error while connecting to the server. Please try again." };
       }
     },
     []

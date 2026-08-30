@@ -342,14 +342,17 @@ function mountUserAuthRoutes(app, { db }) {
         return res.status(429).json({ ok: false, error: `Too many reset requests for this email. Please try again in ${emailLock.minutesLeft} minute(s).` });
       }
 
-      const row = db.prepare("SELECT id, email, name, suspended FROM users WHERE email = ?").get(email);
-      
+      // Record request attempt for both IP and Email to enforce rate limits consistently
+      recordFailedAttempt(ipKey, 5, 15 * 60 * 1000);
+      recordFailedAttempt(emailKey, 3, 15 * 60 * 1000);
+
       // Standard generic response regardless of whether user exists to prevent email enumeration
       const genericMsg = "If an account with this email exists, we have sent a password reset link and verification code.";
 
+      const row = db.prepare("SELECT id, email, name, suspended FROM users WHERE LOWER(TRIM(email)) = LOWER(TRIM(?))").get(email);
+
       if (!row) {
-        recordFailedAttempt(ipKey, 5, 15 * 60 * 1000);
-        recordFailedAttempt(emailKey, 3, 15 * 60 * 1000);
+        // Non-existent email: DO NOT generate reset token, DO NOT send email, DO NOT modify DB or create account
         return res.json({ ok: true, message: genericMsg });
       }
 
@@ -357,7 +360,7 @@ function mountUserAuthRoutes(app, { db }) {
         return res.status(403).json({ ok: false, error: "This account has been suspended." });
       }
 
-      // Generate reset token & OTP
+      // Generate reset token & OTP only for existing active user
       const rawToken = crypto.randomBytes(48).toString("hex");
       const tokenHash = hashToken(rawToken);
       const otp = String(Math.floor(100000 + crypto.randomInt(900000))).padStart(6, "0");
@@ -366,7 +369,7 @@ function mountUserAuthRoutes(app, { db }) {
 
       db.prepare(
         `UPDATE users 
-         SET reset_token_hash = ?, reset_token_expiry = ?, reset_otp_hash = ?, reset_otp_expiry = ? 
+         SET reset_token_hash = ?, reset_token_expiry = ?, reset_otp_hash = ?, reset_otp_expiry = ?, reset_otp_attempts = 0
          WHERE id = ?`
       ).run(tokenHash, resetExpiry, otpHash, resetExpiry, row.id);
 
@@ -404,9 +407,16 @@ function mountUserAuthRoutes(app, { db }) {
         if (!isValidEmail(email)) {
           return res.status(400).json({ ok: false, error: "Invalid email address." });
         }
+        const user = db.prepare("SELECT id, email, name, reset_otp_hash, reset_otp_expiry, reset_otp_attempts FROM users WHERE LOWER(TRIM(email)) = LOWER(TRIM(?))").get(email);
+        if (!user) {
+          return res.status(400).json({ ok: false, error: "Invalid or expired 6-digit OTP code." });
+        }
+        if ((user.reset_otp_attempts || 0) >= 5) {
+          return res.status(429).json({ ok: false, error: "Too many failed attempts. Please request a new password reset code." });
+        }
         const otpHash = hashToken(otp);
-        const user = db.prepare("SELECT id, email, name, reset_otp_expiry FROM users WHERE email = ? AND reset_otp_hash = ?").get(email, otpHash);
-        if (!user || (user.reset_otp_expiry && user.reset_otp_expiry < now)) {
+        if (user.reset_otp_hash !== otpHash || (user.reset_otp_expiry && user.reset_otp_expiry < now)) {
+          db.prepare("UPDATE users SET reset_otp_attempts = reset_otp_attempts + 1 WHERE id = ?").run(user.id);
           return res.status(400).json({ ok: false, error: "Invalid or expired 6-digit OTP code." });
         }
         return res.json({ ok: true, valid: true, email: user.email });
@@ -452,9 +462,16 @@ function mountUserAuthRoutes(app, { db }) {
         if (!isValidEmail(email)) {
           return res.status(400).json({ ok: false, error: "Invalid email address." });
         }
+        const user = db.prepare("SELECT id, password_hash, reset_otp_hash, reset_otp_expiry, reset_otp_attempts FROM users WHERE LOWER(TRIM(email)) = LOWER(TRIM(?))").get(email);
+        if (!user) {
+          return res.status(400).json({ ok: false, error: "Invalid or expired 6-digit verification code." });
+        }
+        if ((user.reset_otp_attempts || 0) >= 5) {
+          return res.status(429).json({ ok: false, error: "Too many failed attempts. Please request a new password reset code." });
+        }
         const otpHash = hashToken(otp);
-        const user = db.prepare("SELECT id, password_hash, reset_otp_expiry FROM users WHERE email = ? AND reset_otp_hash = ?").get(email, otpHash);
-        if (!user || (user.reset_otp_expiry && user.reset_otp_expiry < now)) {
+        if (user.reset_otp_hash !== otpHash || (user.reset_otp_expiry && user.reset_otp_expiry < now)) {
+          db.prepare("UPDATE users SET reset_otp_attempts = reset_otp_attempts + 1 WHERE id = ?").run(user.id);
           return res.status(400).json({ ok: false, error: "Invalid or expired 6-digit verification code." });
         }
         if (verifyPassword(newPassword, user.password_hash).isValid) {
@@ -469,7 +486,7 @@ function mountUserAuthRoutes(app, { db }) {
 
       db.prepare(
         `UPDATE users 
-         SET password_hash = ?, reset_token_hash = NULL, reset_token_expiry = NULL, reset_otp_hash = NULL, reset_otp_expiry = NULL 
+         SET password_hash = ?, reset_token_hash = NULL, reset_token_expiry = NULL, reset_otp_hash = NULL, reset_otp_expiry = NULL, reset_otp_attempts = 0 
          WHERE id = ?`
       ).run(newPasswordHash, userId);
 

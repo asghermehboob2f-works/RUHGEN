@@ -99,6 +99,7 @@ app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/register", authLimiter);
 app.use("/api/admin/auth/login", authLimiter);
 app.use("/api/auth/forgot-password", passwordResetLimiter);
+app.use("/api/auth/verify-reset", passwordResetLimiter);
 app.use("/api/auth/reset-password", passwordResetLimiter);
 app.use("/api/verify-email", verificationLimiter);
 app.use("/api/verification", verificationLimiter);

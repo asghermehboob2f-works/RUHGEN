@@ -302,6 +302,7 @@ function openDb(projectRoot) {
     ["reset_token_expiry", "TEXT DEFAULT NULL"],
     ["reset_otp_hash", "TEXT DEFAULT NULL"],
     ["reset_otp_expiry", "TEXT DEFAULT NULL"],
+    ["reset_otp_attempts", "INTEGER NOT NULL DEFAULT 0"],
   ];
   for (const [col, def] of verCols) {
     addUsersCol(col, def);
