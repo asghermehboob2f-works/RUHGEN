@@ -1,0 +1,26 @@
+{
+  "pages": {},
+  "app": {
+    "[project]/src/app/workflow/page": [
+      "static/media/83afe278b6a6bb3c-s.p.2bn3s6zvc0dyp.woff2",
+      "static/media/ab57efd000576a30-s.p.3fofz6dws3mg0.woff2",
+      "static/media/70bc3e132a0a741e-s.p.3t6q91iet4nsy.woff2",
+      "static/media/0c795a286deabae8-s.p.3vm0tq4e-zz_5.woff2",
+      "static/media/017d9bea37084d9b-s.p.41rroleoq1br7.woff2",
+      "static/media/Shooting Star-s.p.44vxtezhyucg1.ttf",
+      "static/media/CalSans_Regular-s.p.3fqwolu3o5gh6.ttf",
+      "static/media/BungeeHairline_Regular-s.p.0tm3ukri9dv60.ttf",
+      "static/media/Ningetan-s.p.0da7dr9do2ahb.ttf",
+      "static/media/Signatie-s.p.0kv6078oee8xs.otf",
+      "static/media/Quadrat Grotesk W01 Regular-s.p.399zwsqa-qda_.ttf",
+      "static/media/Hypnotic 01_COLR-s.p.38smppn1pwxk7.otf",
+      "static/media/Hypnotic 01 Outline-s.p.0yrjyscf_vlvg.otf",
+      "static/media/Rink_Regular-s.p.2vc0vlqs6kzgu.otf",
+      "static/media/Rink_Medium-s.p.3qbeyndegwu-p.otf",
+      "static/media/Ticdar_Regular-s.p.2pnc4fxh7lfie.otf",
+      "static/media/Ticdar_SemiBold-s.p.1xvj_mfng5cri.otf"
+    ]
+  },
+  "appUsingSizeAdjust": true,
+  "pagesUsingSizeAdjust": false
+}
