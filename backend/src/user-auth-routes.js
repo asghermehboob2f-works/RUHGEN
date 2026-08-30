@@ -79,6 +79,11 @@ function mountUserAuthRoutes(app, { db }) {
       // Send verification email (non-blocking)
       const verifyUrl = getAppUrl("verification", rawToken);
       sendMail({ to: email, ...verificationEmail({ name, verifyUrl, expiresHours: LINK_TTL_HOURS, otp }) })
+        .then(mailRes => {
+          if (mailRes && !mailRes.ok) {
+            console.error("[auth] verification email failed for", email, ":", mailRes.error);
+          }
+        })
         .catch(e => console.error("[auth] verification email failed:", e.message));
 
       const user = { id, email, name, credits: 120, emailVerified: false, verificationStatus: "pending" };
@@ -377,6 +382,10 @@ function mountUserAuthRoutes(app, { db }) {
       sendMail({
         to: row.email,
         ...passwordResetEmail({ name: row.name, resetUrl, otp, expiresMinutes: RESET_TTL_MINUTES })
+      }).then(mailRes => {
+        if (mailRes && !mailRes.ok) {
+          console.error("[auth] password reset email failed for", row.email, ":", mailRes.error);
+        }
       }).catch(e => console.error("[auth] password reset email failed:", e.message));
 
       return res.json({ ok: true, message: genericMsg });

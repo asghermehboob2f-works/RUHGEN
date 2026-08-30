@@ -380,7 +380,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       return { ok: false, error: data.error || "Failed to send password reset request." };
     } catch {
-      return { ok: true };
+      return { ok: false, error: "Network error while connecting to the server. Please try again." };
     }
   }, []);
 

@@ -19,23 +19,41 @@ function getTransporter() {
     console.warn("[email] MAIL_PASSWORD / SMTP_PASS not set — email delivery will fail until set in .env.");
   }
 
-  _transporter = nodemailer.createTransport({
+  const transportOpts = {
     host: config.host,
     port: config.port,
     secure: config.secure,
-    auth: {
-      user: config.username,
-      pass: config.password,
-    },
     tls: {
-      rejectUnauthorized: process.env.NODE_ENV === "production",
+      rejectUnauthorized: process.env.SMTP_REJECT_UNAUTHORIZED === "true",
     },
     pool: true,
     maxConnections: 5,
     maxMessages: 100,
-  });
+    connectionTimeout: 10000,
+    greetingTimeout: 5000,
+    socketTimeout: 15000,
+  };
 
+  if (config.username && config.password) {
+    transportOpts.auth = {
+      user: config.username,
+      pass: config.password,
+    };
+  }
+
+  _transporter = nodemailer.createTransport(transportOpts);
   return _transporter;
+}
+
+function resetTransporter() {
+  if (_transporter && typeof _transporter.close === "function") {
+    try {
+      _transporter.close();
+    } catch {
+      /* ignore */
+    }
+  }
+  _transporter = null;
 }
 
 function getFromHeader() {
@@ -45,24 +63,26 @@ function getFromHeader() {
 
 /**
  * Send an email using configured SMTP transport.
- * Returns { ok: true } or { ok: false, error }.
+ * Returns { ok: true, messageId } or { ok: false, error }.
  */
 async function sendMail({ to, subject, html, text }) {
   try {
     const transporter = getTransporter();
     const from = getFromHeader();
-    await transporter.sendMail({
+    const info = await transporter.sendMail({
       from,
       to,
       subject,
       html,
       text: text || subject,
     });
-    console.log(`[email] Sent "${subject}" to ${to}`);
-    return { ok: true };
+    console.log(`[email] Sent "${subject}" to ${to} (id: ${info.messageId || "ok"})`);
+    return { ok: true, messageId: info.messageId };
   } catch (err) {
-    console.error("[email] Delivery failed:", err instanceof Error ? err.message : String(err));
-    return { ok: false, error: err instanceof Error ? err.message : "Email delivery failed." };
+    const errMsg = err instanceof Error ? err.message : String(err);
+    console.error("[email] Delivery failed to", to, ":", errMsg);
+    resetTransporter();
+    return { ok: false, error: errMsg };
   }
 }
 
@@ -81,4 +101,4 @@ async function verifyConnection() {
   }
 }
 
-module.exports = { sendMail, verifyConnection };
+module.exports = { sendMail, verifyConnection, resetTransporter };
