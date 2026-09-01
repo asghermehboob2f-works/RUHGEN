@@ -87,6 +87,11 @@
         "source": "/media/:path*",
         "destination": "http://127.0.0.1:4000/media/:path*",
         "regex": "^/media(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))?(?:/)?$"
+      },
+      {
+        "source": "/community-media/:path*",
+        "destination": "http://127.0.0.1:4000/community-media/:path*",
+        "regex": "^/community-media(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))?(?:/)?$"
       }
     ],
     "fallback": []

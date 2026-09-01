@@ -69,27 +69,29 @@ export function SecurityAndGuardrails() {
           {items.map((c, i) => (
             <motion.article
               key={c.title}
-              initial={reduce ? false : { opacity: 0, y: 18 }}
+              initial={reduce ? false : { opacity: 0, y: 14 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-40px" }}
               transition={{ duration: 0.45, delay: reduce ? 0 : i * 0.04 }}
-              className="premium-ring group relative overflow-hidden rounded-[1.35rem] border p-6"
+              className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-5 sm:p-6 backdrop-blur-xl transition-all duration-500 hover:border-border/80"
               style={{
                 borderColor: "var(--border-subtle)",
                 background: "var(--glass)",
-                backdropFilter: "blur(20px)",
+                boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.03)",
               }}
             >
-              <div className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full opacity-25 blur-3xl transition-opacity duration-500 group-hover:opacity-45" style={{ background: c.glow }} />
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl border" style={{ borderColor: "var(--border-subtle)", background: "rgba(255,255,255,0.04)" }}>
-                <c.Icon className="h-5 w-5" strokeWidth={1.75} style={{ color: c.glow }} />
+              <div className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full opacity-20 blur-3xl transition-opacity duration-500 group-hover:opacity-40" style={{ background: c.glow }} />
+              <div>
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg border" style={{ borderColor: "var(--border-subtle)", background: "rgba(255,255,255,0.03)" }}>
+                  <c.Icon className="h-4 w-4" strokeWidth={1.5} style={{ color: c.glow }} />
+                </div>
+                <h3 className="font-display mt-4 text-sm font-semibold tracking-tight leading-snug" style={{ color: "var(--text-primary)" }}>
+                  {c.title}
+                </h3>
+                <p className="mt-2 text-[11.5px] leading-relaxed font-light sm:text-xs" style={{ color: "var(--text-muted)" }}>
+                  {c.desc}
+                </p>
               </div>
-              <h3 className="font-display mt-4 text-base font-semibold tracking-tight" style={{ color: "var(--text-primary)" }}>
-                {c.title}
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                {c.desc}
-              </p>
             </motion.article>
           ))}
         </div>

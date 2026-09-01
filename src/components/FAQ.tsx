@@ -88,27 +88,27 @@ export function FAQ({
             return (
               <div
                 key={item.id}
-                className="overflow-hidden rounded-2xl border transition-[box-shadow,border-color] duration-300"
+                className="overflow-hidden rounded-xl border transition-[box-shadow,border-color] duration-300"
                 style={{
                   borderColor: isOpen ? "rgba(123, 97, 255, 0.35)" : "var(--border-subtle)",
                   background: "var(--glass)",
-                  boxShadow: isOpen ? "0 0 40px -12px rgba(123, 97, 255, 0.2)" : undefined,
+                  boxShadow: isOpen ? "0 0 32px -12px rgba(123, 97, 255, 0.18)" : undefined,
                 }}
               >
                 <button
                   type="button"
                   onClick={() => setOpen(isOpen ? null : i)}
-                  className="flex w-full min-h-14 items-center justify-between gap-4 px-4 py-4 text-left sm:min-h-16 sm:px-6 sm:py-5"
+                  className="flex w-full min-h-12 items-center justify-between gap-4 px-4 py-3.5 text-left sm:min-h-14 sm:px-5 sm:py-4"
                   aria-expanded={isOpen}
                 >
                   <span
-                    className="font-display pr-2 text-base font-semibold sm:text-lg"
+                    className="font-display pr-2 text-sm font-semibold sm:text-base"
                     style={{ color: "var(--text-primary)" }}
                   >
                     {item.question}
                   </span>
                   <ChevronDown
-                    className="h-5 w-5 shrink-0 transition-transform duration-300"
+                    className="h-4 w-4 shrink-0 transition-transform duration-300"
                     style={{
                       color: "#7B61FF",
                       transform: isOpen ? "rotate(180deg)" : undefined,
@@ -124,7 +124,7 @@ export function FAQ({
                       transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                     >
                       <p
-                        className="border-t px-4 pb-5 pt-4 text-sm leading-relaxed sm:px-6 sm:pb-6 sm:text-base"
+                        className="border-t px-4 pb-4 pt-3 text-xs leading-relaxed font-light sm:px-5 sm:pb-5 sm:text-[13px]"
                         style={{
                           borderColor: "var(--border-subtle)",
                           color: "var(--text-muted)",

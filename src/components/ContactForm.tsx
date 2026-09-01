@@ -146,14 +146,14 @@ export function ContactForm() {
               <h2 className="font-display text-xl font-bold tracking-tight" style={{ color: "var(--text-primary)" }}>
                 Get in Touch
               </h2>
-              <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
+              <p className="mt-1 text-xs font-light" style={{ color: "var(--text-muted)" }}>
                 Fill in the details below. We handle all direct messages securely.
               </p>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label htmlFor="c-name" className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-neutral-400">
+                <label htmlFor="c-name" className="mb-1.5 block text-xs font-normal uppercase tracking-wider text-neutral-400">
                   Full Name
                 </label>
                 <input
@@ -171,7 +171,7 @@ export function ContactForm() {
                 />
               </div>
               <div>
-                <label htmlFor="c-email" className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-neutral-400">
+                <label htmlFor="c-email" className="mb-1.5 block text-xs font-normal uppercase tracking-wider text-neutral-400">
                   Work Email
                 </label>
                 <input
@@ -193,7 +193,7 @@ export function ContactForm() {
 
             {/* Custom Genre Selector */}
             <div>
-              <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-neutral-400">
+              <label className="mb-2 block text-xs font-normal uppercase tracking-wider text-neutral-400">
                 Message Genre / Template
               </label>
               <div className="flex flex-wrap gap-2">
@@ -204,7 +204,7 @@ export function ContactForm() {
                       key={g.id}
                       type="button"
                       onClick={() => handleGenreSelect(g.id)}
-                      className="rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-200 border"
+                      className="rounded-lg px-3 py-1.5 text-xs font-normal transition-all duration-200 border"
                       style={{
                         borderColor: isSelected ? "#7B61FF" : "var(--border-subtle)",
                         background: isSelected ? "rgba(123, 97, 255, 0.1)" : "rgba(255, 255, 255, 0.02)",
@@ -219,7 +219,7 @@ export function ContactForm() {
             </div>
 
             <div>
-              <label htmlFor="c-msg" className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-neutral-400">
+              <label htmlFor="c-msg" className="mb-1.5 block text-xs font-normal uppercase tracking-wider text-neutral-400">
                 Message Details
               </label>
               <textarea

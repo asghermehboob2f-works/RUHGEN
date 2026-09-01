@@ -97,20 +97,20 @@ export function BentoHighlights({ hideTitle = false }: { hideTitle?: boolean }) 
           </motion.div>
         )}
 
-        <div className="grid auto-rows-fr gap-2.5 sm:gap-3 md:grid-cols-3 md:gap-4">
+        <div className="grid auto-rows-fr gap-3 sm:gap-4 md:grid-cols-3">
           {tiles.map((t, i) => (
             <motion.div
               key={t.title}
-              initial={reduce ? false : { opacity: 0, y: 20 }}
+              initial={reduce ? false : { opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-40px" }}
               transition={{ delay: reduce ? 0 : i * 0.05, duration: 0.4 }}
-              className={`premium-ring group relative flex h-full flex-col overflow-hidden rounded-[1rem] border p-3.5 sm:rounded-2xl sm:p-5 md:p-6 ${t.span}`}
+              className={`group relative flex h-full flex-col overflow-hidden rounded-2xl border p-5 sm:p-6 backdrop-blur-xl transition-all duration-500 hover:border-border/80 ${t.span}`}
               style={
                 {
                   borderColor: "var(--border-subtle)",
                   background: "var(--glass)",
-                  backdropFilter: "blur(20px)",
+                  boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.03)",
                   ["--tile-glow" as string]: t.glow,
                 } as React.CSSProperties
               }
@@ -123,63 +123,53 @@ export function BentoHighlights({ hideTitle = false }: { hideTitle?: boolean }) 
                 className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
                 aria-hidden
                 style={{
-                  background: `radial-gradient(ellipse 70% 55% at 0% 0%, color-mix(in srgb, ${t.glow} 28%, transparent), transparent 60%)`,
+                  background: `radial-gradient(ellipse 70% 55% at 0% 0%, color-mix(in srgb, ${t.glow} 24%, transparent), transparent 60%)`,
                 }}
               />
               <div
-                className="relative mb-3 flex h-9 w-9 items-center justify-center rounded-lg border sm:mb-4 sm:h-10 sm:w-10"
+                className="relative mb-4 flex h-9 w-9 items-center justify-center rounded-lg border"
                 style={{
                   borderColor: "var(--border-subtle)",
-                  background: `linear-gradient(135deg, color-mix(in srgb, ${t.glow} 24%, transparent) 0%, rgba(255,255,255,0.06) 60%, rgba(0,0,0,0.0) 100%)`,
-                  boxShadow: `0 0 0 1px rgba(255,255,255,0.06) inset, 0 18px 45px -28px color-mix(in srgb, ${t.glow} 55%, transparent)`,
+                  background: `linear-gradient(135deg, color-mix(in srgb, ${t.glow} 20%, transparent) 0%, rgba(255,255,255,0.04) 60%, rgba(0,0,0,0.0) 100%)`,
+                  boxShadow: `0 0 0 1px rgba(255,255,255,0.04) inset`,
                 }}
               >
-                <t.icon className="h-4 w-4 sm:h-[18px] sm:w-[18px]" strokeWidth={1.75} style={{ color: t.glow }} />
+                <t.icon className="h-4 w-4" strokeWidth={1.5} style={{ color: t.glow }} />
               </div>
               <h3
-                className="font-display relative text-sm font-bold leading-snug sm:text-base md:text-lg"
+                className="font-display relative text-sm font-semibold leading-snug sm:text-base"
                 style={{ color: "var(--text-primary)" }}
               >
                 {t.title}
               </h3>
               <p
-                className="relative mt-1.5 text-xs leading-relaxed sm:mt-2 sm:text-[13px] sm:leading-relaxed"
+                className="relative mt-2 text-[11.5px] leading-relaxed font-light sm:text-xs sm:leading-relaxed"
                 style={{ color: "var(--text-muted)" }}
               >
                 {t.desc}
               </p>
-              <div className="mt-auto pt-4 sm:pt-5">
+              <div className="mt-auto pt-5">
                 <div className="h-px w-full" style={{ background: "rgba(255,255,255,0.06)" }} />
-                <div className="mt-2 flex min-h-[32px] items-center justify-between gap-2 sm:gap-3">
+                <div className="mt-3 flex items-center justify-between gap-2">
                   <p
-                    className="min-w-0 flex-1 text-[10px] font-semibold uppercase leading-tight tracking-[0.14em] sm:text-[11px]"
+                    className="min-w-0 flex-1 text-[9px] font-mono font-medium uppercase leading-tight tracking-[0.14em]"
                     style={{ color: "var(--text-subtle)" }}
                   >
                     {t.tag}
                   </p>
                   <Link
                     href={t.learnMoreHref}
-                    className="group/cta relative inline-flex shrink-0 items-center gap-0.5 rounded-md border border-[var(--border-subtle)] px-2 py-1 text-[11px] font-medium leading-tight tracking-wide text-[var(--text-muted)] transition-[color,background-color,border-color,box-shadow,transform] duration-200 ease-out hover:border-[color:color-mix(in_srgb,var(--tile-glow)_38%,var(--border-subtle))] hover:text-[var(--text-primary)] hover:shadow-[0_1px_0_rgba(255,255,255,0.05)_inset] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[color:color-mix(in_srgb,var(--tile-glow)_55%,transparent)] sm:gap-1 sm:px-2.5 sm:py-1.5 sm:text-xs"
+                    className="group/cta relative inline-flex shrink-0 items-center gap-1 rounded-md border border-[var(--border-subtle)] px-2.5 py-1 text-[10.5px] font-mono tracking-wider uppercase text-[var(--text-muted)] transition-[color,background-color,border-color] duration-200 hover:border-[color:color-mix(in_srgb,var(--tile-glow)_38%,var(--border-subtle))] hover:text-[var(--text-primary)]"
                     style={{
-                      background:
-                        "linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.015) 100%)",
+                      background: "rgba(255, 255, 255, 0.03)",
                     }}
                   >
-                    <span
-                      aria-hidden
-                      className="absolute inset-0 rounded-md opacity-0 transition-opacity duration-200 group-hover/cta:opacity-100"
-                      style={{
-                        background:
-                          "linear-gradient(135deg, color-mix(in srgb, var(--tile-glow) 11%, transparent) 0%, transparent 55%)",
-                      }}
-                    />
                     <span className="relative whitespace-nowrap">Learn more</span>
                     <ChevronRight
-                      className="relative h-3 w-3 shrink-0 opacity-65 transition-[opacity,transform] duration-200 group-hover/cta:translate-x-[1px] group-hover/cta:opacity-100 sm:h-3.5 sm:w-3.5"
-                      strokeWidth={2.25}
+                      className="relative h-3 w-3 shrink-0 opacity-65 transition-transform duration-200 group-hover/cta:translate-x-0.5 group-hover/cta:opacity-100"
+                      strokeWidth={2}
                       aria-hidden
                     />
-                    <span className="sr-only"> about {t.title}</span>
                   </Link>
                 </div>
               </div>

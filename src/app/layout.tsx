@@ -74,18 +74,6 @@ const quadratGrotesk = localFont({
   display: "swap",
 });
 
-const hypnoticColr = localFont({
-  src: "../../public/fonts/Hypnotic 01-COLR.otf",
-  variable: "--font-hypnotic-colr",
-  display: "swap",
-});
-
-const hypnoticOutline = localFont({
-  src: "../../public/fonts/Hypnotic 01 Outline.otf",
-  variable: "--font-hypnotic-outline",
-  display: "swap",
-});
-
 const toqsi = localFont({
   src: "../../public/fonts/Toqsi-Regular.otf",
   variable: "--font-toqsi",
@@ -119,12 +107,12 @@ const ticdar = localFont({
   src: [
     {
       path: "../../public/fonts/Ticdar-Regular.otf",
-      weight: "400 600",
+      weight: "400",
       style: "normal",
     },
     {
       path: "../../public/fonts/Ticdar-SemiBold.otf",
-      weight: "700 900",
+      weight: "600",
       style: "normal",
     },
   ],
@@ -241,7 +229,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${interTight.variable} ${jetbrains.variable} ${syne.variable} ${bricolage.variable} ${shootingStar.variable} ${calsans.variable} ${bungeeHairline.variable} ${ningetan.variable} ${signatie.variable} ${quadratGrotesk.variable} ${ticdar.variable} ${rink.variable} ${hypnoticColr.variable} ${hypnoticOutline.variable} ${toqsi.variable} ${nareko.variable} h-full scroll-smooth antialiased`}
+      className={`${inter.variable} ${interTight.variable} ${jetbrains.variable} ${syne.variable} ${bricolage.variable} ${shootingStar.variable} ${calsans.variable} ${bungeeHairline.variable} ${ningetan.variable} ${signatie.variable} ${quadratGrotesk.variable} ${ticdar.variable} ${rink.variable} ${toqsi.variable} ${nareko.variable} h-full scroll-smooth antialiased`}
       suppressHydrationWarning
     >
       <head>

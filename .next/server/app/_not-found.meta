@@ -8,14 +8,13 @@
   "segmentPaths": [
     "/_tree",
     "/_full",
-    "/_index",
     "/_not-found/__PAGE__"
   ],
   "prefetchHints": {
-    "hints": 0,
+    "hints": 64,
     "slots": {
       "children": {
-        "hints": 64,
+        "hints": 96,
         "slots": {
           "children": {
             "hints": 160,

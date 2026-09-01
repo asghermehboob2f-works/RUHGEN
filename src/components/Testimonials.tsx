@@ -46,7 +46,7 @@ export function Testimonials({ quotes }: { quotes?: TestimonialItem[] }) {
         <div className="mb-14 text-center">
           {/* Enhanced Badge */}
           <div className="relative mb-5 inline-flex items-center justify-center rounded-full border border-border bg-card/30 px-5 py-1.5 backdrop-blur-2xl transition-all duration-500 hover:border-brand-purple/20">
-            <span className="text-[8px] font-semibold uppercase tracking-[0.4em] text-muted-foreground ml-[0.5em]">
+            <span className="text-[8px] font-normal uppercase tracking-[0.4em] text-muted-foreground ml-[0.5em]">
               Industry Endorsements
             </span>
           </div>
@@ -61,7 +61,7 @@ export function Testimonials({ quotes }: { quotes?: TestimonialItem[] }) {
         </div>
 
         {/* Enhanced grid layout to support perfect responsive viewing on all mobile/tablet views */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-6">
           {activeQuotes.map((q, i) => (
             <motion.article
               key={q.id || q.name}
@@ -69,42 +69,42 @@ export function Testimonials({ quotes }: { quotes?: TestimonialItem[] }) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-40px" }}
               transition={{ duration: 0.7, delay: i * 0.08 }}
-              className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border/40 bg-card/20 p-6 sm:p-8 backdrop-blur-2xl transition-all duration-700 hover:border-border hover:bg-card/35"
+              className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border/40 bg-card/20 p-5 sm:p-6 backdrop-blur-2xl transition-all duration-700 hover:border-border/80 hover:bg-card/35"
               style={{
-                boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.01)",
+                boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.02)",
               }}
             >
               <div className="relative z-10 flex flex-col h-full justify-between">
                 <div>
                   <div className="flex items-center justify-between">
                     <Quote
-                      className="h-6 w-6 shrink-0 text-foreground opacity-10 transition-all duration-1000 group-hover:opacity-20"
+                      className="h-5 w-5 shrink-0 text-foreground opacity-15 transition-all duration-700 group-hover:opacity-30"
                       strokeWidth={1.5}
                     />
                   </div>
                   
-                  {/* Clean Normal Typography for quote body */}
+                  {/* Clean Light Typography for quote body */}
                   <blockquote
-                    className="mt-6 flex-1 text-[12px] sm:text-xs leading-relaxed font-normal tracking-wide text-muted-foreground/60 group-hover:text-muted-foreground/90 transition-colors duration-700"
+                    className="mt-4 flex-1 text-[11.5px] sm:text-xs leading-relaxed font-light tracking-wide text-muted-foreground/75 group-hover:text-muted-foreground transition-colors duration-500"
                   >
                     &ldquo;{q.body}&rdquo;
                   </blockquote>
                 </div>
 
                 <div
-                  className="mt-8 border-t border-border/40 pt-6 flex items-center gap-3.5"
+                  className="mt-6 border-t border-border/40 pt-4 flex items-center gap-3"
                 >
                   {/* Unique author initials bubble with brand gradient and thin border */}
-                  <div className={`h-9 w-9 rounded-full bg-gradient-to-br ${q.avatarColor || 'from-zinc-800 to-zinc-900'} flex items-center justify-center border border-border shadow-lg text-[10px] font-bold text-white tracking-wide relative overflow-hidden group-hover:border-border transition-colors duration-500`}>
+                  <div className={`h-8 w-8 rounded-full bg-gradient-to-br ${q.avatarColor || 'from-zinc-800 to-zinc-900'} flex items-center justify-center border border-border/60 shadow-md text-[9.5px] font-bold text-white tracking-wide relative overflow-hidden shrink-0`}>
                     <div className="absolute inset-0 bg-black/10 mix-blend-overlay" />
                     <span className="relative z-10">{q.initials}</span>
                   </div>
                   
-                  <div>
-                    <p className="font-display text-sm font-semibold tracking-wide text-foreground transition-colors duration-500">
+                  <div className="min-w-0">
+                    <p className="font-display text-xs font-semibold tracking-wide text-foreground transition-colors duration-500 truncate">
                       {q.name}
                     </p>
-                    <p className={`mt-1 text-[8px] uppercase tracking-[0.2em] text-muted-foreground/80 font-semibold transition-colors duration-500 ${q.hoverColor || 'group-hover:text-muted-foreground'}`}>
+                    <p className={`mt-0.5 text-[8.5px] uppercase tracking-[0.16em] font-mono text-muted-foreground/70 transition-colors duration-500 truncate ${q.hoverColor || 'group-hover:text-muted-foreground'}`}>
                       {q.role}
                     </p>
                   </div>

@@ -62,6 +62,10 @@ const nextConfig: NextConfig = {
         source: "/media/:path*",
         destination: `${backend}/media/:path*`,
       },
+      {
+        source: "/community-media/:path*",
+        destination: `${backend}/community-media/:path*`,
+      },
     ];
   },
 };

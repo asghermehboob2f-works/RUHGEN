@@ -93,7 +93,7 @@ check("public/fonts: all 12 custom font files present", () => {
     "CalSans-Regular.ttf", "BungeeHairline-Regular.ttf",
     "Shooting Star.ttf", "Signatie.otf", "Ningetan.ttf",
     "Quadrat Grotesk W01 Regular.ttf",
-    "Hypnotic 01-COLR.otf", "Hypnotic 01 Outline.otf",
+    "Nareko.ttf", "Toqsi-Regular.otf",
   ];
   const missing = required.filter(f => !fs.existsSync(path.join(fontsDir, f)));
   if (missing.length) throw new Error(`Missing: ${missing.join(", ")}`);

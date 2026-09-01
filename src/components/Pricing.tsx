@@ -586,10 +586,10 @@ export function Pricing({ hideHeading = false, plans }: { hideHeading?: boolean;
             return (
               <motion.div
                 key={plan.id || idx}
-                whileHover={reduce ? undefined : { y: -6 }}
+                whileHover={reduce ? undefined : { y: -4 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
-                className={`relative flex flex-col justify-between rounded-2xl border p-6 sm:p-8 ${
-                  isPro ? "xl:scale-[1.04]" : ""
+                className={`relative flex flex-col justify-between rounded-2xl border p-5 sm:p-6 ${
+                  isPro ? "xl:scale-[1.02]" : ""
                 }`}
                 style={cardStyle}
               >
@@ -604,7 +604,7 @@ export function Pricing({ hideHeading = false, plans }: { hideHeading?: boolean;
                 {/* Popular / Best Value Badge */}
                 {plan.badge && (
                   <span
-                    className={`absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-3.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-white shadow-lg ${
+                    className={`absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-3 py-0.5 text-[8.5px] font-mono uppercase tracking-widest text-white shadow-md ${
                       isPro ? "bg-gradient-to-r from-[#7B61FF] to-[#00D4FF]" : "bg-gradient-to-r from-[#FF2E9A] to-[#7B61FF]"
                     }`}
                   >
@@ -616,10 +616,10 @@ export function Pricing({ hideHeading = false, plans }: { hideHeading?: boolean;
                   {/* Card Header */}
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="text-lg font-bold font-display text-foreground">
+                      <h3 className="text-base font-semibold font-display text-foreground">
                         {plan.name}
                       </h3>
-                      <p className="mt-1 text-[11px] leading-tight" style={{ color: "var(--text-muted)" }}>
+                      <p className="mt-1 text-[11px] leading-tight font-light" style={{ color: "var(--text-muted)" }}>
                         {isFree
                           ? "Explore core capabilities"
                           : isPro
@@ -633,59 +633,54 @@ export function Pricing({ hideHeading = false, plans }: { hideHeading?: boolean;
 
                   {/* Price Block */}
                   {isCustom ? (
-                    <div className="mt-6 flex flex-col justify-end min-h-[52px]">
-                      <span className="text-3xl font-extrabold tracking-tight font-display text-foreground">
+                    <div className="mt-5 flex flex-col justify-end min-h-[44px]">
+                      <span className="text-2xl font-bold tracking-tight font-display text-foreground">
                         Custom
                       </span>
-                      <span className="text-[10px] font-semibold tracking-wider uppercase mt-1" style={{ color: "var(--text-subtle)" }}>
+                      <span className="text-[9.5px] font-mono tracking-wider uppercase mt-0.5" style={{ color: "var(--text-subtle)" }}>
                         Enterprise Solution
                       </span>
                     </div>
                   ) : (
-                    <div className="mt-6 flex items-baseline min-h-[52px]">
+                    <div className="mt-5 flex items-baseline min-h-[44px]">
                       <span
-                        className="text-3xl font-black mr-0.5 leading-none"
+                        className="text-2xl font-black mr-0.5 leading-none"
                         style={{
                           fontFamily: "var(--font-calsans)",
                           color: isPro ? "#00D4FF" : isPlus ? "#FF2E9A" : "var(--text-primary)",
-                          textShadow: isPro
-                            ? "0 0 18px rgba(0,212,255,0.45)"
-                            : isPlus
-                            ? "0 0 18px rgba(255,46,154,0.45)"
-                            : "none",
                         }}
                       >
                         ₹
                       </span>
-                      <span className="text-4xl font-extrabold tracking-tight font-display text-foreground">
+                      <span className="text-3xl font-bold tracking-tight font-display text-foreground">
                         {price.toLocaleString("en-IN")}
                       </span>
-                      <span className="text-[11px] font-semibold ml-1.5" style={{ color: "var(--text-muted)" }}>
+                      <span className="text-[10.5px] font-normal ml-1.5" style={{ color: "var(--text-muted)" }}>
                         {suffix}
                       </span>
                     </div>
                   )}
 
                   {/* Credits Pill / Status */}
-                  <div className="mt-4 flex items-center justify-between p-2 rounded-lg bg-card/40 border border-border/50">
-                    <span className="text-[10px] font-mono font-medium tracking-wide uppercase text-muted-foreground">Monthly Allowance</span>
-                    <span className="px-2 py-0.5 rounded text-[9px] font-black font-mono tracking-wider" style={{ background: "var(--border-subtle)", color: isPro ? "#00D4FF" : isPlus ? "#FF2E9A" : "var(--text-primary)" }}>
+                  <div className="mt-3.5 flex items-center justify-between p-2 rounded-lg bg-card/30 border border-border/40 text-[9.5px] font-mono">
+                    <span className="tracking-wide uppercase text-muted-foreground/75">Monthly Allowance</span>
+                    <span className="px-2 py-0.5 rounded font-mono font-medium tracking-wider" style={{ background: "var(--border-subtle)", color: isPro ? "#00D4FF" : isPlus ? "#FF2E9A" : "var(--text-primary)" }}>
                       {isCustom ? "Custom" : `${plan.credits} Credits`}
                     </span>
                   </div>
 
                   {/* Divider */}
-                  <div className="h-[1px] my-5 bg-border/60 w-full" />
+                  <div className="h-[1px] my-4 bg-border/50 w-full" />
 
                   {/* Feature List */}
-                  <ul className="flex flex-col gap-3">
+                  <ul className="flex flex-col gap-2.5">
                     {plan.features.map((feature, fidx) => (
-                      <li key={fidx} className="flex items-start gap-2.5 text-[11.5px] leading-relaxed">
+                      <li key={fidx} className="flex items-start gap-2 text-[11px] leading-relaxed font-light">
                         <Check
-                           className={`h-4 w-4 shrink-0 mt-0.5 ${
+                           className={`h-3.5 w-3.5 shrink-0 mt-0.5 ${
                             isPro ? "text-[#00D4FF]" : isPlus ? "text-[#FF2E9A]" : "text-[#7B61FF]"
                           }`}
-                          strokeWidth={3}
+                          strokeWidth={2.5}
                         />
                         <span style={{ color: "var(--text-muted)" }}>{feature}</span>
                       </li>
@@ -696,8 +691,8 @@ export function Pricing({ hideHeading = false, plans }: { hideHeading?: boolean;
                 {/* Card CTA */}
                 <Link
                   href={getPlanLink(plan)}
-                  className={`mt-8 block w-full rounded-xl py-3 text-center text-xs font-bold uppercase tracking-wider transition-all hover:opacity-90 active:scale-[0.98] ${
-                    isPro || isPlus ? "text-white btn-gradient" : "border font-bold"
+                  className={`mt-6 block w-full rounded-xl py-2.5 text-center text-xs font-semibold uppercase tracking-wider transition-all hover:opacity-90 active:scale-[0.98] ${
+                    isPro || isPlus ? "text-white btn-gradient" : "border"
                   }`}
                   style={
                     !(isPro || isPlus)
@@ -717,20 +712,20 @@ export function Pricing({ hideHeading = false, plans }: { hideHeading?: boolean;
         </div>
 
         {/* Credit Explanation section */}
-        <div className="mb-28 rounded-2xl border border-border bg-card/10 p-8 sm:p-12 relative overflow-hidden">
+        <div className="mb-24 rounded-2xl border border-border bg-card/10 p-6 sm:p-10 relative overflow-hidden">
           <div className="pointer-events-none absolute inset-0 opacity-10 bg-radial-at-t from-[#7B61FF] via-transparent to-transparent" />
 
-          <div className="relative text-center max-w-xl mx-auto mb-12">
-            <p className="font-mono text-[9px] font-bold uppercase tracking-[0.2em]" style={{ color: "var(--primary-cyan)" }}>Dynamic Rendering Weights</p>
-            <h3 className="font-display mt-2 text-2xl font-bold text-foreground">
+          <div className="relative text-center max-w-xl mx-auto mb-10">
+            <p className="font-mono text-[9px] font-normal uppercase tracking-[0.2em]" style={{ color: "var(--primary-cyan)" }}>Dynamic Rendering Weights</p>
+            <h3 className="font-display mt-2 text-xl font-bold text-foreground sm:text-2xl">
               Understanding Credit Rates
             </h3>
-            <p className="mt-3 text-xs sm:text-sm" style={{ color: "var(--text-muted)" }}>
-              Credits are spent dynamically depending on the compute power required. Fast iterations optimize your workflow, while production engines deliver ultimate fidelity.
+            <p className="mt-2 text-xs sm:text-sm font-light" style={{ color: "var(--text-muted)" }}>
+              Credits are spent dynamically depending on compute power required.
             </p>
           </div>
 
-          <div className="relative grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="relative grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {CREDIT_RATES.map((rate, idx) => {
               const Icon = rate.icon;
               let costDisplay = rate.cost;
@@ -740,17 +735,17 @@ export function Pricing({ hideHeading = false, plans }: { hideHeading?: boolean;
               if (idx === 3) costDisplay = `${liveRates.cost_video_pro} credits / second`;
 
               return (
-                <div key={idx} className="rounded-xl border border-border/60 bg-card/30 p-5 flex flex-col justify-between">
+                <div key={idx} className="rounded-xl border border-border/50 bg-card/25 p-4 flex flex-col justify-between">
                   <div>
-                    <div className="h-9 w-9 rounded-lg flex items-center justify-center bg-card mb-4">
-                      <Icon className="h-5 w-5" style={{ color: rate.color }} />
+                    <div className="h-8 w-8 rounded-lg flex items-center justify-center bg-card/40 border border-border/40 mb-3">
+                      <Icon className="h-4 w-4" style={{ color: rate.color }} strokeWidth={1.5} />
                     </div>
-                    <h4 className="text-[11px] font-extrabold tracking-wider uppercase text-muted-foreground">{rate.action}</h4>
-                    <p className="text-[10px] font-semibold text-text-subtle mt-1">{rate.model}</p>
-                    <p className="text-[11.5px] text-muted-foreground leading-relaxed mt-3">{rate.description}</p>
+                    <h4 className="text-[10.5px] font-mono tracking-wider uppercase text-muted-foreground">{rate.action}</h4>
+                    <p className="text-[9.5px] font-mono text-muted-foreground/60 mt-0.5">{rate.model}</p>
+                    <p className="text-[11px] text-muted-foreground/80 leading-relaxed mt-2 font-light">{rate.description}</p>
                   </div>
-                  <div className="mt-5 border-t border-border/60 pt-3">
-                    <span className="text-[12px] font-bold" style={{ color: rate.color }}>{costDisplay}</span>
+                  <div className="mt-4 border-t border-border/50 pt-2.5">
+                    <span className="text-[11px] font-mono font-semibold" style={{ color: rate.color }}>{costDisplay}</span>
                   </div>
                 </div>
               );
@@ -761,11 +756,11 @@ export function Pricing({ hideHeading = false, plans }: { hideHeading?: boolean;
         {/* Feature Comparison Table Section */}
         <div className="mb-28">
           <div className="text-center mb-12">
-            <p className="font-mono text-[9px] font-bold uppercase tracking-[0.2em]" style={{ color: "var(--primary-purple)" }}>Side-by-Side Comparison</p>
+            <p className="font-mono text-[9px] font-normal uppercase tracking-[0.2em]" style={{ color: "var(--primary-purple)" }}>Side-by-Side Comparison</p>
             <h3 className="font-display mt-2 text-2xl font-bold text-foreground">
               Compare Features in Detail
             </h3>
-            <p className="mt-3 text-xs sm:text-sm" style={{ color: "var(--text-muted)" }}>
+            <p className="mt-3 text-xs sm:text-sm font-light" style={{ color: "var(--text-muted)" }}>
               A full technical breakdown of capability ceilings and pipeline infrastructure.
             </p>
           </div>
@@ -774,7 +769,7 @@ export function Pricing({ hideHeading = false, plans }: { hideHeading?: boolean;
             <table className="w-full text-left border-collapse min-w-[750px]">
               <thead>
                 <tr className="border-b border-border bg-card/10">
-                  <th className="p-5 text-xs font-bold uppercase tracking-wider text-muted-foreground/60">Technical Specs</th>
+                  <th className="p-5 text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">Technical Specs</th>
                   {activePlans.map((plan, idx) => (
                     <th key={idx} className="p-5 text-sm font-bold w-[20%]" style={{ color: "var(--text-primary)" }}>
                       {plan.name}
@@ -786,15 +781,15 @@ export function Pricing({ hideHeading = false, plans }: { hideHeading?: boolean;
                 {COMPARISON_SECTIONS.map((section, sidx) => (
                   <React.Fragment key={sidx}>
                     <tr className="bg-card/5">
-                      <td colSpan={1 + activePlans.length} className="p-4 text-xs font-bold uppercase tracking-wider text-[#7B61FF]">
+                      <td colSpan={1 + activePlans.length} className="p-4 text-xs font-semibold uppercase tracking-wider text-[#7B61FF]">
                         {section.category}
                       </td>
                     </tr>
                     {section.rows.map((row, ridx) => (
                       <tr key={ridx} className="hover:bg-card/20 transition-colors">
-                        <td className="p-5 text-xs font-semibold text-foreground/80">{row.name}</td>
+                        <td className="p-5 text-xs font-normal text-foreground/80">{row.name}</td>
                         {activePlans.map((plan, pidx) => (
-                          <td key={pidx} className="p-5 text-xs font-semibold text-muted-foreground">
+                          <td key={pidx} className="p-5 text-xs font-normal text-muted-foreground">
                             {row.getVal(plan)}
                           </td>
                         ))}

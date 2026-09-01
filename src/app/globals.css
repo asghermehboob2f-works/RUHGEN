@@ -84,16 +84,14 @@ html.light {
 @theme inline {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, monospace;
-  --font-display: var(--font-rink), var(--font-ticdar), var(--font-inter-tight), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-inter-tight), var(--font-syne), var(--font-bricolage), var(--font-ticdar), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-inter-tight), var(--font-syne), var(--font-bricolage), var(--font-ticdar), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-ticdar: var(--font-ticdar), var(--font-inter-tight), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-rink: var(--font-rink), var(--font-ticdar), var(--font-inter-tight), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-ticdar: var(--font-rink), var(--font-ticdar), var(--font-inter-tight), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-premium: var(--font-bricolage), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-shooting-star: var(--font-shooting-star), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-calsans: var(--font-calsans), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-bungee-hairline: var(--font-bungee-hairline), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-quadrat: var(--font-quadrat-grotesk), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-hypnotic-colr: var(--font-hypnotic-colr), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-hypnotic-outline: var(--font-hypnotic-outline), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-toqsi: var(--font-toqsi), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-nareko: var(--font-nareko), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --color-brand-purple: #7b61ff;
@@ -118,12 +116,12 @@ html.light {
   --color-glass-elevated-bg: var(--glass-elevated);
 
   /* Premium Responsive Typography Scale */
-  --text-hero-title: clamp(1.65rem, 8vw, 5rem);
-  --text-hero-subtitle: clamp(1.1rem, 2.5vw, 1.5rem);
-  --text-section-title: clamp(1.65rem, 5vw, 2.5rem);
-  --text-page-title: clamp(1.85rem, 6vw, 3.25rem);
-  --text-display-lg: clamp(1.5rem, 4vw, 2.25rem);
-  --text-display-md: clamp(1.25rem, 3vw, 1.75rem);
+  --text-hero-title: clamp(1.75rem, 6vw, 4.5rem);
+  --text-hero-subtitle: clamp(1rem, 2vw, 1.35rem);
+  --text-section-title: clamp(1.5rem, 4.5vw, 2.5rem);
+  --text-page-title: clamp(1.75rem, 5vw, 3.25rem);
+  --text-display-lg: clamp(1.4rem, 3.5vw, 2.25rem);
+  --text-display-md: clamp(1.2rem, 2.5vw, 1.75rem);
 }
 
 html {
@@ -183,23 +181,50 @@ html.light .nav-scroll-x {
   color: var(--text-primary);
 }
 
-.font-display {
-  font-family: var(--font-rink), var(--font-ticdar), var(--font-inter-tight), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-}
-
-.font-rink {
-  font-family: var(--font-rink), var(--font-ticdar), var(--font-inter-tight), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+.font-display,
+.font-heading {
+  font-family: var(--font-inter-tight), var(--font-syne), var(--font-bricolage), var(--font-ticdar), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.005em;
 }
 
 .font-ticdar {
-  font-family: var(--font-rink), var(--font-ticdar), var(--font-inter-tight), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-ticdar), var(--font-inter-tight), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.02em;
 }
 
-/* Site-wide Headings Formatting — Standardized to Rink Font (Regular / Medium) */
+.font-rink {
+  font-family: var(--font-rink), var(--font-inter-tight), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.02em;
+}
+
+/* Base text wrapping to prevent clipping & overflow across all viewports */
+p, span, label, button, a, div {
+  overflow-wrap: break-word;
+}
+
+/* Lower/Secondary Text Refinement — Light, clean, refined editorial typography */
+p {
+  font-weight: 300;
+  letter-spacing: 0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.text-muted,
+.text-subtle,
+.text-secondary,
+.text-muted-foreground {
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Site-wide Headings Formatting — Standardized line heights and safety margins */
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-rink), var(--font-ticdar), var(--font-inter-tight), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-inter-tight), var(--font-syne), var(--font-bricolage), var(--font-ticdar), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   font-weight: 500;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.005em;
+  line-height: 1.22;
+  overflow-wrap: break-word;
 }
 
 .font-shooting-star {
@@ -216,14 +241,6 @@ h1, h2, h3, h4, h5, h6 {
 
 .font-quadrat {
   font-family: var(--font-quadrat-grotesk), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-}
-
-.font-hypnotic-colr {
-  font-family: var(--font-hypnotic-colr), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-}
-
-.font-hypnotic-outline {
-  font-family: var(--font-hypnotic-outline), var(--font-syne), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
 .font-toqsi {
@@ -577,35 +594,35 @@ html.light .app-grain {
 }
 
 .surface-card {
-  border-radius: 1.25rem;
+  border-radius: 1rem;
   border: 1px solid var(--border-subtle);
   background: var(--glass);
   box-shadow:
-    0 4px 32px -8px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    0 4px 24px -8px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 html.light .surface-card {
   box-shadow:
-    0 4px 32px -8px rgba(0, 0, 0, 0.06),
+    0 4px 24px -8px rgba(0, 0, 0, 0.05),
     inset 0 1px 0 rgba(255, 255, 255, 0.85);
 }
 
 /* Clean, classic high-end studio card frame */
 .border-gradient-premium {
-  border-radius: 1.25rem;
+  border-radius: 1rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: #11131c;
+  background: #0d0e15;
   box-shadow:
-    0 16px 48px -24px rgba(0, 0, 0, 0.65),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    0 12px 36px -20px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 html.light .border-gradient-premium {
   background: #ffffff;
   border-color: rgba(0, 0, 0, 0.08);
   box-shadow:
-    0 4px 36px -10px rgba(0, 0, 0, 0.08),
+    0 4px 24px -10px rgba(0, 0, 0, 0.06),
     inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 

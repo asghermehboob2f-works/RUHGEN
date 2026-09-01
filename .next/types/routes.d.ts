@@ -6,7 +6,7 @@ type AppRouteHandlerRoutes = "/api/demo/flux-image"
 type PageRoutes = never
 type LayoutRoutes = "/" | "/admin" | "/admindashboard" | "/dashboard" | "/forgot-password" | "/reset-password" | "/sign-in" | "/sign-up" | "/verify"
 type RedirectRoutes = never
-type RewriteRoutes = "/api/[[...path]]" | "/media/[[...path]]"
+type RewriteRoutes = "/api/[[...path]]" | "/community-media/[[...path]]" | "/media/[[...path]]"
 type Routes = AppRoutes | PageRoutes | LayoutRoutes | RedirectRoutes | RewriteRoutes | AppRouteHandlerRoutes
 
 
@@ -33,6 +33,7 @@ interface ParamMap {
   "/api/[[...path]]": { "path"?: string[]; }
   "/api/demo/flux-image": {}
   "/community": {}
+  "/community-media/[[...path]]": { "path"?: string[]; }
   "/contact": {}
   "/dashboard": {}
   "/dashboard/billing": {}

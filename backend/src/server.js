@@ -126,6 +126,8 @@ const mediaStaticOptions = {
 
 app.use("/media", express.static(MEDIA_ROOT, mediaStaticOptions));
 app.use("/media", express.static(PUBLIC_MEDIA_ROOT, mediaStaticOptions));
+app.use("/community-media", express.static(path.join(MEDIA_ROOT, "community-media"), mediaStaticOptions));
+app.use("/community-media", express.static(path.join(PUBLIC_MEDIA_ROOT, "community-media"), mediaStaticOptions));
 
 // --- Root & Health Check ---
 app.get("/", (_req, res) => {

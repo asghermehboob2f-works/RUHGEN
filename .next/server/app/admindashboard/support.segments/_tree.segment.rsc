@@ -1,13 +1,11 @@
-:HL["/_next/static/chunks/0ragaxpiyw76-.css","style"]
-:HL["/_next/static/chunks/212-tu4d2r-py.css","style"]
+:HL["/_next/static/chunks/37o0305f45rp3.css","style"]
+:HL["/_next/static/chunks/2fyxge98gugxt.css","style"]
 :HL["/_next/static/media/017d9bea37084d9b-s.p.41rroleoq1br7.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
 :HL["/_next/static/media/0c795a286deabae8-s.p.3vm0tq4e-zz_5.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
 :HL["/_next/static/media/70bc3e132a0a741e-s.p.3t6q91iet4nsy.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
 :HL["/_next/static/media/83afe278b6a6bb3c-s.p.2bn3s6zvc0dyp.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
 :HL["/_next/static/media/BungeeHairline_Regular-s.p.0tm3ukri9dv60.ttf","font",{"crossOrigin":"","type":"font/ttf"}]
 :HL["/_next/static/media/CalSans_Regular-s.p.3fqwolu3o5gh6.ttf","font",{"crossOrigin":"","type":"font/ttf"}]
-:HL["/_next/static/media/Hypnotic%2001%20Outline-s.p.0yrjyscf_vlvg.otf","font",{"crossOrigin":"","type":"font/otf"}]
-:HL["/_next/static/media/Hypnotic%2001_COLR-s.p.38smppn1pwxk7.otf","font",{"crossOrigin":"","type":"font/otf"}]
 :HL["/_next/static/media/Nareko-s.p.277_9ione3nds.ttf","font",{"crossOrigin":"","type":"font/ttf"}]
 :HL["/_next/static/media/Ningetan-s.p.0da7dr9do2ahb.ttf","font",{"crossOrigin":"","type":"font/ttf"}]
 :HL["/_next/static/media/Quadrat%20Grotesk%20W01%20Regular-s.p.399zwsqa-qda_.ttf","font",{"crossOrigin":"","type":"font/ttf"}]
@@ -19,4 +17,4 @@
 :HL["/_next/static/media/Ticdar_SemiBold-s.p.1xvj_mfng5cri.otf","font",{"crossOrigin":"","type":"font/otf"}]
 :HL["/_next/static/media/Toqsi_Regular-s.p.2wl-0f_2y0by9.otf","font",{"crossOrigin":"","type":"font/otf"}]
 :HL["/_next/static/media/ab57efd000576a30-s.p.3fofz6dws3mg0.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
-0:{"tree":{"name":"","param":null,"prefetchHints":4112,"slots":{"children":{"name":"admindashboard","param":null,"prefetchHints":4160,"slots":{"children":{"name":"support","param":null,"prefetchHints":4192,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":4256,"slots":null}}}}}}},"staleTime":300,"buildId":"o6WWtgH-vBxeB1wtdU7C9"}
+0:{"tree":{"name":"","param":null,"prefetchHints":4176,"slots":{"children":{"name":"admindashboard","param":null,"prefetchHints":4192,"slots":{"children":{"name":"support","param":null,"prefetchHints":4192,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":4256,"slots":null}}}}}}},"staleTime":300,"buildId":"49vW4UGoJ2XtnL6Qw9Fju"}

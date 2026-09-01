@@ -35,14 +35,14 @@ export function ContactPageContent() {
                 Let&apos;s talk about <br />
                 <span className="premium-text-shimmer font-black">what is next.</span>
               </h1>
-              <p className="mt-5 max-w-lg text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
+              <p className="mt-5 max-w-lg text-base leading-relaxed font-light" style={{ color: "var(--text-muted)" }}>
                 Whether you want to report a system bug, suggest a new engine feature, or discuss custom workspace licenses, our team reads every single message.
               </p>
             </header>
 
             {/* Quick-nav buttons */}
             <div className="mt-10 flex flex-col gap-3 max-w-md">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: "var(--text-subtle)" }}>
+              <p className="text-[10px] font-normal uppercase tracking-[0.2em]" style={{ color: "var(--text-subtle)" }}>
                 Helpful Resources
               </p>
               {[
@@ -70,10 +70,10 @@ export function ContactPageContent() {
                     <x.Icon className="h-4.5 w-4.5 text-[#7B61FF]" strokeWidth={2} />
                   </div>
                   <div>
-                    <p className="font-display text-sm font-bold tracking-tight text-white">
+                    <p className="font-display text-sm font-semibold tracking-tight text-white">
                       {x.label}
                     </p>
-                    <p className="text-[11px] text-neutral-400">
+                    <p className="text-[11px] font-light text-neutral-400">
                       {x.sub}
                     </p>
                   </div>

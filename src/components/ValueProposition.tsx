@@ -72,21 +72,21 @@ export function ValueProposition({ pillars }: { pillars?: PillarItem[] }) {
         >
           {/* Elegant Badge */}
           <div className="relative mb-5 inline-flex items-center justify-center rounded-full border border-border/60 bg-card/10 px-5 py-1.5 backdrop-blur-2xl transition-all duration-500 hover:border-brand-purple/20">
-            <span className="text-[8px] font-semibold uppercase tracking-[0.4em] text-muted-foreground/60 ml-[0.4em]">
+            <span className="text-[8px] font-normal uppercase tracking-[0.4em] text-muted-foreground/60 ml-[0.4em]">
               Platform Architecture
             </span>
           </div>
 
           {/* display heading with clean, confident typography */}
           <h2
-            className="font-display text-[clamp(2rem,5vw,3.75rem)] font-extrabold leading-[1.05] tracking-[-0.03em] text-foreground"
+            className="font-display text-[clamp(2rem,5vw,3.75rem)] font-bold leading-tight tracking-normal text-foreground"
           >
             One engine. <br className="md:hidden" />
             <span className="text-foreground">Infinite vision.</span>
           </h2>
           
           <p
-            className="mx-auto mt-5 max-w-lg text-xs sm:text-sm leading-relaxed font-normal tracking-wide text-muted-foreground"
+            className="mx-auto mt-5 max-w-lg text-xs sm:text-sm leading-relaxed font-light tracking-wide text-muted-foreground"
           >
             A cohesive creation space backed by high-fidelity infrastructure—so your creative direction leads, and the tooling follows.
           </p>
@@ -121,42 +121,50 @@ export function ValueProposition({ pillars }: { pillars?: PillarItem[] }) {
                   }}
                 />
 
-                <div className="relative z-10 flex flex-col h-full justify-between">
-                  <div>
-                    
-                    {/* Glowing Iconic Container (Brand integrated) */}
-                    <div
-                      className="mb-6 flex h-11 w-11 items-center justify-center rounded-xl border border-border/50 bg-card/10 transition-all duration-700 group-hover:border-border"
-                    >
-                      <IconComponent className="h-5 w-5 transition-colors duration-500" strokeWidth={1.5} style={{ color: p.accent || '#ffffff' }} />
+                  <div className="relative z-10 flex flex-col h-full justify-between">
+                    <div>
+                      {/* High-tech Icon Badge */}
+                      <div
+                        className="mb-5 flex h-9 w-9 items-center justify-center rounded-lg border border-border/60 bg-card/20 backdrop-blur-md transition-all duration-500 group-hover:border-border"
+                      >
+                        <IconComponent className="h-4 w-4 transition-colors duration-500" strokeWidth={1.5} style={{ color: p.accent || '#ffffff' }} />
+                      </div>
+                      
+                      {/* Crisp, Bold Title */}
+                      <h3
+                        className="font-display text-sm sm:text-base font-semibold tracking-normal text-foreground transition-colors duration-500 leading-snug"
+                      >
+                        {p.title}
+                      </h3>
+                      
+                      {/* Slim, Light Description */}
+                      <p
+                        className="mt-2.5 text-xs sm:text-[13px] leading-relaxed font-light tracking-normal text-muted-foreground/80 transition-colors duration-500 group-hover:text-muted-foreground"
+                      >
+                        {p.body}
+                      </p>
                     </div>
-                    
-                    {/* BOLD Pillar Title */}
-                    <h3
-                      className="font-display text-sm font-semibold tracking-tight text-foreground transition-colors duration-500"
-                    >
-                      {p.title}
-                    </h3>
-                    
-                    {/* Slimmed description text */}
-                    <p
-                      className="mt-3 text-[11.5px] sm:text-xs leading-relaxed font-normal tracking-wide text-muted-foreground/60 transition-colors duration-500 group-hover:text-muted-foreground"
-                    >
-                      {p.body}
-                    </p>
-                  </div>
 
-                  {/* Elegant dynamic capability indicators visible at all times */}
-                  <div className="mt-8 pt-4 border-t border-border/50 flex items-center justify-between text-[8px] font-mono tracking-wider text-muted-foreground/75 transition-colors duration-500 group-hover:text-muted-foreground/90">
-                    <span className="uppercase">{p.cap1}</span>
-                    <span className="uppercase px-2 py-0.5 rounded border border-border bg-card/20" style={{ borderColor: `${p.accent || '#ffffff'}20`, color: p.accent || '#ffffff' }}>{p.cap2}</span>
+                    {/* High-Tech Monospace Metadata Strip */}
+                    <div className="mt-6 pt-3.5 border-t border-border/40 flex items-center justify-between text-[10px] font-mono tracking-wider text-muted-foreground/70 transition-colors duration-500 group-hover:text-muted-foreground/90">
+                      <span className="uppercase tracking-wider">{p.cap1}</span>
+                      <span 
+                        className="uppercase px-2.5 py-0.5 rounded text-[9px] font-mono font-medium tracking-wider border transition-colors duration-500" 
+                        style={{ 
+                          borderColor: `${p.accent || '#ffffff'}30`, 
+                          color: p.accent || '#ffffff',
+                          backgroundColor: `${p.accent || '#ffffff'}0a`,
+                        }}
+                      >
+                        {p.cap2}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              </motion.article>
-            );
-          })}
+                </motion.article>
+              );
+            })}
+          </div>
         </div>
-      </div>
-    </section>
-  );
-}
+      </section>
+    );
+  }

@@ -897,7 +897,7 @@ export function AboutPageContent() {
           </motion.div>
 
           <motion.h1
-            className="font-display text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black leading-[1.02] tracking-tighter uppercase max-w-6xl text-left"
+            className="font-display text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black leading-[1.12] tracking-tight uppercase max-w-6xl text-left"
             initial={reduce ? false : { opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.05 }}

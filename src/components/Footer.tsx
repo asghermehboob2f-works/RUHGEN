@@ -84,13 +84,13 @@ function isValidEmail(v: string) {
 }
 
 const sectionHeadingDesktop =
-  "font-display text-[10px] font-semibold uppercase tracking-[0.22em] text-[var(--text-subtle)]";
+  "font-display text-[10px] font-normal uppercase tracking-[0.22em] text-[var(--text-subtle)]";
 
 const navLinkDesktop =
-  "group relative inline-flex w-full items-center py-1 text-[13px] font-medium leading-snug text-[var(--text-muted)] transition-colors duration-200 hover:text-[#d4c8ff]";
+  "group relative inline-flex w-full items-center py-1 text-[13px] font-normal leading-snug text-[var(--text-muted)] transition-colors duration-200 hover:text-[#d4c8ff]";
 
 const navLinkMobile =
-  "group relative flex min-h-[40px] w-full items-center py-1.5 text-[13px] font-medium text-[var(--text-muted)] transition-colors active:bg-[color-mix(in_oklab,var(--glass)_40%,transparent)] hover:text-[#d4c8ff]";
+  "group relative flex min-h-[40px] w-full items-center py-1.5 text-[13px] font-normal text-[var(--text-muted)] transition-colors active:bg-[color-mix(in_oklab,var(--glass)_40%,transparent)] hover:text-[#d4c8ff]";
 
 const underlineSweep =
   "pointer-events-none absolute -bottom-px left-0 h-px w-0 bg-gradient-to-r from-[#7B61FF]/80 to-[#00d4ff]/60 transition-[width] duration-300 ease-out group-hover:w-full";
@@ -304,7 +304,7 @@ export function Footer() {
           <div className="mb-2.5 -ml-1 sm:-ml-0.5">
             <BrandLogo size="md" showWordmark href="/" className="justify-start" />
             <p
-              className="mt-2 max-w-[22rem] text-[12.5px] leading-relaxed tracking-wide sm:text-[13px]"
+              className="mt-2 max-w-[22rem] text-[12.5px] leading-relaxed tracking-wide sm:text-[13px] font-light"
               style={{ color: "var(--text-muted)" }}
             >
               Where imagination becomes reality — instantly. Your creative engine for next-generation
@@ -352,7 +352,7 @@ export function Footer() {
           <aside className="flex min-w-[232px] max-w-[272px] shrink-0 flex-col pr-4 lg:-ml-1 xl:min-w-[248px] xl:max-w-[288px]">
             <BrandLogo size="md" showWordmark href="/" className="justify-start" />
             <p
-              className="mt-2.5 max-w-[24rem] text-[12.5px] leading-relaxed tracking-wide xl:text-[13px]"
+              className="mt-2.5 max-w-[24rem] text-[12.5px] leading-relaxed tracking-wide xl:text-[13px] font-light"
               style={{ color: "var(--text-muted)" }}
             >
               Where imagination becomes reality — instantly. Your creative engine for next-generation
@@ -410,10 +410,10 @@ export function Footer() {
           className="mt-3 flex flex-col gap-1 border-t border-[color-mix(in_oklab,var(--border-subtle)_75%,transparent)] pt-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3 lg:mt-3.5 lg:pt-2.5"
           style={{ color: "var(--text-subtle)" }}
         >
-          <p className="text-[10.5px] font-medium tabular-nums tracking-wide sm:text-[11px]">
+          <p className="text-[10.5px] font-light tabular-nums tracking-wide sm:text-[11px]">
             © {mounted ? new Date().getFullYear() : 2026} RUHGEN. All rights reserved.
           </p>
-          <p className="max-w-md text-[10.5px] leading-snug sm:text-right sm:text-[11px] sm:leading-snug">
+          <p className="max-w-md text-[10.5px] font-light leading-snug sm:text-right sm:text-[11px] sm:leading-snug">
             Engineered for motion, stills, and imagination.
           </p>
         </div>

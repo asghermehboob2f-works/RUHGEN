@@ -75,7 +75,7 @@ async function storeCommunityMedia(url) {
     const publicPath = path.join(publicDir, filename);
     fs.writeFileSync(publicPath, buffer);
     
-    return `/community-media/${filename}`;
+    return `/media/community-media/${filename}`;
   } catch (e) {
     console.error("Community media storage error:", e);
     throw e;

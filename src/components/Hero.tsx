@@ -64,14 +64,14 @@ export function Hero() {
         >
           <h1 className="flex flex-col items-center justify-center text-center selection:bg-white/20 w-full">
             <span
-              className={`block font-toqsi text-[clamp(25px,6.2vw,62px)] leading-[1.15] tracking-[0.05em] whitespace-nowrap transition-colors duration-300 ${
+              className={`block font-toqsi text-[clamp(22px,6vw,62px)] leading-[1.18] tracking-[0.04em] sm:whitespace-nowrap break-words transition-colors duration-300 ${
                 isLight ? "text-black" : "text-white"
               }`}
             >
               Where imagination
             </span>
             <span
-              className={`block mt-1 sm:mt-2.5 font-nareko text-[clamp(32px,9vw,90px)] leading-[1.08] tracking-tight whitespace-nowrap transition-colors duration-300 ${
+              className={`block mt-1 sm:mt-2.5 font-nareko text-[clamp(28px,8.5vw,90px)] leading-[1.12] tracking-tight sm:whitespace-nowrap break-words transition-colors duration-300 ${
                 isLight ? "text-black" : "text-white"
               }`}
             >
