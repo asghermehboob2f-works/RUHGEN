@@ -31,26 +31,26 @@ export function FinalCta() {
       {/* Widened wrapper to utilize screen width on desktop */}
       <div className="relative z-10 mx-auto max-w-5xl px-6 text-center sm:px-8">
         
-        {/* Bold Classic Heading with cohesive brand gradient shimmer */}
-        <h2 className="font-display text-[clamp(2.25rem,5.5vw,4rem)] font-extrabold leading-[1.03] tracking-[-0.03em] text-white mb-6">
-          <span className="premium-text-shimmer bg-gradient-to-b from-white to-white/70 bg-clip-text text-transparent">
+        {/* Bold Classic Heading with clean, confident typography */}
+        <h2 className="font-display text-[clamp(2.25rem,5.5vw,4rem)] font-extrabold leading-[1.03] tracking-[-0.03em] text-foreground dark:text-white mb-6">
+          <span>
             Ready to create your vision?
           </span>
         </h2>
         
         {/* Clean Normal Readable description */}
         <p
-          className="mx-auto mt-4 max-w-xl text-xs sm:text-sm leading-relaxed font-normal tracking-wide text-white/30"
+          className="mx-auto mt-4 max-w-xl text-xs sm:text-sm leading-relaxed font-normal tracking-wide text-muted-foreground"
         >
           Join thousands of creators pushing the boundaries of imagination—with
           cinematic tools that feel like the future.
         </p>
 
-        {/* Simple Themed Gradient Premium Button without any icon */}
+        {/* Premium High-Contrast Button */}
         <div className="mt-10">
           <Link
             href="/sign-up"
-            className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-[#7B61FF] to-[#00D4FF] px-11 py-4 text-xs font-bold uppercase tracking-[0.2em] text-white transition-all duration-300 hover:opacity-90 hover:shadow-[0_0_24px_rgba(123,97,255,0.35)]"
+            className="inline-flex items-center justify-center rounded-full bg-foreground px-10 py-3.5 text-xs font-semibold uppercase tracking-[0.15em] text-background transition-all duration-200 hover:opacity-90 shadow-md"
           >
             Get started free
           </Link>

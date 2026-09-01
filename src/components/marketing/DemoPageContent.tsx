@@ -50,7 +50,7 @@ export function DemoPageContent({ content }: { content?: SiteContent | null }) {
           >
             <p className="font-mono text-[11px] font-medium uppercase tracking-[0.25em] text-[#00D4FF]">Live sandbox</p>
             <h1 className="font-display mt-3 text-page-title font-extrabold leading-[1.1] tracking-tight" style={{ color: "var(--text-primary)" }}>
-              Direct the creative engine <span className="text-gradient-primary">in real-time</span>
+              Direct the creative engine <span>in real-time</span>
             </h1>
             <p className="mt-4 max-w-xl text-sm leading-relaxed sm:text-base" style={{ color: "var(--text-muted)" }}>
               This is a hands-on preview: tune prompts, frames, and looks—then generate a still or jump into video with your settings

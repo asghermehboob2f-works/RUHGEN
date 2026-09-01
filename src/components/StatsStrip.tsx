@@ -113,8 +113,8 @@ export function StatsStrip({ stats }: { stats?: StatItem[] }) {
                   </div>
                   
                   {/* Bold Wide Premium Numeric Scale */}
-                  <p className="font-display mt-1 sm:mt-2 text-lg sm:text-2.5xl lg:text-3.5xl font-extrabold tracking-[-0.03em] transition-transform duration-700 group-hover:translate-x-0.5">
-                    <span className={`bg-gradient-to-b ${s.textColor || 'from-white to-white/70'} bg-clip-text text-transparent filter drop-shadow-sm`}>
+                  <p className="font-display mt-1 sm:mt-2 text-lg sm:text-2.5xl lg:text-3.5xl font-extrabold tracking-[-0.03em] transition-transform duration-700 group-hover:translate-x-0.5 text-foreground">
+                    <span>
                       {s.value}
                     </span>
                   </p>

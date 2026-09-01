@@ -100,7 +100,7 @@ export function FaqHubContent() {
 
             <h1 className="font-display text-4xl sm:text-6xl font-extrabold leading-[1.05] tracking-tight text-[var(--text-primary)] mb-6">
               Answers, <br className="hidden sm:inline" />
-              <span className="bg-gradient-to-r from-[#00D4FF] via-[#7B61FF] to-[#FF2E9A] bg-clip-text text-transparent">
+              <span>
                 searchable.
               </span>
             </h1>

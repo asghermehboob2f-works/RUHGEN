@@ -117,7 +117,7 @@ export function SpotlightPageContent({ content }: { content: SiteContent }) {
                   className="font-display mx-auto mt-3 w-full max-w-[22rem] text-balance text-hero-title font-extrabold leading-[1.1] tracking-tight sm:max-w-none lg:mx-0"
                   style={{ color: "var(--text-primary)" }}
                 >
-                  Spotlight: <span className="text-gradient-hero">the cut that stays</span>
+                  Spotlight: <span>the cut that stays</span>
                 </motion.h1>
 
                 <p className="mx-auto mt-4 max-w-xl text-pretty text-sm leading-relaxed text-[var(--text-muted)] sm:mt-5 sm:text-base lg:mx-0">
@@ -163,7 +163,7 @@ export function SpotlightPageContent({ content }: { content: SiteContent }) {
               Workspace Templates
             </div>
             <h2 className="font-display text-3xl font-extrabold tracking-tight sm:text-4xl text-[var(--text-primary)]">
-              Ignite your timeline with <span className="text-gradient-primary">Cinematic Presets</span>
+              Ignite your timeline with <span>Cinematic Presets</span>
             </h2>
             <p className="mt-4 text-sm max-w-xl mx-auto leading-relaxed text-[var(--text-muted)]">
               Pre-configured stylistic structures, custom camera presets, and dramatic pacing frameworks optimized for instant narrative impact.

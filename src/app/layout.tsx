@@ -86,6 +86,18 @@ const hypnoticOutline = localFont({
   display: "swap",
 });
 
+const toqsi = localFont({
+  src: "../../public/fonts/Toqsi-Regular.otf",
+  variable: "--font-toqsi",
+  display: "swap",
+});
+
+const nareko = localFont({
+  src: "../../public/fonts/Nareko.ttf",
+  variable: "--font-nareko",
+  display: "swap",
+});
+
 const rink = localFont({
   src: [
     {
@@ -229,7 +241,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${interTight.variable} ${jetbrains.variable} ${syne.variable} ${bricolage.variable} ${shootingStar.variable} ${calsans.variable} ${bungeeHairline.variable} ${ningetan.variable} ${signatie.variable} ${quadratGrotesk.variable} ${ticdar.variable} ${rink.variable} ${hypnoticColr.variable} ${hypnoticOutline.variable} h-full scroll-smooth antialiased`}
+      className={`${inter.variable} ${interTight.variable} ${jetbrains.variable} ${syne.variable} ${bricolage.variable} ${shootingStar.variable} ${calsans.variable} ${bungeeHairline.variable} ${ningetan.variable} ${signatie.variable} ${quadratGrotesk.variable} ${ticdar.variable} ${rink.variable} ${hypnoticColr.variable} ${hypnoticOutline.variable} ${toqsi.variable} ${nareko.variable} h-full scroll-smooth antialiased`}
       suppressHydrationWarning
     >
       <head>

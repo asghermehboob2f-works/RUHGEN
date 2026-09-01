@@ -51,12 +51,12 @@ export function Testimonials({ quotes }: { quotes?: TestimonialItem[] }) {
             </span>
           </div>
 
-          {/* BOLD Testimonial Heading with cohesive brand gradient shimmer */}
+          {/* BOLD Testimonial Heading with clean, sophisticated typography */}
           <h2
             className="font-display text-[clamp(2.25rem,6.5vw,4.5rem)] font-extrabold leading-[1.02] tracking-[-0.03em] text-foreground"
           >
             Trusted where <br className="hidden md:block" />
-            <span className="premium-text-shimmer bg-gradient-to-r from-brand-purple via-foreground to-brand-cyan bg-clip-text text-transparent">pixels matter</span>
+            <span className="text-foreground">pixels matter</span>
           </h2>
         </div>
 

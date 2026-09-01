@@ -57,31 +57,55 @@ export function Hero() {
         initial="hidden"
         animate="visible"
       >
-        {/* 1. HERO HEADING - Dominant Mobile Typography */}
+        {/* 1. HERO HEADING - Dominant Responsive Typography & Perfect Optical Alignment */}
         <motion.div
-          className="mb-6 sm:mb-12 flex flex-col items-center text-center max-w-5xl"
+          className="mb-6 sm:mb-12 flex flex-col items-center text-center max-w-5xl w-full px-3 sm:px-6"
           variants={fadeUp}
         >
-          <h1 className="flex flex-col items-center text-center selection:bg-white/20">
-            <span className="block font-hypnotic-outline text-[clamp(28px,7.5vw,72px)] tracking-[0.08em] sm:tracking-[0.12em] text-white/90 drop-shadow-[0_0_18px_rgba(255,255,255,0.35)]">
+          <h1 className="flex flex-col items-center justify-center text-center selection:bg-white/20 w-full">
+            <span
+              className={`block font-toqsi text-[clamp(25px,6.2vw,62px)] leading-[1.15] tracking-[0.05em] whitespace-nowrap transition-colors duration-300 ${
+                isLight ? "text-black" : "text-white"
+              }`}
+            >
               Where imagination
             </span>
-            <span className="block mt-1 sm:mt-2 font-hypnotic-colr text-[clamp(40px,10.8vw,96px)] tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-[#F5E6C8] to-[#D4AF37] drop-shadow-[0_0_30px_rgba(212,175,55,0.35)] drop-shadow-[0_0_60px_rgba(255,255,255,0.2)]">
-              becomes reality.
+            <span
+              className={`block mt-1 sm:mt-2.5 font-nareko text-[clamp(32px,9vw,90px)] leading-[1.08] tracking-tight whitespace-nowrap transition-colors duration-300 ${
+                isLight ? "text-black" : "text-white"
+              }`}
+            >
+              becomes{" "}
+              <span
+                className="bg-clip-text text-transparent inline-block"
+                style={{
+                  backgroundImage: isLight
+                    ? "linear-gradient(90deg, #E69D00 0%, #C47F00 35%, #8C5200 70%, #593300 100%)"
+                    : "linear-gradient(90deg, #FFF4BA 0%, #FFCC00 30%, #E68A00 70%, #B35900 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                }}
+              >
+                reality.
+              </span>
             </span>
           </h1>
 
           <motion.div
-            className="mt-3 sm:mt-7 flex items-center justify-center"
+            className="mt-3.5 sm:mt-6 flex items-center justify-center"
             variants={fadeUp}
           >
-            <span className="font-shooting-star text-[clamp(15px,3.8vw,24px)] font-normal tracking-[0.15em] text-[var(--text-muted)] lowercase">
+            <span
+              className={`font-shooting-star text-[clamp(14px,3.2vw,22px)] font-normal tracking-[0.18em] lowercase transition-colors duration-300 ${
+                isLight ? "text-black" : "text-[var(--text-muted)]"
+              }`}
+            >
               — instantly.
             </span>
           </motion.div>
         </motion.div>
 
-        {/* 2. HERO CTA BUTTON SYSTEM - Sleek & Compact Mobile Buttons */}
+        {/* 2. HERO CTA BUTTON SYSTEM - Sleek & Premium Refined Buttons */}
         <motion.div
           className="flex flex-row items-center justify-center gap-2 sm:gap-3.5 max-w-full px-1"
           variants={fadeUp}
@@ -89,9 +113,11 @@ export function Hero() {
           {/* PRIMARY CTA */}
           <Link href="/sign-up" className="group relative inline-flex shrink-0">
             <div
-              className="relative z-10 flex items-center justify-center rounded-full border border-blue-400/20 bg-gradient-to-r from-[#1D4ED8] to-[#2563EB] px-3.5 sm:px-7 py-2 sm:py-3 text-white font-sans text-[12px] sm:text-[14.5px] font-semibold tracking-tight whitespace-nowrap shadow-sm transition-all duration-250 ease-out group-hover:-translate-y-0.5 group-hover:bg-[#2563EB]/90 group-hover:backdrop-blur-sm group-hover:border-blue-400/40 group-active:translate-y-0 cursor-pointer"
+              className={`relative z-10 flex items-center justify-center rounded-full px-4 sm:px-8 py-2.5 sm:py-3.5 font-sans text-[12px] sm:text-[14.5px] font-semibold tracking-tight whitespace-nowrap shadow-md transition-all duration-200 group-hover:-translate-y-0.5 group-hover:opacity-90 active:translate-y-0 cursor-pointer ${
+                isLight ? "bg-black text-white" : "bg-white text-black"
+              }`}
             >
-              <span className="relative z-10 text-white">
+              <span className="relative z-10">
                 Start Creating Now
               </span>
             </div>
@@ -100,9 +126,13 @@ export function Hero() {
           {/* SECONDARY CTA */}
           <Link href="/demo" className="group relative inline-flex shrink-0">
             <div
-              className="relative z-10 flex items-center justify-center gap-1.5 sm:gap-2 rounded-full border border-white/12 bg-[#121215]/45 px-3.5 sm:px-7 py-2 sm:py-3 text-white/90 font-sans text-[12px] sm:text-[14.5px] font-medium tracking-tight whitespace-nowrap shadow-sm transition-all duration-250 ease-out group-hover:-translate-y-0.5 group-hover:border-white/25 group-hover:bg-white/[0.08] group-hover:backdrop-blur-sm group-hover:text-white group-active:translate-y-0 cursor-pointer"
+              className={`relative z-10 flex items-center justify-center gap-1.5 sm:gap-2 rounded-full border px-4 sm:px-8 py-2.5 sm:py-3.5 font-sans text-[12px] sm:text-[14.5px] font-medium tracking-tight whitespace-nowrap shadow-sm backdrop-blur-md transition-all duration-200 group-hover:-translate-y-0.5 active:translate-y-0 cursor-pointer ${
+                isLight
+                  ? "bg-white/80 border-black/15 text-black group-hover:bg-white group-hover:border-black/30"
+                  : "border-border bg-card/60 text-foreground group-hover:bg-card/90 group-hover:border-border/80"
+              }`}
             >
-              <Play className="h-3 w-3 sm:h-3.5 sm:w-3.5 fill-current text-white/90 transition-transform duration-250 group-hover:scale-105" />
+              <Play className={`h-3 w-3 sm:h-3.5 sm:w-3.5 fill-current transition-transform duration-200 group-hover:scale-105 ${isLight ? "text-black" : "text-foreground"}`} />
               <span>Watch Demo</span>
             </div>
           </Link>

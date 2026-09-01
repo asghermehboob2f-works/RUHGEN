@@ -1,5 +1,5 @@
-:HL["/_next/static/chunks/3h1j7hsa0zvq9.css","style"]
-:HL["/_next/static/chunks/2i1u7i_5d18c3.css","style"]
+:HL["/_next/static/chunks/0ragaxpiyw76-.css","style"]
+:HL["/_next/static/chunks/212-tu4d2r-py.css","style"]
 :HL["/_next/static/media/017d9bea37084d9b-s.p.41rroleoq1br7.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
 :HL["/_next/static/media/0c795a286deabae8-s.p.3vm0tq4e-zz_5.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
 :HL["/_next/static/media/70bc3e132a0a741e-s.p.3t6q91iet4nsy.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
@@ -8,6 +8,7 @@
 :HL["/_next/static/media/CalSans_Regular-s.p.3fqwolu3o5gh6.ttf","font",{"crossOrigin":"","type":"font/ttf"}]
 :HL["/_next/static/media/Hypnotic%2001%20Outline-s.p.0yrjyscf_vlvg.otf","font",{"crossOrigin":"","type":"font/otf"}]
 :HL["/_next/static/media/Hypnotic%2001_COLR-s.p.38smppn1pwxk7.otf","font",{"crossOrigin":"","type":"font/otf"}]
+:HL["/_next/static/media/Nareko-s.p.277_9ione3nds.ttf","font",{"crossOrigin":"","type":"font/ttf"}]
 :HL["/_next/static/media/Ningetan-s.p.0da7dr9do2ahb.ttf","font",{"crossOrigin":"","type":"font/ttf"}]
 :HL["/_next/static/media/Quadrat%20Grotesk%20W01%20Regular-s.p.399zwsqa-qda_.ttf","font",{"crossOrigin":"","type":"font/ttf"}]
 :HL["/_next/static/media/Rink_Medium-s.p.3qbeyndegwu-p.otf","font",{"crossOrigin":"","type":"font/otf"}]
@@ -16,5 +17,6 @@
 :HL["/_next/static/media/Signatie-s.p.0kv6078oee8xs.otf","font",{"crossOrigin":"","type":"font/otf"}]
 :HL["/_next/static/media/Ticdar_Regular-s.p.2pnc4fxh7lfie.otf","font",{"crossOrigin":"","type":"font/otf"}]
 :HL["/_next/static/media/Ticdar_SemiBold-s.p.1xvj_mfng5cri.otf","font",{"crossOrigin":"","type":"font/otf"}]
+:HL["/_next/static/media/Toqsi_Regular-s.p.2wl-0f_2y0by9.otf","font",{"crossOrigin":"","type":"font/otf"}]
 :HL["/_next/static/media/ab57efd000576a30-s.p.3fofz6dws3mg0.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
-0:{"tree":{"name":"","param":null,"prefetchHints":4184,"slots":{"children":{"name":"dashboard","param":null,"prefetchHints":4204,"slots":{"children":{"name":"generate","param":null,"prefetchHints":4200,"slots":{"children":{"name":"image","param":null,"prefetchHints":4196,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":4256,"slots":null}}}}}}}}},"staleTime":300,"buildId":"5vet60B_zj6bZw3_5NWNK"}
+0:{"tree":{"name":"","param":null,"prefetchHints":4120,"slots":{"children":{"name":"dashboard","param":null,"prefetchHints":4172,"slots":{"children":{"name":"generate","param":null,"prefetchHints":4200,"slots":{"children":{"name":"image","param":null,"prefetchHints":4196,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":4256,"slots":null}}}}}}}}},"staleTime":300,"buildId":"o6WWtgH-vBxeB1wtdU7C9"}

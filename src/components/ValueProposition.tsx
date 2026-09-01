@@ -77,12 +77,12 @@ export function ValueProposition({ pillars }: { pillars?: PillarItem[] }) {
             </span>
           </div>
 
-          {/* display heading with cohesive brand shimmer */}
+          {/* display heading with clean, confident typography */}
           <h2
             className="font-display text-[clamp(2rem,5vw,3.75rem)] font-extrabold leading-[1.05] tracking-[-0.03em] text-foreground"
           >
             One engine. <br className="md:hidden" />
-            <span className="premium-text-shimmer bg-gradient-to-r from-brand-purple via-[var(--text-primary)] to-brand-cyan bg-clip-text text-transparent">Infinite vision.</span>
+            <span className="text-foreground">Infinite vision.</span>
           </h2>
           
           <p
