@@ -23,11 +23,61 @@ async function authFetch(path: string, init?: RequestInit): Promise<Response> {
   });
 }
 
+export interface StudioModel {
+  id: string;
+  name: string;
+  type: "image" | "video";
+  tier: "standard" | "premium";
+  creditCostType: "fixed" | "per_second";
+  baseCreditCost: number;
+  supportedAspectRatios: string[];
+  supportedResolutions: string[];
+  supportedDurations: number[];
+  supportedControls: string[];
+  maxDuration?: number;
+  maxResolution?: string;
+}
+
+export async function fetchStudioModels(): Promise<StudioModel[]> {
+  try {
+    const res = await authFetch("/api/studio/models");
+    if (!res.ok) return [];
+    const data = (await res.json()) as { ok?: boolean; models?: StudioModel[] };
+    return data.models || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function estimateStudioCost(body: {
+  modelId?: string;
+  type: "image" | "video";
+  duration?: number;
+  quality?: string;
+}): Promise<{ creditCost: number; marginSafe: boolean } | null> {
+  try {
+    const res = await authFetch("/api/studio/estimate-cost", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { ok?: boolean; creditCost?: number; marginSafe?: boolean };
+    if (data.ok && typeof data.creditCost === "number") {
+      return { creditCost: data.creditCost, marginSafe: Boolean(data.marginSafe) };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 /** Create image task (via backend only). `image_url` triggers image-to-image (edit) on the server. */
 export async function createImageTask(body: {
   prompt: string;
   quality?: string;
   model?: string;
+  modelId?: string;
+  idempotencyKey?: string;
   width?: number;
   height?: number;
   image_url?: string;
@@ -36,8 +86,13 @@ export async function createImageTask(body: {
   /** Image-to-image only; typical range 1–20. */
   guidance_scale?: number;
 }): Promise<{ taskId: string }> {
+  const headers: Record<string, string> = {};
+  if (body.idempotencyKey) {
+    headers["Idempotency-Key"] = body.idempotencyKey;
+  }
   const res = await authFetch("/api/studio/image", {
     method: "POST",
+    headers,
     body: JSON.stringify(body),
   });
   const data = (await res.json()) as { ok?: boolean; taskId?: string; error?: string };
@@ -84,15 +139,25 @@ export async function createVideoTask(body: {
   duration?: 5 | 10;
   aspect_ratio?: "16:9" | "9:16" | "1:1";
   mode?: "std" | "pro";
+  modelId?: string;
+  idempotencyKey?: string;
   version?: string;
   negative_prompt?: string;
   image_url?: string;
   video_url?: string;
   reference_url?: string;
   reference_type?: "image" | "video";
+  sound?: boolean;
+  camera_control?: string;
+  resolution?: string;
 }): Promise<{ taskId: string }> {
+  const headers: Record<string, string> = {};
+  if (body.idempotencyKey) {
+    headers["Idempotency-Key"] = body.idempotencyKey;
+  }
   const res = await authFetch("/api/studio/video", {
     method: "POST",
+    headers,
     body: JSON.stringify(body),
   });
   const data = (await res.json()) as { ok?: boolean; taskId?: string; error?: string };

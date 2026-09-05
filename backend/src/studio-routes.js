@@ -6,9 +6,11 @@
 const crypto = require("node:crypto");
 const path = require("node:path");
 const { verifyUserToken } = require("./auth");
-const { getImageConfig, getVideoConfig } = require("./config");
+const { getImageConfig, getVideoConfig, getKieConfig } = require("./config");
 const { ImageGenerationService } = require("./services/image-generation-service");
-const { VideoGenerationService } = require("./services/video-generation-service");
+const { JobManagerService } = require("./services/job-manager-service");
+const { ModelRegistryService } = require("./services/model-registry-service");
+const { CreditWalletService } = require("./services/credit-wallet-service");
 
 const STUDIO_REF_TTL_MS = 2 * 60 * 60 * 1000;
 
@@ -106,13 +108,6 @@ function studioConfigError() {
   return "Studio is not configured. Set QWEN_API_KEY in environment.";
 }
 
-function normalizePiStatus(status) {
-  const s = String(status ?? "")
-    .trim()
-    .toLowerCase();
-  if (s === "complete" || s === "succeeded" || s === "success") return "completed";
-  return s;
-}
 
 function snapToNvidiaDim(val) {
   const allowed = [768, 832, 896, 960, 1024, 1088, 1152, 1216, 1280, 1344];
@@ -192,134 +187,8 @@ function mountStudioRoutes(app, options) {
     return finalBalance;
   }
 
-  // Background worker for resolving pending tasks
-  async function checkPendingTasks() {
-    try {
-      const pendingTasks = db.prepare("SELECT * FROM studio_tasks WHERE status = 'pending'").all();
-      for (const t of pendingTasks) {
-        // If task is extremely old, mark it failed
-        const ageMs = Date.now() - new Date(t.created_at).getTime();
-        if (ageMs > 2 * 60 * 60 * 1000) {
-          let details = {};
-          try {
-            details = JSON.parse(t.details_json);
-          } catch (e) { }
-          details.error = { message: "Task timed out after 2 hours." };
-          db.transaction(() => {
-            db.prepare("UPDATE studio_tasks SET status = 'failed', details_json = ? WHERE id = ?").run(
-              JSON.stringify(details),
-              t.id
-            );
-            db.prepare(`
-              INSERT INTO audit_logs (id, actor_id, actor_email, target_user_id, action_type, old_value, new_value, timestamp, details_json)
-              VALUES (?, 'system', 'system', ?, 'generation_status', 'pending', 'failed', ?, ?)
-            `).run(
-              crypto.randomUUID(),
-              t.user_id,
-              new Date().toISOString(),
-              JSON.stringify({ taskId: t.id, reason: "timeout" })
-            );
-          })();
-          continue;
-        }
 
-        try {
-          const r = await getTask(t.id);
-          if (!r.ok) {
-            console.error(`[checkPendingTasks] Error polling task ${t.id}:`, r.status, r.json);
-            continue;
-          }
-          const data = r.json?.data;
-          if (!data) continue;
-
-          const status = normalizePiStatus(data.status);
-          const urls = extractMediaUrls(data.output);
-
-          if (status === "completed") {
-            let details = {};
-            try {
-              details = JSON.parse(t.details_json);
-            } catch (e) { }
-            details.urls = urls;
-            details.output = data.output;
-            db.transaction(() => {
-              const task = db.prepare("SELECT status, credits, user_id, type FROM studio_tasks WHERE id = ?").get(t.id);
-              if (task && task.status === 'pending') {
-                const u = db.prepare("SELECT credits FROM users WHERE id = ?").get(task.user_id);
-                if (u) {
-                  const finalBalance = Math.max(0, u.credits - task.credits);
-                  db.prepare("UPDATE users SET credits = ? WHERE id = ?").run(finalBalance, task.user_id);
-
-                  db.prepare(`
-                    INSERT INTO credit_transactions (id, user_id, action_type, credits_added, credits_deducted, previous_balance, new_balance, timestamp, source, reason, details_json)
-                    VALUES (?, ?, ?, 0, ?, ?, ?, ?, 'studio', ?, ?)
-                  `).run(
-                    crypto.randomUUID(),
-                    task.user_id,
-                    task.type === "image" ? "image_generation" : "video_generation",
-                    task.credits,
-                    u.credits,
-                    finalBalance,
-                    new Date().toISOString(),
-                    `${task.type === 'image' ? 'Image' : 'Video'} generation completed successfully`,
-                    JSON.stringify({ taskId: t.id })
-                  );
-
-                  db.prepare(`
-                    INSERT INTO audit_logs (id, actor_id, actor_email, target_user_id, action_type, old_value, new_value, timestamp, details_json)
-                    VALUES (?, 'system', 'system', ?, 'generation_status', 'pending', 'completed', ?, ?)
-                  `).run(
-                    crypto.randomUUID(),
-                    task.user_id,
-                    new Date().toISOString(),
-                    JSON.stringify({ taskId: t.id, creditsDeducted: task.credits })
-                  );
-                }
-                db.prepare("UPDATE studio_tasks SET status = 'completed', details_json = ? WHERE id = ?").run(
-                  JSON.stringify(details),
-                  t.id
-                );
-              }
-            })();
-            console.log(`[checkPendingTasks] Task ${t.id} completed successfully`);
-          } else if (status === "failed" || status === "cancelled") {
-            let details = {};
-            try {
-              details = JSON.parse(t.details_json);
-            } catch (e) { }
-            details.error = data.error || { message: "Task failed upstream." };
-            db.transaction(() => {
-              const task = db.prepare("SELECT status FROM studio_tasks WHERE id = ?").get(t.id);
-              if (task && task.status === 'pending') {
-                db.prepare(`
-                  INSERT INTO audit_logs (id, actor_id, actor_email, target_user_id, action_type, old_value, new_value, timestamp, details_json)
-                  VALUES (?, 'system', 'system', ?, 'generation_status', 'pending', ?, ?, ?)
-                `).run(
-                  crypto.randomUUID(),
-                  t.user_id,
-                  status,
-                  new Date().toISOString(),
-                  JSON.stringify({ taskId: t.id, error: data.error })
-                );
-                db.prepare("UPDATE studio_tasks SET status = ?, details_json = ? WHERE id = ?").run(
-                  status,
-                  JSON.stringify(details),
-                  t.id
-                );
-              }
-            })();
-            console.log(`[checkPendingTasks] Task ${t.id} ${status}`);
-          }
-        } catch (err) {
-          console.error(`[checkPendingTasks] Exception polling task ${t.id}:`, err.message);
-        }
-      }
-    } catch (e) {
-      console.error("[checkPendingTasks] Worker error:", e);
-    }
-  }
-
-  setInterval(checkPendingTasks, 15000).unref?.();
+  JobManagerService.startJobPoller(db, 12000);
 
   app.post(
     "/api/studio/reference-upload",
@@ -406,9 +275,44 @@ function mountStudioRoutes(app, options) {
       if (entry) studioReferenceImages.delete(id);
       return res.status(404).end();
     }
-    res.setHeader("Content-Type", entry.mime);
+res.setHeader("Content-Type", entry.mime);
     res.setHeader("Cache-Control", "private, max-age=3600");
     return res.end(entry.buffer);
+  });
+
+  // --- Model Registry & Cost Estimation ---
+  app.get("/api/studio/models", (req, res) => {
+    try {
+      const models = ModelRegistryService.getPublicModels(db);
+      return res.json({ ok: true, models });
+    } catch (e) {
+      return res.status(500).json({ ok: false, error: "Failed to load model registry." });
+    }
+  });
+
+  app.post("/api/studio/estimate-cost", requireUser, (req, res) => {
+    try {
+      const { type = "image", tier = "standard", modelId } = req.body || {};
+      const model = ModelRegistryService.getModel(db, { modelId, type, tier });
+      const sanitized = ModelRegistryService.validateAndSanitizeParams(model, req.body || {});
+      const creditCost = ModelRegistryService.calculateCreditCost(model, sanitized);
+
+      return res.json({
+        ok: true,
+        model: {
+          id: model.id,
+          name: model.name,
+          type: model.type,
+          tier: model.tier,
+          creditCostType: model.credit_cost_type,
+          baseCreditCost: model.base_credit_cost,
+        },
+        creditCost,
+        sanitizedParams: sanitized,
+      });
+    } catch (e) {
+      return res.status(400).json({ ok: false, error: e.message || "Cost calculation error." });
+    }
   });
 
   app.post("/api/studio/image", requireUser, async (req, res) => {
@@ -532,205 +436,149 @@ function mountStudioRoutes(app, options) {
     }
   });
 
+  // --- Production Video Generation (Server-Side Only KIE.ai) ---
   app.post("/api/studio/video", requireUser, async (req, res) => {
-    const prompt = typeof req.body?.prompt === "string" ? req.body.prompt.trim() : "";
-    if (!prompt || prompt.length < 2) {
-      return res.status(400).json({ ok: false, error: "Enter a prompt (at least 2 characters)." });
-    }
-    const duration = Number(req.body?.duration);
-    const dur = duration === 10 ? 10 : 5;
-    const aspectRaw = typeof req.body?.aspect_ratio === "string" ? req.body.aspect_ratio.trim() : "16:9";
-    const aspect_ratio = ["16:9", "9:16", "1:1"].includes(aspectRaw) ? aspectRaw : "16:9";
-    const qualityRaw = typeof req.body?.quality === "string" ? req.body.quality.trim().toLowerCase() : "";
-    const modeRaw = typeof req.body?.mode === "string" ? req.body.mode.trim().toLowerCase() : "";
-
-    let quality = "quality";
-    let mode = "std";
-    if (qualityRaw === "standard" || modeRaw === "std" || qualityRaw === "fast") {
-      quality = "standard";
-      mode = "std";
-    } else {
-      quality = "quality";
-      mode = "pro";
-    }
-
-    const negative_prompt =
-      typeof req.body?.negative_prompt === "string" ? req.body.negative_prompt.trim().slice(0, 2500) : "";
-
-    const image_url = typeof req.body?.image_url === "string" ? req.body.image_url.trim() : "";
-    const video_url = typeof req.body?.video_url === "string" ? req.body.video_url.trim() : "";
-    const reference_url = typeof req.body?.reference_url === "string" ? req.body.reference_url.trim() : "";
-    const reference_type = typeof req.body?.reference_type === "string" ? req.body.reference_type.trim().toLowerCase() : "";
-
-    const activeRefUrl = video_url || image_url || reference_url;
-    if (activeRefUrl && !isAcceptableStudioReferenceUrl(activeRefUrl)) {
-      return res.status(400).json({ ok: false, error: "Invalid reference URL (use HTTPS, public URL)." });
-    }
-
-    // Quality specific credit costs
-    let costKey = mode === "pro" ? "cost_video_pro" : "cost_video_std";
-    const costSetting = db.prepare("SELECT value FROM credit_settings WHERE key = ?").get(costKey)
-      || db.prepare("SELECT value FROM credit_settings WHERE key = 'credits_per_video_second'").get();
-    const perSecond = costSetting ? Number(costSetting.value) : (mode === "pro" ? 8 : 5);
-    const finalCost = perSecond * dur;
-
-    const targetTier = (qualityRaw === "standard" || modeRaw === "std" || qualityRaw === "fast") ? "standard" : "premium";
-    const engineConfig = getVideoConfig(targetTier);
-
-    if (!engineConfig.apiKey || !engineConfig.apiUrl) {
-      return res.status(503).json({
-        ok: false,
-        error: `RUHGEN ${engineConfig.tier === 'standard' ? 'Standard' : 'Premium'} Video Engine is currently undergoing maintenance. Please try again shortly.`
-      });
-    }
-
-    // Validate balance and eligibility
-    const userRow = db.prepare("SELECT credits, suspended, generation_disabled FROM users WHERE id = ?").get(req.user.sub);
-    if (!userRow) {
-      return res.status(404).json({ ok: false, error: "User not found." });
-    }
-    if (userRow.suspended === 1) {
-      return res.status(403).json({ ok: false, error: "Your account has been suspended." });
-    }
-    if (userRow.generation_disabled === 1) {
-      return res.status(403).json({ ok: false, error: "Video generation is disabled for your account." });
-    }
-
-    const pendingSumRow = db.prepare("SELECT SUM(credits) as pending FROM studio_tasks WHERE user_id = ? AND status = 'pending'").get(req.user.sub);
-    const pendingCredits = pendingSumRow?.pending || 0;
-    const availableCredits = userRow.credits - pendingCredits;
-    if (availableCredits < finalCost) {
-      return res.status(400).json({
-        ok: false,
-        error: `Insufficient credits. You need ${finalCost} credits (available: ${availableCredits}, pending holds: ${pendingCredits}).`
-      });
-    }
-
     try {
-      const taskResult = await VideoGenerationService.createVideoTask({
-        prompt,
-        duration: dur,
-        aspect_ratio,
-        tier: quality,
-        mode,
-        negative_prompt,
-        image_url,
-        video_url,
-        reference_url,
-        reference_type,
+      const idempotencyKey = req.headers["x-idempotency-key"] || req.body?.idempotencyKey;
+      const { prompt, model: modelId, quality, mode, tier } = req.body || {};
+
+      if (!prompt || typeof prompt !== "string" || prompt.trim().length < 2) {
+        return res.status(400).json({ ok: false, error: "Enter a prompt (at least 2 characters)." });
+      }
+
+      let resolvedTier = "standard";
+      if (
+        (typeof quality === "string" && (quality.toLowerCase() === "quality" || quality.toLowerCase().includes("prem"))) ||
+        mode === "pro" ||
+        (typeof tier === "string" && tier.toLowerCase().includes("prem")) ||
+        (typeof modelId === "string" && modelId.includes("premium"))
+      ) {
+        resolvedTier = "premium";
+      }
+
+      const jobResult = await JobManagerService.createJob(db, {
+        userId: req.user.sub,
+        type: "video",
+        tier: resolvedTier,
+        modelId,
+        rawParams: req.body || {},
+        idempotencyKey,
       });
-
-      const taskId = taskResult.taskId;
-      const initialStatus = taskResult.syncUrls ? "completed" : "pending";
-      const details = {
-        prompt,
-        duration: dur,
-        aspect_ratio,
-        quality,
-        tier: taskResult.tier,
-        model: taskResult.model,
-        negative_prompt,
-        image_url,
-        video_url,
-        reference_url,
-        reference_type,
-        kind: "video",
-      };
-      if (taskResult.syncUrls) {
-        details.urls = taskResult.syncUrls;
-      }
-
-      db.prepare(`
-        INSERT INTO studio_tasks (id, user_id, type, credits, status, created_at, details_json)
-        VALUES (?, ?, 'video', ?, ?, ?, ?)
-      `).run(
-        taskId,
-        req.user.sub,
-        finalCost,
-        initialStatus,
-        new Date().toISOString(),
-        JSON.stringify(details)
-      );
-
-      deductCredits(req.user.sub, finalCost, "video_generation", `Video generation (${taskResult.tier})`, { taskId });
-
-      return res.json({ ok: true, taskId });
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "Server error.";
-      return res.status(500).json({ ok: false, error: msg });
-    }
-  });
-
-  app.get("/api/studio/task/:taskId", requireUser, async (req, res) => {
-    try {
-      const taskId = String(req.params.taskId || "").trim();
-      if (!taskId) {
-        return res.status(400).json({ ok: false, error: "Missing task id." });
-      }
-
-      const dbTask = db.prepare("SELECT * FROM studio_tasks WHERE id = ?").get(taskId);
-      if (!dbTask) {
-        return res.status(404).json({ ok: false, error: "Task not found in ledger." });
-      }
-      if (dbTask.user_id !== req.user.sub) {
-        return res.status(403).json({ ok: false, error: "Access denied." });
-      }
-
-      let dbDetails = {};
-      try {
-        dbDetails = JSON.parse(dbTask.details_json);
-      } catch (e) { }
-
-      if (dbTask.status === "completed" || dbTask.status === "failed") {
-        const urls = dbDetails.urls || [];
-        let cleanError = null;
-        if (dbDetails.error) {
-          const errMsg = typeof dbDetails.error?.message === "string" ? dbDetails.error.message.replace(/(kling|flux|qubico|checkpoint|provider)/gi, "Generation engine") : "Generation error.";
-          cleanError = { message: errMsg };
-        }
-        return res.json({
-          ok: true,
-          status: dbTask.status,
-          urls,
-          error: cleanError
-        });
-      }
-
-      const statusResult = await VideoGenerationService.getTaskStatus(taskId, dbDetails);
-      const status = statusResult.status;
-      const urls = statusResult.urls || [];
-
-      if (status === "completed") {
-        dbDetails.urls = urls;
-        db.prepare("UPDATE studio_tasks SET status = 'completed', details_json = ? WHERE id = ?").run(
-          JSON.stringify(dbDetails),
-          taskId
-        );
-      } else if (status === "failed") {
-        dbDetails.error = { message: statusResult.error || "Video generation failed." };
-        db.prepare("UPDATE studio_tasks SET status = 'failed', details_json = ? WHERE id = ?").run(
-          JSON.stringify(dbDetails),
-          taskId
-        );
-        refundCredits(
-          dbTask.user_id,
-          dbTask.credits,
-          "video_generation",
-          "Refund: Video generation failed",
-          { taskId }
-        );
-      }
 
       return res.json({
         ok: true,
-        status,
-        urls,
-        progress: statusResult.progress || (status === "completed" ? 100 : 50),
+        taskId: jobResult.jobId,
+        status: jobResult.status,
+        creditCost: jobResult.creditCost,
+      });
+    } catch (e) {
+      const status = e.status || 400;
+      return res.status(status).json({ ok: false, error: e.message || "Video generation request failed." });
+    }
+  });
+
+  // --- Unified Task Status Polling ---
+  app.get("/api/studio/task/:taskId", requireUser, async (req, res) => {
+    try {
+      const taskId = String(req.params.taskId || "").trim();
+      if (!taskId) return res.status(400).json({ ok: false, error: "Missing taskId." });
+
+      const statusResult = await JobManagerService.getJobStatus(db, taskId, req.user.sub);
+      return res.json({
+        ok: true,
+        status: statusResult.status.toLowerCase(),
+        urls: statusResult.urls,
+        progress: statusResult.progress,
         error: statusResult.error ? { message: statusResult.error } : null,
       });
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Server error.";
-      return res.status(500).json({ ok: false, error: msg });
+      const status = e.message === "Unauthorized." ? 403 : 500;
+      return res.status(status).json({ ok: false, error: e.message || "Server error." });
+    }
+  });
+
+  // --- KIE.ai Webhook Callback Receiver ---
+  app.post("/api/webhooks/kie", (req, res) => {
+    try {
+      const kieConfig = getKieConfig();
+      if (kieConfig.webhookSecret) {
+        const sig = req.headers["x-kie-signature"] || req.headers["x-webhook-secret"];
+        if (sig !== kieConfig.webhookSecret) {
+          return res.status(401).json({ ok: false, error: "Invalid webhook secret signature." });
+        }
+      }
+
+      const payload = req.body || {};
+      const providerTaskId = payload.taskId || payload.task_id || payload.id;
+      if (!providerTaskId) return res.json({ ok: true, ignored: true });
+
+      const job = db
+        .prepare("SELECT id, user_id, credit_cost, status FROM generation_jobs WHERE provider_task_id = ?")
+        .get(String(providerTaskId));
+
+      if (!job || job.status === "COMPLETED" || job.status === "FAILED") {
+        return res.json({ ok: true, alreadyProcessed: true });
+      }
+
+      const rawStatus = String(payload.status || payload.state || "").toLowerCase();
+      if (rawStatus === "success" || rawStatus === "completed" || rawStatus === "succeeded") {
+        let urls = [];
+        const extractUrl = (val) => {
+          if (typeof val === "string" && /^(https?:\/\/|data:image\/)/i.test(val.trim())) {
+            urls.push(val.trim());
+          }
+        };
+
+        const resultJsonStr = payload.resultJson || payload.data?.resultJson;
+        if (resultJsonStr) {
+          try {
+            const parsed = typeof resultJsonStr === "string" ? JSON.parse(resultJsonStr) : resultJsonStr;
+            if (Array.isArray(parsed?.resultUrls)) parsed.resultUrls.forEach(extractUrl);
+            if (Array.isArray(parsed?.urls)) parsed.urls.forEach(extractUrl);
+            if (parsed?.url) extractUrl(parsed.url);
+            if (parsed?.video_url) extractUrl(parsed.video_url);
+            if (parsed?.image_url) extractUrl(parsed.image_url);
+          } catch {}
+        }
+
+        if (payload.result?.url) extractUrl(payload.result.url);
+        if (payload.result?.video_url) extractUrl(payload.result.video_url);
+        if (payload.result?.image_url) extractUrl(payload.result.image_url);
+        if (Array.isArray(payload.result?.urls)) payload.result.urls.forEach(extractUrl);
+        if (Array.isArray(payload.result?.resultUrls)) payload.result.resultUrls.forEach(extractUrl);
+        if (payload.url) extractUrl(payload.url);
+        if (payload.video_url) extractUrl(payload.video_url);
+        if (payload.image_url) extractUrl(payload.image_url);
+
+        CreditWalletService.finalizeConsumption(db, job.user_id, job.credit_cost, job.id, {
+          reason: "KIE Webhook: Generation completed",
+        });
+
+        const now = new Date().toISOString();
+        db.prepare(
+          `UPDATE generation_jobs
+           SET status = 'COMPLETED', output_urls_json = ?, completed_at = ?, updated_at = ?
+           WHERE id = ?`
+        ).run(JSON.stringify([...new Set(urls)]), now, now, job.id);
+      } else if (rawStatus === "fail" || rawStatus === "failed") {
+        CreditWalletService.releaseReservation(
+          db,
+          job.user_id,
+          job.credit_cost,
+          job.id,
+          "KIE Webhook reported generation failure"
+        );
+        db.prepare(
+          `UPDATE generation_jobs
+           SET status = 'FAILED', error_message = ?, updated_at = ?
+           WHERE id = ?`
+        ).run("Generation failed upstream.", new Date().toISOString(), job.id);
+      }
+
+      return res.json({ ok: true });
+    } catch (e) {
+      console.error("[KIE Webhook Error]:", e.message);
+      return res.status(500).json({ ok: false, error: "Webhook error." });
     }
   });
 
@@ -808,16 +656,14 @@ function mountStudioRoutes(app, options) {
   app.get("/api/credits/dashboard", requireUser, (req, res) => {
     try {
       const userId = req.user.sub;
-      const user = db.prepare("SELECT credits, suspended, subscription_plan, subscription_status FROM users WHERE id = ?").get(userId);
-      if (!user) {
-        return res.status(404).json({ ok: false, error: "User not found." });
-      }
+      const wallet = CreditWalletService.getWallet(db, userId);
+      const user = db.prepare("SELECT subscription_plan, subscription_status FROM users WHERE id = ?").get(userId);
 
       // 1. Pending tasks & credits
       const pendingRow = db.prepare("SELECT COUNT(*) as cnt, COALESCE(SUM(credits), 0) as sum FROM studio_tasks WHERE user_id = ? AND status = 'pending'").get(userId);
-      const pendingCount = pendingRow.cnt || 0;
-      const pendingCredits = pendingRow.sum || 0;
-      const availableCredits = Math.max(0, user.credits - pendingCredits);
+      const pendingCount = pendingRow?.cnt || 0;
+      const pendingCredits = wallet.reserved || pendingRow?.sum || 0;
+      const availableCredits = wallet.available;
 
       // 2. Lifetime credits
       const lifetimeDeductedRow = db.prepare("SELECT COALESCE(SUM(credits_deducted), 0) as total FROM credit_transactions WHERE user_id = ? AND action_type NOT IN ('generation_refund')").get(userId);
@@ -828,7 +674,7 @@ function mountStudioRoutes(app, options) {
 
       // 3. Transactions List (limit 50)
       const transactions = db.prepare(`
-        SELECT id, action_type as actionType, credits_added as creditsAdded, credits_deducted as creditsDeducted, previous_balance as previousBalance, new_balance as newBalance, timestamp, source, reason, details_json as detailsJson
+        SELECT id, action_type as actionType, credits_added as creditsAdded, credits_deducted as creditsDeducted, previous_balance as previousBalance, new_balance as newBalance, timestamp, source, reason, credit_type as creditType, details_json as detailsJson
         FROM credit_transactions
         WHERE user_id = ?
         ORDER BY timestamp DESC
@@ -894,14 +740,23 @@ function mountStudioRoutes(app, options) {
       return res.json({
         ok: true,
         metrics: {
-          credits: user.credits,
+          credits: wallet.available,
+          availableCredits: wallet.available,
+          purchasedCredits: wallet.purchased,
+          promotionalCredits: wallet.promotional,
+          reservedCredits: wallet.reserved,
           pendingCredits,
-          availableCredits,
           lifetimeUsed: lifetimeDeducted,
           lifetimeAdded,
           pendingCount,
           thisMonthCount,
-          subscriptionPlan: user.subscription_plan || "Free",
+          subscriptionPlan: user?.subscription_plan || "Free",
+        },
+        wallet: {
+          available: wallet.available,
+          purchased: wallet.purchased,
+          promotional: wallet.promotional,
+          reserved: wallet.reserved,
         },
         transactions,
         generations,

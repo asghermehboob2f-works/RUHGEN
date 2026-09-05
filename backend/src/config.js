@@ -59,18 +59,15 @@ function parseExpiryMs(val, defaultMs) {
 }
 
 const TRACKED_ENV_KEYS = [
+  "KIE_API_KEY",
+  "KIE_BASE_URL",
+  "KIE_WEBHOOK_SECRET",
   "RUGEN_STANDARD_API_KEY",
   "RUGEN_STANDARD_API_URL",
   "RUGEN_STANDARD_MODEL",
   "RUGEN_PREMIUM_API_KEY",
   "RUGEN_PREMIUM_API_URL",
   "RUGEN_PREMIUM_MODEL",
-  "VIDEO_STANDARD_API_KEY",
-  "VIDEO_STANDARD_API_URL",
-  "VIDEO_STANDARD_MODEL",
-  "VIDEO_PREMIUM_API_KEY",
-  "VIDEO_PREMIUM_API_URL",
-  "VIDEO_PREMIUM_MODEL",
 ];
 
 function readFreshEnv() {
@@ -86,9 +83,16 @@ function readFreshEnv() {
         const trimmed = line.trim();
         if (!trimmed || trimmed.startsWith("#")) continue;
         const eqIdx = trimmed.indexOf("=");
-        if (eqIdx > 0) {
-          const key = trimmed.slice(0, eqIdx).trim();
-          const val = trimmed.slice(eqIdx + 1).trim().replace(/^["']|["']$/g, "");
+        if (eqIdx === -1) continue;
+        const key = trimmed.slice(0, eqIdx).trim();
+        let val = trimmed.slice(eqIdx + 1).trim();
+        if (
+          (val.startsWith('"') && val.endsWith('"')) ||
+          (val.startsWith("'") && val.endsWith("'"))
+        ) {
+          val = val.slice(1, -1);
+        }
+        if (TRACKED_ENV_KEYS.includes(key)) {
           process.env[key] = val;
           parsedKeys.add(key);
         }
@@ -99,8 +103,8 @@ function readFreshEnv() {
         }
       }
     }
-  } catch (e) {
-    /* ignore */
+  } catch (err) {
+    console.error("[config] Error re-reading .env file:", err.message);
   }
 }
 
@@ -133,25 +137,12 @@ function getImageConfig(tier = "standard") {
 
 function getVideoConfig(tier = "standard") {
   readFreshEnv();
-
-  const isStandard =
-    tier === "standard" || tier === "std" || tier === "fast";
-
-  const defaultUrl = "https://api.piapi.ai/api/v1/task";
-
-  if (isStandard) {
-    const apiKey = (process.env.VIDEO_STANDARD_API_KEY || "").trim();
-    const apiUrl = (process.env.VIDEO_STANDARD_API_URL || defaultUrl).trim();
-    const model = (process.env.VIDEO_STANDARD_MODEL || "kling-turbo").trim();
-
-    return { tier: "standard", apiKey, apiUrl, model };
-  } else {
-    const apiKey = (process.env.VIDEO_PREMIUM_API_KEY || "").trim();
-    const apiUrl = (process.env.VIDEO_PREMIUM_API_URL || defaultUrl).trim();
-    const model = (process.env.VIDEO_PREMIUM_MODEL || "kling-pro").trim();
-
-    return { tier: "premium", apiKey, apiUrl, model };
-  }
+  const kie = getKieConfig();
+  return {
+    tier: tier === "premium" ? "premium" : "standard",
+    isConfigured: kie.isConfigured,
+    provider: "kie.ai",
+  };
 }
 
 function getSmtpConfig() {
@@ -209,6 +200,20 @@ function getSmtpConfig() {
   };
 }
 
+function getKieConfig() {
+  readFreshEnv();
+  const apiKey = (process.env.KIE_API_KEY || "").trim();
+  const baseUrl = (process.env.KIE_BASE_URL || "https://api.kie.ai").trim().replace(/\/$/, "");
+  const webhookSecret = (process.env.KIE_WEBHOOK_SECRET || "").trim();
+
+  return {
+    apiKey,
+    baseUrl,
+    webhookSecret,
+    isConfigured: Boolean(apiKey && !apiKey.includes("your_kie_api_key")),
+  };
+}
+
 function validateConfig() {
   console.log("─────────────────────────────────────────────────────────────");
   console.log("[config] Validating RUHGEN production configuration...");
@@ -221,22 +226,23 @@ function validateConfig() {
   console.log(`[config] EMAIL_VERIFICATION_URL: ${verifyUrl}`);
   console.log(`[config] PASSWORD_RESET_URL: ${resetUrl}`);
 
+  const kie = getKieConfig();
+  console.log(
+    `[config] KIE.ai Provider API: ${kie.isConfigured ? "Configured ✓" : "WARNING: Missing or placeholder KIE_API_KEY"}`
+  );
+  console.log(`[config] KIE.ai Base URL: ${kie.baseUrl}`);
+
   const stdImg = getImageConfig("standard");
   const premImg = getImageConfig("premium");
   console.log(
-    `[config] Image Standard API: ${stdImg.apiKey ? "Configured ✓" : "WARNING: Missing API key"}`
+    `[config] Image Standard API: ${stdImg.apiKey ? "Configured ✓" : "Legacy/Fallback key not set"}`
   );
   console.log(
-    `[config] Image Premium API: ${premImg.apiKey ? "Configured ✓" : "WARNING: Missing API key"}`
+    `[config] Image Premium API: ${premImg.apiKey ? "Configured ✓" : "Legacy/Fallback key not set"}`
   );
 
-  const stdVid = getVideoConfig("standard");
-  const premVid = getVideoConfig("premium");
   console.log(
-    `[config] Video Standard API: ${stdVid.apiKey ? "Configured ✓" : "WARNING: Missing API key"}`
-  );
-  console.log(
-    `[config] Video Premium API: ${premVid.apiKey ? "Configured ✓" : "WARNING: Missing API key"}`
+    `[config] Video Engine (KIE.ai): ${kie.isConfigured ? "Configured ✓" : "WARNING: Missing or placeholder KIE_API_KEY"}`
   );
 
   const smtp = getSmtpConfig();
@@ -249,6 +255,7 @@ function validateConfig() {
 module.exports = {
   getAppUrl,
   parseExpiryMs,
+  getKieConfig,
   getImageConfig,
   getVideoConfig,
   getSmtpConfig,

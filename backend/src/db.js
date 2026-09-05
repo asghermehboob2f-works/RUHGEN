@@ -274,12 +274,40 @@ function openDb(projectRoot) {
     }
   };
 
-  addUsersCol("credits", "INTEGER NOT NULL DEFAULT 120");
+  addUsersCol("credits", "INTEGER NOT NULL DEFAULT 0");
+  addUsersCol("purchased_credits", "INTEGER NOT NULL DEFAULT 0");
+  addUsersCol("promotional_credits", "INTEGER NOT NULL DEFAULT 0");
+  addUsersCol("reserved_credits", "INTEGER NOT NULL DEFAULT 0");
   addUsersCol("generation_disabled", "INTEGER NOT NULL DEFAULT 0");
   addUsersCol("special_access", "INTEGER NOT NULL DEFAULT 0");
   addUsersCol("role", "TEXT NOT NULL DEFAULT 'user'");
   addUsersCol("team_id", "TEXT DEFAULT NULL");
   addUsersCol("team_role", "TEXT DEFAULT NULL");
+
+  // Backfill purchased_credits vs promotional_credits for legacy users
+  try {
+    const unbackfilled = db.prepare("SELECT id, credits FROM users WHERE purchased_credits = 0 AND promotional_credits = 0 AND credits > 0").all();
+    if (unbackfilled.length > 0) {
+      const updateStmt = db.prepare("UPDATE users SET promotional_credits = ?, purchased_credits = ?, reserved_credits = 0 WHERE id = ?");
+      for (const u of unbackfilled) {
+        let paidCredits = 0;
+        try {
+          const payRow = db.prepare("SELECT COALESCE(SUM(credits_to_grant), 0) as paid_credits FROM payments WHERE user_id = ? AND LOWER(status) IN ('captured', 'paid', 'verified', 'credited')").get(u.id);
+          paidCredits = payRow?.paid_credits || 0;
+        } catch {}
+        if (paidCredits > 0) {
+          const purchased = Math.min(u.credits, paidCredits);
+          const promo = Math.max(0, u.credits - purchased);
+          updateStmt.run(promo, purchased, u.id);
+        } else {
+          updateStmt.run(u.credits, 0, u.id);
+        }
+      }
+      console.log(`[db] Backfilled credit separation for ${unbackfilled.length} user accounts.`);
+    }
+  } catch (backfillErr) {
+    console.error("[db] Credit backfill error:", backfillErr.message);
+  }
 
   // --- Email verification & Auth Reset columns ---
   const verCols = [
@@ -549,12 +577,85 @@ function openDb(projectRoot) {
 
   // Migrate credit_transactions table columns
   const credCols = db.pragma("table_info(credit_transactions)");
-  if (!credCols.some((c) => c.name === "reference_type")) {
-    db.exec("ALTER TABLE credit_transactions ADD COLUMN reference_type TEXT NOT NULL DEFAULT 'PAYMENT'");
-  }
-  if (!credCols.some((c) => c.name === "reference_id")) {
-    db.exec("ALTER TABLE credit_transactions ADD COLUMN reference_id TEXT NOT NULL DEFAULT ''");
-  }
+  const addCredCol = (name, def) => {
+    if (!credCols.some((c) => c.name === name)) {
+      try {
+        db.exec(`ALTER TABLE credit_transactions ADD COLUMN ${name} ${def}`);
+        console.log(`[db] Added ${name} column to credit_transactions table`);
+      } catch (err) {
+        if (!err.message.includes("duplicate column")) {
+          console.error(`[db] Failed to add ${name} to credit_transactions:`, err.message);
+        }
+      }
+    }
+  };
+  addCredCol("reference_type", "TEXT NOT NULL DEFAULT 'PAYMENT'");
+  addCredCol("reference_id", "TEXT NOT NULL DEFAULT ''");
+  addCredCol("credit_type", "TEXT NOT NULL DEFAULT 'purchased'");
+  addCredCol("purchased_delta", "INTEGER NOT NULL DEFAULT 0");
+  addCredCol("promotional_delta", "INTEGER NOT NULL DEFAULT 0");
+  addCredCol("reserved_delta", "INTEGER NOT NULL DEFAULT 0");
+  addCredCol("job_id", "TEXT DEFAULT NULL");
+  addCredCol("payment_id", "TEXT DEFAULT NULL");
+  addCredCol("metadata_json", "TEXT NOT NULL DEFAULT '{}'");
+
+  // ── Generation Jobs & Model Registry Tables ─────────────────────────────
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS generation_jobs (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      idempotency_key TEXT UNIQUE,
+      generation_type TEXT NOT NULL CHECK (generation_type IN ('image', 'video')),
+      model_id TEXT NOT NULL,
+      kie_model_id TEXT NOT NULL,
+      provider_task_id TEXT,
+      status TEXT NOT NULL DEFAULT 'QUEUED',
+      requested_params_json TEXT NOT NULL DEFAULT '{}',
+      sanitized_params_json TEXT NOT NULL DEFAULT '{}',
+      credit_cost INTEGER NOT NULL DEFAULT 0,
+      provider_cost_usd REAL NOT NULL DEFAULT 0.0,
+      output_urls_json TEXT NOT NULL DEFAULT '[]',
+      error_message TEXT,
+      provider_raw_error TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      completed_at TEXT,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_gen_jobs_user_status_created
+      ON generation_jobs (user_id, status, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_gen_jobs_provider_task
+      ON generation_jobs (provider_task_id);
+    CREATE INDEX IF NOT EXISTS idx_gen_jobs_status
+      ON generation_jobs (status);
+
+    CREATE TABLE IF NOT EXISTS model_registry (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      type TEXT NOT NULL CHECK (type IN ('image', 'video')),
+      tier TEXT NOT NULL CHECK (tier IN ('standard', 'premium')),
+      kie_model_id TEXT NOT NULL,
+      enabled INTEGER NOT NULL DEFAULT 1,
+      base_provider_cost REAL NOT NULL DEFAULT 0.005,
+      credit_cost_type TEXT NOT NULL DEFAULT 'fixed' CHECK (credit_cost_type IN ('fixed', 'per_second')),
+      base_credit_cost INTEGER NOT NULL DEFAULT 2,
+      min_margin_percent REAL NOT NULL DEFAULT 65.0,
+      supported_aspect_ratios TEXT NOT NULL DEFAULT '["1:1","16:9","9:16","4:3","3:2","4:5","2:3"]',
+      supported_resolutions TEXT NOT NULL DEFAULT '["1024x1024"]',
+      supported_durations TEXT NOT NULL DEFAULT '[5, 10]',
+      supported_controls TEXT NOT NULL DEFAULT '[]',
+      max_duration INTEGER DEFAULT 10,
+      max_resolution TEXT DEFAULT '1080p',
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS pricing_settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+  `);
 
   // Support tickets table migrations for priority and internal notes
   const ticketCols = db.pragma("table_info(support_tickets)");
@@ -595,12 +696,14 @@ function openDb(projectRoot) {
   // Seed default rates if not present
   const stmtSetting = db.prepare("INSERT OR IGNORE INTO credit_settings (key, value) VALUES (?, ?)");
   stmtSetting.run("credits_per_image", "2");
-  stmtSetting.run("credits_per_video_second", "5");
+  stmtSetting.run("credits_per_video_second", "4");
   stmtSetting.run("cost_image_schnell", "2");
-  stmtSetting.run("cost_image_dev", "3");
-  stmtSetting.run("cost_video_std", "5");
+  stmtSetting.run("cost_image_dev", "4");
+  stmtSetting.run("cost_video_std", "4");
   stmtSetting.run("cost_video_pro", "8");
 
+  seedModelRegistryIfEmpty(db);
+  seedPricingSettingsIfEmpty(db);
   seedSiteContentIfEmpty(db, dataDir, projectRoot);
   migrateLegacyJsonIfEmpty(db, dataDir, projectRoot);
   syncSiteContentFromSeedFile(db, dataDir, projectRoot);
@@ -1419,6 +1522,122 @@ function seedFaqsIfEmpty(db) {
     stmt.run(faq.id, faq.category, faq.question, faq.answer, now, now);
   }
   console.log(`[db] Seeded ${faqs.length} default FAQs.`);
+}
+
+function seedModelRegistryIfEmpty(db) {
+  const count = db.prepare("SELECT COUNT(*) AS c FROM model_registry").get().c;
+  if (count > 0) return;
+
+  const now = new Date().toISOString();
+  const insert = db.prepare(`
+    INSERT INTO model_registry (
+      id, name, type, tier, kie_model_id, enabled, base_provider_cost,
+      credit_cost_type, base_credit_cost, min_margin_percent,
+      supported_aspect_ratios, supported_resolutions, supported_durations,
+      supported_controls, max_duration, max_resolution, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  // 1. Standard Image (KIE.ai Flux Flex text-to-image)
+  insert.run(
+    "image-flux-standard",
+    "RUHGEN Standard Image",
+    "image",
+    "standard",
+    "flux-2/flex-text-to-image",
+    1,
+    0.004,
+    "fixed",
+    2,
+    70.0,
+    JSON.stringify(["1:1", "16:9", "9:16", "4:3", "3:2", "4:5", "2:3"]),
+    JSON.stringify(["1024x1024", "1280x720", "720x1280"]),
+    JSON.stringify([]),
+    JSON.stringify(["prompt", "negative_prompt", "aspect_ratio", "style", "image_reference", "denoise", "guidance_scale"]),
+    null,
+    "1024x1024",
+    now,
+    now
+  );
+
+  // 2. Premium Image (KIE.ai Flux Pro text-to-image)
+  insert.run(
+    "image-flux-premium",
+    "RUHGEN Premium Image",
+    "image",
+    "premium",
+    "flux-2/pro-text-to-image",
+    1,
+    0.010,
+    "fixed",
+    4,
+    70.0,
+    JSON.stringify(["1:1", "16:9", "9:16", "4:3", "3:2", "4:5", "2:3"]),
+    JSON.stringify(["1024x1024", "1280x720", "720x1280"]),
+    JSON.stringify([]),
+    JSON.stringify(["prompt", "negative_prompt", "aspect_ratio", "style", "image_reference", "denoise", "guidance_scale"]),
+    null,
+    "1024x1024",
+    now,
+    now
+  );
+
+  // 3. Standard Video (KIE.ai Kling 2.6 - Cheapest Suitable Video Model)
+  insert.run(
+    "video-kling-standard",
+    "RUHGEN Standard Video",
+    "video",
+    "standard",
+    "kling-2.6/text-to-video",
+    1,
+    0.055,
+    "per_second",
+    3,
+    70.0,
+    JSON.stringify(["16:9", "9:16", "1:1"]),
+    JSON.stringify(["720p"]),
+    JSON.stringify([5]),
+    JSON.stringify(["prompt", "negative_prompt", "aspect_ratio", "duration", "sound"]),
+    5,
+    "720p",
+    now,
+    now
+  );
+
+  // 4. Premium Omni Video (KIE.ai Kling 3.0 Omni - Mid-Tier Omni Model)
+  insert.run(
+    "video-kling-premium",
+    "RUHGEN Premium Omni Video",
+    "video",
+    "premium",
+    "kling-3.0-omni/text-to-video",
+    1,
+    0.110,
+    "per_second",
+    6,
+    65.0,
+    JSON.stringify(["16:9", "9:16", "1:1"]),
+    JSON.stringify(["720p", "1080p"]),
+    JSON.stringify([5, 10]),
+    JSON.stringify(["prompt", "negative_prompt", "aspect_ratio", "duration", "resolution", "sound", "camera_control", "image_urls"]),
+    10,
+    "1080p",
+    now,
+    now
+  );
+
+  console.log("[db] Initialized Model Registry with production KIE.ai video models.");
+}
+
+function seedPricingSettingsIfEmpty(db) {
+  const now = new Date().toISOString();
+  const stmt = db.prepare("INSERT OR IGNORE INTO pricing_settings (key, value, updated_at) VALUES (?, ?, ?)");
+  stmt.run("credit_inr_rate", "1.0", now);
+  stmt.run("inr_usd_rate", "87.0", now);
+  stmt.run("pg_fee_percent", "2.36", now);
+  stmt.run("infra_allowance_percent", "10.0", now);
+  stmt.run("min_platform_margin_percent", "60.0", now);
+  stmt.run("default_new_user_promo_credits", "0", now);
 }
 
 module.exports = { openDb };

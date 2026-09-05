@@ -15,6 +15,7 @@ const {
   verifyRazorpaySignature: verifySignatureService,
   verifyWebhookSignature: verifyWebhookSignatureService,
 } = require("./services/razorpay-service");
+const { CreditWalletService } = require("./services/credit-wallet-service");
 
 /**
  * Check if valid Razorpay API keys are configured.
@@ -534,33 +535,26 @@ function mountPaymentRoutes(app, { db, verifyAdminToken }) {
            WHERE id = ?`
         ).run(paymentId, new Date().toISOString(), payment.id);
 
-        const user = db.prepare("SELECT credits FROM users WHERE id = ?").get(req.userId);
-        const prevBalance = user?.credits ?? 0;
-        const newBalance = prevBalance + plan.credits;
+        const walletResult = CreditWalletService.creditPurchased(
+          db,
+          req.userId,
+          plan.credits,
+          payment.id,
+          {
+            planId: plan.id,
+            planName: plan.name,
+            razorpayPaymentId: paymentId,
+            orderId: orderId,
+            reason: `Purchased ${plan.name} plan`
+          }
+        );
 
-        db.prepare("UPDATE users SET credits = ?, subscription_plan = ? WHERE id = ?").run(
-          newBalance,
+        db.prepare("UPDATE users SET subscription_plan = ? WHERE id = ?").run(
           plan.id,
           req.userId
         );
 
-        db.prepare(
-          `INSERT INTO credit_transactions
-           (id, user_id, action_type, credits_added, credits_deducted,
-            previous_balance, new_balance, timestamp, source, reason, details_json)
-           VALUES (?, ?, 'purchase', ?, 0, ?, ?, ?, 'payment', ?, ?)`
-        ).run(
-          crypto.randomUUID(),
-          req.userId,
-          plan.credits,
-          prevBalance,
-          newBalance,
-          new Date().toISOString(),
-          `Purchased ${plan.name} plan`,
-          JSON.stringify({ planId: plan.id, razorpayPaymentId: paymentId, orderId: orderId })
-        );
-
-        return { newBalance, creditsAdded: plan.credits };
+        return { newBalance: walletResult.newAvailable, creditsAdded: plan.credits };
       });
 
       const result = grantCredits();
@@ -654,33 +648,32 @@ function mountPaymentRoutes(app, { db, verifyAdminToken }) {
           .get(orderId);
 
         if (existingPayment && existingPayment.status === "created") {
-          const plan = getPlanById(existingPayment.plan_id);
+          const plan = getPlanById(db, existingPayment.plan_id);
           if (plan) {
-            const grantCredits = db.transaction(() => {
+            db.transaction(() => {
               db.prepare(
                 "UPDATE payments SET status = 'captured', razorpay_payment_id = ?, captured_at = ? WHERE id = ?"
               ).run(paymentId, new Date().toISOString(), existingPayment.id);
 
-              const user = db.prepare("SELECT credits FROM users WHERE id = ?").get(existingPayment.user_id);
-              const prev = user?.credits ?? 0;
-              const next = prev + plan.credits;
-
-              db.prepare("UPDATE users SET credits = ?, subscription_plan = ? WHERE id = ?").run(
-                next, plan.id, existingPayment.user_id
+              CreditWalletService.creditPurchased(
+                db,
+                existingPayment.user_id,
+                plan.credits,
+                existingPayment.id,
+                {
+                  via: "webhook",
+                  planId: plan.id,
+                  planName: plan.name,
+                  razorpayPaymentId: paymentId,
+                  orderId: orderId,
+                  reason: `Webhook: Purchased ${plan.name}`
+                }
               );
 
-              db.prepare(
-                `INSERT INTO credit_transactions
-                 (id, user_id, action_type, credits_added, credits_deducted,
-                  previous_balance, new_balance, timestamp, source, reason, details_json)
-                 VALUES (?, ?, 'purchase', ?, 0, ?, ?, ?, 'webhook', ?, ?)`
-              ).run(
-                crypto.randomUUID(), existingPayment.user_id, plan.credits, prev, next,
-                new Date().toISOString(), `Webhook: Purchased ${plan.name}`,
-                JSON.stringify({ via: "webhook", paymentId, orderId })
+              db.prepare("UPDATE users SET subscription_plan = ? WHERE id = ?").run(
+                plan.id, existingPayment.user_id
               );
-            });
-            grantCredits();
+            })();
           }
         }
       } else if (eventType === "payment.failed") {
@@ -690,6 +683,30 @@ function mountPaymentRoutes(app, { db, verifyAdminToken }) {
           db.prepare(
             "UPDATE payments SET status = 'failed' WHERE razorpay_order_id = ? AND status = 'created'"
           ).run(orderId);
+        }
+      } else if (eventType === "payment.refunded" || eventType === "refund.processed") {
+        const paymentEntity = event.payload?.payment?.entity;
+        const orderId = paymentEntity?.order_id;
+        const refundEntity = event.payload?.refund?.entity;
+        if (orderId) {
+          const existingPayment = db
+            .prepare("SELECT id, user_id, plan_id, status FROM payments WHERE razorpay_order_id = ?")
+            .get(orderId);
+          if (existingPayment && existingPayment.status === "captured") {
+            const plan = getPlanById(db, existingPayment.plan_id);
+            const refundCredits = plan ? plan.credits : 0;
+            if (refundCredits > 0) {
+              CreditWalletService.refundPurchased(
+                db,
+                existingPayment.user_id,
+                refundCredits,
+                existingPayment.id,
+                `Webhook: Refund processed for ${plan?.name || "plan"}`,
+                { via: "webhook", refundId: refundEntity?.id, orderId }
+              );
+            }
+            db.prepare("UPDATE payments SET status = 'refunded' WHERE id = ?").run(existingPayment.id);
+          }
         }
       }
 

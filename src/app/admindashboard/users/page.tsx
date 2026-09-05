@@ -16,6 +16,9 @@ export type PlatformUserRow = {
   subscriptionStatus: string;
   adminNotes: string;
   credits?: number;
+  purchasedCredits?: number;
+  promotionalCredits?: number;
+  reservedCredits?: number;
   generationDisabled?: boolean;
   specialAccess?: boolean;
   role?: string;
@@ -287,8 +290,11 @@ export default function AdminUsersPage() {
                             </div>
                           </div>
                         </td>
-                        <td className="px-2 py-3 font-semibold text-[var(--text-primary)]">
-                          {u.credits ?? 0}
+                        <td className="px-2 py-3">
+                          <div className="font-semibold text-[var(--text-primary)] font-mono">{u.credits ?? 0}</div>
+                          <div className="text-[10px] text-[var(--text-subtle)] font-mono">
+                            {u.purchasedCredits ?? 0}p / {u.promotionalCredits ?? 0}pr
+                          </div>
                         </td>
                         <td className="hidden px-2 py-3 md:table-cell">
                           <span className="rounded-md bg-[var(--deep-black)] px-2 py-1 font-mono text-xs" style={{ color: "var(--text-muted)" }}>
@@ -361,6 +367,7 @@ function UserDetailPanel({
   const [notes, setNotes] = useState(user.adminNotes || "");
   const [adjustCredits, setAdjustCredits] = useState("");
   const [adjustReason, setAdjustReason] = useState("");
+  const [creditType, setCreditType] = useState<"promotional" | "purchased">("promotional");
   const [role, setRole] = useState(user.role || "user");
   const [genDisabled, setGenDisabled] = useState(!!user.generationDisabled);
   const [specialAccess, setSpecialAccess] = useState(!!user.specialAccess);
@@ -427,48 +434,70 @@ function UserDetailPanel({
       </label>
 
       {/* Manual Credits Adjuster */}
-      <div className="sm:col-span-2 lg:col-span-1 border border-white/5 rounded-xl bg-black/10 p-3">
+      <div className="sm:col-span-2 lg:col-span-1 border border-white/5 rounded-xl bg-black/10 p-3 space-y-2">
         <label className="grid gap-1.5 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--text-subtle)" }}>
           Credits Management
           <div className="flex gap-2">
+            <select
+              value={creditType}
+              onChange={(e) => setCreditType(e.target.value as any)}
+              className="min-h-[44px] rounded-lg border px-2 py-2 text-xs font-semibold normal-case outline-none"
+              style={{ borderColor: "var(--border-subtle)", background: "var(--rich-black)", color: "var(--text-primary)" }}
+            >
+              <option value="promotional">Promo</option>
+              <option value="purchased">Purchased</option>
+            </select>
             <input
               type="number"
               value={adjustCredits}
               onChange={(e) => setAdjustCredits(e.target.value)}
               placeholder="+/- amount"
-              className="min-h-[44px] w-24 rounded-lg border px-3 py-2 text-sm font-medium normal-case outline-none"
+              className="min-h-[44px] w-20 rounded-lg border px-3 py-2 text-sm font-medium normal-case outline-none"
               style={{ borderColor: "var(--border-subtle)", background: "var(--rich-black)", color: "var(--text-primary)" }}
             />
             <input
               type="text"
               value={adjustReason}
               onChange={(e) => setAdjustReason(e.target.value)}
-              placeholder="Reason for change"
+              placeholder="Reason (mandatory)"
               className="min-h-[44px] flex-1 rounded-lg border px-3 py-2 text-sm font-medium normal-case outline-none"
               style={{ borderColor: "var(--border-subtle)", background: "var(--rich-black)", color: "var(--text-primary)" }}
             />
             <button
               type="button"
-              disabled={saving}
-              onClick={() => {
+              disabled={saving || !adjustCredits || !adjustReason.trim()}
+              onClick={async () => {
                 const amount = Number(adjustCredits);
-                if (!amount) return;
-                onSave({
-                  adjustCredits: amount,
-                  creditsReason: adjustReason.trim() || "Manual admin adjustment"
-                });
-                setAdjustCredits("");
-                setAdjustReason("");
+                if (!amount || !adjustReason.trim()) return;
+                try {
+                  const h = authHeaders();
+                  const res = await fetch(`/api/admin/users/${encodeURIComponent(user.id)}/credits`, {
+                    method: "POST",
+                    headers: { ...h, "content-type": "application/json" },
+                    body: JSON.stringify({ amount, creditType, reason: adjustReason.trim() }),
+                  });
+                  const data = await res.json();
+                  if (data.ok) {
+                    onSave({});
+                    setAdjustCredits("");
+                    setAdjustReason("");
+                  }
+                } catch (err) {
+                  console.error("Credit adjustment error", err);
+                }
               }}
-              className="inline-flex min-h-[44px] items-center justify-center rounded-xl border px-3 text-xs font-semibold"
+              className="inline-flex min-h-[44px] items-center justify-center rounded-xl border px-3 text-xs font-semibold disabled:opacity-40"
               style={{ borderColor: "var(--border-subtle)", background: "var(--deep-black)", color: "var(--text-primary)" }}
             >
               Adjust
             </button>
           </div>
-          <span className="text-[10px] text-[var(--text-subtle)] mt-1">
-            Current balance: <span className="font-bold text-white">{user.credits ?? 0}</span>
-          </span>
+          <div className="flex flex-wrap items-center justify-between text-[10px] text-[var(--text-subtle)] mt-1 font-mono gap-1">
+            <span>Avail: <strong className="text-white">{user.credits ?? 0}</strong></span>
+            <span>Purchased: <strong className="text-cyan-400">{user.purchasedCredits ?? 0}</strong></span>
+            <span>Promo: <strong className="text-violet-400">{user.promotionalCredits ?? 0}</strong></span>
+            <span>Reserved: <strong className="text-amber-400">{user.reservedCredits ?? 0}</strong></span>
+          </div>
         </label>
       </div>
 

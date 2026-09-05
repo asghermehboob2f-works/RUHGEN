@@ -21,12 +21,13 @@ function createRateLimiter({ windowMs = 15 * 60 * 1000, max = 100, message = "To
 
   return function rateLimiter(req, res, next) {
     const ip = String(req.ip || req.headers["x-forwarded-for"] || req.socket.remoteAddress || "127.0.0.1").split(",")[0].trim();
+    const key = req.user?.sub ? `user:${req.user.sub}` : `ip:${ip}`;
     const now = Date.now();
-    const timestamps = requests.get(ip) || [];
+    const timestamps = requests.get(key) || [];
     const validTimestamps = timestamps.filter((t) => now - t < windowMs);
 
     if (validTimestamps.length >= max) {
-      console.warn(`[RateLimit Exceeded] IP: ${ip} on path ${req.originalUrl || req.url}`);
+      console.warn(`[RateLimit Exceeded] Key: ${key} on path ${req.originalUrl || req.url}`);
       return res.status(429).json({
         ok: false,
         error: message,
@@ -34,7 +35,7 @@ function createRateLimiter({ windowMs = 15 * 60 * 1000, max = 100, message = "To
     }
 
     validTimestamps.push(now);
-    requests.set(ip, validTimestamps);
+    requests.set(key, validTimestamps);
 
     res.setHeader("X-RateLimit-Limit", max);
     res.setHeader("X-RateLimit-Remaining", Math.max(0, max - validTimestamps.length));

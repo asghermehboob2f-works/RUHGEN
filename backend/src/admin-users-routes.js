@@ -1,5 +1,7 @@
 const crypto = require("node:crypto");
 const { verifyAdminToken } = require("./auth");
+const { CreditWalletService } = require("./services/credit-wallet-service");
+const { ModelRegistryService } = require("./services/model-registry-service");
 
 function getBearer(req) {
   const auth = String(req.headers.authorization || "").trim();
@@ -28,7 +30,7 @@ function mountAdminUsersRoutes(app, { db }) {
   app.get("/api/admin/users", requireAdmin, (req, res) => {
     try {
       const rows = db.prepare(
-        "SELECT id, email, name, created_at as createdAt, suspended, subscription_plan as subscriptionPlan, subscription_status as subscriptionStatus, admin_notes as adminNotes, credits, generation_disabled as generationDisabled, special_access as specialAccess, role FROM users ORDER BY created_at DESC"
+        "SELECT id, email, name, created_at as createdAt, suspended, subscription_plan as subscriptionPlan, subscription_status as subscriptionStatus, admin_notes as adminNotes, credits, purchased_credits as purchasedCredits, promotional_credits as promotionalCredits, reserved_credits as reservedCredits, generation_disabled as generationDisabled, special_access as specialAccess, role FROM users ORDER BY created_at DESC"
       ).all();
       return res.json({ ok: true, users: rows });
     } catch (e) {
@@ -350,13 +352,13 @@ function mountAdminUsersRoutes(app, { db }) {
       const engineRows = db.prepare("SELECT type, details_json FROM studio_tasks").all();
       const engineCounts = {};
       for (const row of engineRows) {
-        let modelName = row.type === "image" ? "flux1-dev" : "kling-turbo";
+        let modelName = row.type === "image" ? "flux1-dev" : "video-standard";
         try {
           const details = JSON.parse(row.details_json);
-          if (row.type === "image" && details.model) {
+          if (details.model) {
             modelName = details.model.split("/").pop();
-          } else if (row.type === "video" && details.mode) {
-            modelName = `kling-${details.mode}`;
+          } else if (row.type === "video" && details.tier) {
+            modelName = `video-${details.tier}`;
           }
         } catch(e) {}
         engineCounts[modelName] = (engineCounts[modelName] || 0) + 1;
@@ -457,6 +459,192 @@ function mountAdminUsersRoutes(app, { db }) {
     } catch (e) {
       console.error("[admin/overview-stats] error:", e);
       return res.status(500).json({ ok: false, error: "Failed to load overview stats." });
+    }
+  });
+
+  // ─── ADMIN: User Credits Adjustment with Full Audit Trail ────────────────
+  app.post("/api/admin/users/:id/credits", requireAdmin, (req, res) => {
+    try {
+      const { id } = req.params;
+      const { amount, creditType = "promotional", reason } = req.body || {};
+      if (typeof amount !== "number" || amount === 0) {
+        return res.status(400).json({ ok: false, error: "A valid non-zero adjustment amount is required." });
+      }
+      if (!reason || typeof reason !== "string" || !reason.trim()) {
+        return res.status(400).json({ ok: false, error: "A non-empty reason is required for administrative credit adjustments." });
+      }
+
+      const adminUser = { id: req.admin.sub, email: req.admin.email };
+      const adjustment = CreditWalletService.adjustCreditsAdmin(db, id, amount, creditType, adminUser, reason);
+      const wallet = CreditWalletService.getWallet(db, id);
+
+      return res.json({ ok: true, wallet, adjustment });
+    } catch (e) {
+      return res.status(500).json({ ok: false, error: e.message || "Failed to adjust user credits." });
+    }
+  });
+
+  // ─── ADMIN: Financial Visibility & Margin Analysis ────────────────────────
+  app.get("/api/admin/financials", requireAdmin, async (req, res) => {
+    try {
+      // 1. Credit Supply & Liability Breakdown
+      const supplyRow = db.prepare(`
+        SELECT 
+          COALESCE(SUM(purchased_credits), 0) as totalPurchased,
+          COALESCE(SUM(promotional_credits), 0) as totalPromotional,
+          COALESCE(SUM(reserved_credits), 0) as totalReserved
+        FROM users
+      `).get();
+
+      const outstandingPurchasedCredits = supplyRow?.totalPurchased || 0;
+      const outstandingPromotionalCredits = supplyRow?.totalPromotional || 0;
+      const reservedCredits = supplyRow?.totalReserved || 0;
+      const totalCreditSupply = outstandingPurchasedCredits + outstandingPromotionalCredits;
+
+      // Rate settings
+      const settingRows = db.prepare("SELECT key, value FROM pricing_settings").all();
+      const settings = Object.fromEntries(settingRows.map((r) => [r.key, Number(r.value)]));
+      const creditInrRate = settings.credit_inr_rate || 1.0;
+      const inrUsdRate = settings.inr_usd_rate || 87.0;
+
+      // Monetary liability = unused purchased credits * creditInrRate
+      const monetaryLiabilityINR = Math.round(outstandingPurchasedCredits * creditInrRate);
+
+      // 2. Revenue from payments
+      const payRow = db.prepare(`
+        SELECT COALESCE(SUM(amount_paise), 0) as total_paise, COUNT(*) as c 
+        FROM payments 
+        WHERE LOWER(status) IN ('captured', 'credited', 'verified', 'paid', 'success') 
+          AND razorpay_payment_id IS NOT NULL 
+          AND razorpay_payment_id != '' 
+          AND razorpay_payment_id NOT LIKE 'pay_sim_%'
+      `).get();
+      const totalRevenueINR = Math.round((payRow?.total_paise || 0) / 100);
+      const successfulPaymentsCount = payRow?.c || 0;
+
+      // 3. KIE.ai Provider Spend from generation_jobs
+      const jobStatsRow = db.prepare(`
+        SELECT 
+          COUNT(*) as totalJobs,
+          COALESCE(SUM(CASE WHEN UPPER(status) = 'COMPLETED' THEN 1 ELSE 0 END), 0) as succeededJobs,
+          COALESCE(SUM(CASE WHEN UPPER(status) = 'FAILED' THEN 1 ELSE 0 END), 0) as failedJobs,
+          COALESCE(SUM(CASE WHEN UPPER(status) = 'COMPLETED' THEN credit_cost ELSE 0 END), 0) as totalCreditsConsumed,
+          COALESCE(SUM(CASE WHEN UPPER(status) IN ('COMPLETED', 'PROCESSING', 'RESERVED') THEN provider_cost_usd ELSE 0 END), 0) as totalKieUsd
+        FROM generation_jobs
+      `).get();
+
+      const totalJobs = jobStatsRow?.totalJobs || 0;
+      const succeededJobs = jobStatsRow?.succeededJobs || 0;
+      const failedJobs = jobStatsRow?.failedJobs || 0;
+      const totalCreditsConsumed = jobStatsRow?.totalCreditsConsumed || 0;
+      const totalKieCostUSD = Number(jobStatsRow?.totalKieUsd || 0);
+      const totalKieCostINR = Math.round(totalKieCostUSD * inrUsdRate);
+
+      // Breakdown by Model
+      const modelBreakdownRows = db.prepare(`
+        SELECT 
+          model_id as modelId,
+          generation_type as type,
+          COUNT(*) as jobsCount,
+          COALESCE(SUM(CASE WHEN UPPER(status) = 'COMPLETED' THEN credit_cost ELSE 0 END), 0) as creditsConsumed,
+          COALESCE(SUM(CASE WHEN UPPER(status) IN ('COMPLETED', 'PROCESSING', 'RESERVED') THEN provider_cost_usd ELSE 0 END), 0) as totalCostUsd
+        FROM generation_jobs
+        GROUP BY model_id, generation_type
+        ORDER BY jobsCount DESC
+      `).all();
+
+      const spendByModel = modelBreakdownRows.map((r) => ({
+        modelId: r.modelId,
+        type: r.type,
+        jobsCount: r.jobsCount,
+        creditsConsumed: r.creditsConsumed,
+        totalCostUsd: Number(r.totalCostUsd || 0).toFixed(4),
+        totalCostInr: Math.round(Number(r.totalCostUsd || 0) * inrUsdRate),
+      }));
+
+      // 4. Profit & Gross Margin
+      const grossProfitINR = totalRevenueINR - totalKieCostINR;
+      const grossMarginPercent = totalRevenueINR > 0
+        ? Number(((grossProfitINR / totalRevenueINR) * 100).toFixed(1))
+        : 0;
+
+      // 5. Live KIE.ai Provider Balance & Status
+      let providerBalance = { ok: false, configured: false, credits: 0, creditsUsd: 0, isSufficientForVideo: false };
+      try {
+        const { KieProvider } = require("./services/kie-provider");
+        providerBalance = await KieProvider.checkProviderBalance();
+      } catch (e) {
+        providerBalance.error = e.message;
+      }
+
+      return res.json({
+        ok: true,
+        financials: {
+          providerBalance,
+          creditSupply: {
+            outstandingPurchasedCredits,
+            outstandingPromotionalCredits,
+            reservedCredits,
+            totalCreditSupply,
+            creditInrRate,
+            monetaryLiabilityINR,
+          },
+          providerSpend: {
+            totalJobs,
+            succeededJobs,
+            failedJobs,
+            totalCreditsConsumed,
+            totalKieCostUSD: Number(totalKieCostUSD.toFixed(4)),
+            totalKieCostINR,
+            inrUsdRate,
+            spendByModel,
+          },
+          marginAnalysis: {
+            totalRevenueINR,
+            successfulPaymentsCount,
+            totalKieCostINR,
+            grossProfitINR,
+            grossMarginPercent,
+          },
+        },
+      });
+    } catch (e) {
+      console.error("[admin/financials] error:", e);
+      return res.status(500).json({ ok: false, error: "Failed to load financial metrics." });
+    }
+  });
+
+  // ─── ADMIN: Model Registry Management ────────────────────────────────────
+  app.get("/api/admin/models", requireAdmin, (req, res) => {
+    try {
+      const models = ModelRegistryService.getAllModels(db);
+      return res.json({ ok: true, models });
+    } catch (e) {
+      return res.status(500).json({ ok: false, error: e.message || "Failed to load models." });
+    }
+  });
+
+  app.patch("/api/admin/models/:id", requireAdmin, (req, res) => {
+    try {
+      const { id } = req.params;
+      const updated = ModelRegistryService.updateModel(db, id, req.body);
+
+      db.prepare(`
+        INSERT INTO audit_logs (id, actor_id, actor_email, target_user_id, action_type, old_value, new_value, timestamp, details_json)
+        VALUES (?, ?, ?, 'system', 'update_model_config', ?, ?, ?, ?)
+      `).run(
+        crypto.randomUUID(),
+        req.admin.sub,
+        req.admin.email,
+        id,
+        JSON.stringify(req.body),
+        new Date().toISOString(),
+        JSON.stringify({ modelId: id, updates: req.body })
+      );
+
+      return res.json({ ok: true, model: updated });
+    } catch (e) {
+      return res.status(500).json({ ok: false, error: e.message || "Failed to update model." });
     }
   });
 }

@@ -68,13 +68,26 @@ function mountUserAuthRoutes(app, { db }) {
       const otpHash = hashToken(otp);
       const otpExpiry = addMs(15 * 60 * 1000);
 
+      const settingRow = db.prepare("SELECT value FROM pricing_settings WHERE key = 'default_new_user_promo_credits'").get();
+      const initialPromo = settingRow ? Math.max(0, Number(settingRow.value) || 0) : 0;
+
       db.prepare(
         `INSERT INTO users (id, email, name, password_hash, created_at,
           verification_status, verification_deadline, verification_token_hash,
-          verification_token_expiry, otp_hash, otp_expiry)
-         VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?)`
+          verification_token_expiry, otp_hash, otp_expiry, credits, purchased_credits, promotional_credits, reserved_credits)
+         VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, 0, ?, 0)`
       ).run(id, email, name, password_hash, created_at,
-        verification_deadline, tokenHash, tokenExpiry, otpHash, otpExpiry);
+        verification_deadline, tokenHash, tokenExpiry, otpHash, otpExpiry, initialPromo, initialPromo);
+
+      if (initialPromo > 0) {
+        db.prepare(
+          `INSERT INTO credit_transactions (
+            id, user_id, action_type, credits_added, credits_deducted,
+            previous_balance, new_balance, timestamp, source, reason,
+            credit_type, purchased_delta, promotional_delta, reserved_delta
+          ) VALUES (?, ?, 'PROMOTIONAL', ?, 0, 0, ?, ?, 'system', 'Welcome promotional bonus', 'promotional', 0, ?, 0)`
+        ).run(crypto.randomUUID(), id, initialPromo, initialPromo, created_at, initialPromo);
+      }
 
       // Send verification email (non-blocking)
       const verifyUrl = getAppUrl("verification", rawToken);
@@ -86,7 +99,18 @@ function mountUserAuthRoutes(app, { db }) {
         })
         .catch(e => console.error("[auth] verification email failed:", e.message));
 
-      const user = { id, email, name, credits: 120, emailVerified: false, verificationStatus: "pending" };
+      const user = {
+        id,
+        email,
+        name,
+        credits: initialPromo,
+        availableCredits: initialPromo,
+        purchasedCredits: 0,
+        promotionalCredits: initialPromo,
+        reservedCredits: 0,
+        emailVerified: false,
+        verificationStatus: "pending",
+      };
       let token;
       try {
         token = signUserToken(user);
@@ -190,6 +214,7 @@ function mountUserAuthRoutes(app, { db }) {
       const row = db
         .prepare(
           `SELECT id, email, name, suspended, subscription_plan, subscription_status, credits,
+           purchased_credits, promotional_credits, reserved_credits,
            generation_disabled, special_access, role,
            email_verified, email_verified_at, verification_status, verification_deadline
            FROM users WHERE id = ?`
@@ -202,8 +227,10 @@ function mountUserAuthRoutes(app, { db }) {
         return res.status(403).json({ ok: false, error: "This account has been suspended." });
       }
 
-      const pendingRow = db.prepare("SELECT COALESCE(SUM(credits), 0) as pending FROM studio_tasks WHERE user_id = ? AND status = 'pending'").get(payload.sub);
-      const pending_credits = pendingRow?.pending || 0;
+      const purchased = Number(row.purchased_credits || 0);
+      const promotional = Number(row.promotional_credits || 0);
+      const reserved = Number(row.reserved_credits || 0);
+      const availableCredits = Math.max(0, purchased + promotional - reserved);
 
       const user = {
         id: row.id,
@@ -211,9 +238,12 @@ function mountUserAuthRoutes(app, { db }) {
         name: row.name,
         subscriptionPlan: row.subscription_plan,
         subscriptionStatus: row.subscription_status,
-        credits: row.credits,
-        availableCredits: Math.max(0, row.credits - pending_credits),
-        pendingCredits: pending_credits,
+        credits: availableCredits,
+        availableCredits,
+        purchasedCredits: purchased,
+        promotionalCredits: promotional,
+        reservedCredits: reserved,
+        pendingCredits: reserved,
         generationDisabled: row.generation_disabled === 1,
         specialAccess: row.special_access === 1,
         role: row.role,

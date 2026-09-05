@@ -119,89 +119,38 @@ async function runTests() {
     );
 
     // -------------------------------------------------------------
-    // SECTION B: VIDEO GENERATION ENGINE TESTS & PROVIDER ADAPTER
+    // SECTION B: VIDEO GENERATION ENGINE TESTS (KIE.ai)
     // -------------------------------------------------------------
-    console.log("\n── Section B: Video Generation Engine Isolation & Provider Agnostic Adapter");
+    console.log("\n── Section B: Video Generation Engine (KIE.ai Integration)");
 
     writeTestEnv({
-      VIDEO_PREMIUM_API_KEY: "kling-test-prem-vid-key",
-      VIDEO_PREMIUM_API_URL: "https://api.piapi.ai/api/v1/task",
-      VIDEO_PREMIUM_MODEL: "kling-pro",
+      KIE_API_KEY: "test_mock_kie_key_12345",
+      KIE_BASE_URL: "https://api.kie.ai",
     });
-    const premVidCfg = getVideoConfig("premium");
+    const vidCfg = getVideoConfig("standard");
     assert(
-      premVidCfg.tier === "premium" && premVidCfg.apiKey === "kling-test-prem-vid-key",
-      "Case B1: Premium Video credentials present -> Premium Video resolves clean config"
+      vidCfg.provider === "kie.ai" && vidCfg.isConfigured === true,
+      "Case B1: KIE_API_KEY present -> Video engine resolves configured status"
     );
 
-    writeTestEnv({});
-    const premVidCfg2 = getVideoConfig("premium");
-    assert(!premVidCfg2.apiKey, "Case B2a: Premium Video credentials removed from .env -> apiKey is empty");
-
-    let premVidFailed = false;
-    let errVidMsg = "";
-    try {
-      await VideoGenerationService.createVideoTask({ prompt: "Ocean waves in motion", tier: "premium" });
-    } catch (e) {
-      premVidFailed = true;
-      errVidMsg = e.message;
-    }
+    writeTestEnv({ KIE_API_KEY: "" });
+    const vidCfgNoKey = getVideoConfig("standard");
     assert(
-      premVidFailed && errVidMsg.includes("Missing API Key"),
-      `Case B2b: Premium Video generation fails immediately server-side: "${errVidMsg}"`
+      vidCfgNoKey.isConfigured === false,
+      "Case B2: KIE_API_KEY removed -> isConfigured is false"
     );
 
-    writeTestEnv({
-      VIDEO_STANDARD_API_KEY: "kling-test-std-vid-key",
-      VIDEO_STANDARD_API_URL: "https://api.piapi.ai/api/v1/task",
-      VIDEO_STANDARD_MODEL: "kling-turbo",
-    });
-    const stdVidCfg = getVideoConfig("standard");
-    assert(
-      stdVidCfg.tier === "standard" && stdVidCfg.apiKey === "kling-test-std-vid-key",
-      "Case B3: Standard Video credentials present -> Standard Video resolves clean config"
-    );
-
-    writeTestEnv({});
-    const stdVidCfg2 = getVideoConfig("standard");
-    assert(!stdVidCfg2.apiKey, "Case B4a: Standard Video credentials removed from .env -> apiKey is empty");
-
-    let stdVidFailed = false;
-    let stdVidErr = "";
+    let vidFailed = false;
+    let vidErrMsg = "";
     try {
       await VideoGenerationService.createVideoTask({ prompt: "Ocean waves in motion", tier: "standard" });
     } catch (e) {
-      stdVidFailed = true;
-      stdVidErr = e.message;
+      vidFailed = true;
+      vidErrMsg = e.message;
     }
     assert(
-      stdVidFailed && stdVidErr.includes("Missing API Key"),
-      `Case B4b: Standard Video generation fails immediately server-side: "${stdVidErr}"`
-    );
-
-    writeTestEnv({ VIDEO_STANDARD_API_KEY: "valid_std_vid_key", VIDEO_STANDARD_API_URL: "https://api.piapi.ai/api/v1/task" });
-    const stdCheckVid = getVideoConfig("standard");
-    const premCheckVid = getVideoConfig("premium");
-    assert(
-      stdCheckVid.apiKey === "valid_std_vid_key" && premCheckVid.apiKey === "",
-      "Case B5: Removing Premium Video credentials does NOT affect Standard Video"
-    );
-
-    writeTestEnv({ VIDEO_PREMIUM_API_KEY: "valid_prem_vid_key", VIDEO_PREMIUM_API_URL: "https://api.piapi.ai/api/v1/task" });
-    const stdCheckVid2 = getVideoConfig("standard");
-    const premCheckVid2 = getVideoConfig("premium");
-    assert(
-      stdCheckVid2.apiKey === "" && premCheckVid2.apiKey === "valid_prem_vid_key",
-      "Case B6: Removing Standard Video credentials does NOT affect Premium Video"
-    );
-
-    // Test Task Status Adapter format resilience
-    const syncStatusRes = await VideoGenerationService.getTaskStatus("vid_sync_123", {
-      urls: ["https://example.com/video.mp4"],
-    });
-    assert(
-      syncStatusRes.status === "completed" && syncStatusRes.urls[0] === "https://example.com/video.mp4",
-      "Case B7: Task Status Adapter handles synchronous task URLs seamlessly"
+      vidFailed && vidErrMsg.includes("Missing KIE_API_KEY"),
+      `Case B3: Video generation fails server-side when KIE_API_KEY is missing: "${vidErrMsg}"`
     );
 
   } finally {
