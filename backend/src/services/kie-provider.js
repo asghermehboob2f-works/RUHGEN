@@ -11,7 +11,7 @@
 const { getKieConfig } = require("../config");
 
 function sanitizeError(msg) {
-  if (!msg || typeof msg !== "string") return "Generation service is temporarily busy. Please try again in a moment.";
+  if (!msg || typeof msg !== "string") return "Insufficient credits. Please top up your RUHGEN credits to continue generating.";
   const config = getKieConfig();
   let sanitized = msg
     .replace(/bearer\s+[a-zA-Z0-9_\-\.]+/gi, "Bearer [REDACTED]")
@@ -22,9 +22,9 @@ function sanitizeError(msg) {
     sanitized = sanitized.split(config.apiKey).join("[REDACTED_KEY]");
   }
 
-  // Strip all technical provider or model mentions and replace with friendly, branded error
-  if (/kie\.ai|kling|qwen|flux|provider|upstream|credits insufficient|balance is exhausted/i.test(sanitized)) {
-    return "Generation service is temporarily busy due to high demand. Please try again in a moment. Your RUHGEN credits were not charged.";
+  // Strip all technical provider or model mentions and replace with clean Insufficient Credits message
+  if (/kie\.ai|kling|qwen|flux|provider|upstream|credits insufficient|balance is exhausted|insufficient/i.test(sanitized)) {
+    return "Insufficient credits. Please top up your RUHGEN credits to continue generating.";
   }
 
   return sanitized;
@@ -84,7 +84,7 @@ class KieProvider {
       if (!response.ok || (data.code && data.code !== 200)) {
         if (data.code === 402 || (data.msg && String(data.msg).toLowerCase().includes("credits insufficient"))) {
           console.error("[KieProvider] Upstream provider account balance exhausted (code 402). Admin top-up required in provider portal.");
-          throw new Error("Generation service is temporarily busy due to high demand. Please try again in a moment. Your RUHGEN credits were not charged.");
+          throw new Error("Insufficient credits. Please top up your RUHGEN credits to continue generating.");
         }
         const errorMsg = data.msg || data.message || data.error || `Service busy (code ${data.code || response.status})`;
         throw new Error(sanitizeError(errorMsg));
