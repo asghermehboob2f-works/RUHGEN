@@ -770,7 +770,7 @@ export default function VideoStudioClient() {
             <div className="mb-1 px-1 flex items-center justify-between text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
               <span>Model Tier</span>
               <span className="font-mono text-[var(--text-primary)]">
-                {isStandard ? `Standard (3 cr/s · 15 cr)` : `Premium Omni (6 cr/s · 30-60 cr)`}
+                {isStandard ? `Standard (15 cr)` : `Premium (30–60 cr)`}
               </span>
             </div>
             <div className="grid grid-cols-2 gap-1" role="radiogroup" aria-label="RUHGEN Video Version Tier">
@@ -833,7 +833,7 @@ export default function VideoStudioClient() {
                 </button>
               </div>
             ) : (
-              <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--glass)] p-3 space-y-3 shadow-xs">
+              <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--glass)] p-3 space-y-2.5 shadow-xs">
                 {/* Header */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -892,7 +892,7 @@ export default function VideoStudioClient() {
                 </div>
 
                 {activeRefTab === "image" ? (
-                  <div className="space-y-2.5">
+                  <div className="space-y-2">
                     {/* Multi-Image File Input */}
                     <input
                       ref={multiImageInputRef}
@@ -908,116 +908,153 @@ export default function VideoStudioClient() {
                       }}
                     />
 
-                    <p className="text-[10px] text-[var(--text-muted)] leading-relaxed">
-                      Upload multiple images to guide the visual result and character consistency. Order is preserved.
-                    </p>
-
-                    {/* Thumbnail Grid */}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {referenceImages.map((img, idx) => (
-                        <div
-                          key={img.id}
-                          className="group relative flex flex-col rounded-lg border border-[var(--border-subtle)] bg-[var(--soft-black)] overflow-hidden shadow-xs"
-                        >
-                          <div className="relative aspect-square w-full overflow-hidden bg-black/50">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={img.url}
-                              alt={img.name || `Reference ${idx + 1}`}
-                              className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
-                            />
-                            {img.uploading ? (
-                              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/75 backdrop-blur-xs">
-                                <Loader2 className="h-5 w-5 animate-spin text-[var(--text-primary)]" />
-                                <span className="mt-1 text-[8px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Uploading</span>
-                              </div>
-                            ) : null}
-                            <span className="absolute top-1 left-1 rounded-md bg-black/80 px-1.5 py-0.5 text-[8px] font-mono font-bold text-[var(--text-primary)] border border-white/10">
-                              #{idx + 1}
-                            </span>
-                            <button
-                              type="button"
-                              disabled={busy || img.uploading}
-                              onClick={() => handleRemoveImage(idx)}
-                              className="absolute top-1 right-1 rounded-md bg-rose-950/80 hover:bg-rose-900 border border-rose-500/40 p-1 text-rose-300 transition-colors opacity-80 group-hover:opacity-100 cursor-pointer"
-                              title="Remove reference"
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
+                    {/* Slim horizontal dropzone when 0 images uploaded */}
+                    {referenceImages.length === 0 ? (
+                      <div
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          setIsDragging(true);
+                        }}
+                        onDragLeave={() => setIsDragging(false)}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          setIsDragging(false);
+                          if (e.dataTransfer.files?.length) {
+                            handleUploadImages(e.dataTransfer.files);
+                          }
+                        }}
+                        onClick={() => multiImageInputRef.current?.click()}
+                        className={`relative flex items-center justify-between gap-3 rounded-lg border border-dashed px-3 py-2.5 transition-all cursor-pointer ${
+                          isDragging
+                            ? "border-amber-400 bg-amber-500/10 text-amber-300"
+                            : "border-[var(--border-subtle)] bg-[var(--soft-black)] text-[var(--text-muted)] hover:border-[var(--text-muted)] hover:bg-[var(--glass-elevated)]"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[var(--glass)] border border-[var(--border-subtle)] text-[var(--text-primary)]">
+                            {refUploading ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-400" />
+                            ) : (
+                              <Plus className="h-3.5 w-3.5 text-amber-400" />
+                            )}
                           </div>
-                          {/* Footer with Reorder Controls */}
-                          <div className="flex items-center justify-between px-1.5 py-1 bg-[var(--soft-black)] border-t border-[var(--border-subtle)] text-[9px]">
-                            <span className="truncate max-w-[65px] text-[var(--text-subtle)] font-mono">
-                              {img.name ? img.name.slice(0, 10) : `Ref ${idx + 1}`}
-                            </span>
-                            <div className="flex items-center gap-1">
-                              <button
-                                type="button"
-                                disabled={busy || idx === 0}
-                                onClick={() => handleMoveImage(idx, "left")}
-                                className="rounded p-0.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-20 cursor-pointer"
-                                title="Move earlier"
-                              >
-                                <ArrowLeft className="h-2.5 w-2.5" />
-                              </button>
-                              <button
-                                type="button"
-                                disabled={busy || idx === referenceImages.length - 1}
-                                onClick={() => handleMoveImage(idx, "right")}
-                                className="rounded p-0.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-20 cursor-pointer"
-                                title="Move later"
-                              >
-                                <ArrowRight className="h-2.5 w-2.5" />
-                              </button>
-                            </div>
+                          <div className="min-w-0">
+                            <p className="text-[11px] font-bold text-[var(--text-primary)] truncate">
+                              {refUploading ? "Uploading references…" : "+ Add Reference Images"}
+                            </p>
+                            <p className="text-[9px] text-[var(--text-subtle)] truncate">
+                              Drop or browse up to {maxRefImages} images (JPEG, PNG, WebP)
+                            </p>
                           </div>
                         </div>
-                      ))}
-
-                      {/* "+ Add Reference" Dropzone Card */}
-                      {referenceImages.length < maxRefImages ? (
-                        <div
-                          onDragOver={(e) => {
-                            e.preventDefault();
-                            setIsDragging(true);
-                          }}
-                          onDragLeave={() => setIsDragging(false)}
-                          onDrop={(e) => {
-                            e.preventDefault();
-                            setIsDragging(false);
-                            if (e.dataTransfer.files?.length) {
-                              handleUploadImages(e.dataTransfer.files);
-                            }
-                          }}
-                          onClick={() => multiImageInputRef.current?.click()}
-                          className={`relative flex aspect-square flex-col items-center justify-center rounded-lg border-2 border-dashed p-2 text-center transition-all cursor-pointer ${
-                            isDragging
-                              ? "border-amber-400 bg-amber-500/10 text-amber-300"
-                              : "border-[var(--border-subtle)] bg-[var(--soft-black)] text-[var(--text-muted)] hover:border-[var(--text-muted)] hover:bg-[var(--glass-elevated)] hover:text-[var(--text-primary)]"
-                          }`}
-                        >
-                          {refUploading ? (
-                            <div className="flex flex-col items-center justify-center gap-1">
-                              <Loader2 className="h-5 w-5 animate-spin text-[var(--text-primary)]" />
-                              <span className="text-[9px] font-bold">Uploading…</span>
-                            </div>
-                          ) : (
-                            <>
-                              <Plus className="h-5 w-5 mb-1 text-[var(--text-primary)]" />
-                              <span className="text-[10px] font-bold text-[var(--text-primary)]">+ Add Reference</span>
-                              <span className="text-[8px] text-[var(--text-subtle)] mt-0.5">Drop or Browse</span>
-                              <span className="text-[8px] font-mono text-[var(--text-subtle)] mt-0.5">
-                                {referenceImages.length} / {maxRefImages}
+                        <span className="shrink-0 rounded bg-[var(--glass)] border border-[var(--border-subtle)] px-1.5 py-0.5 text-[9px] font-mono font-semibold text-[var(--text-muted)]">
+                          0 / {maxRefImages}
+                        </span>
+                      </div>
+                    ) : (
+                      /* Compact Thumbnail Grid when 1+ images exist */
+                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5">
+                        {referenceImages.map((img, idx) => (
+                          <div
+                            key={img.id}
+                            className="group relative flex flex-col rounded-md border border-[var(--border-subtle)] bg-[var(--soft-black)] overflow-hidden shadow-xs"
+                          >
+                            <div className="relative aspect-square w-full overflow-hidden bg-black/50">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={img.url}
+                                alt={img.name || `Reference ${idx + 1}`}
+                                className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+                              />
+                              {img.uploading ? (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/75 backdrop-blur-xs">
+                                  <Loader2 className="h-4 w-4 animate-spin text-amber-400" />
+                                  <span className="mt-0.5 text-[7px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Uploading</span>
+                                </div>
+                              ) : null}
+                              <span className="absolute top-0.5 left-0.5 rounded bg-black/80 px-1 py-0.5 text-[7px] font-mono font-bold text-[var(--text-primary)] border border-white/10 leading-none">
+                                #{idx + 1}
                               </span>
-                            </>
-                          )}
-                        </div>
-                      ) : null}
-                    </div>
+                              <button
+                                type="button"
+                                disabled={busy || img.uploading}
+                                onClick={() => handleRemoveImage(idx)}
+                                className="absolute top-0.5 right-0.5 rounded bg-rose-950/80 hover:bg-rose-900 border border-rose-500/40 p-0.5 text-rose-300 transition-colors opacity-80 group-hover:opacity-100 cursor-pointer"
+                                title="Remove reference"
+                              >
+                                <X className="h-2.5 w-2.5" />
+                              </button>
+                            </div>
+                            {/* Footer with Reorder Controls */}
+                            <div className="flex items-center justify-between px-1 py-0.5 bg-[var(--soft-black)] border-t border-[var(--border-subtle)] text-[8px]">
+                              <span className="truncate max-w-[40px] text-[var(--text-subtle)] font-mono">
+                                #{idx + 1}
+                              </span>
+                              <div className="flex items-center gap-0.5">
+                                <button
+                                  type="button"
+                                  disabled={busy || idx === 0}
+                                  onClick={() => handleMoveImage(idx, "left")}
+                                  className="rounded p-0.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-20 cursor-pointer"
+                                  title="Move earlier"
+                                >
+                                  <ArrowLeft className="h-2 w-2" />
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={busy || idx === referenceImages.length - 1}
+                                  onClick={() => handleMoveImage(idx, "right")}
+                                  className="rounded p-0.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-20 cursor-pointer"
+                                  title="Move later"
+                                >
+                                  <ArrowRight className="h-2 w-2" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+
+                        {/* "+ Add" Compact Card in Grid */}
+                        {referenceImages.length < maxRefImages ? (
+                          <div
+                            onDragOver={(e) => {
+                              e.preventDefault();
+                              setIsDragging(true);
+                            }}
+                            onDragLeave={() => setIsDragging(false)}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              setIsDragging(false);
+                              if (e.dataTransfer.files?.length) {
+                                handleUploadImages(e.dataTransfer.files);
+                              }
+                            }}
+                            onClick={() => multiImageInputRef.current?.click()}
+                            className={`relative flex aspect-square flex-col items-center justify-center rounded-md border border-dashed p-1 text-center transition-all cursor-pointer ${
+                              isDragging
+                                ? "border-amber-400 bg-amber-500/10 text-amber-300"
+                                : "border-[var(--border-subtle)] bg-[var(--soft-black)] text-[var(--text-muted)] hover:border-[var(--text-muted)] hover:bg-[var(--glass-elevated)] hover:text-[var(--text-primary)]"
+                            }`}
+                          >
+                            {refUploading ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-400" />
+                            ) : (
+                              <>
+                                <Plus className="h-3.5 w-3.5 text-amber-400 mb-0.5" />
+                                <span className="text-[8px] font-bold text-[var(--text-primary)]">+ Add</span>
+                                <span className="text-[7px] font-mono text-[var(--text-subtle)]">
+                                  {referenceImages.length}/{maxRefImages}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        ) : null}
+                      </div>
+                    )}
                   </div>
                 ) : (
                   /* Video Reference Mode */
-                  <div className="space-y-2.5">
+                  <div className="space-y-2">
                     <input
                       ref={videoInputRef}
                       type="file"
