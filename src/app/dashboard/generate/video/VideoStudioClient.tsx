@@ -1406,17 +1406,24 @@ export default function VideoStudioClient() {
       {/* Sticky desktop prompt + generate (Section 8: Video Generation Area) */}
       <div className="hidden shrink-0 border-t border-[var(--border-subtle)] bg-[var(--rich-black)] px-3 pb-3 pt-3 backdrop-blur-xl lg:block transition-colors duration-200">
         {/* Tier & Credit Summary */}
-        <div className="mb-2.5 flex items-center justify-between rounded-lg border border-[var(--border-subtle)] bg-[var(--glass)] px-3 py-1.5 text-xs">
-          <div className="flex items-center gap-2">
-            <span className="text-[var(--text-muted)]">Tier:</span>
-            <span className="font-display font-bold text-[var(--text-primary)] flex items-center gap-1">
-              <Clapperboard className="h-3 w-3 text-[var(--text-primary)]" />
-              {activeTierObj.label} ({activeDuration}s · {isStandard ? "720p" : resolution} · {sound ? "Audio ON" : "Muted"})
+        <div className="mb-2 flex items-center justify-between gap-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--glass)] px-2.5 py-1 text-[11px]">
+          <div className="flex min-w-0 items-center gap-1.5 overflow-hidden">
+            <Clapperboard className="h-3 w-3 shrink-0 text-amber-400/90" />
+            <span className="font-bold text-[var(--text-primary)] truncate text-[11px]">
+              {activeTierObj.label}
+            </span>
+            <span className="shrink-0 text-[10px] text-[var(--text-subtle)] font-medium">
+              ({activeDuration}s · {isStandard ? "720p" : resolution}{sound ? " · Audio" : ""})
             </span>
           </div>
-          <div className="flex items-center gap-3 text-[var(--text-muted)] text-[11px]">
-            <span>Available: <strong className="text-[var(--text-primary)] font-mono">{user?.availableCredits ?? user?.credits ?? 0}</strong></span>
-            <span>Cost: <strong className={((user?.availableCredits ?? user?.credits ?? 0) < currentCost) ? "text-rose-400 font-bold" : "text-[var(--text-primary)] font-bold font-mono"}>{currentCost} cr</strong></span>
+          <div className="flex shrink-0 items-center gap-2 font-mono text-[10px]">
+            <span className="text-[var(--text-subtle)]">
+              Bal: <strong className="font-bold text-[var(--text-primary)]">{user?.availableCredits ?? user?.credits ?? 0}</strong>
+            </span>
+            <span className="text-[var(--border-subtle)]">·</span>
+            <span className="text-[var(--text-subtle)]">
+              Cost: <strong className={((user?.availableCredits ?? user?.credits ?? 0) < currentCost) ? "text-rose-400 font-bold" : "text-amber-400 font-bold"}>{currentCost} cr</strong>
+            </span>
           </div>
         </div>
 
