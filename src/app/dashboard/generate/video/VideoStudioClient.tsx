@@ -331,7 +331,7 @@ export default function VideoStudioClient() {
   const isVid2Video = !isStandard && activeRefTab === "video" && Boolean(referenceVideoUrl.trim());
 
   useEffect(() => {
-    if (ready && !user) router.replace("/sign-in?next=/dashboard/generate/video");
+    if (ready && !user) router.replace("/sign-in?next=/dashboard");
   }, [ready, user, router]);
 
   useEffect(() => {

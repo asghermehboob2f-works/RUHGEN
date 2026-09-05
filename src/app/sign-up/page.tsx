@@ -48,10 +48,10 @@ export default function SignUpPage() {
     const next = params.get("next");
     const plan = params.get("plan");
     const billing = params.get("billing") || "monthly";
-    if (next && next.startsWith("/")) {
-      router.replace(next);
-    } else if (plan) {
+    if (plan) {
       router.replace(`/dashboard/billing/checkout?plan=${plan}&billing=${billing}`);
+    } else if (next && next.startsWith("/") && !next.startsWith("/dashboard/generate")) {
+      router.replace(next);
     } else {
       router.replace("/dashboard");
     }
@@ -87,10 +87,10 @@ export default function SignUpPage() {
     const next = params.get("next");
     const plan = params.get("plan");
     const billing = params.get("billing") || "monthly";
-    if (next && next.startsWith("/")) {
-      router.push(next);
-    } else if (plan) {
+    if (plan) {
       router.push(`/dashboard/billing/checkout?plan=${plan}&billing=${billing}`);
+    } else if (next && next.startsWith("/") && !next.startsWith("/dashboard/generate")) {
+      router.push(next);
     } else {
       router.push("/dashboard");
     }

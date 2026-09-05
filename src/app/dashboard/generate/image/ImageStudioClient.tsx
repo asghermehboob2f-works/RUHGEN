@@ -279,7 +279,7 @@ export default function ImageStudioClient() {
   const isEdit = Boolean(referenceImageUrl);
 
   useEffect(() => {
-    if (ready && !user) router.replace("/sign-in?next=/dashboard/generate/image");
+    if (ready && !user) router.replace("/sign-in?next=/dashboard");
   }, [ready, user, router]);
 
   useEffect(() => {

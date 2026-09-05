@@ -37,10 +37,10 @@ export default function SignInPage() {
     const q = params.get("next");
     const plan = params.get("plan");
     const billing = params.get("billing") || "monthly";
-    if (q && q.startsWith("/")) {
-      router.replace(q);
-    } else if (plan) {
+    if (plan) {
       router.replace(`/dashboard/billing/checkout?plan=${plan}&billing=${billing}`);
+    } else if (q && q.startsWith("/") && !q.startsWith("/dashboard/generate")) {
+      router.replace(q);
     } else {
       router.replace("/dashboard");
     }
@@ -66,10 +66,10 @@ export default function SignInPage() {
     const q = params.get("next");
     const plan = params.get("plan");
     const billing = params.get("billing") || "monthly";
-    if (q && q.startsWith("/")) {
-      router.push(q);
-    } else if (plan) {
+    if (plan) {
       router.push(`/dashboard/billing/checkout?plan=${plan}&billing=${billing}`);
+    } else if (q && q.startsWith("/") && !q.startsWith("/dashboard/generate")) {
+      router.push(q);
     } else {
       router.push("/dashboard");
     }
