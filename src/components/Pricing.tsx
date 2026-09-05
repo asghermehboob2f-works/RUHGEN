@@ -50,7 +50,7 @@ const DEFAULT_PLANS: PricingPlan[] = [
     credits: 100,
     features: [
       "100 Generation Credits Included",
-      "Standard Video Access (Kling 2.6 · 15 cr/5s)",
+      "Standard Video Access (15 cr/5s)",
       "Standard Image Generation Access (2-3 cr)",
       "Up to 6 Standard Video Clips",
       "Standard Rendering Queue",
@@ -69,8 +69,8 @@ const DEFAULT_PLANS: PricingPlan[] = [
     credits: 220,
     features: [
       "220 High-Capacity Credits",
-      "RUHGEN Premium Omni Video Access (30–60 cr)",
-      "Standard Video Access (Kling 2.6 · 15 cr)",
+      "RUHGEN Premium Video Access (30–60 cr)",
+      "Standard Video Access (15 cr)",
       "Image-to-Video Reference Mode",
       "5s & 10s Clip Lengths",
       "720p & 1080p Cinema Resolution",
@@ -91,14 +91,14 @@ const DEFAULT_PLANS: PricingPlan[] = [
     credits: 500,
     features: [
       "500 Ultimate Generation Credits",
-      "Full Premium Omni Video Engine",
+      "Full Premium Video Engine",
       "Virtual Camera Controls & Movement",
       "10s Extended Cinema Rendering",
       "Direct Image Reference Synthesis",
       "Highest Queue Priority",
       "Commercial Licensing",
       "Dedicated Studio Support",
-      "Early Access to New Models"
+      "Early Access to New Features"
     ],
     badge: "Best Value",
     cta: "Go Creator",
@@ -109,7 +109,7 @@ const DEFAULT_PLANS: PricingPlan[] = [
 const CREDIT_RATES = [
   {
     action: "Fast Image Generation",
-    model: "Flux / Qwen Engine",
+    model: "RUHGEN Fast Engine",
     cost: "2 credits / image",
     description: "Rapid iteration, prompt testing, and conceptual prototyping.",
     icon: Zap,
@@ -117,7 +117,7 @@ const CREDIT_RATES = [
   },
   {
     action: "Production Image Generation",
-    model: "High-Fidelity Engine",
+    model: "RUHGEN HD Engine",
     cost: "3 credits / image",
     description: "Detailed typography, photorealistic textures, and sharp compositions.",
     icon: Sparkles,
@@ -125,17 +125,17 @@ const CREDIT_RATES = [
   },
   {
     action: "RUHGEN Standard Video",
-    model: "KIE.ai Kling 2.6",
+    model: "RUHGEN Standard Video Engine",
     cost: "15 credits / 5s clip",
-    description: "Cheapest suitable video model for fast text-to-video motion clips.",
+    description: "High-speed text-to-video motion clips.",
     icon: Cpu,
     color: "#FF2E9A",
   },
   {
-    action: "RUHGEN Premium Omni Video",
-    model: "KIE.ai Kling 3.0 Omni",
+    action: "RUHGEN Premium Video",
+    model: "RUHGEN Premium Video Engine",
     cost: "30–60 credits / clip",
-    description: "Cinema-grade Omni video, image reference input, 10s duration, 1080p, and synchronized audio.",
+    description: "Cinema-grade video, multi-image reference input, 10s duration, 1080p, and synchronized audio.",
     icon: Shield,
     color: "#F59E0B",
   },
@@ -160,7 +160,7 @@ const COMPARISON_DATA: Record<string, Record<string, string>> = {
     "Unused Credit Rollover": "No Rollover",
     "Top-up Packages": "Starting at ₹199",
     "Image Generation": "Standard Models (2-3 cr)",
-    "Video Generation": "Standard Video (Kling 2.6 · 15 cr)",
+    "Video Generation": "Standard Video (15 cr)",
     "Max Resolution": "Up to 2K Image / 720p Video",
     "Rendering Speed": "Standard Queue",
     "Concurrency": "1 active task",

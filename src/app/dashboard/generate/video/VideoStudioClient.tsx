@@ -73,14 +73,14 @@ const RUHGEN_VIDEO_TIERS = [
   {
     id: "standard",
     label: "RUHGEN Standard",
-    sub: "Fast & low-cost video (Kling 2.6)",
+    sub: "Fast & efficient video generation",
     icon: Zap,
     badge: "15 cr",
   },
   {
     id: "quality",
     label: "RUHGEN Premium",
-    sub: "Omni cinema-grade video (Kling 3.0 Omni)",
+    sub: "Cinema-grade video & multi-reference guidance",
     icon: Sparkles,
     badge: "30–60 cr",
   },
@@ -816,11 +816,11 @@ export default function VideoStudioClient() {
                     </span>
                   </div>
                   <span className="rounded-full bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 text-[8px] font-extrabold uppercase tracking-wider text-amber-400">
-                    Premium Omni Feature
+                    Premium Feature
                   </span>
                 </div>
                 <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
-                  Multi-image reference guidance (up to {maxRefImages} references) and video motion transfer are exclusive to the <strong>RUHGEN Premium Omni</strong> model (<code className="text-[10px]">kling-3.0-omni</code>). Standard video is optimized for fast text-to-video.
+                  Multi-image reference guidance (up to {maxRefImages} references) and video motion transfer are exclusive to the <strong>RUHGEN Premium</strong> tier. RUHGEN Standard is optimized for fast text-to-video.
                 </p>
                 <button
                   type="button"
