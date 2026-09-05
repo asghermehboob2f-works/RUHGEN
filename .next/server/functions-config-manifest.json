@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "functions": {
+    "/api/demo/flux-image": {
+      "maxDuration": 120
+    }
+  }
+}
