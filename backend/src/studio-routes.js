@@ -121,8 +121,6 @@ function snapToNvidiaDim(val) {
 function mountStudioRoutes(app, options) {
   const { upload, db } = options;
 
-  setInterval(sweepStudioReferenceImages, 5 * 60 * 1000).unref?.();
-
   // Helper: Deduct user credits securely
   function deductCredits(userId, amount, actionType, reason, detailsObj = {}) {
     let finalBalance = 0;
