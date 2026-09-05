@@ -15,6 +15,7 @@ class ModelRegistryService {
     return db.prepare("SELECT * FROM model_registry ORDER BY type ASC, tier ASC").all().map((m) => ({
       ...m,
       enabled: Boolean(m.enabled),
+      max_reference_images: Number(m.max_reference_images) || 0,
       supported_aspect_ratios: JSON.parse(m.supported_aspect_ratios || "[]"),
       supported_resolutions: JSON.parse(m.supported_resolutions || "[]"),
       supported_durations: JSON.parse(m.supported_durations || "[]"),
@@ -30,7 +31,7 @@ class ModelRegistryService {
       .prepare(
         `SELECT id, name, type, tier, credit_cost_type, base_credit_cost,
                 supported_aspect_ratios, supported_resolutions, supported_durations,
-                supported_controls, max_duration, max_resolution
+                supported_controls, max_duration, max_resolution, max_reference_images
          FROM model_registry
          WHERE enabled = 1
          ORDER BY type ASC, tier ASC`
@@ -50,6 +51,7 @@ class ModelRegistryService {
       supportedControls: JSON.parse(m.supported_controls || "[]"),
       maxDuration: m.max_duration,
       maxResolution: m.max_resolution,
+      maxReferenceImages: Number(m.max_reference_images) || 0,
     }));
   }
 
@@ -63,6 +65,7 @@ class ModelRegistryService {
         return {
           ...found,
           enabled: Boolean(found.enabled),
+          max_reference_images: Number(found.max_reference_images) || 0,
           supported_aspect_ratios: JSON.parse(found.supported_aspect_ratios || "[]"),
           supported_resolutions: JSON.parse(found.supported_resolutions || "[]"),
           supported_durations: JSON.parse(found.supported_durations || "[]"),
@@ -88,6 +91,7 @@ class ModelRegistryService {
     return {
       ...found,
       enabled: Boolean(found.enabled),
+      max_reference_images: Number(found.max_reference_images) || 0,
       supported_aspect_ratios: JSON.parse(found.supported_aspect_ratios || "[]"),
       supported_resolutions: JSON.parse(found.supported_resolutions || "[]"),
       supported_durations: JSON.parse(found.supported_durations || "[]"),
@@ -135,14 +139,48 @@ class ModelRegistryService {
       if (neg) sanitized.negative_prompt = neg;
     }
 
-    // 4. Reference Media (Image or Video)
-    const refUrl = rawParams.image_url || rawParams.reference_url || rawParams.video_url;
-    if (refUrl && typeof refUrl === "string" && refUrl.trim()) {
-      const trimmed = refUrl.trim();
-      if (/^(https?:\/\/|data:image\/)/i.test(trimmed)) {
-        sanitized.image_url = trimmed;
-        if (model.type === "video") sanitized.reference_url = trimmed;
+    // 4. Reference Media (Single Image, Multiple Reference Images, or Video)
+    let refUrls = [];
+    if (Array.isArray(rawParams.references)) {
+      refUrls = rawParams.references;
+    } else if (Array.isArray(rawParams.image_urls)) {
+      refUrls = rawParams.image_urls;
+    } else if (typeof rawParams.references === "string" && rawParams.references.trim()) {
+      try {
+        const parsed = JSON.parse(rawParams.references);
+        if (Array.isArray(parsed)) refUrls = parsed;
+        else refUrls = [rawParams.references.trim()];
+      } catch {
+        refUrls = [rawParams.references.trim()];
       }
+    }
+
+    const singleRef = rawParams.image_url || rawParams.reference_url || rawParams.video_url;
+    if (singleRef && typeof singleRef === "string" && singleRef.trim() && refUrls.length === 0) {
+      refUrls = [singleRef.trim()];
+    }
+
+    // Validate and sanitize reference URLs preserving user ordering
+    const validRefs = [];
+    for (const item of refUrls) {
+      if (typeof item === "string" && item.trim()) {
+        const trimmed = item.trim();
+        if (/^(https?:\/\/|data:image\/)/i.test(trimmed)) {
+          validRefs.push(trimmed);
+        }
+      }
+    }
+
+    if (validRefs.length > 0) {
+      const maxAllowed = Number(model.max_reference_images) || (model.tier === "premium" && model.type === "video" ? 7 : 1);
+      if (validRefs.length > maxAllowed) {
+        throw new Error(
+          `Maximum ${maxAllowed} reference image${maxAllowed === 1 ? "" : "s"} supported for ${model.name}. You provided ${validRefs.length}.`
+        );
+      }
+      sanitized.image_urls = validRefs;
+      sanitized.image_url = validRefs[0];
+      if (model.type === "video") sanitized.reference_url = validRefs[0];
     }
 
     // 5. Guidance Scale & Denoise (for image edits)
@@ -206,7 +244,7 @@ class ModelRegistryService {
   static formatProviderInput(model, sanitizedParams) {
     if (model.type === "video") {
       const isOmni = model.tier === "premium";
-      const hasRefImage = Boolean(sanitizedParams.image_url || sanitizedParams.reference_url);
+      const hasRefImages = Boolean(sanitizedParams.image_urls && sanitizedParams.image_urls.length > 0);
 
       const input = {
         prompt: sanitizedParams.prompt,
@@ -221,8 +259,8 @@ class ModelRegistryService {
         if (sanitizedParams.camera_control && sanitizedParams.camera_control !== "none") {
           input.camera_control = sanitizedParams.camera_control;
         }
-        if (hasRefImage) {
-          input.image_urls = [sanitizedParams.image_url || sanitizedParams.reference_url];
+        if (hasRefImages) {
+          input.image_urls = sanitizedParams.image_urls;
         }
       } else {
         input.mode = "std";
@@ -230,7 +268,7 @@ class ModelRegistryService {
 
       // Determine the provider model (Omni reference-to-video vs text-to-video)
       let resolvedKieModel = model.kie_model_id;
-      if (isOmni && hasRefImage) {
+      if (isOmni && hasRefImages) {
         resolvedKieModel = "kling-3.0-omni/reference-to-video";
       }
 
@@ -338,6 +376,7 @@ class ModelRegistryService {
       "supported_aspect_ratios",
       "supported_durations",
       "max_duration",
+      "max_reference_images",
     ];
 
     const clauses = [];

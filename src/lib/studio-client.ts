@@ -36,6 +36,15 @@ export interface StudioModel {
   supportedControls: string[];
   maxDuration?: number;
   maxResolution?: string;
+  maxReferenceImages?: number;
+}
+
+export interface UploadedReferenceFile {
+  id: string;
+  url: string;
+  type: "image" | "video";
+  name: string;
+  size: number;
 }
 
 export async function fetchStudioModels(): Promise<StudioModel[]> {
@@ -108,6 +117,53 @@ export async function uploadStudioReferenceImage(file: File): Promise<{ url: str
   return { url: res.url };
 }
 
+/** Upload multiple reference images or files for video generation; returns array of uploaded items. */
+export async function uploadStudioReferenceFiles(
+  files: File[]
+): Promise<{ files: UploadedReferenceFile[]; url: string; type: "image" | "video" }> {
+  const token = readUserToken();
+  if (!token) {
+    throw new Error("Sign in required.");
+  }
+  if (!files.length) {
+    throw new Error("No files selected.");
+  }
+  const fd = new FormData();
+  for (const f of files) {
+    fd.append("files", f);
+  }
+  const res = await fetch("/api/studio/reference-upload", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: fd,
+  });
+  const data = (await res.json()) as {
+    ok?: boolean;
+    files?: UploadedReferenceFile[];
+    url?: string;
+    type?: "image" | "video";
+    error?: string;
+  };
+  if (!res.ok || !data.ok) {
+    throw new Error(data.error || "Could not upload reference files.");
+  }
+  const outFiles: UploadedReferenceFile[] = data.files || [];
+  if (!outFiles.length && data.url) {
+    outFiles.push({
+      id: "ref-" + Date.now(),
+      url: data.url,
+      type: data.type || "image",
+      name: files[0]?.name || "reference",
+      size: files[0]?.size || 0,
+    });
+  }
+  return {
+    files: outFiles,
+    url: data.url || outFiles[0]?.url || "",
+    type: data.type || outFiles[0]?.type || "image",
+  };
+}
+
 /** Upload a reference image or video for video generation; returns temporary URL and reference type. */
 export async function uploadStudioReference(file: File): Promise<{ url: string; type: "image" | "video" }> {
   const token = readUserToken();
@@ -146,6 +202,8 @@ export async function createVideoTask(body: {
   image_url?: string;
   video_url?: string;
   reference_url?: string;
+  references?: string[];
+  image_urls?: string[];
   reference_type?: "image" | "video";
   sound?: boolean;
   camera_control?: string;

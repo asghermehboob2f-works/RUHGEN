@@ -190,74 +190,139 @@ function mountStudioRoutes(app, options) {
 
   JobManagerService.startJobPoller(db, 12000);
 
+  function validateReferenceFile(file) {
+    if (!file?.buffer || !Buffer.isBuffer(file.buffer)) {
+      return { ok: false, error: "Invalid or empty file buffer." };
+    }
+
+    const buf = file.buffer;
+    const origName = String(file.originalname || "").toLowerCase();
+    let mime = String(file.mimetype || "").toLowerCase();
+
+    // Inspect magic bytes for image formats
+    const isJpeg = buf.length >= 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff;
+    const isPng = buf.length >= 8 && buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47;
+    const isWebp = buf.length >= 12 && buf.toString("ascii", 0, 4) === "RIFF" && buf.toString("ascii", 8, 12) === "WEBP";
+
+    // Inspect magic bytes for video formats
+    const isMp4OrMov = buf.length >= 8 && (buf.toString("ascii", 4, 8) === "ftyp" || buf.toString("ascii", 4, 8) === "moov");
+    const isWebm = buf.length >= 4 && buf[0] === 0x1a && buf[1] === 0x45 && buf[2] === 0xdf && buf[3] === 0xa3;
+
+    let refType = null;
+    if (isJpeg) {
+      refType = "image";
+      mime = "image/jpeg";
+    } else if (isPng) {
+      refType = "image";
+      mime = "image/png";
+    } else if (isWebp) {
+      refType = "image";
+      mime = "image/webp";
+    } else if (isMp4OrMov) {
+      refType = "video";
+      mime = origName.endsWith(".mov") || origName.endsWith(".qt") ? "video/quicktime" : "video/mp4";
+    } else if (isWebm) {
+      refType = "video";
+      mime = "video/webm";
+    } else if (/^image\/(jpeg|jpg|png|webp)$/.test(mime) && /\.(jpg|jpeg|png|webp)$/.test(origName)) {
+      refType = "image";
+    } else if (/^video\/(mp4|webm|quicktime|x-matroska|mpeg|avi)$/.test(mime) && /\.(mp4|webm|mov|qt)$/.test(origName)) {
+      refType = "video";
+    } else {
+      return {
+        ok: false,
+        error: `Unsupported file format for "${file.originalname || "upload"}". Only JPEG, PNG, WebP images and MP4, WebM, MOV videos are accepted.`,
+      };
+    }
+
+    const maxImgSize = 20 * 1024 * 1024;
+    const maxVidSize = 50 * 1024 * 1024;
+    if (refType === "image" && file.size > maxImgSize) {
+      return { ok: false, error: `Image "${file.originalname || "upload"}" exceeds 20MB limit.` };
+    }
+    if (refType === "video" && file.size > maxVidSize) {
+      return { ok: false, error: `Video "${file.originalname || "upload"}" exceeds 50MB limit.` };
+    }
+
+    return { ok: true, refType, mime };
+  }
+
   app.post(
     "/api/studio/reference-upload",
     requireUser,
     upload.fields([
-      { name: "file", maxCount: 1 },
-      { name: "image", maxCount: 1 },
-      { name: "video", maxCount: 1 },
-      { name: "reference", maxCount: 1 },
+      { name: "files", maxCount: 10 },
+      { name: "file", maxCount: 10 },
+      { name: "image", maxCount: 10 },
+      { name: "images", maxCount: 10 },
+      { name: "reference", maxCount: 10 },
+      { name: "references", maxCount: 10 },
+      { name: "video", maxCount: 2 },
     ]),
     (req, res) => {
       try {
-        const file =
-          req.file ||
-          req.files?.file?.[0] ||
-          req.files?.image?.[0] ||
-          req.files?.video?.[0] ||
-          req.files?.reference?.[0];
-
-        if (!file?.buffer) {
-          return res.status(400).json({ ok: false, error: "Missing reference file." });
-        }
-        const origName = String(file.originalname || "").toLowerCase();
-        let mime = String(file.mimetype || "").toLowerCase();
-
-        if (mime === "application/octet-stream" || !mime) {
-          if (/\.(jpg|jpeg)$/.test(origName)) mime = "image/jpeg";
-          else if (/\.png$/.test(origName)) mime = "image/png";
-          else if (/\.webp$/.test(origName)) mime = "image/webp";
-          else if (/\.mp4$/.test(origName)) mime = "video/mp4";
-          else if (/\.webm$/.test(origName)) mime = "video/webm";
-          else if (/\.(mov|qt)$/.test(origName)) mime = "video/quicktime";
+        const rawFiles = [];
+        if (req.file) rawFiles.push(req.file);
+        if (req.files) {
+          for (const key of Object.keys(req.files)) {
+            const list = req.files[key];
+            if (Array.isArray(list)) rawFiles.push(...list);
+          }
         }
 
-        let refType = null;
-        if (/^image\/(jpeg|jpg|png|webp)$/.test(mime)) {
-          refType = "image";
-        } else if (/^video\/(mp4|webm|quicktime|x-matroska|mpeg|avi)$/.test(mime)) {
-          refType = "video";
-        } else {
+        if (rawFiles.length === 0) {
+          return res.status(400).json({ ok: false, error: "Missing reference file(s)." });
+        }
+
+        const maxTotal = parseInt(process.env.KIE_MAX_REFERENCE_IMAGES || "7", 10) || 7;
+        if (rawFiles.length > maxTotal) {
           return res.status(400).json({
             ok: false,
-            error: "Unsupported file format. Please upload a valid image (JPEG, PNG, WebP) or video (MP4, WebM, MOV).",
+            error: `Exceeded maximum reference upload batch size (maximum ${maxTotal} references).`,
           });
         }
 
-        const maxImgSize = 20 * 1024 * 1024;
-        const maxVidSize = 50 * 1024 * 1024;
-        if (refType === "image" && file.size > maxImgSize) {
-          return res.status(400).json({ ok: false, error: "Image reference file exceeds 20MB limit." });
-        }
-        if (refType === "video" && file.size > maxVidSize) {
-          return res.status(400).json({ ok: false, error: "Video reference file exceeds 50MB limit." });
-        }
-
-        const id = crypto.randomBytes(24).toString("hex");
-        const expires = Date.now() + STUDIO_REF_TTL_MS;
-        studioReferenceImages.set(id, { buffer: file.buffer, mime, type: refType, expires });
         const base = publicBaseUrlFromRequest(req);
         if (!base) {
-          studioReferenceImages.delete(id);
           return res.status(503).json({
             ok: false,
-            error:
-              "Could not determine public URL for this upload. Set PUBLIC_BASE_URL (e.g. https://yourdomain.com) for production.",
+            error: "Could not determine public URL for this upload. Set PUBLIC_BASE_URL (e.g. https://yourdomain.com) for production.",
           });
         }
-        const url = `${base}/api/studio/reference/${id}`;
-        return res.json({ ok: true, url, type: refType });
+
+        const uploadedResults = [];
+        for (const file of rawFiles) {
+          const validation = validateReferenceFile(file);
+          if (!validation.ok) {
+            return res.status(400).json({ ok: false, error: validation.error });
+          }
+
+          const id = crypto.randomBytes(24).toString("hex");
+          const expires = Date.now() + STUDIO_REF_TTL_MS;
+          studioReferenceImages.set(id, {
+            buffer: file.buffer,
+            mime: validation.mime,
+            type: validation.refType,
+            name: file.originalname || "reference",
+            size: file.size,
+            expires,
+          });
+
+          uploadedResults.push({
+            id,
+            url: `${base}/api/studio/reference/${id}`,
+            type: validation.refType,
+            name: file.originalname || "reference",
+            size: file.size,
+          });
+        }
+
+        return res.json({
+          ok: true,
+          files: uploadedResults,
+          url: uploadedResults[0]?.url,
+          type: uploadedResults[0]?.type,
+        });
       } catch (e) {
         const msg = e instanceof Error ? e.message : "Server error.";
         return res.status(500).json({ ok: false, error: msg });

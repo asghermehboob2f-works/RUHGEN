@@ -23,12 +23,14 @@ import {
   PanelLeft,
   PanelLeftClose,
   RectangleHorizontal,
+  Plus,
   RotateCw,
   Smartphone,
   Sparkles,
   Square,
   Target,
   Trash2,
+  Upload,
   Wand2,
   X,
   Zap,
@@ -54,7 +56,15 @@ import type { LuxuryStudioChromeValue } from "@/components/studio/luxury/studio-
 import { DashboardLoading } from "@/components/dashboard/DashboardLoading";
 import { useAuth } from "@/components/AuthProvider";
 import { readUserToken } from "@/lib/auth-storage";
-import { createVideoTask, pollStudioTask, uploadStudioReference, uploadStudioReferenceImage } from "@/lib/studio-client";
+import {
+  createVideoTask,
+  fetchStudioModels,
+  pollStudioTask,
+  uploadStudioReference,
+  uploadStudioReferenceFiles,
+  uploadStudioReferenceImage,
+  type StudioModel,
+} from "@/lib/studio-client";
 import { CommunityShareModal } from "@/components/community/CommunityShareModal";
 
 /** Universal RUHGEN Video Tiers */
@@ -213,6 +223,15 @@ async function downloadVideoViaProxy(url: string, index: number): Promise<void> 
 const btnGhostIcon =
   "inline-flex h-9 w-9 items-center justify-center rounded-lg border text-[var(--text-muted)] transition-all duration-200 hover:bg-white/[0.05] hover:text-[var(--text-primary)] disabled:opacity-35 disabled:hover:bg-transparent sm:h-9";
 
+export type ReferenceImageItem = {
+  id: string;
+  url: string;
+  name?: string;
+  size?: number;
+  uploading?: boolean;
+  error?: string;
+};
+
 export default function VideoStudioClient() {
   const { user, ready, refreshUser } = useAuth();
   const router = useRouter();
@@ -257,7 +276,8 @@ export default function VideoStudioClient() {
   const scrollGuardUntilRef = useRef(0);
   const prevLenForSnapRef = useRef<number | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const refFileInput = useRef<HTMLInputElement>(null);
+  const multiImageInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
 
   // Studio Controls State
   const [prompt, setPrompt] = useState("");
@@ -268,11 +288,15 @@ export default function VideoStudioClient() {
   const [sound, setSound] = useState<boolean>(true);
   const [resolution, setResolution] = useState<"720p" | "1080p">("720p");
   const [selectedCamera, setSelectedCamera] = useState<string>("push_in");
-  const [referenceUrl, setReferenceUrl] = useState<string>("");
-  const [referenceType, setReferenceType] = useState<"image" | "video">("image");
+
+  // Multi-reference images & video guidance state
+  const [referenceImages, setReferenceImages] = useState<ReferenceImageItem[]>([]);
+  const [referenceVideoUrl, setReferenceVideoUrl] = useState<string>("");
   const [activeRefTab, setActiveRefTab] = useState<"image" | "video">("image");
   const [refUploading, setRefUploading] = useState(false);
   const [refUploadError, setRefUploadError] = useState<string | null>(null);
+  const [availableModels, setAvailableModels] = useState<StudioModel[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
 
   const [busy, setBusy] = useState(false);
   const [messages, setMessages] = useState<ChatMsg[]>([]);
@@ -287,14 +311,23 @@ export default function VideoStudioClient() {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [shareModalData, setShareModalData] = useState<{ mediaUrl: string; prompt: string; kind: "image" | "video" } | null>(null);
 
+  // Load models dynamically to enforce provider capabilities
+  useEffect(() => {
+    fetchStudioModels().then((models) => {
+      if (models && models.length > 0) setAvailableModels(models);
+    });
+  }, []);
+
+  const premiumVideoModel = availableModels.find((m) => m.type === "video" && m.tier === "premium");
+  const maxRefImages = premiumVideoModel?.maxReferenceImages || 7;
+
   const isStandard = selectedTier === "standard";
   const activeDuration: 5 | 10 = isStandard ? 5 : (duration >= 8 ? 10 : 5);
   const costPerSecond = isStandard ? (rates.cost_video_std ?? 3) : (rates.cost_video_pro ?? 6);
   const currentCost = costPerSecond * activeDuration;
   const activeTierObj = RUHGEN_VIDEO_TIERS.find((t) => t.id === selectedTier) ?? RUHGEN_VIDEO_TIERS[1];
-  const isImg2Video = Boolean(referenceUrl.trim() && referenceType === "image" && !isStandard);
-  const isVid2Video = Boolean(referenceUrl.trim() && referenceType === "video" && !isStandard);
-  const referenceImageUrl = referenceType === "image" ? referenceUrl : "";
+  const isImg2Video = !isStandard && activeRefTab === "image" && referenceImages.length > 0;
+  const isVid2Video = !isStandard && activeRefTab === "video" && Boolean(referenceVideoUrl.trim());
 
   useEffect(() => {
     if (ready && !user) router.replace("/sign-in?next=/dashboard/generate/video");
@@ -471,67 +504,141 @@ export default function VideoStudioClient() {
     return () => window.removeEventListener("keydown", onKey);
   }, [lightbox]);
 
-  const handleFileUpload = useCallback(
-    (file: File, expectedType?: "image" | "video") => {
-      if (!file) return;
+  const handleUploadImages = useCallback(
+    async (files: FileList | File[]) => {
+      const fileArr = Array.from(files);
+      if (!fileArr.length) return;
       setRefUploadError(null);
 
-      const isVideoFile = file.type.startsWith("video/") || /\.(mp4|webm|mov)$/i.test(file.name);
-      const isImageFile = file.type.startsWith("image/") || /\.(jpg|jpeg|png|webp)$/i.test(file.name);
+      const maxAllowed = maxRefImages;
+      const currentCount = referenceImages.length;
+      const remainingSlots = Math.max(0, maxAllowed - currentCount);
 
-      if (expectedType === "image" && !isImageFile) {
-        setRefUploadError("Please select a valid image file (JPEG, PNG, WebP).");
-        return;
-      }
-      if (expectedType === "video" && !isVideoFile) {
-        setRefUploadError("Please select a valid video file (MP4, WebM, MOV).");
-        return;
-      }
-      if (!isImageFile && !isVideoFile) {
-        setRefUploadError("Unsupported file format. Please upload an image (JPEG, PNG, WebP) or video (MP4, WebM, MOV).");
+      if (remainingSlots <= 0) {
+        setRefUploadError(`Maximum ${maxAllowed} reference images limit reached. Remove an existing image to add more.`);
         return;
       }
 
-      const maxImgBytes = 20 * 1024 * 1024;
-      const maxVidBytes = 50 * 1024 * 1024;
-      if (isImageFile && file.size > maxImgBytes) {
-        setRefUploadError("Image reference size exceeds 20MB limit.");
-        return;
-      }
-      if (isVideoFile && file.size > maxVidBytes) {
-        setRefUploadError("Video reference size exceeds 50MB limit.");
-        return;
+      const toUpload = fileArr.slice(0, remainingSlots);
+      if (fileArr.length > remainingSlots) {
+        setRefUploadError(`Only ${remainingSlots} more reference image${remainingSlots === 1 ? "" : "s"} could be added (max ${maxAllowed}).`);
       }
 
+      // Validate files on the client before network request
+      const validFiles: File[] = [];
+      for (const f of toUpload) {
+        const isImage = f.type.startsWith("image/") || /\.(jpg|jpeg|png|webp)$/i.test(f.name);
+        if (!isImage) {
+          setRefUploadError(`"${f.name}" is not a supported image. Only JPEG, PNG, and WebP are allowed.`);
+          return;
+        }
+        if (f.size > 20 * 1024 * 1024) {
+          setRefUploadError(`"${f.name}" exceeds 20MB per image limit.`);
+          return;
+        }
+        validFiles.push(f);
+      }
+
+      if (!validFiles.length) return;
+
+      // Add temporary items for instant UI preview with uploading spinner
+      const tempItems: ReferenceImageItem[] = validFiles.map((f) => ({
+        id: `temp-${Math.random().toString(36).slice(2)}`,
+        url: URL.createObjectURL(f),
+        name: f.name,
+        size: f.size,
+        uploading: true,
+      }));
+
+      setReferenceImages((prev) => [...prev, ...tempItems]);
       setRefUploading(true);
-      uploadStudioReference(file)
-        .then(({ url, type }) => {
-          setReferenceUrl(url);
-          setReferenceType(type);
-          setActiveRefTab(type);
-        })
-        .catch((err: unknown) => {
-          setRefUploadError(err instanceof Error ? err.message : "Upload failed.");
-        })
-        .finally(() => {
-          setRefUploading(false);
+
+      try {
+        const result = await uploadStudioReferenceFiles(validFiles);
+        setReferenceImages((prev) => {
+          const updated = [...prev];
+          for (let i = 0; i < tempItems.length; i++) {
+            const temp = tempItems[i];
+            const uploaded = result.files[i] || result.files[0];
+            const idx = updated.findIndex((item) => item.id === temp.id);
+            if (idx !== -1 && uploaded) {
+              updated[idx] = {
+                id: uploaded.id || `ref-${Date.now()}-${i}`,
+                url: uploaded.url,
+                name: uploaded.name || temp.name,
+                size: uploaded.size || temp.size,
+                uploading: false,
+              };
+            }
+          }
+          return updated;
         });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Upload failed.";
+        setRefUploadError(msg);
+        setReferenceImages((prev) => prev.filter((item) => !tempItems.some((t) => t.id === item.id)));
+      } finally {
+        setRefUploading(false);
+      }
     },
-    []
+    [maxRefImages, referenceImages.length]
   );
+
+  const handleRemoveImage = useCallback((index: number) => {
+    setReferenceImages((prev) => prev.filter((_, i) => i !== index));
+    setRefUploadError(null);
+  }, []);
+
+  const handleMoveImage = useCallback((index: number, direction: "left" | "right") => {
+    setReferenceImages((prev) => {
+      const nextIndex = direction === "left" ? index - 1 : index + 1;
+      if (nextIndex < 0 || nextIndex >= prev.length) return prev;
+      const copy = [...prev];
+      const temp = copy[index];
+      copy[index] = copy[nextIndex];
+      copy[nextIndex] = temp;
+      return copy;
+    });
+  }, []);
+
+  const handleUploadVideo = useCallback((file: File) => {
+    if (!file) return;
+    setRefUploadError(null);
+    const isVideo = file.type.startsWith("video/") || /\.(mp4|webm|mov)$/i.test(file.name);
+    if (!isVideo) {
+      setRefUploadError("Please select a valid video file (MP4, WebM, MOV).");
+      return;
+    }
+    if (file.size > 50 * 1024 * 1024) {
+      setRefUploadError("Video reference size exceeds 50MB limit.");
+      return;
+    }
+    setRefUploading(true);
+    uploadStudioReference(file)
+      .then(({ url }) => {
+        setReferenceVideoUrl(url);
+      })
+      .catch((err: unknown) => {
+        setRefUploadError(err instanceof Error ? err.message : "Video upload failed.");
+      })
+      .finally(() => {
+        setRefUploading(false);
+      });
+  }, []);
 
   const run = useCallback(async () => {
     const p = prompt.trim();
     if (p.length < 2 || busy) return;
     const neg = negativePrompt.trim();
-    const img = referenceUrl.trim() && referenceType === "image" ? referenceUrl.trim() : "";
-    const vid = referenceUrl.trim() && referenceType === "video" ? referenceUrl.trim() : "";
+    const imgRefs = !isStandard && activeRefTab === "image" ? referenceImages.map((r) => r.url).filter(Boolean) : [];
+    const vidRef = !isStandard && activeRefTab === "video" ? referenceVideoUrl.trim() : "";
     const tierLabel = activeTierObj.label;
 
     const parts = [`${duration}s clip`, aspect, tierLabel];
     if (neg) parts.push("negative filter");
-    if (img) parts.push("reference image");
-    if (vid) parts.push("reference video");
+    if (imgRefs.length === 1) parts.push("1 reference image");
+    else if (imgRefs.length > 1) parts.push(`${imgRefs.length} reference images`);
+    if (vidRef) parts.push("reference video");
     const meta = parts.join(" · ");
 
     const userId = crypto.randomUUID();
@@ -557,10 +664,12 @@ export default function VideoStudioClient() {
         quality: selectedTier,
         idempotencyKey,
         negative_prompt: neg || undefined,
-        image_url: !isStandard ? (img || undefined) : undefined,
-        video_url: !isStandard ? (vid || undefined) : undefined,
-        reference_url: !isStandard ? (referenceUrl || undefined) : undefined,
-        reference_type: !isStandard ? (referenceType || undefined) : undefined,
+        references: imgRefs.length > 0 ? imgRefs : undefined,
+        image_urls: imgRefs.length > 0 ? imgRefs : undefined,
+        image_url: imgRefs[0] || undefined,
+        video_url: vidRef || undefined,
+        reference_url: imgRefs[0] || vidRef || undefined,
+        reference_type: vidRef ? "video" : (imgRefs.length > 0 ? "image" : undefined),
         sound,
         resolution: isStandard ? "720p" : resolution,
         camera_control: !isStandard ? selectedCamera : undefined,
@@ -594,13 +703,13 @@ export default function VideoStudioClient() {
       setBusy(false);
       void refreshUser();
     }
-  }, [prompt, negativePrompt, referenceUrl, referenceType, activeTierObj, duration, aspect, selectedTier, sound, resolution, selectedCamera, isStandard, busy, refreshUser]);
+  }, [prompt, negativePrompt, referenceImages, referenceVideoUrl, activeRefTab, activeTierObj, duration, aspect, selectedTier, sound, resolution, selectedCamera, isStandard, busy, refreshUser]);
 
   const clearChatHistory = useCallback(() => {
     prevLenForSnapRef.current = null;
     setMessages([]);
-    setReferenceUrl("");
-    setReferenceType("image");
+    setReferenceImages([]);
+    setReferenceVideoUrl("");
     if (user?.id && typeof window !== "undefined") {
       try {
         localStorage.removeItem(`${CHAT_STORAGE_PREFIX}${user.id}`);
@@ -638,9 +747,13 @@ export default function VideoStudioClient() {
                 <p className="truncate font-display text-xs font-bold text-[var(--text-primary)]">Video Creation Panel</p>
               </div>
             </div>
-            {referenceUrl ? (
+            {activeRefTab === "video" && referenceVideoUrl ? (
               <span className="shrink-0 rounded-md border border-[var(--border-subtle)] bg-[var(--soft-black)] px-2 py-0.5 text-[9px] font-mono text-[var(--text-primary)]">
-                {referenceType === "video" ? "Video Guided" : "Image Guided"}
+                Video Guided
+              </span>
+            ) : referenceImages.length > 0 ? (
+              <span className="shrink-0 rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[9px] font-mono text-amber-300">
+                {referenceImages.length} Ref{referenceImages.length === 1 ? "" : "s"}
               </span>
             ) : null}
           </div>
@@ -685,9 +798,9 @@ export default function VideoStudioClient() {
           </div>
 
           <div className="space-y-3">
-            {/* 1. MEDIA REFERENCE (IMAGE / VIDEO) */}
+            {/* 1. MEDIA REFERENCE (MULTI-IMAGE / VIDEO) */}
             {isStandard ? (
-              <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--glass)] p-3">
+              <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--glass)] p-3 shadow-xs">
                 <div className="mb-2 flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
                     <ImagePlus className="h-3.5 w-3.5 text-[var(--text-muted)]" strokeWidth={2} />
@@ -695,177 +808,288 @@ export default function VideoStudioClient() {
                       1. Media Reference
                     </span>
                   </div>
-                  <span className="rounded-full bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-wider text-amber-400">
+                  <span className="rounded-full bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 text-[8px] font-extrabold uppercase tracking-wider text-amber-400">
                     Premium Omni Feature
                   </span>
                 </div>
                 <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
-                  Image-to-video reference input is exclusive to the <strong>RUHGEN Premium Omni</strong> model (<code className="text-[10px]">kling-3.0-omni</code>). Standard video is optimized for fast text-to-video.
+                  Multi-image reference guidance (up to {maxRefImages} references) and video motion transfer are exclusive to the <strong>RUHGEN Premium Omni</strong> model (<code className="text-[10px]">kling-3.0-omni</code>). Standard video is optimized for fast text-to-video.
                 </p>
                 <button
                   type="button"
                   disabled={busy}
                   onClick={() => setSelectedTier("quality")}
-                  className="mt-2.5 inline-flex items-center gap-1.5 rounded-md border border-[var(--border-subtle)] bg-[var(--soft-black)] px-2.5 py-1 text-[10px] font-bold text-[var(--text-primary)] hover:bg-[var(--glass-elevated)] cursor-pointer transition-colors"
+                  className="mt-2.5 inline-flex items-center gap-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--soft-black)] px-3 py-1.5 text-[11px] font-bold text-[var(--text-primary)] hover:bg-[var(--glass-elevated)] cursor-pointer transition-colors shadow-sm"
                 >
-                  <Sparkles className="h-3 w-3 text-amber-400" />
-                  Switch to RUHGEN Premium
+                  <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+                  Switch to RUHGEN Premium (Up to {maxRefImages} References)
                 </button>
               </div>
             ) : (
-              <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--glass)] p-3">
-                <div className="mb-2 flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
+              <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--glass)] p-3 space-y-3 shadow-xs">
+                {/* Header */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
                     {activeRefTab === "video" ? (
-                      <Film className="h-3.5 w-3.5 text-[var(--text-primary)]" strokeWidth={2} />
+                      <Film className="h-4 w-4 text-[var(--text-primary)]" strokeWidth={2} />
                     ) : (
-                      <ImagePlus className="h-3.5 w-3.5 text-[var(--text-primary)]" strokeWidth={2} />
+                      <ImagePlus className="h-4 w-4 text-[var(--text-primary)]" strokeWidth={2} />
                     )}
-                    <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-primary)]">
-                      1. Media Reference
+                    <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--text-primary)]">
+                      1. {activeRefTab === "image" ? "Reference Images" : "Video Reference"}
                     </span>
                   </div>
-                  <span className="text-[9px] font-semibold uppercase tracking-wider text-[var(--text-subtle)]">Optional</span>
+                  {activeRefTab === "image" ? (
+                    <span
+                      className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border ${
+                        referenceImages.length > 0
+                          ? "bg-amber-500/10 border-amber-500/30 text-amber-400"
+                          : "bg-[var(--soft-black)] border-[var(--border-subtle)] text-[var(--text-subtle)]"
+                      }`}
+                    >
+                      {referenceImages.length} / {maxRefImages}
+                    </span>
+                  ) : (
+                    <span className="text-[9px] font-semibold uppercase tracking-wider text-[var(--text-subtle)]">Optional</span>
+                  )}
                 </div>
 
                 {/* Reference Mode Selector */}
-                <div className="mb-2.5 grid grid-cols-2 gap-1 rounded-lg border border-[var(--border-subtle)] bg-[var(--glass)] p-1">
+                <div className="grid grid-cols-2 gap-1 rounded-lg border border-[var(--border-subtle)] bg-[var(--soft-black)] p-1">
                   <button
                     type="button"
                     disabled={busy || refUploading}
                     onClick={() => setActiveRefTab("image")}
-                    className={`flex items-center justify-center gap-1.5 rounded-md py-1 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${activeRefTab === "image"
-                        ? "bg-[var(--soft-black)] text-[var(--text-primary)] border border-[var(--border-subtle)] shadow-sm"
-                        : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-elevated)]"
-                      }`}
+                    className={`flex items-center justify-center gap-1.5 rounded-md py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                      activeRefTab === "image"
+                        ? "bg-[var(--glass-elevated)] text-[var(--text-primary)] border border-[var(--border-subtle)] shadow-sm"
+                        : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                    }`}
                   >
-                    <ImagePlus className="h-3 w-3" />
-                    <span>Image Ref</span>
+                    <ImagePlus className="h-3.5 w-3.5" />
+                    <span>Image References ({referenceImages.length})</span>
                   </button>
                   <button
                     type="button"
                     disabled={busy || refUploading}
                     onClick={() => setActiveRefTab("video")}
-                    className={`flex items-center justify-center gap-1.5 rounded-md py-1 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${activeRefTab === "video"
-                        ? "bg-[var(--soft-black)] text-[var(--text-primary)] border border-[var(--border-subtle)] shadow-sm"
-                        : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-elevated)]"
-                      }`}
+                    className={`flex items-center justify-center gap-1.5 rounded-md py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                      activeRefTab === "video"
+                        ? "bg-[var(--glass-elevated)] text-[var(--text-primary)] border border-[var(--border-subtle)] shadow-sm"
+                        : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                    }`}
                   >
-                    <Film className="h-3 w-3" />
+                    <Film className="h-3.5 w-3.5" />
                     <span>Video Ref</span>
                   </button>
                 </div>
 
-                <input
-                  ref={refFileInput}
-                  type="file"
-                  accept={activeRefTab === "image" ? "image/jpeg,image/png,image/webp" : "video/mp4,video/webm,video/quicktime"}
-                  className="sr-only"
-                  tabIndex={-1}
-                  disabled={busy || refUploading}
-                  onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    e.target.value = "";
-                    if (f) handleFileUpload(f, activeRefTab);
-                  }}
-                />
+                {activeRefTab === "image" ? (
+                  <div className="space-y-2.5">
+                    {/* Multi-Image File Input */}
+                    <input
+                      ref={multiImageInputRef}
+                      type="file"
+                      multiple
+                      accept="image/jpeg,image/png,image/webp"
+                      className="sr-only"
+                      tabIndex={-1}
+                      disabled={busy || refUploading || referenceImages.length >= maxRefImages}
+                      onChange={(e) => {
+                        if (e.target.files) handleUploadImages(e.target.files);
+                        e.target.value = "";
+                      }}
+                    />
 
-                {referenceUrl ? (
-                  <div className="flex items-center gap-3 rounded-xl border border-[var(--border-subtle)] bg-[var(--soft-black)] p-2.5">
-                    {referenceType === "image" ? (
-                      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-[var(--border-subtle)] bg-black shadow-md">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={referenceUrl} alt="Image Reference" className="h-full w-full object-cover" />
-                      </div>
-                    ) : (
-                      <div className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg border border-[var(--border-subtle)] bg-black shadow-md">
-                        <video
-                          src={referenceUrl}
-                          muted
-                          loop
-                          autoPlay
-                          playsInline
-                          className="h-full w-full object-cover"
-                        />
-                      </div>
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <p className="truncate text-xs font-bold text-[var(--text-primary)]">
-                          {referenceType === "image" ? "Image Reference" : "Video Reference"}
-                        </p>
-                        <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-wider ${referenceType === "image"
-                            ? "bg-cyan-500/20 text-cyan-500 dark:text-cyan-200 border border-cyan-400/30"
-                            : "bg-purple-500/20 text-purple-500 dark:text-purple-200 border border-purple-400/30"
-                          }`}>
-                          {referenceType === "image" ? "Image Guided" : "Video Guided"}
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-[var(--text-muted)] truncate mt-0.5">
-                        {referenceType === "image"
-                          ? "Animates & directs motion frame"
-                          : "Motion transfer & scene guidance"}
-                      </p>
-                    </div>
-                    <div className="flex flex-col gap-1 shrink-0">
-                      <button
-                        type="button"
-                        disabled={busy || refUploading}
-                        onClick={() => refFileInput.current?.click()}
-                        className="rounded-md border border-[var(--border-subtle)] bg-[var(--glass)] px-2 py-1 text-[9px] font-bold uppercase text-[var(--text-primary)] hover:bg-[var(--glass-elevated)] cursor-pointer transition-colors"
-                      >
-                        Replace
-                      </button>
-                      <button
-                        type="button"
-                        disabled={busy}
-                        onClick={() => {
-                          setReferenceUrl("");
-                          setReferenceType("image");
-                        }}
-                        className="rounded-md border border-rose-500/30 bg-rose-500/10 px-2 py-1 text-[9px] font-bold uppercase text-rose-400 hover:bg-rose-500/20 cursor-pointer transition-colors"
-                      >
-                        Remove
-                      </button>
+                    <p className="text-[10px] text-[var(--text-muted)] leading-relaxed">
+                      Upload multiple images to guide the visual result and character consistency. Order is preserved.
+                    </p>
+
+                    {/* Thumbnail Grid */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {referenceImages.map((img, idx) => (
+                        <div
+                          key={img.id}
+                          className="group relative flex flex-col rounded-lg border border-[var(--border-subtle)] bg-[var(--soft-black)] overflow-hidden shadow-xs"
+                        >
+                          <div className="relative aspect-square w-full overflow-hidden bg-black/50">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={img.url}
+                              alt={img.name || `Reference ${idx + 1}`}
+                              className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+                            />
+                            {img.uploading ? (
+                              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/75 backdrop-blur-xs">
+                                <Loader2 className="h-5 w-5 animate-spin text-[var(--text-primary)]" />
+                                <span className="mt-1 text-[8px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Uploading</span>
+                              </div>
+                            ) : null}
+                            <span className="absolute top-1 left-1 rounded-md bg-black/80 px-1.5 py-0.5 text-[8px] font-mono font-bold text-[var(--text-primary)] border border-white/10">
+                              #{idx + 1}
+                            </span>
+                            <button
+                              type="button"
+                              disabled={busy || img.uploading}
+                              onClick={() => handleRemoveImage(idx)}
+                              className="absolute top-1 right-1 rounded-md bg-rose-950/80 hover:bg-rose-900 border border-rose-500/40 p-1 text-rose-300 transition-colors opacity-80 group-hover:opacity-100 cursor-pointer"
+                              title="Remove reference"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                          {/* Footer with Reorder Controls */}
+                          <div className="flex items-center justify-between px-1.5 py-1 bg-[var(--soft-black)] border-t border-[var(--border-subtle)] text-[9px]">
+                            <span className="truncate max-w-[65px] text-[var(--text-subtle)] font-mono">
+                              {img.name ? img.name.slice(0, 10) : `Ref ${idx + 1}`}
+                            </span>
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                disabled={busy || idx === 0}
+                                onClick={() => handleMoveImage(idx, "left")}
+                                className="rounded p-0.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-20 cursor-pointer"
+                                title="Move earlier"
+                              >
+                                <ArrowLeft className="h-2.5 w-2.5" />
+                              </button>
+                              <button
+                                type="button"
+                                disabled={busy || idx === referenceImages.length - 1}
+                                onClick={() => handleMoveImage(idx, "right")}
+                                className="rounded p-0.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-20 cursor-pointer"
+                                title="Move later"
+                              >
+                                <ArrowRight className="h-2.5 w-2.5" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* "+ Add Reference" Dropzone Card */}
+                      {referenceImages.length < maxRefImages ? (
+                        <div
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            setIsDragging(true);
+                          }}
+                          onDragLeave={() => setIsDragging(false)}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            setIsDragging(false);
+                            if (e.dataTransfer.files?.length) {
+                              handleUploadImages(e.dataTransfer.files);
+                            }
+                          }}
+                          onClick={() => multiImageInputRef.current?.click()}
+                          className={`relative flex aspect-square flex-col items-center justify-center rounded-lg border-2 border-dashed p-2 text-center transition-all cursor-pointer ${
+                            isDragging
+                              ? "border-amber-400 bg-amber-500/10 text-amber-300"
+                              : "border-[var(--border-subtle)] bg-[var(--soft-black)] text-[var(--text-muted)] hover:border-[var(--text-muted)] hover:bg-[var(--glass-elevated)] hover:text-[var(--text-primary)]"
+                          }`}
+                        >
+                          {refUploading ? (
+                            <div className="flex flex-col items-center justify-center gap-1">
+                              <Loader2 className="h-5 w-5 animate-spin text-[var(--text-primary)]" />
+                              <span className="text-[9px] font-bold">Uploading…</span>
+                            </div>
+                          ) : (
+                            <>
+                              <Plus className="h-5 w-5 mb-1 text-[var(--text-primary)]" />
+                              <span className="text-[10px] font-bold text-[var(--text-primary)]">+ Add Reference</span>
+                              <span className="text-[8px] text-[var(--text-subtle)] mt-0.5">Drop or Browse</span>
+                              <span className="text-[8px] font-mono text-[var(--text-subtle)] mt-0.5">
+                                {referenceImages.length} / {maxRefImages}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                 ) : (
-                  <button
-                    type="button"
-                    disabled={busy || refUploading}
-                    onClick={() => refFileInput.current?.click()}
-                    className="flex min-h-[50px] w-full flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-[var(--border-subtle)] bg-[var(--glass)] p-2.5 text-center transition-all hover:border-[var(--text-muted)] hover:bg-[var(--glass-elevated)] cursor-pointer"
-                  >
-                    {refUploading ? (
-                      <div className="flex items-center gap-2">
-                        <Loader2 className="h-4 w-4 animate-spin text-[var(--text-primary)]" />
-                        <span className="text-xs font-bold text-[var(--text-primary)]">
-                          Uploading {activeRefTab === "image" ? "Image" : "Video"} Reference…
-                        </span>
+                  /* Video Reference Mode */
+                  <div className="space-y-2.5">
+                    <input
+                      ref={videoInputRef}
+                      type="file"
+                      accept="video/mp4,video/webm,video/quicktime"
+                      className="sr-only"
+                      tabIndex={-1}
+                      disabled={busy || refUploading}
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        e.target.value = "";
+                        if (f) handleUploadVideo(f);
+                      }}
+                    />
+
+                    {referenceVideoUrl ? (
+                      <div className="flex items-center gap-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--soft-black)] p-2.5">
+                        <div className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg border border-[var(--border-subtle)] bg-black shadow-md">
+                          <video src={referenceVideoUrl} muted loop autoPlay playsInline className="h-full w-full object-cover" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5">
+                            <p className="truncate text-xs font-bold text-[var(--text-primary)]">Video Reference</p>
+                            <span className="shrink-0 rounded-full px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-wider bg-purple-500/20 text-purple-300 border border-purple-400/30">
+                              Motion Guide
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-[var(--text-muted)] truncate mt-0.5">
+                            Motion transfer & scene guidance
+                          </p>
+                        </div>
+                        <div className="flex flex-col gap-1 shrink-0">
+                          <button
+                            type="button"
+                            disabled={busy || refUploading}
+                            onClick={() => videoInputRef.current?.click()}
+                            className="rounded-md border border-[var(--border-subtle)] bg-[var(--glass)] px-2 py-1 text-[9px] font-bold uppercase text-[var(--text-primary)] hover:bg-[var(--glass-elevated)] cursor-pointer transition-colors"
+                          >
+                            Replace
+                          </button>
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={() => setReferenceVideoUrl("")}
+                            className="rounded-md border border-rose-500/30 bg-rose-500/10 px-2 py-1 text-[9px] font-bold uppercase text-rose-400 hover:bg-rose-500/20 cursor-pointer transition-colors"
+                          >
+                            Remove
+                          </button>
+                        </div>
                       </div>
                     ) : (
-                      <>
-                        <div className="flex items-center gap-2">
-                          {activeRefTab === "image" ? (
-                            <ImagePlus className="h-4 w-4 text-[var(--text-primary)]" />
-                          ) : (
-                            <Film className="h-4 w-4 text-[var(--text-primary)]" />
-                          )}
-                          <span className="text-xs font-bold text-[var(--text-primary)]">
-                            Upload {activeRefTab === "image" ? "Image" : "Video"} Reference
-                          </span>
-                        </div>
-                        <span className="text-[10px] text-[var(--text-subtle)]">
-                          {activeRefTab === "image"
-                            ? "JPEG, PNG or WebP (max 20MB) · Optional starting frame"
-                            : "MP4, WebM or MOV (max 50MB) · Optional video motion guide"}
-                        </span>
-                      </>
+                      <button
+                        type="button"
+                        disabled={busy || refUploading}
+                        onClick={() => videoInputRef.current?.click()}
+                        className="flex min-h-[50px] w-full flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-[var(--border-subtle)] bg-[var(--soft-black)] p-3 text-center transition-all hover:border-[var(--text-muted)] hover:bg-[var(--glass-elevated)] cursor-pointer"
+                      >
+                        {refUploading ? (
+                          <div className="flex items-center gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin text-[var(--text-primary)]" />
+                            <span className="text-xs font-bold text-[var(--text-primary)]">Uploading Video Reference…</span>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="flex items-center gap-2">
+                              <Film className="h-4 w-4 text-[var(--text-primary)]" />
+                              <span className="text-xs font-bold text-[var(--text-primary)]">Upload Video Reference</span>
+                            </div>
+                            <span className="text-[10px] text-[var(--text-subtle)]">
+                              MP4, WebM or MOV (max 50MB) · Motion transfer guide
+                            </span>
+                          </>
+                        )}
+                      </button>
                     )}
-                  </button>
+                  </div>
                 )}
+
                 {refUploadError ? (
-                  <div className="mt-2 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1.5 text-[10px] font-medium text-rose-400">
+                  <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1.5 text-[10px] font-medium text-rose-400">
                     {refUploadError}
                   </div>
                 ) : null}

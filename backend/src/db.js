@@ -646,6 +646,7 @@ function openDb(projectRoot) {
       supported_controls TEXT NOT NULL DEFAULT '[]',
       max_duration INTEGER DEFAULT 10,
       max_resolution TEXT DEFAULT '1080p',
+      max_reference_images INTEGER DEFAULT 0,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
@@ -656,6 +657,14 @@ function openDb(projectRoot) {
       updated_at TEXT NOT NULL
     );
   `);
+
+  // Model registry column migration
+  const modelCols = db.pragma("table_info(model_registry)");
+  if (!modelCols.some((c) => c.name === "max_reference_images")) {
+    try {
+      db.exec("ALTER TABLE model_registry ADD COLUMN max_reference_images INTEGER DEFAULT 0");
+    } catch {}
+  }
 
   // Support tickets table migrations for priority and internal notes
   const ticketCols = db.pragma("table_info(support_tickets)");
@@ -1525,6 +1534,14 @@ function seedFaqsIfEmpty(db) {
 }
 
 function seedModelRegistryIfEmpty(db) {
+  const verifiedOmniMax = parseInt(process.env.KIE_MAX_REFERENCE_IMAGES || "7", 10) || 7;
+
+  // Ensure existing databases have the verified Omni limit set
+  try {
+    db.prepare("UPDATE model_registry SET max_reference_images = ? WHERE id = 'video-kling-premium'").run(verifiedOmniMax);
+    db.prepare("UPDATE model_registry SET max_reference_images = 0 WHERE id != 'video-kling-premium'").run();
+  } catch {}
+
   const count = db.prepare("SELECT COUNT(*) AS c FROM model_registry").get().c;
   if (count > 0) return;
 
@@ -1534,8 +1551,8 @@ function seedModelRegistryIfEmpty(db) {
       id, name, type, tier, kie_model_id, enabled, base_provider_cost,
       credit_cost_type, base_credit_cost, min_margin_percent,
       supported_aspect_ratios, supported_resolutions, supported_durations,
-      supported_controls, max_duration, max_resolution, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      supported_controls, max_duration, max_resolution, max_reference_images, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   // 1. Standard Image (KIE.ai Flux Flex text-to-image)
@@ -1556,6 +1573,7 @@ function seedModelRegistryIfEmpty(db) {
     JSON.stringify(["prompt", "negative_prompt", "aspect_ratio", "style", "image_reference", "denoise", "guidance_scale"]),
     null,
     "1024x1024",
+    0,
     now,
     now
   );
@@ -1578,6 +1596,7 @@ function seedModelRegistryIfEmpty(db) {
     JSON.stringify(["prompt", "negative_prompt", "aspect_ratio", "style", "image_reference", "denoise", "guidance_scale"]),
     null,
     "1024x1024",
+    0,
     now,
     now
   );
@@ -1600,6 +1619,7 @@ function seedModelRegistryIfEmpty(db) {
     JSON.stringify(["prompt", "negative_prompt", "aspect_ratio", "duration", "sound"]),
     5,
     "720p",
+    0,
     now,
     now
   );
@@ -1619,14 +1639,15 @@ function seedModelRegistryIfEmpty(db) {
     JSON.stringify(["16:9", "9:16", "1:1"]),
     JSON.stringify(["720p", "1080p"]),
     JSON.stringify([5, 10]),
-    JSON.stringify(["prompt", "negative_prompt", "aspect_ratio", "duration", "resolution", "sound", "camera_control", "image_urls"]),
+    JSON.stringify(["prompt", "negative_prompt", "aspect_ratio", "duration", "resolution", "sound", "camera_control", "image_urls", "multi_reference_images"]),
     10,
     "1080p",
+    verifiedOmniMax,
     now,
     now
   );
 
-  console.log("[db] Initialized Model Registry with production KIE.ai video models.");
+  console.log("[db] Initialized Model Registry with production KIE.ai video models (Omni max references: " + verifiedOmniMax + ").");
 }
 
 function seedPricingSettingsIfEmpty(db) {
