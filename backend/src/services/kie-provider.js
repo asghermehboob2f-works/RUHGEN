@@ -11,7 +11,7 @@
 const { getKieConfig } = require("../config");
 
 function sanitizeError(msg) {
-  if (!msg || typeof msg !== "string") return "Generation service error.";
+  if (!msg || typeof msg !== "string") return "Generation service is temporarily busy. Please try again in a moment.";
   const config = getKieConfig();
   let sanitized = msg
     .replace(/bearer\s+[a-zA-Z0-9_\-\.]+/gi, "Bearer [REDACTED]")
@@ -20,6 +20,11 @@ function sanitizeError(msg) {
 
   if (config.apiKey && config.apiKey.length > 8) {
     sanitized = sanitized.split(config.apiKey).join("[REDACTED_KEY]");
+  }
+
+  // Strip all technical provider or model mentions and replace with friendly, branded error
+  if (/kie\.ai|kling|qwen|flux|provider|upstream|credits insufficient|balance is exhausted/i.test(sanitized)) {
+    return "Generation service is temporarily busy due to high demand. Please try again in a moment. Your RUHGEN credits were not charged.";
   }
 
   return sanitized;
@@ -39,7 +44,7 @@ class KieProvider {
 
     if (!config.apiKey || config.apiKey.includes("your_kie_api_key")) {
       throw new Error(
-        "KIE.ai Generation Engine is not configured. Please set KIE_API_KEY in server environment."
+        "Generation engine is temporarily unavailable. Please try again shortly."
       );
     }
 
@@ -71,16 +76,17 @@ class KieProvider {
         data = JSON.parse(responseText);
       } catch {
         if (!response.ok) {
-          throw new Error(`Provider error (HTTP ${response.status}): ${responseText.slice(0, 200)}`);
+          throw new Error(`Service temporarily busy (HTTP ${response.status})`);
         }
-        throw new Error("Invalid response format received from KIE.ai provider.");
+        throw new Error("Invalid response format received from generation service.");
       }
 
       if (!response.ok || (data.code && data.code !== 200)) {
         if (data.code === 402 || (data.msg && String(data.msg).toLowerCase().includes("credits insufficient"))) {
-          throw new Error("Upstream AI Provider (KIE.ai) account balance is exhausted. Please top up your KIE.ai credits in the provider portal. Your RUHGEN credits were not charged.");
+          console.error("[KieProvider] Upstream provider account balance exhausted (code 402). Admin top-up required in provider portal.");
+          throw new Error("Generation service is temporarily busy due to high demand. Please try again in a moment. Your RUHGEN credits were not charged.");
         }
-        const errorMsg = data.msg || data.message || data.error || `Provider error (code ${data.code || response.status})`;
+        const errorMsg = data.msg || data.message || data.error || `Service busy (code ${data.code || response.status})`;
         throw new Error(sanitizeError(errorMsg));
       }
 
