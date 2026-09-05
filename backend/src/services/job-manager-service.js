@@ -11,6 +11,7 @@ const crypto = require("node:crypto");
 const { KieProvider, sanitizeError } = require("./kie-provider");
 const { ModelRegistryService } = require("./model-registry-service");
 const { CreditWalletService } = require("./credit-wallet-service");
+const { ReferenceStorageService } = require("./reference-storage-service");
 
 class JobManagerService {
   /**
@@ -62,7 +63,20 @@ class JobManagerService {
     const cleanIdempotencyKey = idempotencyKey ? idempotencyKey.trim().slice(0, 128) : `${userId}_${jobId}`;
     const now = new Date().toISOString();
 
-    // 7. Atomic Credit Reservation in Database
+    // 7. Associate and claim any uploaded reference images/videos for this job
+    const refInputs = [];
+    if (Array.isArray(sanitizedParams.image_urls)) refInputs.push(...sanitizedParams.image_urls);
+    if (Array.isArray(sanitizedParams.references)) refInputs.push(...sanitizedParams.references);
+    if (sanitizedParams.image_url) refInputs.push(sanitizedParams.image_url);
+    if (sanitizedParams.image) refInputs.push(sanitizedParams.image);
+    if (sanitizedParams.video_url) refInputs.push(sanitizedParams.video_url);
+
+    const claimedReferenceIds = ReferenceStorageService.claimReferences(refInputs, {
+      jobId,
+      userId,
+    });
+
+    // 8. Atomic Credit Reservation in Database
     CreditWalletService.reserveCredits(db, userId, creditCost, jobId, {
       modelId: model.id,
       modelName: model.name,
@@ -71,13 +85,13 @@ class JobManagerService {
       reason: `${model.name} (${creditCost} credits reserved)`,
     });
 
-    // 8. Create Job Record in RESERVED state
+    // 9. Create Job Record in RESERVED state
     db.prepare(
       `INSERT INTO generation_jobs (
         id, user_id, idempotency_key, generation_type, model_id, kie_model_id,
         status, requested_params_json, sanitized_params_json, credit_cost,
-        provider_cost_usd, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, 'RESERVED', ?, ?, ?, ?, ?, ?)`
+        provider_cost_usd, reference_ids_json, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, 'RESERVED', ?, ?, ?, ?, ?, ?, ?)`
     ).run(
       jobId,
       userId,
@@ -89,6 +103,7 @@ class JobManagerService {
       JSON.stringify(sanitizedParams),
       creditCost,
       marginCheck.providerCostUsd,
+      JSON.stringify(claimedReferenceIds),
       now,
       now
     );
@@ -148,6 +163,9 @@ class JobManagerService {
         jobId,
         "Generation service rejected task submission"
       );
+
+      // Immediately purge references on dispatch rejection
+      ReferenceStorageService.deleteReferencesForJob(jobId);
 
       const sanitizedDetail = sanitizeError(err.message);
 
@@ -235,6 +253,9 @@ class JobManagerService {
           reason: "Generation succeeded",
         });
 
+        // Purge ephemeral references immediately upon job completion
+        ReferenceStorageService.deleteReferencesForJob(job.id);
+
         const now = new Date().toISOString();
         db.prepare(
           `UPDATE generation_jobs
@@ -268,6 +289,9 @@ class JobManagerService {
           job.id,
           info.error || "Upstream provider reported generation failure"
         );
+
+        // Purge ephemeral references immediately upon job failure
+        ReferenceStorageService.deleteReferencesForJob(job.id);
 
         db.prepare(
           `UPDATE generation_jobs
@@ -335,6 +359,7 @@ class JobManagerService {
               job.id,
               "Task timed out after 90 minutes"
             );
+            ReferenceStorageService.deleteReferencesForJob(job.id);
             db.prepare(
               `UPDATE generation_jobs
                SET status = 'FAILED', error_message = 'Task timed out.', updated_at = ?

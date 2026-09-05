@@ -11,11 +11,7 @@ const { ImageGenerationService } = require("./services/image-generation-service"
 const { JobManagerService } = require("./services/job-manager-service");
 const { ModelRegistryService } = require("./services/model-registry-service");
 const { CreditWalletService } = require("./services/credit-wallet-service");
-
-const STUDIO_REF_TTL_MS = 2 * 60 * 60 * 1000;
-
-/** @type {Map<string, { buffer: Buffer; mime: string; expires: number }>} */
-const studioReferenceImages = new Map();
+const { ReferenceStorageService } = require("./services/reference-storage-service");
 
 function getBearer(req) {
   const auth = String(req.headers.authorization || "").trim();
@@ -36,13 +32,6 @@ function requireUser(req, res, next) {
     next();
   } catch {
     return res.status(401).json({ ok: false, error: "Unauthorized." });
-  }
-}
-
-function sweepStudioReferenceImages() {
-  const now = Date.now();
-  for (const [id, v] of studioReferenceImages.entries()) {
-    if (v.expires <= now) studioReferenceImages.delete(id);
   }
 }
 
@@ -189,6 +178,7 @@ function mountStudioRoutes(app, options) {
 
 
   JobManagerService.startJobPoller(db, 12000);
+  ReferenceStorageService.startSweeper(db, 60000);
 
   function validateReferenceFile(file) {
     if (!file?.buffer || !Buffer.isBuffer(file.buffer)) {
@@ -297,23 +287,21 @@ function mountStudioRoutes(app, options) {
             return res.status(400).json({ ok: false, error: validation.error });
           }
 
-          const id = crypto.randomBytes(24).toString("hex");
-          const expires = Date.now() + STUDIO_REF_TTL_MS;
-          studioReferenceImages.set(id, {
+          const entry = ReferenceStorageService.storeReference({
+            userId: req.user?.sub,
             buffer: file.buffer,
             mime: validation.mime,
             type: validation.refType,
             name: file.originalname || "reference",
             size: file.size,
-            expires,
           });
 
           uploadedResults.push({
-            id,
-            url: `${base}/api/studio/reference/${id}`,
-            type: validation.refType,
-            name: file.originalname || "reference",
-            size: file.size,
+            id: entry.id,
+            url: `${base}/api/studio/reference/${entry.id}`,
+            type: entry.type,
+            name: entry.name,
+            size: entry.size,
           });
         }
 
@@ -335,14 +323,21 @@ function mountStudioRoutes(app, options) {
     if (!id || id.includes("..") || id.includes("/")) {
       return res.status(404).end();
     }
-    const entry = studioReferenceImages.get(id);
-    if (!entry || entry.expires <= Date.now()) {
-      if (entry) studioReferenceImages.delete(id);
+    const entry = ReferenceStorageService.getReference(id);
+    if (!entry) {
       return res.status(404).end();
     }
-res.setHeader("Content-Type", entry.mime);
-    res.setHeader("Cache-Control", "private, max-age=3600");
+    res.setHeader("Content-Type", entry.mime);
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
     return res.end(entry.buffer);
+  });
+
+  app.delete("/api/studio/reference/:id", requireUser, (req, res) => {
+    const id = String(req.params.id || "");
+    const deleted = ReferenceStorageService.deleteReference(id, req.user?.sub);
+    return res.json({ ok: true, deleted });
   });
 
   // --- Model Registry & Cost Estimation ---
@@ -619,6 +614,9 @@ res.setHeader("Content-Type", entry.mime);
           reason: "KIE Webhook: Generation completed",
         });
 
+        // Purge ephemeral references immediately upon webhook completion
+        ReferenceStorageService.deleteReferencesForJob(job.id);
+
         const now = new Date().toISOString();
         db.prepare(
           `UPDATE generation_jobs
@@ -633,6 +631,10 @@ res.setHeader("Content-Type", entry.mime);
           job.id,
           "KIE Webhook reported generation failure"
         );
+
+        // Purge ephemeral references immediately upon webhook failure
+        ReferenceStorageService.deleteReferencesForJob(job.id);
+
         db.prepare(
           `UPDATE generation_jobs
            SET status = 'FAILED', error_message = ?, updated_at = ?

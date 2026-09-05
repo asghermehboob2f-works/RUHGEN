@@ -58,6 +58,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { readUserToken } from "@/lib/auth-storage";
 import {
   createVideoTask,
+  deleteStudioReference,
   fetchStudioModels,
   pollStudioTask,
   uploadStudioReference,
@@ -585,7 +586,13 @@ export default function VideoStudioClient() {
   );
 
   const handleRemoveImage = useCallback((index: number) => {
-    setReferenceImages((prev) => prev.filter((_, i) => i !== index));
+    setReferenceImages((prev) => {
+      const target = prev[index];
+      if (target && target.url && !target.uploading) {
+        deleteStudioReference(target.url || target.id).catch(() => {});
+      }
+      return prev.filter((_, i) => i !== index);
+    });
     setRefUploadError(null);
   }, []);
 
@@ -1053,7 +1060,10 @@ export default function VideoStudioClient() {
                           <button
                             type="button"
                             disabled={busy}
-                            onClick={() => setReferenceVideoUrl("")}
+                            onClick={() => {
+                              if (referenceVideoUrl) deleteStudioReference(referenceVideoUrl).catch(() => {});
+                              setReferenceVideoUrl("");
+                            }}
                             className="rounded-md border border-rose-500/30 bg-rose-500/10 px-2 py-1 text-[9px] font-bold uppercase text-rose-400 hover:bg-rose-500/20 cursor-pointer transition-colors"
                           >
                             Remove

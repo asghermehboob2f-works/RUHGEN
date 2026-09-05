@@ -188,6 +188,23 @@ export async function uploadStudioReference(file: File): Promise<{ url: string; 
   return { url: data.url, type };
 }
 
+/** Immediately delete an ephemeral reference from memory (e.g. user removed thumbnail) */
+export async function deleteStudioReference(idOrUrl: string): Promise<boolean> {
+  const token = readUserToken();
+  if (!token || !idOrUrl) return false;
+  // Extract ID if a full URL is passed
+  const id = idOrUrl.split("/").filter(Boolean).pop() || idOrUrl;
+  try {
+    const res = await fetch(`/api/studio/reference/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 /** Create video task (via backend only). */
 export async function createVideoTask(body: {
   prompt: string;

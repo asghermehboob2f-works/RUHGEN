@@ -615,6 +615,7 @@ function openDb(projectRoot) {
       credit_cost INTEGER NOT NULL DEFAULT 0,
       provider_cost_usd REAL NOT NULL DEFAULT 0.0,
       output_urls_json TEXT NOT NULL DEFAULT '[]',
+      reference_ids_json TEXT NOT NULL DEFAULT '[]',
       error_message TEXT,
       provider_raw_error TEXT,
       created_at TEXT NOT NULL,
@@ -657,6 +658,14 @@ function openDb(projectRoot) {
       updated_at TEXT NOT NULL
     );
   `);
+
+  // Generation jobs column migration
+  const jobCols = db.pragma("table_info(generation_jobs)");
+  if (!jobCols.some((c) => c.name === "reference_ids_json")) {
+    try {
+      db.exec("ALTER TABLE generation_jobs ADD COLUMN reference_ids_json TEXT NOT NULL DEFAULT '[]'");
+    } catch {}
+  }
 
   // Model registry column migration
   const modelCols = db.pragma("table_info(model_registry)");
