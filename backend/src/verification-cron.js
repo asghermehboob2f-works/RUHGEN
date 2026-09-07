@@ -9,10 +9,11 @@ const cron = require("node-cron");
 const crypto = require("node:crypto");
 const { sendMail } = require("./email-service");
 const { reminderEmail, suspensionEmail } = require("./email-templates");
-const { getAppUrl } = require("./config");
+const { getAppUrl, getVerificationPolicy } = require("./config");
 
-const GRACE_DAYS = Number(process.env.VERIFY_GRACE_DAYS) || 7;
-const LINK_TTL_HOURS = Number(process.env.VERIFY_LINK_TTL_HOURS) || 72;
+function getPolicy() {
+  return getVerificationPolicy();
+}
 
 function hashToken(t) {
   return require("node:crypto").createHash("sha256").update(t).digest("hex");
@@ -21,9 +22,10 @@ function nowIso() { return new Date().toISOString(); }
 function addMs(ms) { return new Date(Date.now() + ms).toISOString(); }
 
 function buildFreshVerifyUrl(db, userId) {
+  const policy = getPolicy();
   const rawToken = crypto.randomBytes(48).toString("hex");
   const tokenHash = hashToken(rawToken);
-  const tokenExpiry = addMs(LINK_TTL_HOURS * 3600 * 1000);
+  const tokenExpiry = addMs(policy.linkTtlHours * 3600 * 1000);
   db.prepare("UPDATE users SET verification_token_hash = ?, verification_token_expiry = ? WHERE id = ?")
     .run(tokenHash, tokenExpiry, userId);
   return getAppUrl("verification", rawToken);

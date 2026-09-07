@@ -11,11 +11,11 @@ const {
 } = require("./auth");
 const { sendMail } = require("./email-service");
 const { verificationEmail, passwordResetEmail } = require("./email-templates");
-const { getAppUrl, parseExpiryMs } = require("./config");
+const { getAppUrl, parseExpiryMs, getVerificationPolicy } = require("./config");
 
-const GRACE_DAYS = Number(process.env.VERIFY_GRACE_DAYS) || 7;
-const LINK_TTL_HOURS = Math.round(parseExpiryMs(process.env.EMAIL_VERIFICATION_TOKEN_EXPIRY, 72 * 3600 * 1000) / (3600 * 1000));
-const RESET_TTL_MINUTES = Math.round(parseExpiryMs(process.env.PASSWORD_RESET_TOKEN_EXPIRY, 30 * 60 * 1000) / (60 * 1000));
+function getPolicy() {
+  return getVerificationPolicy();
+}
 
 function hashToken(t) {
   return crypto.createHash("sha256").update(t).digest("hex");
@@ -58,15 +58,16 @@ function mountUserAuthRoutes(app, { db }) {
       }
       const id = crypto.randomUUID();
       const password_hash = hashPassword(password);
+      const policy = getPolicy();
       const created_at = new Date().toISOString();
-      const verification_deadline = addMs(GRACE_DAYS * 86400 * 1000);
+      const verification_deadline = addMs(policy.graceDays * 86400 * 1000);
       // Generate verification token
       const rawToken = crypto.randomBytes(48).toString("hex");
       const tokenHash = hashToken(rawToken);
-      const tokenExpiry = addMs(LINK_TTL_HOURS * 3600 * 1000);
+      const tokenExpiry = addMs(policy.linkTtlHours * 3600 * 1000);
       const otp = String(Math.floor(100000 + crypto.randomInt(900000))).padStart(6, "0");
       const otpHash = hashToken(otp);
-      const otpExpiry = addMs(15 * 60 * 1000);
+      const otpExpiry = addMs(policy.otpTtlMinutes * 60 * 1000);
 
       const settingRow = db.prepare("SELECT value FROM pricing_settings WHERE key = 'default_new_user_promo_credits'").get();
       const initialPromo = settingRow ? Math.max(0, Number(settingRow.value) || 0) : 0;
@@ -91,13 +92,13 @@ function mountUserAuthRoutes(app, { db }) {
 
       // Send verification email (non-blocking)
       const verifyUrl = getAppUrl("verification", rawToken);
-      sendMail({ to: email, ...verificationEmail({ name, verifyUrl, expiresHours: LINK_TTL_HOURS, otp }) })
+      sendMail({ to: email, ...verificationEmail({ name, verifyUrl, expiresHours: policy.linkTtlHours, otp }) })
         .then(mailRes => {
           if (mailRes && !mailRes.ok) {
-            console.error("[auth] verification email failed for", email, ":", mailRes.error);
+            console.error("[auth] verification email delivery failed for", email, ":", mailRes.error);
           }
         })
-        .catch(e => console.error("[auth] verification email failed:", e.message));
+        .catch(e => console.error("[auth] verification email error:", e.message));
 
       const user = {
         id,
@@ -396,11 +397,12 @@ function mountUserAuthRoutes(app, { db }) {
       }
 
       // Generate reset token & OTP only for existing active user
+      const policy = getPolicy();
       const rawToken = crypto.randomBytes(48).toString("hex");
       const tokenHash = hashToken(rawToken);
       const otp = String(Math.floor(100000 + crypto.randomInt(900000))).padStart(6, "0");
       const otpHash = hashToken(otp);
-      const resetExpiry = addMs(RESET_TTL_MINUTES * 60 * 1000);
+      const resetExpiry = addMs(policy.resetTtlMinutes * 60 * 1000);
 
       db.prepare(
         `UPDATE users 
@@ -411,12 +413,12 @@ function mountUserAuthRoutes(app, { db }) {
       const resetUrl = getAppUrl("password_reset", rawToken);
       sendMail({
         to: row.email,
-        ...passwordResetEmail({ name: row.name, resetUrl, otp, expiresMinutes: RESET_TTL_MINUTES })
+        ...passwordResetEmail({ name: row.name, resetUrl, otp, expiresMinutes: policy.resetTtlMinutes })
       }).then(mailRes => {
         if (mailRes && !mailRes.ok) {
-          console.error("[auth] password reset email failed for", row.email, ":", mailRes.error);
+          console.error("[auth] password reset email delivery failed for", row.email, ":", mailRes.error);
         }
-      }).catch(e => console.error("[auth] password reset email failed:", e.message));
+      }).catch(e => console.error("[auth] password reset email error:", e.message));
 
       return res.json({ ok: true, message: genericMsg });
     } catch (e) {

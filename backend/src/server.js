@@ -34,6 +34,7 @@ const { mountSupportRoutes } = require("./support-routes");
 const { mountAdminContentRoutes } = require("./admin-content-routes");
 const { mountContactRoutes } = require("./contact-routes");
 const { mountNewsletterRoutes } = require("./newsletter-routes");
+const { verifyConnection } = require("./email-service");
 
 const PORT = Number(process.env.PORT || process.env.BACKEND_PORT || 4000, 10);
 const projectRoot = path.resolve(__dirname, "..", "..");
@@ -170,6 +171,7 @@ const server = app.listen(PORT, "0.0.0.0", () => {
   // eslint-disable-next-line no-console
   console.log(`[backend] Server listening on http://127.0.0.1:${PORT} (data: ${dataDir})`);
   startVerificationCrons(db);
+  verifyConnection().catch(() => {});
 });
 
 let isShuttingDown = false;

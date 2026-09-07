@@ -16,16 +16,13 @@
 
 const crypto = require("node:crypto");
 const { verifyUserToken, verifyAdminToken } = require("./auth");
-const { sendMail } = require("./email-service");
+const { sendMail, verifyConnection } = require("./email-service");
 const { verificationEmail, reminderEmail, otpEmail, successEmail, suspensionEmail } = require("./email-templates");
-const { getAppUrl, parseExpiryMs } = require("./config");
+const { getAppUrl, parseExpiryMs, getVerificationPolicy } = require("./config");
 
-// ─── Constants ───────────────────────────────────────────────────────────────
-const GRACE_DAYS = Number(process.env.VERIFY_GRACE_DAYS) || 7;
-const LINK_TTL_HOURS = Math.round(parseExpiryMs(process.env.EMAIL_VERIFICATION_TOKEN_EXPIRY, 72 * 3600 * 1000) / (3600 * 1000));
-const OTP_TTL_MINUTES = Number(process.env.VERIFY_OTP_TTL_MINUTES) || 15;
-const MAX_RESEND_PER_DAY = Number(process.env.VERIFY_MAX_RESEND_PER_DAY) || 5;
-const RESEND_COOLDOWN_MINUTES = Number(process.env.VERIFY_RESEND_COOLDOWN_MINUTES) || 2;
+function getPolicy() {
+  return getVerificationPolicy();
+}
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function getBearer(req) {
@@ -72,12 +69,13 @@ function logAudit(db, { actor, target, action, oldVal, newVal, details }) {
 
 // Build a fresh verification token + OTP for a user, invalidating old ones.
 function createVerificationCredentials(db, userId) {
+  const policy = getPolicy();
   const rawToken = crypto.randomBytes(48).toString("hex");
   const tokenHash = hashToken(rawToken);
   const otp = genOtp();
   const otpHash = hashToken(otp);
-  const tokenExpiry = addMs(LINK_TTL_HOURS * 3600 * 1000);
-  const otpExpiry = addMs(OTP_TTL_MINUTES * 60 * 1000);
+  const tokenExpiry = addMs(policy.linkTtlHours * 3600 * 1000);
+  const otpExpiry = addMs(policy.otpTtlMinutes * 60 * 1000);
 
   db.prepare(`UPDATE users SET
     verification_token_hash = ?,
@@ -93,15 +91,16 @@ function createVerificationCredentials(db, userId) {
 
 // Check resend rate limit. Returns error string or null.
 function checkResendLimit(db, userId) {
+  const policy = getPolicy();
   const user = db.prepare("SELECT last_resend_at, resend_count_today, resend_day FROM users WHERE id = ?").get(userId);
   if (!user) return "User not found.";
   const today = new Date().toISOString().slice(0, 10);
   const count = user.resend_day === today ? (user.resend_count_today || 0) : 0;
-  if (count >= MAX_RESEND_PER_DAY) return `Daily resend limit (${MAX_RESEND_PER_DAY}) reached. Try again tomorrow.`;
+  if (count >= policy.maxResendPerDay) return `Daily resend limit (${policy.maxResendPerDay}) reached. Try again tomorrow.`;
   if (user.last_resend_at) {
     const diffMs = Date.now() - new Date(user.last_resend_at).getTime();
-    if (diffMs < RESEND_COOLDOWN_MINUTES * 60 * 1000) {
-      const secs = Math.ceil((RESEND_COOLDOWN_MINUTES * 60 * 1000 - diffMs) / 1000);
+    if (diffMs < policy.resendCooldownMinutes * 60 * 1000) {
+      const secs = Math.ceil((policy.resendCooldownMinutes * 60 * 1000 - diffMs) / 1000);
       return `Please wait ${secs}s before requesting again.`;
     }
   }
@@ -198,8 +197,9 @@ function mountVerificationRoutes(app, { db }) {
     bumpResendCount(db, userId);
     logAudit(db, { target: userId, action: "resend_verification", details: { method: "user_request" } });
 
+    const policy = getPolicy();
     const verifyUrl = getAppUrl("verification", rawToken);
-    const emailData = verificationEmail({ name: user.name, verifyUrl, expiresHours: LINK_TTL_HOURS, otp });
+    const emailData = verificationEmail({ name: user.name, verifyUrl, expiresHours: policy.linkTtlHours, otp });
     const result = await sendMail({ to: user.email, ...emailData });
     if (!result.ok) return res.status(500).json({ ok: false, error: "Failed to send email. Please try again." });
 
@@ -246,13 +246,14 @@ function mountVerificationRoutes(app, { db }) {
     const limitErr = checkResendLimit(db, userId);
     if (limitErr) return res.status(429).json({ ok: false, error: limitErr });
 
+    const policy = getPolicy();
     const otp = genOtp();
     const otpHash = hashToken(otp);
     db.prepare("UPDATE users SET otp_hash = ?, otp_expiry = ?, otp_attempts = 0 WHERE id = ?")
-      .run(otpHash, addMs(OTP_TTL_MINUTES * 60 * 1000), userId);
+      .run(otpHash, addMs(policy.otpTtlMinutes * 60 * 1000), userId);
     bumpResendCount(db, userId);
 
-    const result = await sendMail({ to: user.email, ...otpEmail({ name: user.name, otp, expiryMinutes: OTP_TTL_MINUTES }) });
+    const result = await sendMail({ to: user.email, ...otpEmail({ name: user.name, otp, expiryMinutes: policy.otpTtlMinutes }) });
     if (!result.ok) return res.status(500).json({ ok: false, error: "Failed to send OTP." });
     return res.json({ ok: true, message: "OTP sent to your email." });
   });
@@ -348,16 +349,68 @@ function mountVerificationRoutes(app, { db }) {
   });
 
   app.get("/api/admin/verification/settings", requireAdmin, (req, res) => {
+    const policy = getPolicy();
     return res.json({
       ok: true,
       settings: {
-        graceDays: GRACE_DAYS,
-        linkTtlHours: LINK_TTL_HOURS,
-        otpTtlMinutes: OTP_TTL_MINUTES,
-        maxResendPerDay: MAX_RESEND_PER_DAY,
-        resendCooldownMinutes: RESEND_COOLDOWN_MINUTES,
+        graceDays: policy.graceDays,
+        linkTtlHours: policy.linkTtlHours,
+        otpTtlMinutes: policy.otpTtlMinutes,
+        maxResendPerDay: policy.maxResendPerDay,
+        resendCooldownMinutes: policy.resendCooldownMinutes,
       }
     });
+  });
+
+  // ── POST /api/admin/verification/test-smtp (admin diagnosis & test sending) ─
+  app.post("/api/admin/verification/test-smtp", requireAdmin, async (req, res) => {
+    try {
+      const recipient = typeof req.body?.recipient === "string" && req.body.recipient.trim()
+        ? req.body.recipient.trim()
+        : null;
+
+      const connCheck = await verifyConnection();
+      if (!connCheck.ok) {
+        return res.status(502).json({
+          ok: false,
+          stage: "connection",
+          error: connCheck.message,
+          code: connCheck.code,
+        });
+      }
+
+      if (recipient) {
+        const sendResult = await sendMail({
+          to: recipient,
+          subject: "RUHGEN SMTP Diagnostic Test Email",
+          html: "<p>This is a test email sent from the RUHGEN administration verification system. SMTP configuration is operational.</p>",
+          text: "This is a test email sent from the RUHGEN administration verification system. SMTP configuration is operational.",
+        });
+
+        if (!sendResult.ok) {
+          return res.status(502).json({
+            ok: false,
+            stage: "delivery",
+            error: sendResult.error,
+          });
+        }
+
+        return res.json({
+          ok: true,
+          stage: "delivery",
+          message: `Test email successfully dispatched to ${recipient}`,
+          messageId: sendResult.messageId,
+        });
+      }
+
+      return res.json({
+        ok: true,
+        stage: "connection",
+        message: connCheck.message,
+      });
+    } catch (e) {
+      return res.status(500).json({ ok: false, error: e.message });
+    }
   });
 }
 

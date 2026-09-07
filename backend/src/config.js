@@ -68,17 +68,40 @@ const TRACKED_ENV_KEYS = [
   "RUGEN_PREMIUM_API_KEY",
   "RUGEN_PREMIUM_API_URL",
   "RUGEN_PREMIUM_MODEL",
+  "MAIL_HOST",
+  "MAIL_PORT",
+  "MAIL_USERNAME",
+  "MAIL_PASSWORD",
+  "MAIL_ENCRYPTION",
+  "MAIL_FROM_ADDRESS",
+  "MAIL_FROM_NAME",
+  "SMTP_HOST",
+  "SMTP_PORT",
+  "SMTP_USER",
+  "SMTP_PASS",
+  "SMTP_ENCRYPTION",
+  "SMTP_FROM_EMAIL",
+  "SMTP_FROM_NAME",
+  "SMTP_REJECT_UNAUTHORIZED",
+  "VERIFY_GRACE_DAYS",
+  "VERIFY_LINK_TTL_HOURS",
+  "VERIFY_OTP_TTL_MINUTES",
+  "VERIFY_MAX_RESEND_PER_DAY",
+  "VERIFY_RESEND_COOLDOWN_MINUTES",
 ];
 
 function readFreshEnv() {
   try {
     const fs = require("node:fs");
     const path = require("node:path");
-    const envPath = path.resolve(__dirname, "..", "..", ".env");
-    if (fs.existsSync(envPath)) {
+    const envPaths = [
+      path.resolve(__dirname, "..", "..", ".env"),
+      path.resolve(__dirname, "..", ".env"),
+    ];
+    for (const envPath of envPaths) {
+      if (!fs.existsSync(envPath)) continue;
       const content = fs.readFileSync(envPath, "utf8");
       const lines = content.split("\n");
-      const parsedKeys = new Set();
       for (const line of lines) {
         const trimmed = line.trim();
         if (!trimmed || trimmed.startsWith("#")) continue;
@@ -94,12 +117,6 @@ function readFreshEnv() {
         }
         if (TRACKED_ENV_KEYS.includes(key)) {
           process.env[key] = val;
-          parsedKeys.add(key);
-        }
-      }
-      for (const key of TRACKED_ENV_KEYS) {
-        if (!parsedKeys.has(key)) {
-          delete process.env[key];
         }
       }
     }
@@ -146,6 +163,8 @@ function getVideoConfig(tier = "standard") {
 }
 
 function getSmtpConfig() {
+  readFreshEnv();
+
   const host = (
     process.env.MAIL_HOST ||
     process.env.SMTP_HOST ||
@@ -173,13 +192,14 @@ function getSmtpConfig() {
   const encryption = (
     process.env.MAIL_ENCRYPTION ||
     process.env.SMTP_ENCRYPTION ||
-    "ssl"
+    (port === 465 ? "ssl" : "tls")
   ).trim().toLowerCase();
 
   const fromAddress = (
     process.env.MAIL_FROM_ADDRESS ||
     process.env.SMTP_FROM_EMAIL ||
-    "verify@rugen.com"
+    username ||
+    "verify@ruhgen.in"
   ).trim();
 
   const fromName = (
@@ -187,6 +207,8 @@ function getSmtpConfig() {
     process.env.SMTP_FROM_NAME ||
     "RUHGEN"
   ).trim();
+
+  const secure = port === 465 || encryption === "ssl";
 
   return {
     host,
@@ -196,7 +218,41 @@ function getSmtpConfig() {
     encryption,
     fromAddress,
     fromName,
-    secure: encryption === "ssl" || port === 465,
+    secure,
+  };
+}
+
+function getVerificationPolicy() {
+  readFreshEnv();
+  const graceDays = Number(process.env.VERIFY_GRACE_DAYS) || 7;
+  const linkTtlHours = Math.round(
+    parseExpiryMs(
+      process.env.VERIFY_LINK_TTL_HOURS || process.env.EMAIL_VERIFICATION_TOKEN_EXPIRY,
+      72 * 3600 * 1000
+    ) / (3600 * 1000)
+  );
+  const otpTtlMinutes = Math.round(
+    parseExpiryMs(
+      process.env.VERIFY_OTP_TTL_MINUTES,
+      15 * 60 * 1000
+    ) / (60 * 1000)
+  );
+  const resetTtlMinutes = Math.round(
+    parseExpiryMs(
+      process.env.PASSWORD_RESET_TOKEN_EXPIRY,
+      30 * 60 * 1000
+    ) / (60 * 1000)
+  );
+  const maxResendPerDay = Number(process.env.VERIFY_MAX_RESEND_PER_DAY) || 5;
+  const resendCooldownMinutes = Number(process.env.VERIFY_RESEND_COOLDOWN_MINUTES) || 2;
+
+  return {
+    graceDays,
+    linkTtlHours,
+    otpTtlMinutes,
+    resetTtlMinutes,
+    maxResendPerDay,
+    resendCooldownMinutes,
   };
 }
 
@@ -247,7 +303,7 @@ function validateConfig() {
 
   const smtp = getSmtpConfig();
   console.log(
-    `[config] SMTP Server: ${smtp.host}:${smtp.port} (${smtp.username ? "auth set ✓" : "WARNING: no user"})`
+    `[config] SMTP Server: ${smtp.host}:${smtp.port} [secure: ${smtp.secure}] (${smtp.username ? "auth user set ✓" : "WARNING: no user set"})`
   );
   console.log("─────────────────────────────────────────────────────────────");
 }
@@ -259,5 +315,6 @@ module.exports = {
   getImageConfig,
   getVideoConfig,
   getSmtpConfig,
+  getVerificationPolicy,
   validateConfig,
 };
