@@ -67,7 +67,6 @@ function runExpiryCheck(db) {
  */
 function runReminderEmails(db) {
   const now = Date.now();
-  const gracePeriod = GRACE_DAYS * 86400 * 1000;
 
   // Users to remind: Day 1, 3, 6, and 24h before expiry
   const pending = db.prepare(`
