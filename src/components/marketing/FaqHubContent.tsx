@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ChevronDown, Search, HelpCircle, Mail, HelpCircle as HelpIcon, Sparkles } from "lucide-react";
+import { ChevronDown, Search, Sparkles, HelpCircle as HelpIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {

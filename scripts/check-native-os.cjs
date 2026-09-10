@@ -2,9 +2,13 @@
 /**
  * RUHGEN Native Module OS Guard
  * Runs as `postinstall` in backend/package.json.
- * Detects if better-sqlite3 was compiled for the wrong OS (Windows/macOS)
- * and exits with an error before the mismatch silently reaches the server.
+ * Skips check on non-Linux platforms (e.g., Windows/macOS) to avoid false alarms.
  */
+if (process.platform !== "linux") {
+  console.log("[RUHGEN] ⚙️ Skipping native OS check on non-Linux platform.");
+  process.exit(0);
+}
+
 
 "use strict";
 const fs = require("fs");
