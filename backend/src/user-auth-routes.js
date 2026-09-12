@@ -378,49 +378,71 @@ function mountUserAuthRoutes(app, { db }) {
         return res.status(429).json({ ok: false, error: `Too many reset requests for this email. Please try again in ${emailLock.minutesLeft} minute(s).` });
       }
 
-      // Record request attempt for both IP and Email to enforce rate limits consistently
-      recordFailedAttempt(ipKey, 5, 15 * 60 * 1000);
-      recordFailedAttempt(emailKey, 3, 15 * 60 * 1000);
-
-      // Standard generic response regardless of whether user exists to prevent email enumeration
-      const genericMsg = "If an account with this email exists, we have sent a password reset link and verification code.";
-
-      const row = db.prepare("SELECT id, email, name, suspended FROM users WHERE LOWER(TRIM(email)) = LOWER(TRIM(?))").get(email);
+      // Check database to verify that the account actually exists
+      const row = db
+        .prepare("SELECT id, email, name, suspended, last_resend_at FROM users WHERE LOWER(TRIM(email)) = LOWER(TRIM(?))")
+        .get(email);
 
       if (!row) {
-        // Non-existent email: DO NOT generate reset token, DO NOT send email, DO NOT modify DB or create account
-        return res.json({ ok: true, message: genericMsg });
+        recordFailedAttempt(ipKey, 5, 15 * 60 * 1000);
+        recordFailedAttempt(emailKey, 3, 15 * 60 * 1000);
+        return res.status(404).json({
+          ok: false,
+          error: "No account exists with this email address. Please check your spelling or sign up for a new account.",
+        });
       }
 
       if (row.suspended) {
         return res.status(403).json({ ok: false, error: "This account has been suspended." });
       }
 
-      // Generate reset token & OTP only for existing active user
+      // Enforce 60-second cooldown between reset requests to prevent email spam
+      if (row.last_resend_at) {
+        const lastMs = new Date(row.last_resend_at).getTime();
+        const diffMs = Date.now() - lastMs;
+        if (diffMs < 60 * 1000) {
+          const secondsLeft = Math.ceil((60 * 1000 - diffMs) / 1000);
+          return res.status(429).json({
+            ok: false,
+            error: `Please wait ${secondsLeft} second${secondsLeft > 1 ? "s" : ""} before requesting another reset code.`,
+          });
+        }
+      }
+
+      recordFailedAttempt(ipKey, 5, 15 * 60 * 1000);
+      recordFailedAttempt(emailKey, 3, 15 * 60 * 1000);
+
+      // Generate reset token & OTP only for existing user
       const policy = getPolicy();
       const rawToken = crypto.randomBytes(48).toString("hex");
       const tokenHash = hashToken(rawToken);
       const otp = String(Math.floor(100000 + crypto.randomInt(900000))).padStart(6, "0");
       const otpHash = hashToken(otp);
       const resetExpiry = addMs(policy.resetTtlMinutes * 60 * 1000);
+      const nowIso = new Date().toISOString();
 
       db.prepare(
         `UPDATE users 
-         SET reset_token_hash = ?, reset_token_expiry = ?, reset_otp_hash = ?, reset_otp_expiry = ?, reset_otp_attempts = 0
+         SET reset_token_hash = ?, reset_token_expiry = ?, reset_otp_hash = ?, reset_otp_expiry = ?, reset_otp_attempts = 0, last_resend_at = ?
          WHERE id = ?`
-      ).run(tokenHash, resetExpiry, otpHash, resetExpiry, row.id);
+      ).run(tokenHash, resetExpiry, otpHash, resetExpiry, nowIso, row.id);
 
       const resetUrl = getAppUrl("password_reset", rawToken);
       sendMail({
         to: row.email,
-        ...passwordResetEmail({ name: row.name, resetUrl, otp, expiresMinutes: policy.resetTtlMinutes })
-      }).then(mailRes => {
-        if (mailRes && !mailRes.ok) {
-          console.error("[auth] password reset email delivery failed for", row.email, ":", mailRes.error);
-        }
-      }).catch(e => console.error("[auth] password reset email error:", e.message));
+        ...passwordResetEmail({ name: row.name, resetUrl, otp, expiresMinutes: policy.resetTtlMinutes }),
+      })
+        .then((mailRes) => {
+          if (mailRes && !mailRes.ok) {
+            console.error("[auth] password reset email delivery failed for", row.email, ":", mailRes.error);
+          }
+        })
+        .catch((e) => console.error("[auth] password reset email error:", e.message));
 
-      return res.json({ ok: true, message: genericMsg });
+      return res.json({
+        ok: true,
+        message: "A password reset link and 6-digit verification code have been sent to your email.",
+      });
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Server error.";
       return res.status(500).json({ ok: false, error: msg });
@@ -437,9 +459,11 @@ function mountUserAuthRoutes(app, { db }) {
 
       if (token) {
         const tokenHash = hashToken(token);
-        const user = db.prepare("SELECT id, email, name, reset_token_expiry FROM users WHERE reset_token_hash = ?").get(tokenHash);
+        const user = db
+          .prepare("SELECT id, email, name, reset_token_expiry FROM users WHERE reset_token_hash IS NOT NULL AND reset_token_hash = ?")
+          .get(tokenHash);
         if (!user || (user.reset_token_expiry && user.reset_token_expiry < now)) {
-          return res.status(400).json({ ok: false, error: "Invalid or expired password reset token." });
+          return res.status(400).json({ ok: false, error: "Invalid or expired password reset link." });
         }
         return res.json({ ok: true, valid: true, email: user.email });
       }
@@ -448,9 +472,11 @@ function mountUserAuthRoutes(app, { db }) {
         if (!isValidEmail(email)) {
           return res.status(400).json({ ok: false, error: "Invalid email address." });
         }
-        const user = db.prepare("SELECT id, email, name, reset_otp_hash, reset_otp_expiry, reset_otp_attempts FROM users WHERE LOWER(TRIM(email)) = LOWER(TRIM(?))").get(email);
-        if (!user) {
-          return res.status(400).json({ ok: false, error: "Invalid or expired 6-digit OTP code." });
+        const user = db
+          .prepare("SELECT id, email, name, reset_otp_hash, reset_otp_expiry, reset_otp_attempts FROM users WHERE LOWER(TRIM(email)) = LOWER(TRIM(?))")
+          .get(email);
+        if (!user || !user.reset_otp_hash) {
+          return res.status(400).json({ ok: false, error: "Invalid or expired 6-digit verification code." });
         }
         if ((user.reset_otp_attempts || 0) >= 5) {
           return res.status(429).json({ ok: false, error: "Too many failed attempts. Please request a new password reset code." });
@@ -458,7 +484,7 @@ function mountUserAuthRoutes(app, { db }) {
         const otpHash = hashToken(otp);
         if (user.reset_otp_hash !== otpHash || (user.reset_otp_expiry && user.reset_otp_expiry < now)) {
           db.prepare("UPDATE users SET reset_otp_attempts = reset_otp_attempts + 1 WHERE id = ?").run(user.id);
-          return res.status(400).json({ ok: false, error: "Invalid or expired 6-digit OTP code." });
+          return res.status(400).json({ ok: false, error: "Invalid or expired 6-digit verification code." });
         }
         return res.json({ ok: true, valid: true, email: user.email });
       }
@@ -491,7 +517,9 @@ function mountUserAuthRoutes(app, { db }) {
 
       if (token) {
         const tokenHash = hashToken(token);
-        const user = db.prepare("SELECT id, password_hash, reset_token_expiry FROM users WHERE reset_token_hash = ?").get(tokenHash);
+        const user = db
+          .prepare("SELECT id, password_hash, reset_token_expiry FROM users WHERE reset_token_hash IS NOT NULL AND reset_token_hash = ?")
+          .get(tokenHash);
         if (!user || (user.reset_token_expiry && user.reset_token_expiry < now)) {
           return res.status(400).json({ ok: false, error: "Invalid or expired password reset link." });
         }
@@ -503,8 +531,10 @@ function mountUserAuthRoutes(app, { db }) {
         if (!isValidEmail(email)) {
           return res.status(400).json({ ok: false, error: "Invalid email address." });
         }
-        const user = db.prepare("SELECT id, password_hash, reset_otp_hash, reset_otp_expiry, reset_otp_attempts FROM users WHERE LOWER(TRIM(email)) = LOWER(TRIM(?))").get(email);
-        if (!user) {
+        const user = db
+          .prepare("SELECT id, password_hash, reset_otp_hash, reset_otp_expiry, reset_otp_attempts FROM users WHERE LOWER(TRIM(email)) = LOWER(TRIM(?))")
+          .get(email);
+        if (!user || !user.reset_otp_hash) {
           return res.status(400).json({ ok: false, error: "Invalid or expired 6-digit verification code." });
         }
         if ((user.reset_otp_attempts || 0) >= 5) {

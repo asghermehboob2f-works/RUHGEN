@@ -70,7 +70,7 @@ export default function ForgotPasswordPage() {
               Check your inbox
             </h3>
             <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-              If an account exists for <span className="font-mono font-medium text-[#00D4FF]">{email}</span>, we&apos;ve sent a password reset link and 6-digit OTP code to your email.
+              We&apos;ve sent a password reset link and 6-digit verification code to <span className="font-mono font-medium text-[#00D4FF]">{email}</span>.
             </p>
           </div>
 
