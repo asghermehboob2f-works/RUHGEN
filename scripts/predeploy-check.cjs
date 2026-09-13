@@ -103,11 +103,17 @@ check("public/fonts: all 12 custom font files present", () => {
 check("No dev-mode processes currently running", () => {
   if (process.platform === "win32") return; // skip on Windows (deployment is Linux-side)
   try {
-    const out = execSync(
+    const raw = execSync(
       'pgrep -fa "next dev|node --watch|concurrently" 2>/dev/null || true',
       { encoding: "utf8", stdio: ["pipe", "pipe", "pipe"] }
     ).trim();
-    if (out) throw new Error(`Dev process detected:\n     ${out}\n     Run: npm run kill:dev`);
+    const lines = raw
+      .split("\n")
+      .map(l => l.trim())
+      .filter(l => l && !l.includes("pgrep") && !l.includes("predeploy-check"));
+    if (lines.length > 0) {
+      throw new Error(`Dev process detected:\n     ${lines.join("\n     ")}\n     Run: npm run kill:dev`);
+    }
   } catch (e) {
     if (e.message.includes("Dev process detected")) throw e;
     // pgrep unavailable — skip gracefully
