@@ -86,7 +86,7 @@ run("node scripts/predeploy-check.cjs");
 
 step(6, "Production build");
 run("node scripts/sync-media.cjs");
-run("NODE_ENV=production node node_modules/next/dist/bin/next build");
+run("NODE_ENV=production MAX_WORKERS=2 NEXT_PRIVATE_MAX_WORKERS=2 node node_modules/next/dist/bin/next build");
 
 step(7, "Start via PM2");
 run(`${PM2} start ecosystem.config.js`);
