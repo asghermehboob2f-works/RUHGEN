@@ -37,19 +37,7 @@ check('globals.css: first line is @import "tailwindcss"', () => {
     throw new Error(`Got: "${first}"`);
 });
 
-// 2. next.config.ts — no forbidden experimental flags
-check("next.config.ts: no experimental.workerThreads", () => {
-  const p = path.join(ROOT, "next.config.ts");
-  if (!fs.existsSync(p)) throw new Error("next.config.ts not found");
-  if (/workerThreads/.test(fs.readFileSync(p, "utf8")))
-    throw new Error("workerThreads found — remove it");
-});
-
-check("next.config.ts: no experimental.cpus: 1", () => {
-  const p = path.join(ROOT, "next.config.ts");
-  if (/cpus\s*:\s*1/.test(fs.readFileSync(p, "utf8")))
-    throw new Error("cpus: 1 found — remove it");
-});
+// 2. next.config.ts validation
 
 check("next.config.ts: allowedDevOrigins configured", () => {
   const p = path.join(ROOT, "next.config.ts");

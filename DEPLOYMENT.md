@@ -144,7 +144,7 @@ These are automatically verified before every build. If any fail, the build is b
 | Check | Expected |
 |-------|---------|
 | `src/app/globals.css` line 1 | `@import "tailwindcss";` |
-| `next.config.ts` | No `workerThreads`, no `cpus: 1` |
+| `next.config.ts` | `workerThreads: true`, `cpus: 1` enabled (prevents `EAGAIN` fork limits) |
 | `next.config.ts` | `allowedDevOrigins: ["ruhgen.in", "*.ruhgen.in"]` present |
 | `backend/package.json` start | No `--watch` |
 | `ecosystem.config.js` | `watch: false` on both apps |

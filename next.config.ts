@@ -14,6 +14,10 @@ const nextConfig: NextConfig = {
     root: path.resolve(__dirname),
   },
   outputFileTracingRoot: path.resolve(__dirname),
+  experimental: {
+    workerThreads: true,
+    cpus: 1,
+  },
   images: {
     remotePatterns: [
       {
