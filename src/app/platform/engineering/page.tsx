@@ -6,9 +6,17 @@ import { PageHeader } from "@/components/PageHeader";
 import { SITE_CONTAINER } from "@/lib/site-layout";
 
 export const metadata: Metadata = {
-  title: "Platform engineering — RUHGEN",
+  title: "Platform Engineering Architecture",
   description:
     "How RUHGEN routes jobs to the edge, ships multi-pass exports, enforces guardrails, and scales burst capacity for real production timelines.",
+  alternates: {
+    canonical: "/platform/engineering",
+  },
+  openGraph: {
+    title: "Platform Engineering Architecture | RUHGEN",
+    description: "How RUHGEN routes jobs to the edge, ships multi-pass exports, and scales burst capacity.",
+    url: "/platform/engineering",
+  },
 };
 
 const sections = [

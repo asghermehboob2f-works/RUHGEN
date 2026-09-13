@@ -20,7 +20,6 @@ import {
   ShieldCheck,
   Sparkles,
   Sun,
-  UserCircle,
   Users,
   X,
 } from "lucide-react";
@@ -296,8 +295,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
               <button
                 type="button"
-                onClick={() => {
-                  logout();
+                onClick={async () => {
+                  await logout();
                   router.push("/admin/login");
                 }}
                 className="flex min-h-[38px] items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition-colors hover:border-rose-500/30 hover:bg-rose-500/10 hover:text-rose-300"

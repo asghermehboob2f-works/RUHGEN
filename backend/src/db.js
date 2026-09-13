@@ -13,8 +13,13 @@ const { hashPassword } = require("./auth");
  */
 function resolveDataDirs(projectRoot) {
   const backendRoot = path.resolve(__dirname, "..");
-  const fromEnv = process.env.DATA_DIR && String(process.env.DATA_DIR).trim();
-  const dataDir = fromEnv ? path.resolve(projectRoot, fromEnv) : path.join(backendRoot, "data");
+  const rawEnv = process.env.DATA_DIR && String(process.env.DATA_DIR).trim();
+  let dataDir;
+  if (!rawEnv || rawEnv === "./backend/data" || rawEnv === "backend/data" || rawEnv === "./data" || rawEnv === "data") {
+    dataDir = path.join(backendRoot, "data");
+  } else {
+    dataDir = path.resolve(projectRoot, rawEnv);
+  }
   return { dataDir, backendRoot };
 }
 

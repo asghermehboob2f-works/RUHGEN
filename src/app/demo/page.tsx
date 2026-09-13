@@ -6,9 +6,17 @@ import { readSiteContent } from "@/backend/site-content";
 import { ContentPageSkeleton } from "@/components/Skeletons";
 
 export const metadata: Metadata = {
-  title: "Demo — RUHGEN",
+  title: "Interactive Studio Demo",
   description:
     "Interactive image and video generation preview—aspect presets, looks, and exports in one flow.",
+  alternates: {
+    canonical: "/demo",
+  },
+  openGraph: {
+    title: "Interactive Studio Demo | RUHGEN",
+    description: "Interactive image and video generation preview—aspect presets, looks, and exports in one flow.",
+    url: "/demo",
+  },
 };
 
 async function DemoContent() {

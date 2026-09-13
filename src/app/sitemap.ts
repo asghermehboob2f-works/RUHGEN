@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || process.env.APP_URL || "https://ruhgen.com").replace(/\/$/, "");
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || process.env.APP_URL || "https://ruhgen.in").replace(/\/$/, "");
   const lastModified = new Date();
 
   const publicRoutes = [
@@ -18,6 +18,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { route: "/contact", priority: 0.6, changeFrequency: "monthly" as const },
     { route: "/privacy", priority: 0.3, changeFrequency: "yearly" as const },
     { route: "/terms", priority: 0.3, changeFrequency: "yearly" as const },
+    { route: "/platform", priority: 0.8, changeFrequency: "weekly" as const },
+    { route: "/platform/engineering", priority: 0.7, changeFrequency: "monthly" as const },
+    { route: "/demo", priority: 0.8, changeFrequency: "weekly" as const },
   ];
 
   return publicRoutes.map(({ route, priority, changeFrequency }) => ({

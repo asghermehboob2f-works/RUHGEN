@@ -9,12 +9,6 @@ import {
   useState,
 } from "react";
 import type { AdminSession, AdminUser } from "@/lib/admin-auth-storage";
-import {
-  ADMIN_AUTH_KEY,
-  clearAdminSession,
-  readAdminSession,
-  writeAdminSession,
-} from "@/lib/admin-auth-storage";
 
 type AuthResult = { ok: true } | { ok: false; error: string };
 
@@ -23,10 +17,10 @@ type AdminAuthContextValue = {
   token: string | null;
   ready: boolean;
   login: (email: string, password: string) => Promise<AuthResult>;
-  logout: () => void;
+  logout: () => Promise<void>;
   authHeaders: () => Record<string, string>;
   /** After profile update from API (new JWT). */
-  applySession: (session: AdminSession) => void;
+  applySession: (session: AdminSession) => Promise<void>;
 };
 
 const AdminAuthContext = createContext<AdminAuthContextValue | null>(null);
@@ -37,28 +31,37 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    queueMicrotask(() => {
-      const s = readAdminSession();
-      if (s) {
-        setToken(s.token);
-        setAdmin(s.admin);
+    let active = true;
+    async function hydrateSession() {
+      try {
+        const res = await fetch("/api/admin/me", { credentials: "include" });
+        if (res.ok) {
+          const data = await res.json();
+          if (active && data.ok && data.admin && data.token) {
+            setAdmin(data.admin);
+            setToken(data.token);
+          }
+        }
+      } catch {
+        // Fetch failed or invalid cookie
+      } finally {
+        if (active) {
+          setReady(true);
+        }
       }
-      setReady(true);
-    });
-
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === ADMIN_AUTH_KEY) {
-        const s = readAdminSession();
-        setToken(s?.token ?? null);
-        setAdmin(s?.admin ?? null);
-      }
+    }
+    hydrateSession();
+    return () => {
+      active = false;
     };
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
   }, []);
 
-  const logout = useCallback(() => {
-    clearAdminSession();
+  const logout = useCallback(async () => {
+    try {
+      await fetch("/api/admin/session", { method: "DELETE" });
+    } catch {
+      // Ignore network errors on logout
+    }
     setToken(null);
     setAdmin(null);
   }, []);
@@ -83,8 +86,18 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
       if (!res.ok || !data.ok || !data.token || !data.admin) {
         return { ok: false, error: data.error || "Sign-in failed." };
       }
-      const session: AdminSession = { token: data.token, admin: data.admin };
-      writeAdminSession(session);
+
+      // Establish HTTP-only session cookie server-side
+      const sessionRes = await fetch("/api/admin/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: data.token }),
+      });
+
+      if (!sessionRes.ok) {
+        return { ok: false, error: "Failed to establish secure session cookie." };
+      }
+
       setToken(data.token);
       setAdmin(data.admin);
       return { ok: true };
@@ -94,13 +107,20 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const authHeaders = useCallback((): Record<string, string> => {
-    const t = token ?? readAdminSession()?.token;
-    if (!t) return {};
-    return { Authorization: `Bearer ${t}` };
+    if (!token) return {};
+    return { Authorization: `Bearer ${token}` };
   }, [token]);
 
-  const applySession = useCallback((session: AdminSession) => {
-    writeAdminSession(session);
+  const applySession = useCallback(async (session: AdminSession) => {
+    try {
+      await fetch("/api/admin/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: session.token }),
+      });
+    } catch {
+      // Ignore network errors
+    }
     setToken(session.token);
     setAdmin(session.admin);
   }, []);
@@ -126,3 +146,4 @@ export function useAdminAuth() {
   if (!ctx) throw new Error("useAdminAuth must be used within AdminAuthProvider");
   return ctx;
 }
+

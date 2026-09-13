@@ -131,7 +131,7 @@ export const viewport = {
   ],
 };
 
-const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || process.env.APP_URL || "https://ruhgen.com").replace(/\/$/, "");
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || process.env.APP_URL || "https://ruhgen.in").replace(/\/$/, "");
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
