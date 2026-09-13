@@ -1,1 +1,0 @@
-{"version":3,"sources":["../../../../src/app/dashboard/billing/loading.tsx"],"sourcesContent":["import { BillingSkeleton } from \"@/components/Skeletons\";\n\nexport default function Loading() {\n  return <BillingSkeleton />;\n}\n"],"names":["Loading"],"mappings":"uDAAA,EAAA,EAAA,CAAA,CAAA,uBAEe,SAASA,EACtB,MAAO,CAAA,EAAA,EAAA,GAAA,EAAC,EAAA,eAAe,CAAA,CAAA,EACzB"}

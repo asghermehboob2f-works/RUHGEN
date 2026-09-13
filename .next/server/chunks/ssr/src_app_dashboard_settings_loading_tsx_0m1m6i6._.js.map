@@ -1,1 +1,0 @@
-{"version":3,"sources":["../../../../src/app/dashboard/settings/loading.tsx"],"sourcesContent":["import { SettingsSkeleton } from \"@/components/Skeletons\";\n\nexport default function Loading() {\n  return <SettingsSkeleton />;\n}\n"],"names":["Loading"],"mappings":"uDAAA,EAAA,EAAA,CAAA,CAAA,uBAEe,SAASA,EACtB,MAAO,CAAA,EAAA,EAAA,GAAA,EAAC,EAAA,gBAAgB,CAAA,CAAA,EAC1B"}
