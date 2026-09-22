@@ -89,22 +89,29 @@ export function MobileDockNav() {
                 <div key="center-item" className="flex flex-1 items-center justify-center">
                   <Link
                     href={createHref}
+                    aria-label="Create AI Artwork"
                     className="group relative flex items-center justify-center outline-none"
                   >
                     <div className="relative flex h-10 w-10 items-center justify-center">
                       <motion.div 
-                        animate={{ opacity: [0.4, 0.7, 0.4], scale: [1, 1.15, 1] }}
+                        animate={{ opacity: [0.5, 0.85, 0.5], scale: [1, 1.15, 1] }}
                         transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
                         className="absolute inset-0 rounded-full blur-md"
                         style={{ background: "linear-gradient(135deg, #7B61FF 0%, #00D4FF 100%)" }}
                       />
-                      <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-card border border-border overflow-hidden shadow-2xl">
+                      <div 
+                        className="relative flex h-8 w-8 items-center justify-center rounded-full overflow-hidden shadow-lg border border-white/20 transition-transform group-hover:scale-105 active:scale-95"
+                        style={{
+                          background: "linear-gradient(135deg, #7B61FF 0%, #00D4FF 100%)",
+                          boxShadow: "0 4px 14px rgba(123, 97, 255, 0.45)",
+                        }}
+                      >
                         <motion.div 
                           animate={{ x: ["-100%", "100%"] }}
-                          transition={{ repeat: Infinity, duration: 2, ease: "linear", repeatDelay: 1 }}
-                          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12"
+                          transition={{ repeat: Infinity, duration: 2.5, ease: "linear", repeatDelay: 1 }}
+                          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12 pointer-events-none"
                         />
-                        <Wand2 className="relative h-4 w-4 text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]" strokeWidth={2.2} />
+                        <Wand2 className="relative h-4 w-4 text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]" strokeWidth={2.4} />
                       </div>
                     </div>
                   </Link>
