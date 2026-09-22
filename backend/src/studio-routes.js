@@ -454,13 +454,18 @@ function mountStudioRoutes(app, options) {
       });
     }
 
+    const negative_prompt = typeof req.body?.negative_prompt === "string" ? req.body.negative_prompt.trim().slice(0, 2000) : "";
+
     try {
       const imgRes = await ImageGenerationService.generateImage({
         prompt,
+        negative_prompt,
         tier: quality,
         width: w,
         height: h,
         image_url: imageRefRaw,
+        denoise,
+        guidance_scale: guidanceScale,
       });
 
       const taskId = "img-" + crypto.randomUUID();
@@ -475,6 +480,7 @@ function mountStudioRoutes(app, options) {
         new Date().toISOString(),
         JSON.stringify({
           prompt,
+          negative_prompt,
           quality,
           width: w,
           height: h,

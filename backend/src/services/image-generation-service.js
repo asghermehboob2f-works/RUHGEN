@@ -37,11 +37,14 @@ class ImageGenerationService {
   static async generateImage(params) {
     const {
       prompt,
+      negative_prompt,
       tier,
       quality,
       width = 1024,
       height = 1024,
       image_url,
+      denoise,
+      guidance_scale,
     } = params;
 
     const requestedTier = (tier || quality || "quality").toLowerCase();
@@ -64,7 +67,9 @@ class ImageGenerationService {
         height: nvH,
         seed: Math.floor(Math.random() * 1000000),
         steps: 4,
-        ...(image_url ? { image_url } : {}),
+        ...(negative_prompt ? { negative_prompt: String(negative_prompt).trim() } : {}),
+        ...(image_url ? { image_url, ...(denoise ? { denoise } : {}) } : {}),
+        ...(guidance_scale ? { guidance_scale } : {}),
       };
 
       // Include model in body only if API URL doesn't already contain model path (NVIDIA endpoints reject extra body fields)
