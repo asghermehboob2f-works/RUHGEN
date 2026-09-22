@@ -46,6 +46,8 @@ import {
   ZoomOut,
   Volume2,
   VolumeX,
+  Tv,
+  Settings2,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -68,35 +70,85 @@ import {
 } from "@/lib/studio-client";
 import { CommunityShareModal } from "@/components/community/CommunityShareModal";
 
-/** Universal RUHGEN Video Tiers */
-const RUHGEN_VIDEO_TIERS = [
+/** Video Model Configurations */
+export interface VideoModelDef {
+  id: "standard" | "quality";
+  modelId: string;
+  label: string;
+  sub: string;
+  tag: string;
+  icon: typeof Sparkles;
+  badge: string;
+  costPerSec: number;
+  durations: number[];
+  resolutions: { key: string; label: string }[];
+  aspectRatios: { key: string; label: string; ratio: string; iconW: number; iconH: number }[];
+  maxReferences: number;
+  supportsSound: boolean;
+  supportsCamera: boolean;
+  supportsSeed: boolean;
+}
+
+export const VIDEO_MODELS: VideoModelDef[] = [
   {
     id: "standard",
-    label: "RUHGEN Standard",
-    sub: "Fast & efficient video generation",
-    icon: Zap,
-    badge: "15 cr",
+    modelId: "video-genesis-premium",
+    label: "RUHGEN Premium",
+    sub: "High-fidelity video engine powered by Genesis 2",
+    tag: "Genesis 2",
+    icon: Sparkles,
+    badge: "15–30 cr",
+    costPerSec: 3,
+    durations: [5, 10],
+    resolutions: [
+      { key: "720p", label: "720p HD" },
+      { key: "1080p", label: "1080p Cinema" },
+    ],
+    aspectRatios: [
+      { key: "16:9", label: "Landscape", ratio: "16:9", iconW: 20, iconH: 11 },
+      { key: "9:16", label: "Portrait", ratio: "9:16", iconW: 11, iconH: 20 },
+      { key: "1:1", label: "Square", ratio: "1:1", iconW: 16, iconH: 16 },
+      { key: "4:3", label: "Classic", ratio: "4:3", iconW: 16, iconH: 12 },
+      { key: "3:2", label: "Photo", ratio: "3:2", iconW: 18, iconH: 12 },
+    ],
+    maxReferences: 1,
+    supportsSound: false,
+    supportsCamera: false,
+    supportsSeed: false,
   },
   {
     id: "quality",
-    label: "RUHGEN Premium",
-    sub: "Cinema-grade video & multi-reference guidance",
-    icon: Sparkles,
-    badge: "30–60 cr",
+    modelId: "video-seedance-2-5",
+    label: "Seedance 2.5",
+    sub: "Flagship cinematic model with native audio & multi-reference",
+    tag: "Seedance 2.5",
+    icon: Film,
+    badge: "30–180 cr",
+    costPerSec: 6,
+    durations: [5, 10, 15, 30],
+    resolutions: [
+      { key: "720p", label: "720p HD" },
+      { key: "1080p", label: "1080p Cinema" },
+      { key: "4k", label: "4K Ultra" },
+    ],
+    aspectRatios: [
+      { key: "16:9", label: "Landscape", ratio: "16:9", iconW: 20, iconH: 11 },
+      { key: "9:16", label: "Portrait", ratio: "9:16", iconW: 11, iconH: 20 },
+      { key: "1:1", label: "Square", ratio: "1:1", iconW: 16, iconH: 16 },
+      { key: "4:3", label: "Classic", ratio: "4:3", iconW: 16, iconH: 12 },
+      { key: "21:9", label: "Cinematic", ratio: "21:9", iconW: 22, iconH: 9 },
+    ],
+    maxReferences: 10,
+    supportsSound: true,
+    supportsCamera: true,
+    supportsSeed: true,
   },
-] as const;
+];
 
-/** Universal Video Aspect Ratios */
-const ASPECT_RATIOS = [
-  { key: "16:9", label: "Landscape", ratio: "16:9", iconW: 20, iconH: 11, desc: "16:9 Widescreen video", icon: RectangleHorizontal },
-  { key: "9:16", label: "Portrait", ratio: "9:16", iconW: 11, iconH: 20, desc: "9:16 Reels & Stories", icon: Smartphone },
-  { key: "1:1", label: "Square", ratio: "1:1", iconW: 16, iconH: 16, desc: "1:1 Social feed format", icon: Square },
-] as const;
-
-/** Cinematic Camera Movements */
+/** Cinematic Camera Movements (Seedance 2.5 & Advanced Models) */
 const CAMERA_MOVEMENTS = [
-  { id: "static", label: "Static", icon: Lock, desc: "Locked tripod shot", tag: "locked tripod static shot, steady composition" },
-  { id: "push_in", label: "Push In", icon: ZoomIn, desc: "Dolly in towards subject", tag: "slow dolly push in camera movement" },
+  { id: "static", label: "Static", icon: Lock, desc: "Locked tripod composition", tag: "locked tripod static shot, steady composition" },
+  { id: "push_in", label: "Push In", icon: ZoomIn, desc: "Dolly in toward subject", tag: "slow dolly push in camera movement" },
   { id: "pull_out", label: "Pull Out", icon: ZoomOut, desc: "Reverse dolly move", tag: "smooth reverse pull out camera shot" },
   { id: "pan_left", label: "Pan Left", icon: ArrowLeft, desc: "Horizontal left pan", tag: "cinematic smooth left pan shot" },
   { id: "pan_right", label: "Pan Right", icon: ArrowRight, desc: "Horizontal right pan", tag: "cinematic smooth right pan shot" },
@@ -109,51 +161,11 @@ const CAMERA_MOVEMENTS = [
   { id: "dolly", label: "Dolly", icon: Camera, desc: "Smooth tracking dolly", tag: "smooth tracking dolly shot" },
 ] as const;
 
-/** Motion Vocabulary Concepts */
-const MOTION_CHIPS = [
-  "Slow Motion",
-  "Fast Action",
-  "Fluid Motion",
-  "Explosive Particles",
-  "Subtle Breathing",
-  "Atmospheric Smoke",
-  "Kinetic Tracking",
-  "Cinematic Rim Motion",
-  "Hypnotic Loop",
-  "Time-Lapse Sweep",
-] as const;
-
 const CHAT_STORAGE_PREFIX = "ruhgen-video-studio-chat-v1:";
 
 type UserMsg = { id: string; role: "user"; content: string; meta: string };
 type AssistantMsg = { id: string; role: "assistant"; loading: boolean; phase: string; urls: string[]; error: string | null };
 type ChatMsg = UserMsg | AssistantMsg;
-
-type PersistedChat = {
-  v: 1;
-  timestamp?: number;
-  messages: Array<
-    | { id: string; role: "user"; content: string; meta: string }
-    | (Omit<AssistantMsg, "loading"> & { role: "assistant"; loading: false })
-  >;
-};
-
-function sanitizeForStorage(messages: ChatMsg[]): PersistedChat["messages"] {
-  const out: PersistedChat["messages"] = [];
-  for (const m of messages) {
-    if (m.role === "user") out.push({ id: m.id, role: "user", content: m.content, meta: m.meta });
-    else if (!m.loading) out.push({ id: m.id, role: "assistant", loading: false, phase: m.phase, urls: m.urls, error: m.error });
-  }
-  return out;
-}
-
-function hydrateMessages(raw: PersistedChat["messages"]): ChatMsg[] {
-  return raw.map((m) =>
-    m.role === "user"
-      ? { id: m.id, role: "user", content: m.content, meta: m.meta }
-      : { id: m.id, role: "assistant", loading: false, phase: m.phase, urls: m.urls, error: m.error },
-  );
-}
 
 function filenameFromVideoUrl(url: string, index: number) {
   try {
@@ -179,24 +191,10 @@ async function downloadVideoViaProxy(url: string, index: number): Promise<void> 
     const raw = await res.text();
     let msg = `Download failed (HTTP ${res.status}).`;
     try {
-      const j = JSON.parse(raw) as { error?: string; message?: string };
-      if (typeof j.error === "string" && j.error.trim()) msg = j.error.trim();
-      else if (typeof j.message === "string" && j.message.trim() && j.message !== "success") msg = j.message.trim();
-    } catch {
-      if (raw.trim()) msg = raw.trim().slice(0, 400);
-    }
+      const j = JSON.parse(raw);
+      if (j.error) msg = j.error;
+    } catch {}
     throw new Error(msg);
-  }
-  if ((res.headers.get("content-type") || "").includes("application/json")) {
-    const raw = await res.text();
-    let err = "Download failed.";
-    try {
-      const j = JSON.parse(raw) as { error?: string };
-      if (typeof j.error === "string" && j.error.trim()) err = j.error.trim();
-    } catch {
-      /* ignore */
-    }
-    throw new Error(err);
   }
   const blob = await res.blob();
   let name = filenameFromVideoUrl(url, index);
@@ -221,14 +219,12 @@ async function downloadVideoViaProxy(url: string, index: number): Promise<void> 
   URL.revokeObjectURL(href);
 }
 
-const btnGhostIcon =
-  "inline-flex h-9 w-9 items-center justify-center rounded-lg border text-[var(--text-muted)] transition-all duration-200 hover:bg-white/[0.05] hover:text-[var(--text-primary)] disabled:opacity-35 disabled:hover:bg-transparent sm:h-9";
-
-export type ReferenceImageItem = {
+export type ReferenceMediaItem = {
   id: string;
   url: string;
   name?: string;
   size?: number;
+  type?: "image" | "video";
   uploading?: boolean;
   error?: string;
 };
@@ -244,9 +240,9 @@ export default function VideoStudioClient() {
     cost_video_pro: number;
     credits_per_video_second: number;
   }>({
-    cost_video_std: 5,
-    cost_video_pro: 8,
-    credits_per_video_second: 5,
+    cost_video_std: 3,
+    cost_video_pro: 6,
+    credits_per_video_second: 3,
   });
 
   useEffect(() => {
@@ -276,24 +272,27 @@ export default function VideoStudioClient() {
   const stickToBottomRef = useRef(true);
   const scrollGuardUntilRef = useRef(0);
   const prevLenForSnapRef = useRef<number | null>(null);
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const multiImageInputRef = useRef<HTMLInputElement>(null);
+  const singleImageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
+
+  // Model Selection
+  const [selectedTier, setSelectedTier] = useState<"standard" | "quality">("quality");
+  const activeModelDef = VIDEO_MODELS.find((m) => m.id === selectedTier) || VIDEO_MODELS[1];
+  const isSeedance = selectedTier === "quality";
 
   // Studio Controls State
   const [prompt, setPrompt] = useState("");
   const [negativePrompt, setNegativePrompt] = useState("");
-  const [duration, setDuration] = useState<number>(5); // 5s or 10s
-  const [aspect, setAspect] = useState<"16:9" | "9:16" | "1:1">("16:9");
-  const [selectedTier, setSelectedTier] = useState<string>("quality");
+  const [duration, setDuration] = useState<number>(5);
+  const [aspect, setAspect] = useState<string>("16:9");
   const [sound, setSound] = useState<boolean>(true);
-  const [resolution, setResolution] = useState<"720p" | "1080p">("720p");
-  const [selectedCamera, setSelectedCamera] = useState<string>("push_in");
+  const [resolution, setResolution] = useState<string>("720p");
+  const [selectedCamera, setSelectedCamera] = useState<string>("none");
+  const [seed, setSeed] = useState<string>("");
 
-  // Multi-reference images & video guidance state
-  const [referenceImages, setReferenceImages] = useState<ReferenceImageItem[]>([]);
-  const [referenceVideoUrl, setReferenceVideoUrl] = useState<string>("");
-  const [activeRefTab, setActiveRefTab] = useState<"image" | "video">("image");
+  // Reference Media
+  const [referenceMedia, setReferenceMedia] = useState<ReferenceMediaItem[]>([]);
   const [refUploading, setRefUploading] = useState(false);
   const [refUploadError, setRefUploadError] = useState<string | null>(null);
   const [availableModels, setAvailableModels] = useState<StudioModel[]>([]);
@@ -307,28 +306,37 @@ export default function VideoStudioClient() {
   const [copyToast, setCopyToast] = useState<string | null>(null);
   const [mobileStudioPane, setMobileStudioPane] = useState<"output" | "controls">("output");
   const [studioView, setStudioView] = useState<"feed" | "gallery">("feed");
-  const [feedFilter, setFeedFilter] = useState<"all" | "ready" | "running">("all");
-  const [lightbox, setLightbox] = useState<{ src: string } | null>(null);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [shareModalData, setShareModalData] = useState<{ mediaUrl: string; prompt: string; kind: "image" | "video" } | null>(null);
 
-  // Load models dynamically to enforce provider capabilities
+  // Load models dynamically
   useEffect(() => {
     fetchStudioModels().then((models) => {
       if (models && models.length > 0) setAvailableModels(models);
     });
   }, []);
 
-  const premiumVideoModel = availableModels.find((m) => m.type === "video" && m.tier === "premium");
-  const maxRefImages = premiumVideoModel?.maxReferenceImages || 7;
+  // Sync state when switching models
+  useEffect(() => {
+    if (!activeModelDef.durations.includes(duration)) {
+      setDuration(activeModelDef.durations[0] || 5);
+    }
+    if (!activeModelDef.resolutions.some((r) => r.key === resolution)) {
+      setResolution(activeModelDef.resolutions[0]?.key || "720p");
+    }
+    if (!activeModelDef.aspectRatios.some((a) => a.key === aspect)) {
+      setAspect(activeModelDef.aspectRatios[0]?.key || "16:9");
+    }
+    if (!isSeedance && referenceMedia.length > 1) {
+      setReferenceMedia((prev) => prev.slice(0, 1));
+    }
+  }, [selectedTier, activeModelDef, duration, resolution, aspect, isSeedance, referenceMedia.length]);
 
-  const isStandard = selectedTier === "standard";
-  const activeDuration: 5 | 10 = isStandard ? 5 : (duration >= 8 ? 10 : 5);
-  const costPerSecond = isStandard ? (rates.cost_video_std ?? 3) : (rates.cost_video_pro ?? 6);
-  const currentCost = costPerSecond * activeDuration;
-  const activeTierObj = RUHGEN_VIDEO_TIERS.find((t) => t.id === selectedTier) ?? RUHGEN_VIDEO_TIERS[1];
-  const isImg2Video = !isStandard && activeRefTab === "image" && referenceImages.length > 0;
-  const isVid2Video = !isStandard && activeRefTab === "video" && Boolean(referenceVideoUrl.trim());
+  // Credit calculation
+  const currentCostPerSec = isSeedance ? (rates.cost_video_pro ?? 6) : (rates.cost_video_std ?? 3);
+  const estimatedCost = Math.max(1, duration * currentCostPerSec);
+  const userBalance = user?.availableCredits ?? user?.credits ?? 0;
+  const hasInsufficientCredits = userBalance < estimatedCost;
 
   useEffect(() => {
     if (ready && !user) router.replace("/sign-in?next=/dashboard");
@@ -337,45 +345,9 @@ export default function VideoStudioClient() {
   useEffect(() => {
     if (!user?.id || typeof window === "undefined") return;
     try {
-      const raw = sessionStorage.getItem("ruhgen.videoDemo.handoff");
-      if (!raw) return;
-      sessionStorage.removeItem("ruhgen.videoDemo.handoff");
-      const d = JSON.parse(raw) as {
-        prompt?: string;
-        duration?: number;
-        aspect?: string;
-        mode?: string;
-      };
-      if (typeof d.prompt === "string" && d.prompt.trim()) setPrompt(d.prompt.trim());
-      if (typeof d.duration === "number" && d.duration >= 5 && d.duration <= 10) setDuration(d.duration);
-      if (["16:9", "9:16", "1:1"].includes(d.aspect || "")) setAspect(d.aspect as any);
-      if (d.mode === "pro" || d.mode === "std") setSelectedTier(d.mode === "pro" ? "quality" : "standard");
-    } catch {
-      /* ignore */
-    }
-  }, [user?.id]);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      const queryPrompt = params.get("prompt");
-      if (queryPrompt) {
-        setPrompt(queryPrompt);
-        const url = new URL(window.location.href);
-        url.searchParams.delete("prompt");
-        window.history.replaceState({}, "", url.toString());
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!user?.id || typeof window === "undefined") return;
-    try {
       const key = `${CHAT_STORAGE_PREFIX}${user.id}`;
       localStorage.removeItem(key);
-    } catch {
-      /* ignore */
-    }
+    } catch {}
     setMessages([]);
     setHistoryLoaded(true);
   }, [user?.id]);
@@ -404,137 +376,38 @@ export default function VideoStudioClient() {
       root.scrollTo({ top: root.scrollHeight, behavior });
     }
     end?.scrollIntoView({ block: "end", behavior: behavior === "smooth" ? "smooth" : "instant" });
-    const dock = promptDockRef.current;
-    if (dock) {
-      requestAnimationFrame(() => {
-        dock.scrollIntoView({ block: "end", behavior: "instant" });
-        requestAnimationFrame(() => {
-          dock.scrollIntoView({ block: "end", behavior: "instant" });
-        });
-      });
-    }
   }, []);
 
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const onScroll = () => {
-      if (Date.now() < scrollGuardUntilRef.current) return;
-      const dist = el.scrollHeight - el.scrollTop - el.clientHeight;
-      stickToBottomRef.current = dist < 120;
-    };
-    el.addEventListener("scroll", onScroll, { passive: true });
-    return () => el.removeEventListener("scroll", onScroll);
-  }, [historyLoaded, messages.length]);
-
-  useLayoutEffect(() => {
-    if (!historyLoaded || messages.length === 0) return;
-    const len = messages.length;
-    const prev = prevLenForSnapRef.current;
-    const shouldSnapToEnd = prev === null || prev === 0;
-    prevLenForSnapRef.current = len;
-    if (!shouldSnapToEnd) return;
-
-    const snap = () => {
-      snapCanvasToEnd("auto");
-    };
-    snap();
-    let raf0 = 0;
-    let raf1 = 0;
-    raf0 = requestAnimationFrame(() => {
-      snap();
-      raf1 = requestAnimationFrame(snap);
-    });
-    const timeouts = [0, 32, 80, 160, 320, 480].map((ms) => window.setTimeout(snap, ms));
-    const root = scrollRef.current;
-    let ro: ResizeObserver | null = null;
-    if (root && typeof ResizeObserver !== "undefined") {
-      ro = new ResizeObserver(() => {
-        snap();
-      });
-      ro.observe(root);
-    }
-    const disconnectRo = window.setTimeout(() => {
-      ro?.disconnect();
-    }, 900);
-    return () => {
-      cancelAnimationFrame(raf0);
-      cancelAnimationFrame(raf1);
-      timeouts.forEach(clearTimeout);
-      clearTimeout(disconnectRo);
-      ro?.disconnect();
-    };
-  }, [historyLoaded, messages.length, snapCanvasToEnd]);
-
-  useEffect(() => {
-    if (messages.length === 0) return;
-    if (typeof window === "undefined" || !window.matchMedia("(max-width: 1023px)").matches) return;
-    if (mobileStudioPane !== "output") return;
-    snapCanvasToEnd("auto");
-    const timeouts = [0, 50, 120, 280].map((ms) => window.setTimeout(() => snapCanvasToEnd("auto"), ms));
-    return () => timeouts.forEach(clearTimeout);
-  }, [mobileStudioPane, snapCanvasToEnd]);
-
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const last = messages[messages.length - 1];
-    const followUser = last?.role === "user";
-    if (!followUser && !stickToBottomRef.current) return;
-    const scrollToEnd = () => {
-      el.scrollTo({ top: el.scrollHeight, behavior: reduce ? "auto" : "smooth" });
-      scrollEndRef.current?.scrollIntoView({ block: "end", behavior: reduce ? "smooth" : "instant" });
-    };
-    scrollToEnd();
-    const t = window.setTimeout(scrollToEnd, 100);
-    return () => clearTimeout(t);
-  }, [messages, reduce]);
-
-  useEffect(() => {
-    if (!copyToast) return;
-    const t = window.setTimeout(() => setCopyToast(null), 2000);
-    return () => window.clearTimeout(t);
-  }, [copyToast]);
-
-  useEffect(() => {
-    if (!lightbox) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setLightbox(null);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [lightbox]);
-
-  const handleUploadImages = useCallback(
+  const handleUploadReferences = useCallback(
     async (files: FileList | File[]) => {
       const fileArr = Array.from(files);
       if (!fileArr.length) return;
       setRefUploadError(null);
 
-      const maxAllowed = maxRefImages;
-      const currentCount = referenceImages.length;
+      const maxAllowed = activeModelDef.maxReferences;
+      const currentCount = referenceMedia.length;
       const remainingSlots = Math.max(0, maxAllowed - currentCount);
 
       if (remainingSlots <= 0) {
-        setRefUploadError(`Maximum ${maxAllowed} reference images limit reached. Remove an existing image to add more.`);
+        setRefUploadError(`Maximum ${maxAllowed} reference media limit reached for ${activeModelDef.label}.`);
         return;
       }
 
       const toUpload = fileArr.slice(0, remainingSlots);
       if (fileArr.length > remainingSlots) {
-        setRefUploadError(`Only ${remainingSlots} more reference image${remainingSlots === 1 ? "" : "s"} could be added (max ${maxAllowed}).`);
+        setRefUploadError(`Only ${remainingSlots} more reference item(s) could be added (max ${maxAllowed}).`);
       }
 
-      // Validate files on the client before network request
       const validFiles: File[] = [];
       for (const f of toUpload) {
-        const isImage = f.type.startsWith("image/") || /\.(jpg|jpeg|png|webp)$/i.test(f.name);
-        if (!isImage) {
-          setRefUploadError(`"${f.name}" is not a supported image. Only JPEG, PNG, and WebP are allowed.`);
+        const isImg = f.type.startsWith("image/") || /\.(jpg|jpeg|png|webp)$/i.test(f.name);
+        const isVid = f.type.startsWith("video/") || /\.(mp4|webm|mov)$/i.test(f.name);
+        if (!isImg && !isVid) {
+          setRefUploadError(`"${f.name}" is not supported. Use JPG, PNG, WebP, MP4, or WebM.`);
           return;
         }
-        if (f.size > 20 * 1024 * 1024) {
-          setRefUploadError(`"${f.name}" exceeds 20MB per image limit.`);
+        if (f.size > 50 * 1024 * 1024) {
+          setRefUploadError(`"${f.name}" exceeds 50MB file size limit.`);
           return;
         }
         validFiles.push(f);
@@ -542,21 +415,21 @@ export default function VideoStudioClient() {
 
       if (!validFiles.length) return;
 
-      // Add temporary items for instant UI preview with uploading spinner
-      const tempItems: ReferenceImageItem[] = validFiles.map((f) => ({
+      const tempItems: ReferenceMediaItem[] = validFiles.map((f) => ({
         id: `temp-${Math.random().toString(36).slice(2)}`,
         url: URL.createObjectURL(f),
         name: f.name,
         size: f.size,
+        type: f.type.startsWith("video/") ? "video" : "image",
         uploading: true,
       }));
 
-      setReferenceImages((prev) => [...prev, ...tempItems]);
+      setReferenceMedia((prev) => [...prev, ...tempItems]);
       setRefUploading(true);
 
       try {
         const result = await uploadStudioReferenceFiles(validFiles);
-        setReferenceImages((prev) => {
+        setReferenceMedia((prev) => {
           const updated = [...prev];
           for (let i = 0; i < tempItems.length; i++) {
             const temp = tempItems[i];
@@ -568,6 +441,7 @@ export default function VideoStudioClient() {
                 url: uploaded.url,
                 name: uploaded.name || temp.name,
                 size: uploaded.size || temp.size,
+                type: uploaded.type || temp.type,
                 uploading: false,
               };
             }
@@ -577,16 +451,16 @@ export default function VideoStudioClient() {
       } catch (err) {
         const msg = err instanceof Error ? err.message : "Upload failed.";
         setRefUploadError(msg);
-        setReferenceImages((prev) => prev.filter((item) => !tempItems.some((t) => t.id === item.id)));
+        setReferenceMedia((prev) => prev.filter((item) => !tempItems.some((t) => t.id === item.id)));
       } finally {
         setRefUploading(false);
       }
     },
-    [maxRefImages, referenceImages.length]
+    [activeModelDef, referenceMedia.length]
   );
 
-  const handleRemoveImage = useCallback((index: number) => {
-    setReferenceImages((prev) => {
+  const handleRemoveReference = useCallback((index: number) => {
+    setReferenceMedia((prev) => {
       const target = prev[index];
       if (target && target.url && !target.uploading) {
         deleteStudioReference(target.url || target.id).catch(() => {});
@@ -596,8 +470,8 @@ export default function VideoStudioClient() {
     setRefUploadError(null);
   }, []);
 
-  const handleMoveImage = useCallback((index: number, direction: "left" | "right") => {
-    setReferenceImages((prev) => {
+  const handleMoveReference = useCallback((index: number, direction: "left" | "right") => {
+    setReferenceMedia((prev) => {
       const nextIndex = direction === "left" ? index - 1 : index + 1;
       if (nextIndex < 0 || nextIndex >= prev.length) return prev;
       const copy = [...prev];
@@ -608,44 +482,18 @@ export default function VideoStudioClient() {
     });
   }, []);
 
-  const handleUploadVideo = useCallback((file: File) => {
-    if (!file) return;
-    setRefUploadError(null);
-    const isVideo = file.type.startsWith("video/") || /\.(mp4|webm|mov)$/i.test(file.name);
-    if (!isVideo) {
-      setRefUploadError("Please select a valid video file (MP4, WebM, MOV).");
-      return;
-    }
-    if (file.size > 50 * 1024 * 1024) {
-      setRefUploadError("Video reference size exceeds 50MB limit.");
-      return;
-    }
-    setRefUploading(true);
-    uploadStudioReference(file)
-      .then(({ url }) => {
-        setReferenceVideoUrl(url);
-      })
-      .catch((err: unknown) => {
-        setRefUploadError(err instanceof Error ? err.message : "Video upload failed.");
-      })
-      .finally(() => {
-        setRefUploading(false);
-      });
-  }, []);
-
   const run = useCallback(async () => {
     const p = prompt.trim();
     if (p.length < 2 || busy) return;
+    setMobileStudioPane("output");
     const neg = negativePrompt.trim();
-    const imgRefs = !isStandard && activeRefTab === "image" ? referenceImages.map((r) => r.url).filter(Boolean) : [];
-    const vidRef = !isStandard && activeRefTab === "video" ? referenceVideoUrl.trim() : "";
-    const tierLabel = activeTierObj.label;
+    const refUrls = referenceMedia.map((r) => r.url).filter(Boolean);
+    const modelName = activeModelDef.label;
 
-    const parts = [`${duration}s clip`, aspect, tierLabel];
-    if (neg) parts.push("negative filter");
-    if (imgRefs.length === 1) parts.push("1 reference image");
-    else if (imgRefs.length > 1) parts.push(`${imgRefs.length} reference images`);
-    if (vidRef) parts.push("reference video");
+    const parts = [`${duration}s clip`, aspect, resolution, modelName];
+    if (isSeedance && sound) parts.push("Audio");
+    if (refUrls.length === 1) parts.push("1 Reference");
+    else if (refUrls.length > 1) parts.push(`${refUrls.length} References`);
     const meta = parts.join(" · ");
 
     const userId = crypto.randomUUID();
@@ -660,29 +508,30 @@ export default function VideoStudioClient() {
 
     const idempotencyKey = crypto.randomUUID();
     try {
-      // Map API duration (backend supports 5 or 10)
-      const targetApiDuration: 5 | 10 = isStandard ? 5 : (duration >= 8 ? 10 : 5);
-      const targetAspect = (["16:9", "9:16", "1:1"].includes(aspect) ? aspect : "16:9") as "16:9" | "9:16" | "1:1";
+      const numSeed = seed.trim() ? Number(seed.trim()) : undefined;
 
       const { taskId } = await createVideoTask({
         prompt: p,
-        duration: targetApiDuration,
-        aspect_ratio: targetAspect,
+        duration,
+        aspect_ratio: aspect,
+        model: activeModelDef.modelId,
+        modelId: activeModelDef.modelId,
         quality: selectedTier,
         idempotencyKey,
         negative_prompt: neg || undefined,
-        references: imgRefs.length > 0 ? imgRefs : undefined,
-        image_urls: imgRefs.length > 0 ? imgRefs : undefined,
-        image_url: imgRefs[0] || undefined,
-        video_url: vidRef || undefined,
-        reference_url: imgRefs[0] || vidRef || undefined,
-        reference_type: vidRef ? "video" : (imgRefs.length > 0 ? "image" : undefined),
-        sound,
-        resolution: isStandard ? "720p" : resolution,
-        camera_control: !isStandard ? selectedCamera : undefined,
+        references: refUrls.length > 0 ? refUrls : undefined,
+        image_urls: refUrls.length > 0 ? refUrls : undefined,
+        image_url: refUrls[0] || undefined,
+        reference_url: refUrls[0] || undefined,
+        sound: isSeedance ? sound : undefined,
+        resolution,
+        camera_control: isSeedance && selectedCamera !== "none" ? selectedCamera : undefined,
+        seed: Number.isFinite(numSeed) ? numSeed : undefined,
       });
+
       void refreshUser();
       setMessages((prev) => prev.map((x) => (x.id === asstId ? { ...x, phase: "Rendering video motion frames…" } : x)));
+
       const result = await pollStudioTask(taskId, {
         intervalMs: 3000,
         maxAttempts: 200,
@@ -690,6 +539,7 @@ export default function VideoStudioClient() {
           setMessages((prev) => prev.map((x) => (x.id === asstId ? { ...x, phase: `RUHGEN Status: ${s}` } : x)));
         },
       });
+
       if (!result.urls.length) {
         setMessages((prev) =>
           prev.map((x) =>
@@ -710,28 +560,16 @@ export default function VideoStudioClient() {
       setBusy(false);
       void refreshUser();
     }
-  }, [prompt, negativePrompt, referenceImages, referenceVideoUrl, activeRefTab, activeTierObj, duration, aspect, selectedTier, sound, resolution, selectedCamera, isStandard, busy, refreshUser]);
-
-  const clearChatHistory = useCallback(() => {
-    prevLenForSnapRef.current = null;
-    setMessages([]);
-    setReferenceImages([]);
-    setReferenceVideoUrl("");
-    if (user?.id && typeof window !== "undefined") {
-      try {
-        localStorage.removeItem(`${CHAT_STORAGE_PREFIX}${user.id}`);
-      } catch {
-        /* ignore */
-      }
-    }
-  }, [user?.id]);
+  }, [prompt, negativePrompt, referenceMedia, activeModelDef, duration, aspect, resolution, selectedTier, sound, selectedCamera, seed, isSeedance, busy, refreshUser]);
 
   const copyText = async (text: string, label: string) => {
     try {
       await navigator.clipboard.writeText(text);
       setCopyToast(label);
+      setTimeout(() => setCopyToast(null), 2500);
     } catch {
       setCopyToast("Could not copy");
+      setTimeout(() => setCopyToast(null), 2500);
     }
   };
 
@@ -740,9 +578,10 @@ export default function VideoStudioClient() {
 
   const leftPanel = (
     <div className="flex flex-col w-full max-lg:min-h-max lg:min-h-0 lg:flex-1 lg:overflow-hidden">
-      <p className="sr-only">Press Enter to generate video. Shift+Enter for newline.</p>
+      <p className="sr-only">Press Enter to generate. Shift+Enter for a new line.</p>
       <div className="p-2.5 sm:p-3 max-lg:min-h-max lg:studio-scrollbar lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-y-contain [-webkit-overflow-scrolling:touch] touch-pan-y">
         <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--rich-black)] p-3 sm:p-3.5 shadow-sm transition-colors duration-200">
+          
           {/* Header Title */}
           <div className="mb-3 flex items-center justify-between gap-2 border-b border-[var(--border-subtle)] pb-2.5">
             <div className="flex min-w-0 items-center gap-2.5">
@@ -754,50 +593,39 @@ export default function VideoStudioClient() {
                 <p className="truncate font-display text-xs font-bold text-[var(--text-primary)]">Video Creation Panel</p>
               </div>
             </div>
-            {activeRefTab === "video" && referenceVideoUrl ? (
-              <span className="shrink-0 rounded-md border border-[var(--border-subtle)] bg-[var(--soft-black)] px-2 py-0.5 text-[9px] font-mono text-[var(--text-primary)]">
-                Video Guided
-              </span>
-            ) : referenceImages.length > 0 ? (
-              <span className="shrink-0 rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[9px] font-mono text-amber-300">
-                {referenceImages.length} Ref{referenceImages.length === 1 ? "" : "s"}
+            {referenceMedia.length > 0 ? (
+              <span className="shrink-0 rounded-full border border-[var(--border-subtle)] bg-[var(--soft-black)] px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-[var(--text-primary)]">
+                {referenceMedia.length} Ref{referenceMedia.length === 1 ? "" : "s"}
               </span>
             ) : null}
           </div>
 
-          {/* Slim Top RUHGEN Version Tier Selector */}
-          <div className="mb-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--glass)] p-1">
+          {/* 1. MODEL SELECTION (SLIM SEGMENTED TABS) */}
+          <div className="mb-3.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--glass)] p-1 shadow-inner">
             <div className="mb-1 px-1 flex items-center justify-between text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
               <span>Model Tier</span>
-              <span className="font-mono text-[var(--text-primary)]">
-                {isStandard ? `Standard (15 cr)` : `Premium (30–60 cr)`}
-              </span>
+              <span className="text-[var(--text-primary)] font-mono">{activeModelDef.label} ({activeModelDef.badge})</span>
             </div>
-            <div className="grid grid-cols-2 gap-1" role="radiogroup" aria-label="RUHGEN Video Version Tier">
-              {RUHGEN_VIDEO_TIERS.map((tier) => {
-                const Icon = tier.icon;
-                const active = selectedTier === tier.id;
+            <div className="grid grid-cols-2 gap-1" role="radiogroup" aria-label="RUHGEN Video Model">
+              {VIDEO_MODELS.map((m) => {
+                const Icon = m.icon;
+                const active = selectedTier === m.id;
                 return (
                   <button
-                    key={tier.id}
+                    key={m.id}
                     type="button"
                     role="radio"
                     aria-checked={active}
                     disabled={busy}
-                    onClick={() => {
-                      setSelectedTier(tier.id);
-                      if (tier.id === "standard") {
-                        setDuration(5);
-                        setResolution("720p");
-                      }
-                    }}
-                    className={`flex items-center justify-center gap-1.5 rounded-md py-1.5 px-2 text-[11px] font-bold transition-all cursor-pointer ${active
-                        ? "bg-[var(--soft-black)] text-[var(--text-primary)] border border-[var(--border-subtle)] shadow-sm"
+                    onClick={() => setSelectedTier(m.id)}
+                    className={`flex items-center justify-center gap-1.5 rounded-md py-1.5 px-2 text-[11px] font-bold transition-all cursor-pointer ${
+                      active
+                        ? "bg-[var(--soft-black)] text-[var(--text-primary)] shadow-sm border border-[var(--border-subtle)]"
                         : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass)]"
-                      }`}
+                    }`}
                   >
                     <Icon className={`h-3 w-3 ${active ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"}`} />
-                    <span className="truncate">{tier.label}</span>
+                    <span className="truncate">{m.label}</span>
                   </button>
                 );
               })}
@@ -805,348 +633,176 @@ export default function VideoStudioClient() {
           </div>
 
           <div className="space-y-3">
-            {/* 1. MEDIA REFERENCE (MULTI-IMAGE / VIDEO) */}
-            {isStandard ? (
-              <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--glass)] p-3 shadow-xs">
-                <div className="mb-2 flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <ImagePlus className="h-3.5 w-3.5 text-[var(--text-muted)]" strokeWidth={2} />
-                    <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">
-                      1. Media Reference
-                    </span>
-                  </div>
-                  <span className="rounded-full bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 text-[8px] font-extrabold uppercase tracking-wider text-amber-400">
-                    Premium Feature
+            {/* 2. MEDIA REFERENCE INPUT (SLIM CARD) */}
+            <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--glass)] p-2 space-y-1.5 shadow-xs">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <ImagePlus className="h-3.5 w-3.5 text-[var(--text-primary)]" strokeWidth={2} />
+                  <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-primary)]">
+                    Reference Media {isSeedance ? `(Max ${activeModelDef.maxReferences})` : "(Optional)"}
                   </span>
                 </div>
-                <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
-                  Multi-image reference guidance (up to {maxRefImages} references) and video motion transfer are exclusive to the <strong>RUHGEN Premium</strong> tier. RUHGEN Standard is optimized for fast text-to-video.
-                </p>
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => setSelectedTier("quality")}
-                  className="mt-2.5 inline-flex items-center gap-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--soft-black)] px-3 py-1.5 text-[11px] font-bold text-[var(--text-primary)] hover:bg-[var(--glass-elevated)] cursor-pointer transition-colors shadow-sm"
+                <span
+                  className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border ${
+                    referenceMedia.length > 0
+                      ? "bg-amber-500/10 border-amber-500/30 text-amber-400"
+                      : "bg-[var(--soft-black)] border-[var(--border-subtle)] text-[var(--text-subtle)]"
+                  }`}
                 >
-                  <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-                  Switch to RUHGEN Premium (Up to {maxRefImages} References)
-                </button>
+                  {referenceMedia.length}/{activeModelDef.maxReferences}
+                </span>
               </div>
-            ) : (
-              <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--glass)] p-3 space-y-2.5 shadow-xs">
-                {/* Header */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    {activeRefTab === "video" ? (
-                      <Film className="h-4 w-4 text-[var(--text-primary)]" strokeWidth={2} />
+
+              <input
+                ref={multiImageInputRef}
+                type="file"
+                multiple={isSeedance}
+                accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime"
+                className="sr-only"
+                tabIndex={-1}
+                disabled={busy || refUploading || referenceMedia.length >= activeModelDef.maxReferences}
+                onChange={(e) => {
+                  if (e.target.files) handleUploadReferences(e.target.files);
+                  e.target.value = "";
+                }}
+              />
+
+              {referenceMedia.length === 0 ? (
+                <div
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsDragging(true);
+                  }}
+                  onDragLeave={() => setIsDragging(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDragging(false);
+                    if (e.dataTransfer.files?.length) {
+                      handleUploadReferences(e.dataTransfer.files);
+                    }
+                  }}
+                  onClick={() => multiImageInputRef.current?.click()}
+                  className={`relative flex items-center justify-between gap-2 rounded-md border border-dashed px-2.5 py-1.5 transition-all cursor-pointer ${
+                    isDragging
+                      ? "border-amber-400 bg-amber-500/10 text-amber-300"
+                      : "border-[var(--border-subtle)] bg-[var(--soft-black)] text-[var(--text-muted)] hover:border-[var(--text-muted)] hover:bg-[var(--glass-elevated)]"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    {refUploading ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-400 shrink-0" />
                     ) : (
-                      <ImagePlus className="h-4 w-4 text-[var(--text-primary)]" strokeWidth={2} />
+                      <Plus className="h-3.5 w-3.5 text-amber-400 shrink-0" />
                     )}
-                    <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--text-primary)]">
-                      1. {activeRefTab === "image" ? "Reference Images" : "Video Reference"}
+                    <span className="text-[10px] font-bold text-[var(--text-primary)] truncate">
+                      {refUploading ? "Uploading references…" : "+ Add Reference Media (Image / Video)"}
                     </span>
                   </div>
-                  {activeRefTab === "image" ? (
-                    <span
-                      className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border ${
-                        referenceImages.length > 0
-                          ? "bg-amber-500/10 border-amber-500/30 text-amber-400"
-                          : "bg-[var(--soft-black)] border-[var(--border-subtle)] text-[var(--text-subtle)]"
-                      }`}
+                  <span className="text-[8px] text-[var(--text-subtle)] shrink-0 font-mono">
+                    {isSeedance ? "Multimodal" : "Image-to-Video"}
+                  </span>
+                </div>
+              ) : (
+                <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5 pt-0.5">
+                  {referenceMedia.map((item, idx) => (
+                    <div
+                      key={item.id}
+                      className="group relative flex flex-col rounded-md border border-[var(--border-subtle)] bg-[var(--soft-black)] overflow-hidden shadow-xs"
                     >
-                      {referenceImages.length} / {maxRefImages}
-                    </span>
-                  ) : (
-                    <span className="text-[9px] font-semibold uppercase tracking-wider text-[var(--text-subtle)]">Optional</span>
-                  )}
-                </div>
-
-                {/* Reference Mode Selector */}
-                <div className="grid grid-cols-2 gap-1 rounded-lg border border-[var(--border-subtle)] bg-[var(--soft-black)] p-1">
-                  <button
-                    type="button"
-                    disabled={busy || refUploading}
-                    onClick={() => setActiveRefTab("image")}
-                    className={`flex items-center justify-center gap-1.5 rounded-md py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                      activeRefTab === "image"
-                        ? "bg-[var(--glass-elevated)] text-[var(--text-primary)] border border-[var(--border-subtle)] shadow-sm"
-                        : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                    }`}
-                  >
-                    <ImagePlus className="h-3.5 w-3.5" />
-                    <span>Image References ({referenceImages.length})</span>
-                  </button>
-                  <button
-                    type="button"
-                    disabled={busy || refUploading}
-                    onClick={() => setActiveRefTab("video")}
-                    className={`flex items-center justify-center gap-1.5 rounded-md py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                      activeRefTab === "video"
-                        ? "bg-[var(--glass-elevated)] text-[var(--text-primary)] border border-[var(--border-subtle)] shadow-sm"
-                        : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                    }`}
-                  >
-                    <Film className="h-3.5 w-3.5" />
-                    <span>Video Ref</span>
-                  </button>
-                </div>
-
-                {activeRefTab === "image" ? (
-                  <div className="space-y-2">
-                    {/* Multi-Image File Input */}
-                    <input
-                      ref={multiImageInputRef}
-                      type="file"
-                      multiple
-                      accept="image/jpeg,image/png,image/webp"
-                      className="sr-only"
-                      tabIndex={-1}
-                      disabled={busy || refUploading || referenceImages.length >= maxRefImages}
-                      onChange={(e) => {
-                        if (e.target.files) handleUploadImages(e.target.files);
-                        e.target.value = "";
-                      }}
-                    />
-
-                    {/* Slim horizontal dropzone when 0 images uploaded */}
-                    {referenceImages.length === 0 ? (
-                      <div
-                        onDragOver={(e) => {
-                          e.preventDefault();
-                          setIsDragging(true);
-                        }}
-                        onDragLeave={() => setIsDragging(false)}
-                        onDrop={(e) => {
-                          e.preventDefault();
-                          setIsDragging(false);
-                          if (e.dataTransfer.files?.length) {
-                            handleUploadImages(e.dataTransfer.files);
-                          }
-                        }}
-                        onClick={() => multiImageInputRef.current?.click()}
-                        className={`relative flex items-center justify-between gap-3 rounded-lg border border-dashed px-3 py-2.5 transition-all cursor-pointer ${
-                          isDragging
-                            ? "border-amber-400 bg-amber-500/10 text-amber-300"
-                            : "border-[var(--border-subtle)] bg-[var(--soft-black)] text-[var(--text-muted)] hover:border-[var(--text-muted)] hover:bg-[var(--glass-elevated)]"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[var(--glass)] border border-[var(--border-subtle)] text-[var(--text-primary)]">
-                            {refUploading ? (
-                              <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-400" />
-                            ) : (
-                              <Plus className="h-3.5 w-3.5 text-amber-400" />
-                            )}
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-[11px] font-bold text-[var(--text-primary)] truncate">
-                              {refUploading ? "Uploading references…" : "+ Add Reference Images"}
-                            </p>
-                            <p className="text-[9px] text-[var(--text-subtle)] truncate">
-                              Drop or browse up to {maxRefImages} images (JPEG, PNG, WebP)
-                            </p>
-                          </div>
-                        </div>
-                        <span className="shrink-0 rounded bg-[var(--glass)] border border-[var(--border-subtle)] px-1.5 py-0.5 text-[9px] font-mono font-semibold text-[var(--text-muted)]">
-                          0 / {maxRefImages}
-                        </span>
-                      </div>
-                    ) : (
-                      /* Compact Thumbnail Grid when 1+ images exist */
-                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5">
-                        {referenceImages.map((img, idx) => (
-                          <div
-                            key={img.id}
-                            className="group relative flex flex-col rounded-md border border-[var(--border-subtle)] bg-[var(--soft-black)] overflow-hidden shadow-xs"
-                          >
-                            <div className="relative aspect-square w-full overflow-hidden bg-black/50">
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={img.url}
-                                alt={img.name || `Reference ${idx + 1}`}
-                                className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
-                              />
-                              {img.uploading ? (
-                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/75 backdrop-blur-xs">
-                                  <Loader2 className="h-4 w-4 animate-spin text-amber-400" />
-                                  <span className="mt-0.5 text-[7px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Uploading</span>
-                                </div>
-                              ) : null}
-                              <span className="absolute top-0.5 left-0.5 rounded bg-black/80 px-1 py-0.5 text-[7px] font-mono font-bold text-[var(--text-primary)] border border-white/10 leading-none">
-                                #{idx + 1}
-                              </span>
-                              <button
-                                type="button"
-                                disabled={busy || img.uploading}
-                                onClick={() => handleRemoveImage(idx)}
-                                className="absolute top-0.5 right-0.5 rounded bg-rose-950/80 hover:bg-rose-900 border border-rose-500/40 p-0.5 text-rose-300 transition-colors opacity-80 group-hover:opacity-100 cursor-pointer"
-                                title="Remove reference"
-                              >
-                                <X className="h-2.5 w-2.5" />
-                              </button>
-                            </div>
-                            {/* Footer with Reorder Controls */}
-                            <div className="flex items-center justify-between px-1 py-0.5 bg-[var(--soft-black)] border-t border-[var(--border-subtle)] text-[8px]">
-                              <span className="truncate max-w-[40px] text-[var(--text-subtle)] font-mono">
-                                #{idx + 1}
-                              </span>
-                              <div className="flex items-center gap-0.5">
-                                <button
-                                  type="button"
-                                  disabled={busy || idx === 0}
-                                  onClick={() => handleMoveImage(idx, "left")}
-                                  className="rounded p-0.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-20 cursor-pointer"
-                                  title="Move earlier"
-                                >
-                                  <ArrowLeft className="h-2 w-2" />
-                                </button>
-                                <button
-                                  type="button"
-                                  disabled={busy || idx === referenceImages.length - 1}
-                                  onClick={() => handleMoveImage(idx, "right")}
-                                  className="rounded p-0.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-20 cursor-pointer"
-                                  title="Move later"
-                                >
-                                  <ArrowRight className="h-2 w-2" />
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-
-                        {/* "+ Add" Compact Card in Grid */}
-                        {referenceImages.length < maxRefImages ? (
-                          <div
-                            onDragOver={(e) => {
-                              e.preventDefault();
-                              setIsDragging(true);
-                            }}
-                            onDragLeave={() => setIsDragging(false)}
-                            onDrop={(e) => {
-                              e.preventDefault();
-                              setIsDragging(false);
-                              if (e.dataTransfer.files?.length) {
-                                handleUploadImages(e.dataTransfer.files);
-                              }
-                            }}
-                            onClick={() => multiImageInputRef.current?.click()}
-                            className={`relative flex aspect-square flex-col items-center justify-center rounded-md border border-dashed p-1 text-center transition-all cursor-pointer ${
-                              isDragging
-                                ? "border-amber-400 bg-amber-500/10 text-amber-300"
-                                : "border-[var(--border-subtle)] bg-[var(--soft-black)] text-[var(--text-muted)] hover:border-[var(--text-muted)] hover:bg-[var(--glass-elevated)] hover:text-[var(--text-primary)]"
-                            }`}
-                          >
-                            {refUploading ? (
-                              <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-400" />
-                            ) : (
-                              <>
-                                <Plus className="h-3.5 w-3.5 text-amber-400 mb-0.5" />
-                                <span className="text-[8px] font-bold text-[var(--text-primary)]">+ Add</span>
-                                <span className="text-[7px] font-mono text-[var(--text-subtle)]">
-                                  {referenceImages.length}/{maxRefImages}
-                                </span>
-                              </>
-                            )}
+                      <div className="relative aspect-square w-full overflow-hidden bg-black/50">
+                        {item.type === "video" ? (
+                          <video src={item.url} muted loop autoPlay playsInline className="h-full w-full object-cover" />
+                        ) : (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={item.url} alt={item.name || `Reference ${idx + 1}`} className="h-full w-full object-cover" />
+                        )}
+                        {item.uploading ? (
+                          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/75 backdrop-blur-xs">
+                            <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-400" />
                           </div>
                         ) : null}
+                        <span className="absolute top-0.5 left-0.5 rounded bg-black/80 px-1 py-0.2 text-[7px] font-mono font-bold text-[var(--text-primary)] border border-white/10 leading-none">
+                          #{idx + 1}
+                        </span>
+                        <button
+                          type="button"
+                          disabled={busy || item.uploading}
+                          onClick={() => handleRemoveReference(idx)}
+                          className="absolute top-0.5 right-0.5 rounded bg-rose-950/80 hover:bg-rose-900 border border-rose-500/40 p-0.5 text-rose-300 transition-colors opacity-80 group-hover:opacity-100 cursor-pointer"
+                          title="Remove reference"
+                        >
+                          <X className="h-2 w-2" />
+                        </button>
                       </div>
-                    )}
-                  </div>
-                ) : (
-                  /* Video Reference Mode */
-                  <div className="space-y-2">
-                    <input
-                      ref={videoInputRef}
-                      type="file"
-                      accept="video/mp4,video/webm,video/quicktime"
-                      className="sr-only"
-                      tabIndex={-1}
-                      disabled={busy || refUploading}
-                      onChange={(e) => {
-                        const f = e.target.files?.[0];
-                        e.target.value = "";
-                        if (f) handleUploadVideo(f);
+                      {isSeedance && referenceMedia.length > 1 ? (
+                        <div className="flex items-center justify-between px-1 py-0.5 bg-[var(--soft-black)] border-t border-[var(--border-subtle)] text-[7px]">
+                          <span className="truncate text-[var(--text-subtle)] font-mono">#{idx + 1}</span>
+                          <div className="flex items-center gap-0.5">
+                            <button
+                              type="button"
+                              disabled={busy || idx === 0}
+                              onClick={() => handleMoveReference(idx, "left")}
+                              className="rounded p-0.2 text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-20 cursor-pointer"
+                              title="Move left"
+                            >
+                              <ArrowLeft className="h-2 w-2" />
+                            </button>
+                            <button
+                              type="button"
+                              disabled={busy || idx === referenceMedia.length - 1}
+                              onClick={() => handleMoveReference(idx, "right")}
+                              className="rounded p-0.2 text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-20 cursor-pointer"
+                              title="Move right"
+                            >
+                              <ArrowRight className="h-2 w-2" />
+                            </button>
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+                  ))}
+
+                  {referenceMedia.length < activeModelDef.maxReferences ? (
+                    <div
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setIsDragging(true);
                       }}
-                    />
+                      onDragLeave={() => setIsDragging(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setIsDragging(false);
+                        if (e.dataTransfer.files?.length) {
+                          handleUploadReferences(e.dataTransfer.files);
+                        }
+                      }}
+                      onClick={() => multiImageInputRef.current?.click()}
+                      className="relative flex aspect-square flex-col items-center justify-center rounded-md border border-dashed border-[var(--border-subtle)] bg-[var(--soft-black)] p-0.5 text-center transition-all cursor-pointer hover:border-[var(--text-muted)] hover:bg-[var(--glass-elevated)]"
+                    >
+                      {refUploading ? (
+                        <Loader2 className="h-3 w-3 animate-spin text-amber-400" />
+                      ) : (
+                        <>
+                          <Plus className="h-3 w-3 text-amber-400" />
+                          <span className="text-[7px] font-bold text-[var(--text-primary)] mt-0.5">+ Add</span>
+                        </>
+                      )}
+                    </div>
+                  ) : null}
+                </div>
+              )}
 
-                    {referenceVideoUrl ? (
-                      <div className="flex items-center gap-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--soft-black)] p-2.5">
-                        <div className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg border border-[var(--border-subtle)] bg-black shadow-md">
-                          <video src={referenceVideoUrl} muted loop autoPlay playsInline className="h-full w-full object-cover" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5">
-                            <p className="truncate text-xs font-bold text-[var(--text-primary)]">Video Reference</p>
-                            <span className="shrink-0 rounded-full px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-wider bg-purple-500/20 text-purple-300 border border-purple-400/30">
-                              Motion Guide
-                            </span>
-                          </div>
-                          <p className="text-[10px] text-[var(--text-muted)] truncate mt-0.5">
-                            Motion transfer & scene guidance
-                          </p>
-                        </div>
-                        <div className="flex flex-col gap-1 shrink-0">
-                          <button
-                            type="button"
-                            disabled={busy || refUploading}
-                            onClick={() => videoInputRef.current?.click()}
-                            className="rounded-md border border-[var(--border-subtle)] bg-[var(--glass)] px-2 py-1 text-[9px] font-bold uppercase text-[var(--text-primary)] hover:bg-[var(--glass-elevated)] cursor-pointer transition-colors"
-                          >
-                            Replace
-                          </button>
-                          <button
-                            type="button"
-                            disabled={busy}
-                            onClick={() => {
-                              if (referenceVideoUrl) deleteStudioReference(referenceVideoUrl).catch(() => {});
-                              setReferenceVideoUrl("");
-                            }}
-                            className="rounded-md border border-rose-500/30 bg-rose-500/10 px-2 py-1 text-[9px] font-bold uppercase text-rose-400 hover:bg-rose-500/20 cursor-pointer transition-colors"
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        disabled={busy || refUploading}
-                        onClick={() => videoInputRef.current?.click()}
-                        className="flex min-h-[50px] w-full flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-[var(--border-subtle)] bg-[var(--soft-black)] p-3 text-center transition-all hover:border-[var(--text-muted)] hover:bg-[var(--glass-elevated)] cursor-pointer"
-                      >
-                        {refUploading ? (
-                          <div className="flex items-center gap-2">
-                            <Loader2 className="h-4 w-4 animate-spin text-[var(--text-primary)]" />
-                            <span className="text-xs font-bold text-[var(--text-primary)]">Uploading Video Reference…</span>
-                          </div>
-                        ) : (
-                          <>
-                            <div className="flex items-center gap-2">
-                              <Film className="h-4 w-4 text-[var(--text-primary)]" />
-                              <span className="text-xs font-bold text-[var(--text-primary)]">Upload Video Reference</span>
-                            </div>
-                            <span className="text-[10px] text-[var(--text-subtle)]">
-                              MP4, WebM or MOV (max 50MB) · Motion transfer guide
-                            </span>
-                          </>
-                        )}
-                      </button>
-                    )}
-                  </div>
-                )}
+              {refUploadError ? (
+                <div className="rounded border border-rose-500/30 bg-rose-500/10 px-2 py-1 text-[9px] font-medium text-rose-400">
+                  {refUploadError}
+                </div>
+              ) : null}
+            </div>
 
-                {refUploadError ? (
-                  <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1.5 text-[10px] font-medium text-rose-400">
-                    {refUploadError}
-                  </div>
-                ) : null}
-              </div>
-            )}
-
-            {/* 2. ASPECT RATIO */}
-            <StudioCollapsible title="2. Aspect Ratio" defaultOpen={false}>
-              <div className="grid grid-cols-3 gap-1.5" role="radiogroup" aria-label="Aspect Ratio">
-                {ASPECT_RATIOS.map((item) => {
+            {/* 3. ASPECT RATIO (SLIM 5-COLUMN GRID) */}
+            <StudioCollapsible title="Aspect Ratio" defaultOpen={true}>
+              <div className="grid grid-cols-5 gap-1" role="radiogroup" aria-label="Aspect Ratio">
+                {activeModelDef.aspectRatios.map((item) => {
                   const on = aspect === item.key;
                   return (
                     <button
@@ -1155,330 +811,230 @@ export default function VideoStudioClient() {
                       role="radio"
                       aria-checked={on}
                       disabled={busy}
-                      onClick={() => setAspect(item.key as any)}
-                      className={`flex flex-col items-center justify-center gap-1.5 rounded-lg border py-2 px-1.5 text-center transition-all cursor-pointer ${on
-                          ? "border-[var(--border-subtle)] bg-[var(--soft-black)] text-[var(--text-primary)] shadow-sm font-semibold"
+                      onClick={() => setAspect(item.key)}
+                      className={`flex flex-col items-center justify-center gap-1 rounded-md border py-1.5 px-0.5 text-center transition-all cursor-pointer ${
+                        on
+                          ? "border-amber-500/40 bg-[var(--soft-black)] text-[var(--text-primary)] shadow-xs font-bold"
                           : "border-[var(--border-subtle)] bg-[var(--glass)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                        }`}
+                      }`}
                     >
-                      <div className="flex h-5 items-center justify-center">
+                      <div className="flex h-3.5 items-center justify-center">
                         <div
-                          className={`rounded-[2px] border transition-all ${on ? "border-[var(--text-primary)] bg-[var(--text-primary)]/20 shadow-sm" : "border-[var(--text-muted)]"
-                            }`}
-                          style={{ width: `${item.iconW}px`, height: `${item.iconH}px` }}
+                          className={`rounded-[1.5px] border transition-all ${
+                            on ? "border-amber-400 bg-amber-400/30 shadow-xs" : "border-[var(--text-muted)]"
+                          }`}
+                          style={{ width: `${Math.round(item.iconW * 0.75)}px`, height: `${Math.round(item.iconH * 0.75)}px` }}
                         />
                       </div>
-                      <div className="leading-none">
-                        <p className="font-mono text-[11px] font-bold text-[var(--text-primary)]">{item.ratio}</p>
-                        <p className="mt-0.5 text-[9px] font-medium text-[var(--text-muted)]">{item.label}</p>
-                      </div>
+                      <span className="font-mono text-[9px] font-bold leading-none">{item.ratio}</span>
                     </button>
                   );
                 })}
               </div>
             </StudioCollapsible>
 
-            {/* 3. VIDEO DURATION */}
-            <StudioCollapsible
-              title="3. Video Duration"
-              subtitle={isStandard ? "Standard model generates fixed 5s sequences" : "Choose 5-second or 10-second clip length"}
-              defaultOpen={false}
-            >
-              {isStandard ? (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between rounded-lg border border-[var(--border-subtle)] bg-[var(--soft-black)] p-2.5">
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-[var(--text-primary)]" />
-                      <span className="text-xs font-bold text-[var(--text-primary)]">5 Seconds</span>
-                    </div>
-                    <span className="text-[10px] font-mono text-[var(--text-subtle)]">15 credits fixed</span>
+            {/* 4. DURATION & OUTPUT */}
+            <StudioCollapsible title="Duration & Output" defaultOpen={true}>
+              <div className="space-y-2">
+                {/* Duration */}
+                <div>
+                  <div className="mb-1 flex items-center justify-between text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
+                    <span>Duration</span>
+                    <span className="font-mono text-amber-400 font-semibold">{duration}s · {estimatedCost} Credits</span>
                   </div>
-                  <p className="text-[10px] text-[var(--text-subtle)]">
-                    Standard video operates on 5-second sequences for maximum cost efficiency. Switch to Premium Omni for 10s extended generation.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => setDuration(5)}
-                      className={`flex flex-col items-center justify-center gap-1 rounded-lg border py-2 px-3 text-center transition-all cursor-pointer ${
-                        activeDuration === 5
-                          ? "border-[var(--border-subtle)] bg-[var(--soft-black)] text-[var(--text-primary)] shadow-sm font-semibold"
-                          : "border-[var(--border-subtle)] bg-[var(--glass)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                      }`}
-                    >
-                      <div className="flex items-center gap-1 font-mono text-xs font-bold text-[var(--text-primary)]">
-                        <Clock className="h-3 w-3" />
-                        5 Seconds
-                      </div>
-                      <span className="text-[9px] text-[var(--text-subtle)]">30 Credits</span>
-                    </button>
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => setDuration(10)}
-                      className={`flex flex-col items-center justify-center gap-1 rounded-lg border py-2 px-3 text-center transition-all cursor-pointer ${
-                        activeDuration === 10
-                          ? "border-[var(--border-subtle)] bg-[var(--soft-black)] text-[var(--text-primary)] shadow-sm font-semibold"
-                          : "border-[var(--border-subtle)] bg-[var(--glass)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                      }`}
-                    >
-                      <div className="flex items-center gap-1 font-mono text-xs font-bold text-[var(--text-primary)]">
-                        <Clock className="h-3 w-3" />
-                        10 Seconds
-                      </div>
-                      <span className="text-[9px] text-[var(--text-subtle)]">60 Credits</span>
-                    </button>
+                  <div className={`grid ${activeModelDef.durations.length === 5 ? "grid-cols-5" : activeModelDef.durations.length === 4 ? "grid-cols-4" : "grid-cols-2"} gap-1`}>
+                    {activeModelDef.durations.map((d) => (
+                      <button
+                        key={d}
+                        type="button"
+                        disabled={busy}
+                        onClick={() => setDuration(d)}
+                        className={`flex flex-col items-center justify-center py-1 rounded-md border text-center transition-all cursor-pointer ${
+                          duration === d
+                            ? "border-amber-500/40 bg-[var(--soft-black)] text-[var(--text-primary)] shadow-xs font-bold"
+                            : "border-[var(--border-subtle)] bg-[var(--glass)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                        }`}
+                      >
+                        <span className="text-[11px] font-mono font-bold leading-none">{d}s</span>
+                        <span className="text-[7px] text-[var(--text-subtle)] font-mono mt-0.5">{d * currentCostPerSec} cr</span>
+                      </button>
+                    ))}
                   </div>
-                </div>
-              )}
-            </StudioCollapsible>
-
-            {/* 4. SOUND & RESOLUTION */}
-            <StudioCollapsible
-              title="4. Sound & Resolution"
-              subtitle="Native audio synthesis and visual quality"
-              defaultOpen={false}
-            >
-              <div className="space-y-3">
-                {/* Audio / Sound FX Toggle */}
-                <div className="flex items-center justify-between rounded-lg border border-[var(--border-subtle)] bg-[var(--glass)] p-2.5">
-                  <div className="flex items-center gap-2">
-                    {sound ? (
-                      <Volume2 className="h-4 w-4 text-[var(--text-primary)]" />
-                    ) : (
-                      <VolumeX className="h-4 w-4 text-[var(--text-muted)]" />
-                    )}
-                    <div>
-                      <p className="text-xs font-bold text-[var(--text-primary)]">Synchronized Sound</p>
-                      <p className="text-[9px] text-[var(--text-muted)]">Native AI audio & sound effects</p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => setSound(!sound)}
-                    className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                      sound ? "bg-[var(--text-primary)]" : "bg-[var(--border-subtle)]"
-                    }`}
-                    role="switch"
-                    aria-checked={sound}
-                    aria-label="Toggle synchronized sound"
-                  >
-                    <span
-                      className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-[var(--rich-black)] shadow ring-0 transition duration-200 ease-in-out ${
-                        sound ? "translate-x-4" : "translate-x-0"
-                      }`}
-                    />
-                  </button>
                 </div>
 
                 {/* Resolution */}
                 <div>
-                  <div className="mb-1.5 flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
+                  <div className="mb-1 flex items-center justify-between text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
                     <span>Resolution</span>
-                    <span className="font-mono text-[var(--text-primary)]">{isStandard ? "720p HD" : resolution}</span>
+                    <span className="font-mono text-[var(--text-primary)]">{resolution}</span>
                   </div>
-                  {isStandard ? (
-                    <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--soft-black)] p-2 text-center text-xs font-semibold text-[var(--text-muted)]">
-                      720p HD Standard (1080p supported on Premium Omni)
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-2 gap-1.5">
-                      {(["720p", "1080p"] as const).map((r) => (
-                        <button
-                          key={r}
-                          type="button"
-                          disabled={busy}
-                          onClick={() => setResolution(r)}
-                          className={`rounded-lg border py-1.5 text-xs font-bold transition-all cursor-pointer ${
-                            resolution === r
-                              ? "border-[var(--border-subtle)] bg-[var(--soft-black)] text-[var(--text-primary)] shadow-sm font-semibold"
-                              : "border-[var(--border-subtle)] bg-[var(--glass)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                          }`}
-                        >
-                          {r === "720p" ? "720p HD" : "1080p Cinema"}
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                  <div className={`grid ${activeModelDef.resolutions.length === 3 ? "grid-cols-3" : "grid-cols-2"} gap-1`}>
+                    {activeModelDef.resolutions.map((r) => (
+                      <button
+                        key={r.key}
+                        type="button"
+                        disabled={busy}
+                        onClick={() => setResolution(r.key)}
+                        className={`rounded-md border py-1 text-[10px] font-bold transition-all cursor-pointer ${
+                          resolution === r.key
+                            ? "border-amber-500/40 bg-[var(--soft-black)] text-[var(--text-primary)] shadow-xs"
+                            : "border-[var(--border-subtle)] bg-[var(--glass)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                        }`}
+                      >
+                        {r.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            </StudioCollapsible>
 
-            {/* 4. MOTION VOCABULARY */}
-            <StudioCollapsible title="4. Motion Vocabulary" subtitle="Interactive kinetic action & atmospheric motion" defaultOpen={false}>
-              <div className="space-y-3">
-                {[
-                  {
-                    category: "Camera Dynamics & Pace",
-                    items: [
-                      {
-                        label: "slow motion 60fps",
-                        value: "captured in ultra smooth slow motion at 60fps, high speed camera fluid dynamics, elegant motion cadence",
-                      },
-                      {
-                        label: "fast action velocity",
-                        value: "high velocity kinetic motion, rapid dynamic scene pacing, motion blur speed trail effect",
-                      },
-                      {
-                        label: "subtle organic breathing",
-                        value: "subtle natural breathing movement, gentle ambient swaying motion, soft life-like motion micro-dynamics",
-                      },
-                      {
-                        label: "hypnotic infinite loop",
-                        value: "seamless hypnotic looping motion, perfectly balanced cyclic movement, continuous fluid motion transition",
-                      },
-                      {
-                        label: "time-lapse sky sweep",
-                        value: "accelerated time-lapse motion sweep, fast moving cloud trails, shifting atmospheric shadows",
-                      },
-                    ],
-                  },
-                  {
-                    category: "Environmental & Atmospheric Motion",
-                    items: [
-                      {
-                        label: "volumetric smoke & haze",
-                        value: "swirling volumetric smoke and misty haze, dense atmospheric fog drifting softly across light beams",
-                      },
-                      {
-                        label: "explosive spark particles",
-                        value: "bursting embers and luminous spark particles rising upward, fiery light reflections, dynamic drift",
-                      },
-                      {
-                        label: "water splash & fluid ripples",
-                        value: "crystal liquid water splash, fluid surface ripple dynamics, sparkling light refraction on droplets",
-                      },
-                      {
-                        label: "wind-blown fabric motion",
-                        value: "dramatic wind gusts blowing silk fabric, flowing organic wave movement, billowing clothing physics",
-                      },
-                    ],
-                  },
-                ].map((group) => (
-                  <div key={group.category} className="space-y-1.5">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">
-                      {group.category}
-                    </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {group.items.map((item) => (
-                        <button
-                          key={item.label}
-                          type="button"
-                          disabled={busy}
-                          onClick={() => {
-                            appendPromptChip(item.value);
-                          }}
-                          className="rounded-md border border-[var(--border-subtle)] bg-[var(--glass)] px-2 py-1 text-[10px] font-semibold text-[var(--text-muted)] transition-all hover:bg-[var(--soft-black)] hover:text-[var(--text-primary)] cursor-pointer disabled:opacity-40"
-                          title={`Inserts: "${item.value}"`}
-                        >
-                          + {item.label}
-                        </button>
-                      ))}
+                {/* Native Audio (Seedance 2.5 Only) */}
+                {activeModelDef.supportsSound ? (
+                  <div className="flex items-center justify-between rounded-md border border-[var(--border-subtle)] bg-[var(--soft-black)] px-2 py-1.5">
+                    <div className="flex items-center gap-1.5">
+                      {sound ? (
+                        <Volume2 className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                      ) : (
+                        <VolumeX className="h-3.5 w-3.5 text-[var(--text-muted)] shrink-0" />
+                      )}
+                      <div>
+                        <p className="text-[10px] font-bold text-[var(--text-primary)] leading-tight">Native Sound</p>
+                        <p className="text-[8px] text-[var(--text-subtle)] leading-tight">Motion-synced audio</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </StudioCollapsible>
-
-            {/* 5. CAMERA MOVEMENT */}
-            <StudioCollapsible title="5. Camera Movement" subtitle="Direct virtual camera paths & dynamics" defaultOpen={false}>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-                {CAMERA_MOVEMENTS.map((cam) => {
-                  const active = selectedCamera === cam.id;
-                  const CamIcon = cam.icon;
-                  return (
                     <button
-                      key={cam.id}
                       type="button"
                       disabled={busy}
-                      onClick={() => {
-                        setSelectedCamera(cam.id);
-                        appendPromptChip(cam.tag);
-                      }}
-                      className={`flex flex-col items-start gap-0.5 rounded-lg border p-2 transition-all text-left cursor-pointer ${active
-                          ? "border-[var(--border-subtle)] bg-[var(--soft-black)] text-[var(--text-primary)] shadow-sm font-semibold"
-                          : "border-[var(--border-subtle)] bg-[var(--glass)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                        }`}
+                      onClick={() => setSound(!sound)}
+                      className={`relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                        sound ? "bg-amber-400" : "bg-[var(--border-subtle)]"
+                      }`}
+                      role="switch"
+                      aria-checked={sound}
                     >
-                      <div className="flex items-center gap-1.5 w-full">
-                        <CamIcon className={`h-3.5 w-3.5 shrink-0 ${active ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"}`} />
-                        <span className="truncate text-[10px] font-bold tracking-tight text-[var(--text-primary)]">{cam.label}</span>
-                      </div>
-                      <span className="text-[9px] text-[var(--text-muted)] truncate w-full">{cam.desc}</span>
+                      <span
+                        className={`pointer-events-none inline-block h-3 w-3 transform rounded-full bg-[var(--rich-black)] shadow ring-0 transition duration-200 ease-in-out ${
+                          sound ? "translate-x-3" : "translate-x-0"
+                        }`}
+                      />
                     </button>
-                  );
-                })}
+                  </div>
+                ) : null}
               </div>
             </StudioCollapsible>
 
-            {/* 6. NEGATIVE PROMPT */}
-            <StudioCollapsible title="6. Negative Prompt" subtitle="Exclude unwanted motion or visual artifacts" defaultOpen={false}>
-              <div>
-                <div className="mb-1 flex items-center justify-between">
-                  <label htmlFor="vid-neg" className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
-                    Unwanted Motion & Artifacts
-                  </label>
-                  <span className="font-mono text-[9px] text-[var(--text-subtle)]">{negativePrompt.length}/2500</span>
+            {/* 5. ADVANCED SETTINGS (EXPANDABLE) */}
+            <StudioCollapsible
+              title="Advanced Settings"
+              subtitle={isSeedance ? "Camera control, negative prompt & seed" : "Negative prompt & fine tuning"}
+              defaultOpen={false}
+            >
+              <div className="space-y-2">
+                {/* Camera / Motion Control (Seedance 2.5) */}
+                {activeModelDef.supportsCamera ? (
+                  <div>
+                    <p className="mb-1 text-[9px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">
+                      Camera Motion Preset
+                    </p>
+                    <div className="grid grid-cols-4 gap-1">
+                      {CAMERA_MOVEMENTS.map((cam) => {
+                        const active = selectedCamera === cam.id;
+                        const CamIcon = cam.icon;
+                        return (
+                          <button
+                            key={cam.id}
+                            type="button"
+                            disabled={busy}
+                            onClick={() => {
+                              setSelectedCamera(cam.id);
+                              appendPromptChip(cam.tag);
+                            }}
+                            className={`flex flex-col items-center gap-1 rounded-md border p-1 transition-all text-center cursor-pointer ${
+                              active
+                                ? "border-amber-500/40 bg-[var(--soft-black)] text-[var(--text-primary)] shadow-xs font-bold"
+                                : "border-[var(--border-subtle)] bg-[var(--glass)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                            }`}
+                          >
+                            <CamIcon className={`h-3 w-3 shrink-0 ${active ? "text-amber-400" : "text-[var(--text-muted)]"}`} />
+                            <span className="truncate text-[8px] font-bold tracking-tight text-[var(--text-primary)] w-full">{cam.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
+
+                {/* Seed (Seedance 2.5) */}
+                {activeModelDef.supportsSeed ? (
+                  <div>
+                    <div className="mb-0.5 flex items-center justify-between">
+                      <label htmlFor="vid-seed" className="text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
+                        Seed (Optional)
+                      </label>
+                      <span className="font-mono text-[8px] text-[var(--text-subtle)]">Random if blank</span>
+                    </div>
+                    <input
+                      id="vid-seed"
+                      type="number"
+                      value={seed}
+                      onChange={(e) => setSeed(e.target.value)}
+                      disabled={busy}
+                      placeholder="e.g. 428912"
+                      className="w-full rounded-md border border-[var(--border-subtle)] bg-[var(--glass)] px-2.5 py-1 text-[11px] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)] focus:border-[var(--text-muted)] font-mono"
+                    />
+                  </div>
+                ) : null}
+
+                {/* Negative Prompt */}
+                <div>
+                  <div className="mb-0.5 flex items-center justify-between">
+                    <label htmlFor="vid-neg" className="text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
+                      Negative Prompt
+                    </label>
+                    <span className="font-mono text-[8px] text-[var(--text-subtle)]">{negativePrompt.length}/2000</span>
+                  </div>
+                  <textarea
+                    id="vid-neg"
+                    value={negativePrompt}
+                    onChange={(e) => setNegativePrompt(e.target.value.slice(0, 2000))}
+                    disabled={busy}
+                    placeholder="Describe unwanted artifacts, blur, camera distortion, morphing…"
+                    rows={2}
+                    className="w-full resize-none rounded-md border border-[var(--border-subtle)] bg-[var(--glass)] px-2.5 py-1 text-[10px] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)] focus:border-[var(--text-muted)]"
+                  />
                 </div>
-                <textarea
-                  id="vid-neg"
-                  value={negativePrompt}
-                  onChange={(e) => setNegativePrompt(e.target.value.slice(0, 2500))}
-                  disabled={busy}
-                  placeholder="Describe unwanted camera shake, morphing, flickering, artifacts, bad physics…"
-                  rows={2}
-                  className="w-full resize-none rounded-lg border border-[var(--border-subtle)] bg-[var(--glass)] px-3 py-2 text-xs text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)] focus:border-[var(--text-muted)]"
-                />
               </div>
             </StudioCollapsible>
+
           </div>
         </div>
       </div>
 
-      {/* Sticky desktop prompt + generate (Section 8: Video Generation Area) */}
-      <div className="hidden shrink-0 border-t border-[var(--border-subtle)] bg-[var(--rich-black)] px-3 pb-3 pt-3 backdrop-blur-xl lg:block transition-colors duration-200">
+      {/* Sticky desktop prompt + generate */}
+      <div className="hidden shrink-0 border-t border-[var(--border-subtle)] bg-[var(--rich-black)] p-3 backdrop-blur-xl lg:block transition-colors duration-200">
         {/* Tier & Credit Summary */}
-        <div className="mb-2 flex items-center justify-between gap-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--glass)] px-2.5 py-1 text-[11px]">
-          <div className="flex min-w-0 items-center gap-1.5 overflow-hidden">
-            <Clapperboard className="h-3 w-3 shrink-0 text-amber-400/90" />
-            <span className="font-bold text-[var(--text-primary)] truncate text-[11px]">
-              {activeTierObj.label}
-            </span>
-            <span className="shrink-0 text-[10px] text-[var(--text-subtle)] font-medium">
-              ({activeDuration}s · {isStandard ? "720p" : resolution}{sound ? " · Audio" : ""})
-            </span>
-          </div>
-          <div className="flex shrink-0 items-center gap-2 font-mono text-[10px]">
-            <span className="text-[var(--text-subtle)]">
-              Bal: <strong className="font-bold text-[var(--text-primary)]">{user?.availableCredits ?? user?.credits ?? 0}</strong>
-            </span>
-            <span className="text-[var(--border-subtle)]">·</span>
-            <span className="text-[var(--text-subtle)]">
-              Cost: <strong className={((user?.availableCredits ?? user?.credits ?? 0) < currentCost) ? "text-rose-400 font-bold" : "text-amber-400 font-bold"}>{currentCost} cr</strong>
-            </span>
-          </div>
+        <div className="mb-2 flex items-center justify-between rounded-lg border border-[var(--border-subtle)] bg-[var(--glass)] px-2.5 py-1 text-[11px]">
+          <span className="font-semibold text-[var(--text-primary)]">
+            Cost: <strong className={hasInsufficientCredits ? "text-rose-400 font-bold" : "text-[var(--text-primary)] font-bold font-mono"}>{estimatedCost} credits ({activeModelDef.label})</strong>
+          </span>
+          <span className="text-[var(--text-muted)] font-mono">Available: {userBalance}</span>
         </div>
 
-        <div className="mb-1 flex items-center justify-between gap-2">
-          <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">Video Motion Prompt</span>
-          <span className="font-mono text-[10px] text-[var(--text-subtle)]">{prompt.length}</span>
+        <div className="mb-1.5 flex items-center justify-between gap-2">
+          <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--text-subtle)]">Video Prompt</span>
+          <span className="text-[10px] tabular-nums text-[var(--text-subtle)] font-mono">{prompt.length}</span>
         </div>
-        <div className="relative flex items-center gap-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--glass)] px-3 py-2">
+        <div className="relative flex flex-col gap-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--glass)] p-3 shadow-inner">
           <label className="sr-only" htmlFor="vid-prompt">Prompt</label>
           <textarea
             ref={videoPromptRef}
             id="vid-prompt"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder={isImg2Video ? "Describe action & movement for reference image…" : "Describe cinematic video scene & motion…"}
+            placeholder={referenceMedia.length > 0 ? "Describe action & movement for reference media…" : "Describe cinematic scene, lighting, action & mood…"}
             rows={2}
             disabled={busy}
             className="no-scrollbar max-h-[160px] min-h-[44px] w-full resize-none bg-transparent text-sm leading-relaxed text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)]"
+            style={{ scrollbarWidth: "none" }}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
@@ -1488,7 +1044,7 @@ export default function VideoStudioClient() {
           />
 
           {prompt.length > 70 ? (
-            <div className="flex flex-col gap-1 shrink-0 select-none">
+            <div className="absolute right-3 top-3 flex flex-col gap-1 shrink-0 select-none">
               <button
                 type="button"
                 disabled={busy}
@@ -1519,25 +1075,24 @@ export default function VideoStudioClient() {
               </button>
             </div>
           ) : null}
-        </div>
-        <div className="mt-2.5">
+
           <button
             type="button"
-            disabled={busy || prompt.trim().length < 2 || Boolean(user?.generationDisabled) || (user?.availableCredits ?? user?.credits ?? 0) < currentCost}
+            disabled={busy || prompt.trim().length < 2 || Boolean(user?.generationDisabled) || hasInsufficientCredits}
             onClick={() => void run()}
-            className="flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--soft-black)] px-4 text-xs font-bold text-[var(--text-primary)] shadow-sm transition-all hover:bg-[var(--glass-elevated)] active:scale-95 disabled:opacity-40 cursor-pointer"
+            className="mt-1 flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--soft-black)] py-2.5 text-xs font-bold text-[var(--text-primary)] shadow-sm transition-all hover:bg-[var(--glass-elevated)] active:scale-[0.99] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {busy ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin text-[var(--text-primary)]" />
-                <span>Rendering Video ({activeDuration}s)…</span>
+                <span>Rendering Video ({duration}s)…</span>
               </>
             ) : user?.generationDisabled ? (
               <>
                 <X className="h-4 w-4 text-rose-500" strokeWidth={2} />
                 <span>Access Disabled</span>
               </>
-            ) : (user?.availableCredits ?? user?.credits ?? 0) < currentCost ? (
+            ) : hasInsufficientCredits ? (
               <>
                 <X className="h-4 w-4 text-rose-500" strokeWidth={2} />
                 <span>Insufficient Credits</span>
@@ -1557,31 +1112,22 @@ export default function VideoStudioClient() {
 
   const renderRightPanel = (chrome: LuxuryStudioChromeValue) => {
     const showCanvasDock = chrome.collapsed;
-    const showAssistantRow = (msg: AssistantMsg) => {
-      if (feedFilter === "all") return true;
-      if (feedFilter === "running") return msg.loading;
-      if (feedFilter === "ready") return !msg.loading && msg.urls.length > 0;
-      return true;
-    };
     return (
       <div className="flex min-h-0 min-w-0 w-full flex-1 flex-col gap-2 overflow-hidden">
         {copyToast ? (
           <motion.p
             initial={reduce ? false : { opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            className="shrink-0 rounded-full border border-[var(--border-subtle)] bg-[var(--soft-black)] px-3 py-1.5 text-center text-xs font-medium text-[var(--text-primary)] shadow-md"
+            className="shrink-0 rounded-lg border border-[var(--border-subtle)] bg-[var(--soft-black)] px-3 py-1.5 text-center text-xs font-semibold text-[var(--text-primary)] shadow-md"
             role="status"
           >
             {copyToast}
           </motion.p>
         ) : null}
 
-        <div
-          className={`flex min-h-0 flex-1 flex-col gap-2 ${showCanvasDock ? "min-h-0 overflow-y-auto overscroll-contain" : "overflow-hidden"
-            }`}
-        >
+        <div className={`flex min-h-0 flex-1 flex-col gap-2 ${showCanvasDock ? "min-h-0 overflow-y-auto overscroll-contain" : "overflow-hidden"}`}>
           <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[var(--rich-black)] shadow-md transition-colors duration-200">
-            <div className="sticky top-0 z-10 flex shrink-0 items-center gap-2 border-b border-[var(--border-subtle)] bg-[var(--rich-black)] px-3 py-2">
+            <div className="sticky top-0 z-10 flex shrink-0 items-center gap-2 border-b border-[var(--border-subtle)] bg-[var(--rich-black)] px-3 py-2.5 backdrop-blur-xl">
               <div className="min-w-0 flex-1">
                 <p className="text-[9px] font-bold uppercase leading-none tracking-[0.2em] text-[var(--text-subtle)]">
                   Motion Canvas
@@ -1596,8 +1142,11 @@ export default function VideoStudioClient() {
                   onClick={() => setStudioView("feed")}
                   aria-pressed={studioView === "feed"}
                   aria-label="Feed view"
-                  className={`inline-flex h-7 items-center gap-1 rounded-md px-1.5 text-[10px] font-bold uppercase tracking-wide transition-all ${studioView === "feed" ? "bg-[var(--soft-black)] text-[var(--text-primary)] border border-[var(--border-subtle)] shadow-sm" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                    }`}
+                  className={`inline-flex h-7 items-center gap-1 rounded-md px-2 text-[10px] font-bold uppercase tracking-wide transition-all ${
+                    studioView === "feed"
+                      ? "bg-[var(--soft-black)] text-[var(--text-primary)] border border-[var(--border-subtle)] shadow-sm"
+                      : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                  }`}
                 >
                   <List className="h-3.5 w-3.5" strokeWidth={2} />
                 </button>
@@ -1606,8 +1155,11 @@ export default function VideoStudioClient() {
                   onClick={() => setStudioView("gallery")}
                   aria-pressed={studioView === "gallery"}
                   aria-label="Gallery view"
-                  className={`inline-flex h-7 items-center gap-1 rounded-md px-1.5 text-[10px] font-bold uppercase tracking-wide transition-all ${studioView === "gallery" ? "bg-[var(--soft-black)] text-[var(--text-primary)] border border-[var(--border-subtle)] shadow-sm" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                    }`}
+                  className={`inline-flex h-7 items-center gap-1 rounded-md px-2 text-[10px] font-bold uppercase tracking-wide transition-all ${
+                    studioView === "gallery"
+                      ? "bg-[var(--soft-black)] text-[var(--text-primary)] border border-[var(--border-subtle)] shadow-sm"
+                      : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                  }`}
                 >
                   <Grid3x3 className="h-3.5 w-3.5" strokeWidth={2} />
                 </button>
@@ -1617,12 +1169,12 @@ export default function VideoStudioClient() {
                 onClick={chrome.toggleCollapsed}
                 className="hidden h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--glass)] text-[var(--text-muted)] transition-colors hover:bg-[var(--glass-elevated)] hover:text-[var(--text-primary)] lg:inline-flex"
                 aria-label={chrome.collapsed ? "Show controls" : "Hide controls"}
-                aria-pressed={chrome.collapsed}
                 title={chrome.collapsed ? "Show controls" : "Hide controls"}
               >
                 {chrome.collapsed ? <PanelLeft className="h-3.5 w-3.5" strokeWidth={2} /> : <PanelLeftClose className="h-3.5 w-3.5" strokeWidth={2} />}
               </button>
             </div>
+
             <div
               ref={scrollRef}
               className="studio-scrollbar min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain [-webkit-overflow-scrolling:touch] touch-pan-y px-3 py-3 sm:px-4 bg-[var(--deep-black)] transition-colors duration-200"
@@ -1630,12 +1182,12 @@ export default function VideoStudioClient() {
               {studioView === "gallery" ? (
                 galleryItems.length === 0 ? (
                   <div className="flex min-h-[240px] flex-col items-center justify-center gap-4 py-12 text-center">
-                    <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl border border-[var(--border-subtle)] bg-[var(--soft-black)] shadow-sm">
-                      <Grid3x3 className="h-9 w-9 text-[var(--text-primary)]" strokeWidth={1.5} />
+                    <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl border border-[var(--border-subtle)] bg-[var(--soft-black)] text-[var(--text-primary)] shadow-md">
+                      <Grid3x3 className="h-8 w-8 text-[var(--text-primary)]" strokeWidth={1.5} />
                     </div>
-                    <div className="max-w-xs space-y-2">
-                      <p className="font-display text-lg font-bold text-[var(--text-primary)]">Video Gallery Awaits</p>
-                      <p className="text-sm leading-relaxed text-[var(--text-muted)]">Rendered video clips collect in your personal RUHGEN motion vault.</p>
+                    <div className="max-w-xs space-y-1.5">
+                      <p className="font-display text-base font-bold text-[var(--text-primary)]">Gallery Awaits</p>
+                      <p className="text-xs leading-relaxed text-[var(--text-muted)]">Generated video clips accumulate in your personal RUHGEN studio gallery.</p>
                     </div>
                   </div>
                 ) : (
@@ -1648,30 +1200,23 @@ export default function VideoStudioClient() {
                         transition={{ delay: reduce ? 0 : Math.min(gi * 0.03, 0.35) }}
                         className="group relative overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[var(--soft-black)] shadow-sm"
                       >
-                        <video
-                          src={item.src}
-                          controls
-                          className="w-full h-auto block rounded-xl bg-black"
-                          preload="metadata"
-                        />
+                        <video src={item.src} controls className="w-full h-auto block rounded-xl bg-black" preload="metadata" />
                       </motion.div>
                     ))}
                   </div>
                 )
               ) : messages.length === 0 ? (
-                <div className="flex min-h-[240px] flex-col items-center justify-center gap-5 py-12 text-center">
+                <div className="flex min-h-[240px] flex-col items-center justify-center gap-4 py-12 text-center">
                   <motion.div
                     initial={reduce ? false : { scale: 0.92, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    className="relative flex h-20 w-20 items-center justify-center rounded-2xl border border-[var(--border-subtle)] bg-[var(--soft-black)] text-[var(--text-primary)] shadow-sm"
+                    className="relative flex h-16 w-16 items-center justify-center rounded-2xl border border-[var(--border-subtle)] bg-[var(--soft-black)] text-[var(--text-primary)] shadow-md"
                   >
-                    <Clapperboard className="h-9 w-9 text-[var(--text-primary)]" strokeWidth={1.5} />
+                    <Clapperboard className="h-8 w-8 text-[var(--text-primary)]" strokeWidth={1.5} />
                   </motion.div>
-                  <div className="max-w-md space-y-2 px-2">
-                    <p className="font-display text-xl font-bold tracking-tight text-[var(--text-primary)]">RUHGEN Video Studio Online</p>
-                    <p className="text-sm leading-relaxed text-[var(--text-muted)]">
-                      Set duration slider, camera path, aspect ratio, and RUHGEN tier. Upload an optional image reference to direct the scene.
-                    </p>
+                  <div className="max-w-xs space-y-1.5">
+                    <p className="font-display text-base font-bold text-[var(--text-primary)]">Motion Canvas Awaits</p>
+                    <p className="text-xs leading-relaxed text-[var(--text-muted)]">Describe a scene, pick your model, and generate cinematic video.</p>
                   </div>
                 </div>
               ) : (
@@ -1680,16 +1225,14 @@ export default function VideoStudioClient() {
                     if (msg.role === "user") {
                       return (
                         <motion.div key={msg.id} initial={reduce ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex justify-end">
-                          <div
-                            className="max-w-[min(100%,580px)] rounded-xl border border-[var(--border-subtle)] bg-[var(--soft-black)] px-4 py-3 shadow-md transition-colors duration-200"
-                          >
+                          <div className="max-w-[min(100%,580px)] rounded-xl border border-[var(--border-subtle)] bg-[var(--soft-black)] px-4 py-3 shadow-md transition-colors duration-200">
                             <p className="whitespace-pre-wrap text-[14px] leading-relaxed text-[var(--text-primary)]">{msg.content}</p>
                             <div className="mt-2 flex flex-wrap items-center gap-2">
                               <p className="text-[11px] font-medium text-[var(--text-muted)]">{msg.meta}</p>
                               <button
                                 type="button"
                                 onClick={() => void copyText(msg.content, "Prompt copied")}
-                                className="inline-flex items-center gap-1 rounded border border-[var(--border-subtle)] bg-[var(--glass)] px-2 py-0.5 text-[11px] font-semibold text-[var(--text-primary)] transition-all hover:bg-[var(--glass-elevated)] active:scale-[0.98]"
+                                className="inline-flex items-center gap-1 rounded-md border border-[var(--border-subtle)] bg-[var(--glass)] px-2 py-0.5 text-[10px] font-semibold text-[var(--text-primary)] hover:bg-[var(--glass-elevated)]"
                               >
                                 <Copy className="h-3 w-3" />
                                 Copy
@@ -1699,7 +1242,7 @@ export default function VideoStudioClient() {
                         </motion.div>
                       );
                     }
-                    if (!showAssistantRow(msg)) return null;
+
                     return (
                       <motion.div key={msg.id} initial={reduce ? false : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-start">
                         <div
@@ -1710,8 +1253,8 @@ export default function VideoStudioClient() {
                           }
                         >
                           {msg.loading ? (
-                            <div className="space-y-3">
-                              <p className="flex items-center gap-2 text-sm text-[var(--text-primary)]">
+                            <div className="space-y-3 py-2">
+                              <p className="flex items-center gap-2 text-xs font-semibold text-[var(--text-primary)]">
                                 <Loader2 className="h-4 w-4 shrink-0 animate-spin text-[var(--text-primary)]" />
                                 <span className="font-medium">{msg.phase || "Rendering video clip…"}</span>
                               </p>
@@ -1726,21 +1269,15 @@ export default function VideoStudioClient() {
                           ) : null}
                           {msg.error ? <p className="text-sm text-rose-400">{msg.error}</p> : null}
                           {msg.urls.length > 0 ? (
-                            <div className="space-y-4">
+                            <div className={msg.urls.length === 1 ? "max-w-[580px]" : "grid gap-4 grid-cols-1 sm:grid-cols-2"}>
                               {msg.urls.map((src, vidx) => (
-                                <div key={`${msg.id}-${vidx}`} className="group relative overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-black shadow-md">
-                                  <video
-                                    src={src}
-                                    controls
-                                    autoPlay
-                                    loop
-                                    muted
-                                    playsInline
-                                    className="w-full h-auto block rounded-xl max-h-[560px] object-contain"
-                                  />
-                                  <div className="flex items-center justify-between gap-2 p-3 bg-[var(--rich-black)] border-t border-[var(--border-subtle)]">
-                                    <span className="text-xs font-semibold text-[var(--text-muted)]">RUHGEN Video Clip</span>
-                                    <div className="flex items-center gap-2">
+                                <div key={`${msg.id}-${vidx}`} className="group relative overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[var(--soft-black)] shadow-md">
+                                  <div className="relative overflow-hidden rounded-t-xl bg-black">
+                                    <video src={src} controls autoPlay loop muted playsInline className="w-full h-auto block rounded-t-xl max-h-[520px] object-contain mx-auto" />
+                                  </div>
+                                  <div className="flex items-center justify-between gap-2 p-2.5 bg-[var(--rich-black)] border-t border-[var(--border-subtle)]">
+                                    <span className="text-[11px] font-semibold text-[var(--text-muted)] truncate">Video Clip</span>
+                                    <div className="flex items-center gap-1.5 shrink-0">
                                       <button
                                         type="button"
                                         disabled={downloadingKey === `${msg.id}-${vidx}`}
@@ -1753,14 +1290,14 @@ export default function VideoStudioClient() {
                                             })
                                             .finally(() => setDownloadingKey(null));
                                         }}
-                                        className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border-subtle)] bg-[var(--soft-black)] px-3 py-1.5 text-xs font-bold text-[var(--text-primary)] transition-all hover:bg-[var(--glass-elevated)] cursor-pointer"
+                                        className="flex h-8 px-2.5 items-center justify-center gap-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--soft-black)] text-[11px] font-bold text-[var(--text-primary)] transition-all hover:bg-[var(--glass-elevated)] cursor-pointer"
                                       >
                                         {downloadingKey === `${msg.id}-${vidx}` ? (
-                                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                          <Loader2 className="h-3 w-3 animate-spin" />
                                         ) : (
-                                          <Download className="h-3.5 w-3.5 text-[var(--text-primary)]" />
+                                          <Download className="h-3 w-3 text-[var(--text-primary)]" />
                                         )}
-                                        Save Video
+                                        Save
                                       </button>
                                       <button
                                         type="button"
@@ -1769,19 +1306,19 @@ export default function VideoStudioClient() {
                                           setShareModalData({ mediaUrl: src, prompt: userPrompt, kind: "video" });
                                           setShareModalOpen(true);
                                         }}
-                                        className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border-subtle)] bg-[var(--soft-black)] px-3 py-1.5 text-xs font-bold text-[var(--text-primary)] transition-all hover:bg-[var(--glass-elevated)] cursor-pointer"
+                                        className="flex h-8 px-2.5 items-center justify-center gap-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--soft-black)] text-[11px] font-bold text-[var(--text-primary)] transition-all hover:bg-[var(--glass-elevated)] cursor-pointer"
                                         title="Share to Community"
                                       >
-                                        <Share2 className="h-3.5 w-3.5 text-[var(--text-primary)]" />
+                                        <Share2 className="h-3 w-3 text-[var(--text-primary)]" />
                                         Post
                                       </button>
                                       <button
                                         type="button"
                                         onClick={() => void copyText(src, "Video link copied")}
-                                        className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border-subtle)] bg-[var(--soft-black)] px-3 py-1.5 text-xs font-bold text-[var(--text-primary)] transition-all hover:bg-[var(--glass-elevated)] cursor-pointer"
+                                        className="flex h-8 px-2.5 items-center justify-center gap-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--soft-black)] text-[11px] font-bold text-[var(--text-primary)] transition-all hover:bg-[var(--glass-elevated)] cursor-pointer"
                                       >
-                                        <Copy className="h-3.5 w-3.5 text-[var(--text-primary)]" />
-                                        Copy Link
+                                        <Copy className="h-3 w-3 text-[var(--text-primary)]" />
+                                        Link
                                       </button>
                                     </div>
                                   </div>
@@ -1798,9 +1335,8 @@ export default function VideoStudioClient() {
               <div ref={scrollEndRef} className="h-px w-full shrink-0" aria-hidden />
             </div>
 
-            <div
-              className="shrink-0 border-t border-[var(--border-subtle)] bg-[var(--rich-black)] px-3 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] backdrop-blur-xl lg:hidden transition-colors duration-200"
-            >
+            {/* Mobile Bottom Prompt Dock */}
+            <div className="shrink-0 border-t border-[var(--border-subtle)] bg-[var(--rich-black)] px-3 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] backdrop-blur-xl lg:hidden transition-colors duration-200">
               <div className="flex items-end gap-2">
                 <textarea
                   value={prompt}
@@ -1812,15 +1348,15 @@ export default function VideoStudioClient() {
                     }
                   }}
                   disabled={busy}
-                  placeholder={isImg2Video ? "Describe action for reference photo…" : "Describe video motion scene…"}
+                  placeholder={referenceMedia.length > 0 ? "Describe action for reference media…" : "Describe video motion scene…"}
                   rows={1}
-                  className="studio-scrollbar min-h-[44px] max-h-28 flex-1 resize-none rounded-lg border border-[var(--border-subtle)] bg-[var(--soft-black)] px-3 py-2.5 text-sm leading-relaxed text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)]"
+                  className="min-h-[44px] max-h-28 flex-1 resize-none rounded-lg border border-[var(--border-subtle)] bg-[var(--soft-black)] px-3 py-2.5 text-sm leading-relaxed text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)] focus:border-[var(--text-muted)]"
                 />
                 <button
                   type="button"
-                  disabled={busy || prompt.trim().length < 2 || Boolean(user?.generationDisabled) || (user?.availableCredits ?? user?.credits ?? 0) < currentCost}
+                  disabled={busy || prompt.trim().length < 2 || Boolean(user?.generationDisabled) || hasInsufficientCredits}
                   onClick={() => void run()}
-                  className="flex h-11 w-11 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--soft-black)] text-[var(--text-primary)] shadow-sm transition-all hover:bg-[var(--glass-elevated)] active:scale-95 disabled:opacity-40 cursor-pointer shrink-0"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--soft-black)] text-[var(--text-primary)] shadow-sm transition-all hover:bg-[var(--glass-elevated)] active:scale-95 disabled:opacity-40 cursor-pointer"
                 >
                   {busy ? <Loader2 className="h-5 w-5 animate-spin text-[var(--text-primary)]" /> : <ArrowUp className="h-5 w-5 text-[var(--text-primary)]" strokeWidth={2.25} />}
                 </button>
@@ -1837,12 +1373,14 @@ export default function VideoStudioClient() {
               }}
             >
               <div className="mb-2 flex items-center justify-between rounded-lg border border-[var(--border-subtle)] bg-[var(--glass)] px-2.5 py-1 text-[11px]">
-                <span className="font-semibold text-[var(--text-primary)]">Cost: <strong className={((user?.availableCredits ?? user?.credits ?? 0) < currentCost) ? "text-rose-400 font-bold" : "text-[var(--text-primary)] font-bold font-mono"}>{currentCost} credits ({activeDuration}s clip)</strong></span>
-                <span className="text-[var(--text-muted)] font-mono">Available: {user?.availableCredits ?? user?.credits ?? 0}</span>
+                <span className="font-semibold text-[var(--text-primary)]">
+                  Cost: <strong className={hasInsufficientCredits ? "text-rose-400 font-bold" : "text-[var(--text-primary)] font-bold font-mono"}>{estimatedCost} credits ({activeModelDef.label})</strong>
+                </span>
+                <span className="text-[var(--text-muted)] font-mono">Available: {userBalance}</span>
               </div>
 
               <p className="mb-1 text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
-                Video Motion Prompt
+                Video Prompt
               </p>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
                 <textarea
@@ -1855,13 +1393,13 @@ export default function VideoStudioClient() {
                     }
                   }}
                   disabled={busy}
-                  placeholder="Describe your video motion scene…"
+                  placeholder={referenceMedia.length > 0 ? "Describe action for reference media…" : "Describe video motion scene…"}
                   rows={2}
                   className="min-h-[44px] w-full flex-1 resize-none rounded-lg border border-[var(--border-subtle)] bg-[var(--glass)] px-3 py-2.5 text-sm leading-relaxed text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)] focus:border-[var(--text-muted)]"
                 />
                 <button
                   type="button"
-                  disabled={busy || prompt.trim().length < 2 || Boolean(user?.generationDisabled) || (user?.availableCredits ?? user?.credits ?? 0) < currentCost}
+                  disabled={busy || prompt.trim().length < 2 || Boolean(user?.generationDisabled) || hasInsufficientCredits}
                   onClick={() => void run()}
                   className="flex h-11 items-center justify-center gap-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--soft-black)] px-4 text-xs font-bold text-[var(--text-primary)] shadow-sm transition-all hover:bg-[var(--glass-elevated)] active:scale-95 disabled:opacity-40 cursor-pointer sm:shrink-0"
                 >
@@ -1873,9 +1411,9 @@ export default function VideoStudioClient() {
                   ) : user?.generationDisabled ? (
                     <>
                       <X className="h-4 w-4 text-rose-500" strokeWidth={2} />
-                      <span>Access Disabled</span>
+                      <span>Disabled</span>
                     </>
-                  ) : (user?.availableCredits ?? user?.credits ?? 0) < currentCost ? (
+                  ) : hasInsufficientCredits ? (
                     <>
                       <X className="h-4 w-4 text-rose-500" strokeWidth={2} />
                       <span>Insufficient</span>
@@ -1899,13 +1437,21 @@ export default function VideoStudioClient() {
     );
   };
 
+  const handleClearHistory = () => {
+    if (!user?.id || typeof window === "undefined") return;
+    try {
+      localStorage.removeItem(`${CHAT_STORAGE_PREFIX}${user.id}`);
+    } catch {}
+    setMessages([]);
+  };
+
   return (
     <motion.div className="flex min-h-0 flex-1 flex-col overflow-hidden" initial={reduce ? false : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
       <LuxuryStudioLayout
         mode="video"
         eyebrow="RUHGEN AI"
         title="Video Studio"
-        subtitle="Cinema motion synthesis · customizable clip duration · camera controls."
+        subtitle="Higgsfield-powered next-generation motion synthesis · RUHGEN tier rendering · cinematic video."
         mobilePane={mobileStudioPane}
         onMobilePaneChange={setMobileStudioPane}
         topActions={
@@ -1916,7 +1462,7 @@ export default function VideoStudioClient() {
               onClick={() => {
                 if (messages.length === 0) return;
                 if (!window.confirm("Clear session history?")) return;
-                clearChatHistory();
+                handleClearHistory();
               }}
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[var(--border-subtle)] bg-[var(--glass)] text-[var(--text-muted)] transition-all hover:bg-[var(--glass-elevated)] hover:text-[var(--text-primary)] disabled:opacity-40 cursor-pointer"
               aria-label="Clear session"
@@ -1929,7 +1475,10 @@ export default function VideoStudioClient() {
               className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 sm:gap-2 rounded-full border border-amber-500/40 bg-amber-500/10 px-2.5 sm:px-4 text-xs font-bold tracking-wider text-amber-600 dark:text-amber-300 shadow-sm backdrop-blur-md transition-all hover:scale-[1.03] hover:border-amber-500/60 active:scale-95 cursor-pointer"
             >
               <Zap className="h-3.5 w-3.5 text-amber-500 fill-amber-500 animate-pulse" />
-              <span className="font-mono text-[var(--text-primary)] text-xs font-bold">{user?.availableCredits ?? user?.credits ?? 0}<span className="hidden sm:inline"> Credits</span></span>
+              <span className="font-mono text-[var(--text-primary)] text-xs font-bold">
+                {user?.availableCredits ?? user?.credits ?? 0}
+                <span className="hidden sm:inline"> Credits</span>
+              </span>
             </Link>
           </>
         }
@@ -1938,9 +1487,25 @@ export default function VideoStudioClient() {
       />
       <CommunityShareModal
         open={shareModalOpen}
-        onClose={() => setShareModalOpen(false)}
-        initial={shareModalData || undefined}
+        onClose={() => {
+          setShareModalOpen(false);
+          setShareModalData(null);
+        }}
+        initial={
+          shareModalData
+            ? {
+                mediaUrl: shareModalData.mediaUrl,
+                prompt: shareModalData.prompt,
+                kind: shareModalData.kind,
+              }
+            : undefined
+        }
+        onShared={() => {
+          setCopyToast("Shared to Community!");
+          setTimeout(() => setCopyToast(null), 2500);
+        }}
       />
     </motion.div>
   );
 }
+

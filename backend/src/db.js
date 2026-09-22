@@ -1548,18 +1548,39 @@ function seedFaqsIfEmpty(db) {
 }
 
 function seedModelRegistryIfEmpty(db) {
-  const verifiedOmniMax = parseInt(process.env.KIE_MAX_REFERENCE_IMAGES || "7", 10) || 7;
+  const verifiedMaxRefs = parseInt(process.env.HIGGSFIELD_MAX_REFERENCE_IMAGES || "10", 10) || 10;
+  const now = new Date().toISOString();
 
-  // Ensure existing databases have the verified Omni limit set
+  // Migrate any existing legacy model IDs to current Higgsfield models
   try {
-    db.prepare("UPDATE model_registry SET max_reference_images = ? WHERE id = 'video-kling-premium'").run(verifiedOmniMax);
-    db.prepare("UPDATE model_registry SET max_reference_images = 0 WHERE id != 'video-kling-premium'").run();
-  } catch {}
+    db.prepare(`
+      UPDATE model_registry
+      SET kie_model_id = 'bytedance/seedance-2.5/text-to-video',
+          base_provider_cost = 0.050,
+          base_credit_cost = 3,
+          credit_cost_type = 'per_second',
+          min_margin_percent = 65.0,
+          supported_aspect_ratios = '["16:9","9:16","1:1","4:3","3:2","21:9"]',
+          supported_resolutions = '["720p","1080p","4k"]',
+          supported_durations = '[5, 10, 15, 30]',
+          supported_controls = '["prompt","negative_prompt","aspect_ratio","duration","resolution","sound","camera_control","image_reference","image_urls","multi_reference_images","seed"]',
+          max_duration = 30,
+          max_resolution = '4k',
+          max_reference_images = 10,
+          updated_at = ?
+      WHERE type = 'video'
+    `).run(now);
+
+    // Ensure model names are up-to-date
+    db.prepare("UPDATE model_registry SET name = 'RUHGEN Premium' WHERE id = 'video-genesis-premium' OR id = 'video-ruhgen-premium'").run();
+    db.prepare("UPDATE model_registry SET name = 'Seedance 2.5' WHERE id = 'video-seedance-2-5'").run();
+  } catch (err) {
+    console.warn("[db] Model registry migration notice:", err.message);
+  }
 
   const count = db.prepare("SELECT COUNT(*) AS c FROM model_registry").get().c;
   if (count > 0) return;
 
-  const now = new Date().toISOString();
   const insert = db.prepare(`
     INSERT INTO model_registry (
       id, name, type, tier, kie_model_id, enabled, base_provider_cost,
@@ -1569,7 +1590,7 @@ function seedModelRegistryIfEmpty(db) {
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
-  // 1. Standard Image (KIE.ai Flux Flex text-to-image)
+  // 1. Standard Image
   insert.run(
     "image-flux-standard",
     "RUHGEN Standard Image",
@@ -1592,7 +1613,7 @@ function seedModelRegistryIfEmpty(db) {
     now
   );
 
-  // 2. Premium Image (KIE.ai Flux Pro text-to-image)
+  // 2. Premium Image
   insert.run(
     "image-flux-premium",
     "RUHGEN Premium Image",
@@ -1615,53 +1636,53 @@ function seedModelRegistryIfEmpty(db) {
     now
   );
 
-  // 3. Standard Video (KIE.ai Kling 2.6 - Cheapest Suitable Video Model)
+  // 3. RUHGEN Premium (Higgsfield Seedance Standard)
   insert.run(
-    "video-kling-standard",
-    "RUHGEN Standard Video",
+    "video-genesis-premium",
+    "RUHGEN Premium",
     "video",
     "standard",
-    "kling-2.6/text-to-video",
+    "bytedance/seedance-2.5/text-to-video",
     1,
-    0.055,
+    0.050,
     "per_second",
     3,
-    70.0,
-    JSON.stringify(["16:9", "9:16", "1:1"]),
-    JSON.stringify(["720p"]),
-    JSON.stringify([5]),
-    JSON.stringify(["prompt", "negative_prompt", "aspect_ratio", "duration", "sound"]),
-    5,
-    "720p",
-    0,
+    65.0,
+    JSON.stringify(["16:9", "9:16", "1:1", "4:3", "3:2"]),
+    JSON.stringify(["720p", "1080p"]),
+    JSON.stringify([5, 10]),
+    JSON.stringify(["prompt", "negative_prompt", "aspect_ratio", "duration", "resolution", "image_reference"]),
+    10,
+    "1080p",
+    1,
     now,
     now
   );
 
-  // 4. Premium Omni Video (KIE.ai Kling 3.0 Omni - Mid-Tier Omni Model)
+  // 4. Seedance 2.5 (Higgsfield Seedance 2.5 Flagship Cinematic Engine)
   insert.run(
-    "video-kling-premium",
-    "RUHGEN Premium Omni Video",
+    "video-seedance-2-5",
+    "Seedance 2.5",
     "video",
     "premium",
-    "kling-3.0-omni/text-to-video",
+    "bytedance/seedance-2.5/text-to-video",
     1,
-    0.110,
+    0.090,
     "per_second",
     6,
     65.0,
-    JSON.stringify(["16:9", "9:16", "1:1"]),
-    JSON.stringify(["720p", "1080p"]),
-    JSON.stringify([5, 10]),
-    JSON.stringify(["prompt", "negative_prompt", "aspect_ratio", "duration", "resolution", "sound", "camera_control", "image_urls", "multi_reference_images"]),
-    10,
-    "1080p",
-    verifiedOmniMax,
+    JSON.stringify(["16:9", "9:16", "1:1", "4:3", "21:9"]),
+    JSON.stringify(["720p", "1080p", "4k"]),
+    JSON.stringify([5, 10, 15, 30]),
+    JSON.stringify(["prompt", "negative_prompt", "aspect_ratio", "duration", "resolution", "sound", "camera_control", "image_urls", "multi_reference_images", "seed"]),
+    30,
+    "4k",
+    verifiedMaxRefs,
     now,
     now
   );
 
-  console.log("[db] Initialized Model Registry with production KIE.ai video models (Omni max references: " + verifiedOmniMax + ").");
+  console.log("[db] Initialized Model Registry with Higgsfield video models (Seedance 2.5 & Genesis 2).");
 }
 
 function seedPricingSettingsIfEmpty(db) {

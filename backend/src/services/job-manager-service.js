@@ -1,17 +1,13 @@
-/**
- * job-manager-service.js
- * Generation Job Lifecycle Manager, Idempotency Enforcer, and Async Polling Engine.
- * 
- * - Coordinates Model Registry, Credit Wallet, and KIE.ai Provider.
- * - Enforces idempotency to prevent duplicate charges or tasks.
- * - Protects user credits with atomic reservations and automatic refunds on failure.
- */
-
 const crypto = require("node:crypto");
-const { KieProvider, sanitizeError } = require("./kie-provider");
+const { HiggsfieldProvider, sanitizeError: sanitizeHfError } = require("./higgsfield-provider");
+const { KieProvider, sanitizeError: sanitizeKieError } = require("./kie-provider");
 const { ModelRegistryService } = require("./model-registry-service");
 const { CreditWalletService } = require("./credit-wallet-service");
 const { ReferenceStorageService } = require("./reference-storage-service");
+
+function sanitizeError(msg) {
+  return sanitizeHfError(msg) || sanitizeKieError(msg) || "Generation failed.";
+}
 
 class JobManagerService {
   /**
@@ -128,16 +124,26 @@ class JobManagerService {
       );
     } catch {}
 
-    // 9. Dispatch to KIE.ai Provider with exact schema mapping
+    // 9. Dispatch to Provider with exact schema mapping
     try {
       const formatted = ModelRegistryService.formatProviderInput(model, sanitizedParams);
-      const taskRes = await KieProvider.createTask({
-        model: formatted.providerModel,
-        input: formatted.input,
-        callBackUrl,
-      });
+      let providerTaskId;
 
-      const providerTaskId = taskRes.taskId;
+      if (model.type === "video") {
+        const taskRes = await HiggsfieldProvider.createTask({
+          model: formatted.providerModel,
+          input: formatted.input,
+          callBackUrl,
+        });
+        providerTaskId = taskRes.taskId;
+      } else {
+        const taskRes = await KieProvider.createTask({
+          model: formatted.providerModel,
+          input: formatted.input,
+          callBackUrl,
+        });
+        providerTaskId = taskRes.taskId;
+      }
 
       db.prepare(
         `UPDATE generation_jobs
@@ -193,7 +199,7 @@ class JobManagerService {
   static async getJobStatus(db, jobId, userId) {
     const job = db
       .prepare(
-        `SELECT id, user_id, status, provider_task_id, credit_cost, output_urls_json,
+        `SELECT id, user_id, status, generation_type, provider_task_id, credit_cost, output_urls_json,
                 error_message, created_at, updated_at
          FROM generation_jobs
          WHERE id = ?`
@@ -243,9 +249,12 @@ class JobManagerService {
       };
     }
 
-    // Query KIE provider if provider_task_id exists
+    // Query Provider if provider_task_id exists
     if (job.provider_task_id) {
-      const info = await KieProvider.getRecordInfo(job.provider_task_id);
+      const isVideo = job.generation_type === "video";
+      const info = isVideo
+        ? await HiggsfieldProvider.getRecordInfo(job.provider_task_id)
+        : await KieProvider.getRecordInfo(job.provider_task_id);
 
       if (info.status === "COMPLETED" && info.urls.length > 0) {
         // Atomic final consumption

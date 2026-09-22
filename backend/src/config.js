@@ -59,6 +59,10 @@ function parseExpiryMs(val, defaultMs) {
 }
 
 const TRACKED_ENV_KEYS = [
+  "HIGGSFIELD_API_KEY",
+  "HIGGSFIELD_API_SECRET",
+  "HIGGSFIELD_BASE_URL",
+  "HIGGSFIELD_WEBHOOK_SECRET",
   "KIE_API_KEY",
   "KIE_BASE_URL",
   "KIE_WEBHOOK_SECRET",
@@ -98,6 +102,9 @@ function readFreshEnv() {
       path.resolve(__dirname, "..", "..", ".env"),
       path.resolve(__dirname, "..", ".env"),
     ];
+
+    const foundKeys = new Set();
+
     for (const envPath of envPaths) {
       if (!fs.existsSync(envPath)) continue;
       const content = fs.readFileSync(envPath, "utf8");
@@ -117,7 +124,14 @@ function readFreshEnv() {
         }
         if (TRACKED_ENV_KEYS.includes(key)) {
           process.env[key] = val;
+          foundKeys.add(key);
         }
+      }
+    }
+
+    for (const k of TRACKED_ENV_KEYS) {
+      if (!foundKeys.has(k)) {
+        delete process.env[k];
       }
     }
   } catch (err) {
@@ -152,13 +166,30 @@ function getImageConfig(tier = "standard") {
   }
 }
 
+function getHiggsfieldConfig() {
+  readFreshEnv();
+  const apiKey = (process.env.HIGGSFIELD_API_KEY || "").trim();
+  const apiSecret = (process.env.HIGGSFIELD_API_SECRET || "").trim();
+  const baseUrl = (process.env.HIGGSFIELD_BASE_URL || "https://api.higgsfield.ai").trim().replace(/\/$/, "");
+  const webhookSecret = (process.env.HIGGSFIELD_WEBHOOK_SECRET || "").trim();
+
+  const effectiveKey = apiKey || apiSecret;
+  return {
+    apiKey,
+    apiSecret,
+    baseUrl,
+    webhookSecret,
+    isConfigured: Boolean(effectiveKey && !effectiveKey.includes("your_higgsfield_api_key")),
+  };
+}
+
 function getVideoConfig(tier = "standard") {
   readFreshEnv();
-  const kie = getKieConfig();
+  const hf = getHiggsfieldConfig();
   return {
     tier: tier === "premium" ? "premium" : "standard",
-    isConfigured: kie.isConfigured,
-    provider: "kie.ai",
+    isConfigured: hf.isConfigured,
+    provider: "higgsfield.ai",
   };
 }
 
@@ -282,11 +313,11 @@ function validateConfig() {
   console.log(`[config] EMAIL_VERIFICATION_URL: ${verifyUrl}`);
   console.log(`[config] PASSWORD_RESET_URL: ${resetUrl}`);
 
-  const kie = getKieConfig();
+  const hf = getHiggsfieldConfig();
   console.log(
-    `[config] KIE.ai Provider API: ${kie.isConfigured ? "Configured ✓" : "WARNING: Missing or placeholder KIE_API_KEY"}`
+    `[config] Video Engine (Higgsfield API): ${hf.isConfigured ? "Configured ✓" : "WARNING: Missing or placeholder HIGGSFIELD_API_KEY"}`
   );
-  console.log(`[config] KIE.ai Base URL: ${kie.baseUrl}`);
+  console.log(`[config] Higgsfield Base URL: ${hf.baseUrl}`);
 
   const stdImg = getImageConfig("standard");
   const premImg = getImageConfig("premium");
@@ -295,10 +326,6 @@ function validateConfig() {
   );
   console.log(
     `[config] Image Premium API: ${premImg.apiKey ? "Configured ✓" : "Legacy/Fallback key not set"}`
-  );
-
-  console.log(
-    `[config] Video Engine (KIE.ai): ${kie.isConfigured ? "Configured ✓" : "WARNING: Missing or placeholder KIE_API_KEY"}`
   );
 
   const smtp = getSmtpConfig();
@@ -311,6 +338,7 @@ function validateConfig() {
 module.exports = {
   getAppUrl,
   parseExpiryMs,
+  getHiggsfieldConfig,
   getKieConfig,
   getImageConfig,
   getVideoConfig,

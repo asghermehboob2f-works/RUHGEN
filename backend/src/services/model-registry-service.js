@@ -165,20 +165,21 @@ class ModelRegistryService {
     for (const item of refUrls) {
       if (typeof item === "string" && item.trim()) {
         const trimmed = item.trim();
-        if (/^(https?:\/\/|data:image\/)/i.test(trimmed)) {
+        if (/^(https?:\/\/|data:image\/|data:video\/)/i.test(trimmed)) {
           validRefs.push(trimmed);
         }
       }
     }
 
     if (validRefs.length > 0) {
-      const maxAllowed = Number(model.max_reference_images) || (model.tier === "premium" && model.type === "video" ? 7 : 1);
+      const maxAllowed = Number(model.max_reference_images) || (model.tier === "premium" && model.type === "video" ? 10 : 1);
       if (validRefs.length > maxAllowed) {
         throw new Error(
-          `Maximum ${maxAllowed} reference image${maxAllowed === 1 ? "" : "s"} supported for ${model.name}. You provided ${validRefs.length}.`
+          `Maximum ${maxAllowed} reference media item${maxAllowed === 1 ? "" : "s"} supported for ${model.name}. You provided ${validRefs.length}.`
         );
       }
       sanitized.image_urls = validRefs;
+      sanitized.references = validRefs;
       sanitized.image_url = validRefs[0];
       if (model.type === "video") sanitized.reference_url = validRefs[0];
     }
@@ -199,8 +200,8 @@ class ModelRegistryService {
       sanitized.style = rawParams.style.trim().slice(0, 50);
     }
 
-    // 7. Sound toggle (for video models)
-    if (model.type === "video") {
+    // 7. Sound toggle (for video models - Seedance 2.5 native audio)
+    if (model.type === "video" && model.supported_controls?.includes("sound")) {
       sanitized.sound = Boolean(rawParams.sound === true || rawParams.sound === "true");
     }
 
@@ -214,9 +215,25 @@ class ModelRegistryService {
       }
     }
 
-    // 9. Camera Control (Omni Video only)
+    // 9. Camera / Motion Control
     if (model.type === "video" && model.supported_controls?.includes("camera_control")) {
-      const allowedCameras = ["none", "zoom_in", "zoom_out", "pan_left", "pan_right"];
+      const allowedCameras = [
+        "none",
+        "static",
+        "push_in",
+        "pull_out",
+        "pan_left",
+        "pan_right",
+        "tilt_up",
+        "tilt_down",
+        "orbit",
+        "tracking",
+        "crane",
+        "handheld",
+        "dolly",
+        "zoom_in",
+        "zoom_out",
+      ];
       const requestedCam = typeof rawParams.camera_control === "string" ? rawParams.camera_control.trim().toLowerCase() : "";
       if (allowedCameras.includes(requestedCam)) {
         sanitized.camera_control = requestedCam;
@@ -225,7 +242,15 @@ class ModelRegistryService {
       }
     }
 
-    // 10. Image Resolution (for image models)
+    // 10. Seed
+    if (model.supported_controls?.includes("seed") && rawParams.seed !== undefined && rawParams.seed !== null && rawParams.seed !== "") {
+      const numSeed = Number(rawParams.seed);
+      if (Number.isFinite(numSeed) && numSeed >= 0 && numSeed <= 2147483647) {
+        sanitized.seed = Math.floor(numSeed);
+      }
+    }
+
+    // 11. Image Resolution (for image models)
     if (model.type === "image") {
       const requestedRes = typeof rawParams.resolution === "string" ? rawParams.resolution.trim() : "";
       if (requestedRes && (requestedRes === "1K" || requestedRes === "2K")) {
@@ -239,41 +264,46 @@ class ModelRegistryService {
   }
 
   /**
-   * Format and validate parameters into the exact schema expected by KIE.ai
+   * Format and validate parameters into the exact schema expected by Higgsfield API
    */
   static formatProviderInput(model, sanitizedParams) {
     if (model.type === "video") {
-      const isOmni = model.tier === "premium";
       const hasRefImages = Boolean(sanitizedParams.image_urls && sanitizedParams.image_urls.length > 0);
 
       const input = {
         prompt: sanitizedParams.prompt,
-        sound: Boolean(sanitizedParams.sound),
-        duration: String(sanitizedParams.duration || 5),
         aspect_ratio: String(sanitizedParams.aspect_ratio || "16:9"),
+        duration: Number(sanitizedParams.duration || 5),
         ...(sanitizedParams.negative_prompt ? { negative_prompt: sanitizedParams.negative_prompt } : {}),
       };
 
-      if (isOmni) {
-        if (sanitizedParams.resolution) input.resolution = sanitizedParams.resolution;
-        if (sanitizedParams.camera_control && sanitizedParams.camera_control !== "none") {
-          input.camera_control = sanitizedParams.camera_control;
-        }
-        if (hasRefImages) {
-          input.image_urls = sanitizedParams.image_urls;
-        }
-      } else {
-        input.mode = "std";
+      if (sanitizedParams.resolution) {
+        input.resolution = sanitizedParams.resolution;
       }
 
-      // Determine the provider model (Omni reference-to-video vs text-to-video)
-      let resolvedKieModel = model.kie_model_id;
-      if (isOmni && hasRefImages) {
-        resolvedKieModel = "kling-3.0-omni/reference-to-video";
+      if (sanitizedParams.sound !== undefined) {
+        input.sound = Boolean(sanitizedParams.sound);
       }
+
+      if (sanitizedParams.camera_control && sanitizedParams.camera_control !== "none" && sanitizedParams.camera_control !== "static") {
+        input.camera_control = sanitizedParams.camera_control;
+      }
+
+      if (sanitizedParams.seed !== undefined && sanitizedParams.seed !== null && sanitizedParams.seed !== "") {
+        const numSeed = Number(sanitizedParams.seed);
+        if (Number.isFinite(numSeed)) input.seed = numSeed;
+      }
+
+      if (hasRefImages) {
+        input.image_url = sanitizedParams.image_urls[0];
+      }
+
+      const providerModel = hasRefImages
+        ? "bytedance/seedance-2.5/image-to-video"
+        : "bytedance/seedance-2.5/text-to-video";
 
       return {
-        providerModel: resolvedKieModel,
+        providerModel,
         input,
       };
     }

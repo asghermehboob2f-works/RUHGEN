@@ -119,25 +119,25 @@ async function runTests() {
     );
 
     // -------------------------------------------------------------
-    // SECTION B: VIDEO GENERATION ENGINE TESTS (KIE.ai)
+    // SECTION B: VIDEO GENERATION ENGINE TESTS (Higgsfield API)
     // -------------------------------------------------------------
-    console.log("\n── Section B: Video Generation Engine (KIE.ai Integration)");
+    console.log("\n── Section B: Video Generation Engine (Higgsfield API Integration)");
 
     writeTestEnv({
-      KIE_API_KEY: "test_mock_kie_key_12345",
-      KIE_BASE_URL: "https://api.kie.ai",
+      HIGGSFIELD_API_KEY: "test_mock_hf_key_12345",
+      HIGGSFIELD_BASE_URL: "https://api.higgsfield.ai",
     });
     const vidCfg = getVideoConfig("standard");
     assert(
-      vidCfg.provider === "kie.ai" && vidCfg.isConfigured === true,
-      "Case B1: KIE_API_KEY present -> Video engine resolves configured status"
+      vidCfg.provider === "higgsfield.ai" && vidCfg.isConfigured === true,
+      "Case B1: HIGGSFIELD_API_KEY present -> Video engine resolves configured status"
     );
 
-    writeTestEnv({ KIE_API_KEY: "" });
+    writeTestEnv({ HIGGSFIELD_API_KEY: "" });
     const vidCfgNoKey = getVideoConfig("standard");
     assert(
       vidCfgNoKey.isConfigured === false,
-      "Case B2: KIE_API_KEY removed -> isConfigured is false"
+      "Case B2: HIGGSFIELD_API_KEY removed -> isConfigured is false"
     );
 
     let vidFailed = false;
@@ -149,8 +149,8 @@ async function runTests() {
       vidErrMsg = e.message;
     }
     assert(
-      vidFailed && vidErrMsg.includes("Missing KIE_API_KEY"),
-      `Case B3: Video generation fails server-side when KIE_API_KEY is missing: "${vidErrMsg}"`
+      vidFailed && vidErrMsg.includes("Missing HIGGSFIELD_API_KEY"),
+      `Case B3: Video generation fails server-side when HIGGSFIELD_API_KEY is missing: "${vidErrMsg}"`
     );
 
   } finally {

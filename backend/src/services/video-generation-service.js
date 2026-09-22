@@ -1,15 +1,15 @@
 /**
  * video-generation-service.js
  * Video Generation Service Adapter.
- * Bridges any legacy calls directly to the server-side KIE.ai generation pipeline.
+ * Bridges calls directly to the server-side Higgsfield AI generation pipeline.
  */
 
-const { KieProvider, sanitizeError } = require("./kie-provider");
-const { getKieConfig } = require("../config");
+const { HiggsfieldProvider, sanitizeError } = require("./higgsfield-provider");
+const { getHiggsfieldConfig } = require("../config");
 
 class VideoGenerationService {
   /**
-   * Create an asynchronous video generation task via KIE.ai
+   * Create an asynchronous video generation task via Higgsfield
    */
   static async createVideoTask(params) {
     const {
@@ -17,53 +17,69 @@ class VideoGenerationService {
       duration = 5,
       aspect_ratio = "16:9",
       tier = "standard",
+      modelId,
       quality,
       mode,
       negative_prompt,
       image_url,
       reference_url,
+      references,
       sound = true,
+      resolution,
+      camera_control,
+      seed,
     } = params;
 
-    const kie = getKieConfig();
-    if (!kie.isConfigured) {
-      throw new Error("Video generation is not configured. Missing KIE_API_KEY.");
+    const hf = getHiggsfieldConfig();
+    if (!hf.isConfigured) {
+      throw new Error("Video generation is not configured. Missing HIGGSFIELD_API_KEY.");
     }
 
-    const isPremium =
+    const isSeedance =
+      (typeof modelId === "string" && modelId.toLowerCase().includes("seedance")) ||
+      (typeof tier === "string" && tier.toLowerCase().includes("seedance")) ||
       (typeof tier === "string" && tier.toLowerCase().includes("prem")) ||
       quality === "quality" ||
       mode === "pro";
 
-    const modelId = isPremium ? "kling-3.0-omni/text-to-video" : "kling-2.6/text-to-video";
+    const refImage = image_url || reference_url;
+    const refArray = Array.isArray(references) ? references : refImage ? [refImage] : [];
+
+    let providerModel = isSeedance
+      ? "bytedance/seedance-2.5/text-to-video"
+      : "bytedance/seedance-2.5/text-to-video";
 
     const input = {
       prompt: String(prompt || "").trim(),
-      sound: Boolean(sound),
-      duration: String(duration),
-      aspect_ratio: String(aspect_ratio),
+      aspect_ratio: String(aspect_ratio || "16:9"),
+      duration: Number(duration) || 5,
     };
 
+    if (sound !== undefined) input.sound = Boolean(sound);
     if (negative_prompt) input.negative_prompt = String(negative_prompt).trim();
+    if (resolution) input.resolution = String(resolution);
+    if (camera_control && camera_control !== "none" && camera_control !== "static") {
+      input.camera_control = String(camera_control);
+    }
+    if (seed !== undefined && seed !== null && seed !== "") {
+      const numSeed = Number(seed);
+      if (Number.isFinite(numSeed)) input.seed = numSeed;
+    }
 
-    const refImage = image_url || reference_url;
-    let providerModel = modelId;
-    if (isPremium && refImage) {
-      providerModel = "kling-3.0-omni/reference-to-video";
-      input.image_urls = [refImage];
-    } else if (!isPremium && refImage) {
-      providerModel = "kling-2.6/image-to-video";
-      input.image_urls = [refImage];
+    if (refArray.length > 0) {
+      providerModel = "bytedance/seedance-2.5/image-to-video";
+      input.images = refArray;
+      input.image_url = refArray[0];
     }
 
     try {
-      const task = await KieProvider.createTask({
+      const task = await HiggsfieldProvider.createTask({
         model: providerModel,
         input,
       });
       return {
         taskId: task.taskId,
-        tier: isPremium ? "premium" : "standard",
+        tier: isSeedance ? "premium" : "standard",
         model: providerModel,
       };
     } catch (err) {
@@ -72,11 +88,11 @@ class VideoGenerationService {
   }
 
   /**
-   * Poll status of an active video task via KIE.ai
+   * Poll status of an active video task via Higgsfield
    */
   static async getTaskStatus(taskId) {
     try {
-      const record = await KieProvider.getRecordInfo(taskId);
+      const record = await HiggsfieldProvider.getRecordInfo(taskId);
       return {
         status: record.status.toLowerCase(),
         urls: record.urls,

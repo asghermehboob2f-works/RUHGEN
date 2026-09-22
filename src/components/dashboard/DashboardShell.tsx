@@ -3,11 +3,15 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   Activity,
+  Calculator,
+  Coins,
   CreditCard,
+  DollarSign,
   ExternalLink,
   GraduationCap,
   Headphones,
   HelpCircle,
+  History,
   Inbox,
   Layers,
   LayoutDashboard,
@@ -16,28 +20,56 @@ import {
   Menu,
   Moon,
   PanelLeft,
+  Search,
   Settings,
   ShieldCheck,
+  Sliders,
   Sparkles,
   Sun,
   Users,
   X,
+  Zap,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { AmbientBackdrop } from "@/components/AmbientBackdrop";
 import { BrandLogo } from "@/components/BrandLogo";
 import { useAdminAuth } from "@/components/AdminAuthProvider";
 import { useTheme } from "@/components/ThemeProvider";
 import { CursorGlow } from "@/components/CursorGlow";
 
-const navGroups = [
+interface NavItem {
+  href: string;
+  label: string;
+  icon: any;
+  end?: boolean;
+  isSubItem?: boolean;
+  badge?: string;
+}
+
+interface NavGroup {
+  title: string;
+  items: NavItem[];
+}
+
+const navGroups: NavGroup[] = [
   {
     title: "MAIN WORKSPACE",
     items: [
       { href: "/admindashboard", label: "Overview", icon: LayoutDashboard, end: true },
       { href: "/admindashboard/analytics", label: "Analytics & Audits", icon: Activity },
+    ],
+  },
+  {
+    title: "CREDITS & AI ENGINE",
+    items: [
+      { href: "/admindashboard/credits?tab=overview", label: "Financial Overview", icon: LayoutDashboard, isSubItem: true },
+      { href: "/admindashboard/credits?tab=rates", label: "Model Rate Matrix", icon: Coins, isSubItem: true, badge: "Sync" },
+      { href: "/admindashboard/credits?tab=models", label: "AI Model Registry", icon: Layers, isSubItem: true },
+      { href: "/admindashboard/credits?tab=economics", label: "Platform Economics", icon: DollarSign, isSubItem: true },
+      { href: "/admindashboard/credits?tab=simulator", label: "Margin Simulator", icon: Calculator, isSubItem: true },
+      { href: "/admindashboard/credits?tab=adjustments", label: "Adjustments & Ledger", icon: History, isSubItem: true },
     ],
   },
   {
@@ -76,7 +108,7 @@ const navGroups = [
       { href: "/admindashboard/settings", label: "Admin Settings", icon: Settings },
     ],
   },
-] as const;
+];
 
 function initials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -85,9 +117,166 @@ function initials(name: string) {
   return (a + b).toUpperCase();
 }
 
-function navActive(pathname: string, href: string, end?: boolean) {
-  if (end) return pathname === href;
-  return pathname === href || pathname.startsWith(`${href}/`);
+function isNavActive(currentPath: string, currentQueryTab: string | null, targetHref: string, end?: boolean) {
+  const [targetPath, targetQuery] = targetHref.split("?");
+  
+  if (targetQuery) {
+    const params = new URLSearchParams(targetQuery);
+    const expectedTab = params.get("tab");
+    if (expectedTab) {
+      return currentPath === targetPath && (currentQueryTab === expectedTab || (!currentQueryTab && expectedTab === "overview"));
+    }
+  }
+
+  if (end) {
+    return currentPath === targetPath && (!targetQuery || !currentQueryTab);
+  }
+
+  return currentPath === targetPath || currentPath.startsWith(`${targetPath}/`);
+}
+
+function NavLinksList({
+  pathname,
+  onNavigate,
+}: {
+  pathname: string;
+  onNavigate?: () => void;
+}) {
+  const searchParams = useSearchParams();
+  const currentTab = searchParams?.get("tab") || null;
+  const [searchFilter, setSearchFilter] = useState("");
+
+  const filteredGroups = useMemo(() => {
+    const q = searchFilter.trim().toLowerCase();
+    if (!q) return navGroups;
+
+    return navGroups
+      .map((group) => {
+        const matchingItems = group.items.filter(
+          (item) =>
+            item.label.toLowerCase().includes(q) ||
+            group.title.toLowerCase().includes(q) ||
+            item.href.toLowerCase().includes(q)
+        );
+        return {
+          ...group,
+          items: matchingItems,
+        };
+      })
+      .filter((group) => group.items.length > 0);
+  }, [searchFilter]);
+
+  return (
+    <nav className="flex flex-col gap-4" aria-label="Workspace Navigation">
+      {/* Quick Search Controls Filter */}
+      <div className="relative px-1">
+        <div className="relative flex items-center">
+          <Search className="pointer-events-none absolute left-3 h-3.5 w-3.5 text-[var(--text-subtle)]" />
+          <input
+            type="text"
+            value={searchFilter}
+            onChange={(e) => setSearchFilter(e.target.value)}
+            placeholder="Quick find control..."
+            className="w-full rounded-xl border py-1.5 pl-8 pr-7 text-[11px] font-medium transition-all outline-none focus:border-[#7B61FF]/60 placeholder:text-[var(--text-subtle)]"
+            style={{
+              borderColor: "var(--border-subtle)",
+              background: "var(--deep-black)",
+              color: "var(--text-primary)",
+            }}
+          />
+          {searchFilter && (
+            <button
+              type="button"
+              onClick={() => setSearchFilter("")}
+              className="absolute right-2.5 text-xs text-[var(--text-subtle)] hover:text-white"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {filteredGroups.map((group) => (
+        <div key={group.title} className="space-y-1">
+          <p className="px-3 text-[10px] font-extrabold uppercase tracking-[0.2em]" style={{ color: "var(--text-subtle)" }}>
+            {group.title}
+          </p>
+          <div className="space-y-1 pt-0.5">
+            {group.items.map((item) => {
+              const isOn = isNavActive(pathname, currentTab, item.href, item.end);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={onNavigate}
+                  className={`group flex items-center gap-2.5 rounded-xl border transition-all ${
+                    item.isSubItem
+                      ? "min-h-[34px] ml-2.5 px-2.5 py-1.5 text-[11px]"
+                      : "min-h-[40px] px-3 py-1.5 text-xs font-semibold"
+                  }`}
+                  style={{
+                    borderColor: isOn ? "color-mix(in srgb, #7B61FF 40%, transparent)" : "var(--border-subtle)",
+                    background: isOn ? "color-mix(in srgb, #7B61FF 12%, var(--deep-black))" : "var(--soft-black)",
+                    color: isOn ? "#00D4FF" : item.isSubItem ? "var(--text-muted)" : "var(--text-primary)",
+                  }}
+                >
+                  <span
+                    className={`flex shrink-0 items-center justify-center rounded-lg transition-colors ${
+                      item.isSubItem ? "h-5 w-5" : "h-6 w-6"
+                    } ${
+                      isOn
+                        ? "border border-[#7B61FF]/40 bg-[#7B61FF]/20 text-[#00D4FF]"
+                        : "border border-[var(--border-subtle)] bg-[var(--deep-black)] text-[var(--text-subtle)] group-hover:text-[var(--text-primary)]"
+                    }`}
+                  >
+                    <item.icon className={item.isSubItem ? "h-3 w-3" : "h-3.5 w-3.5"} strokeWidth={item.isSubItem ? 1.6 : 1.8} />
+                  </span>
+                  <span className="truncate">{item.label}</span>
+                  {item.badge && (
+                    <span className="ml-auto rounded px-1.5 py-0.2 text-[9px] font-extrabold uppercase tracking-wider bg-violet-500/20 text-violet-300 border border-violet-500/30">
+                      {item.badge}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+
+      {filteredGroups.length === 0 && (
+        <div className="py-6 text-center text-xs text-[var(--text-subtle)]">
+          No controls matching &quot;{searchFilter}&quot;
+        </div>
+      )}
+
+      <div className="pt-2 border-t space-y-1.5" style={{ borderColor: "var(--border-subtle)" }}>
+        <Link
+          href="/dashboard"
+          onClick={onNavigate}
+          className="group flex min-h-[40px] items-center gap-3 rounded-xl border px-3 py-2 text-xs font-semibold text-[var(--text-muted)] transition-colors hover:text-[var(--text-primary)]"
+          style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}
+        >
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--deep-black)]">
+            <LayoutDashboard className="h-3.5 w-3.5" strokeWidth={1.8} />
+          </span>
+          User Studio Workspace
+        </Link>
+
+        <Link
+          href="/"
+          onClick={onNavigate}
+          className="flex min-h-[40px] items-center gap-3 rounded-xl border px-3 py-2 text-xs font-semibold text-[var(--text-subtle)] transition-colors hover:text-[var(--text-primary)]"
+          style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}
+        >
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--deep-black)]">
+            <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.8} />
+          </span>
+          Public Website
+        </Link>
+      </div>
+    </nav>
+  );
 }
 
 function DashboardNavLinks({
@@ -98,70 +287,9 @@ function DashboardNavLinks({
   onNavigate?: () => void;
 }) {
   return (
-    <nav className="flex flex-col gap-5" aria-label="Workspace Navigation">
-      {navGroups.map((group) => (
-        <div key={group.title} className="space-y-1">
-          <p className="px-3 text-[10px] font-extrabold uppercase tracking-[0.2em]" style={{ color: "var(--text-subtle)" }}>
-            {group.title}
-          </p>
-          <div className="space-y-1 pt-1">
-            {group.items.map((item) => {
-              const isOn = navActive(pathname, item.href, "end" in item ? (item as any).end : false);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={onNavigate}
-                  className="group flex min-h-[42px] items-center gap-3 rounded-xl border px-3 py-2 text-xs font-semibold transition-all"
-                  style={{
-                    borderColor: isOn ? "color-mix(in srgb, #7B61FF 40%, transparent)" : "var(--border-subtle)",
-                    background: isOn ? "color-mix(in srgb, #7B61FF 12%, var(--deep-black))" : "var(--soft-black)",
-                    color: isOn ? "#00D4FF" : "var(--text-muted)",
-                  }}
-                >
-                  <span
-                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors ${
-                      isOn
-                        ? "border border-[#7B61FF]/40 bg-[#7B61FF]/20 text-[#00D4FF]"
-                        : "border border-[var(--border-subtle)] bg-[var(--deep-black)] text-[var(--text-subtle)] group-hover:text-[var(--text-primary)]"
-                    }`}
-                  >
-                    <item.icon className="h-3.5 w-3.5" strokeWidth={1.8} />
-                  </span>
-                  <span className="truncate">{item.label}</span>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-      ))}
-
-      <div className="pt-2 border-t space-y-1.5" style={{ borderColor: "var(--border-subtle)" }}>
-        <Link
-          href="/dashboard"
-          onClick={onNavigate}
-          className="group flex min-h-[42px] items-center gap-3 rounded-xl border px-3 py-2 text-xs font-semibold text-[var(--text-muted)] transition-colors hover:text-[var(--text-primary)]"
-          style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}
-        >
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--deep-black)]">
-            <LayoutDashboard className="h-3.5 w-3.5" strokeWidth={1.8} />
-          </span>
-          User Studio Workspace
-        </Link>
-
-        <Link
-          href="/"
-          onClick={onNavigate}
-          className="flex min-h-[42px] items-center gap-3 rounded-xl border px-3 py-2 text-xs font-semibold text-[var(--text-subtle)] transition-colors hover:text-[var(--text-primary)]"
-          style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}
-        >
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--deep-black)]">
-            <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.8} />
-          </span>
-          Public Website
-        </Link>
-      </div>
-    </nav>
+    <Suspense fallback={<div className="p-3 text-xs text-[var(--text-subtle)]">Loading controls...</div>}>
+      <NavLinksList pathname={pathname} onNavigate={onNavigate} />
+    </Suspense>
   );
 }
 
@@ -208,18 +336,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               ADMIN
             </span>
           </div>
-          <div className="flex flex-1 flex-col overflow-y-auto px-3 py-4 space-y-4">
+          <div className="flex flex-1 flex-col overflow-y-auto px-3 py-4">
             <DashboardNavLinks pathname={pathname} />
-
-            <div className="mt-auto rounded-2xl border p-3.5 space-y-1" style={{ borderColor: "var(--border-subtle)", background: "var(--soft-black)" }}>
-              <div className="flex items-center gap-2 text-[#00D4FF]">
-                <ShieldCheck className="h-4 w-4" />
-                <p className="text-[11px] font-bold uppercase tracking-wider">Control Center</p>
-              </div>
-              <p className="text-[11px] font-medium leading-snug" style={{ color: "var(--text-subtle)" }}>
-                RUHGEN Admin Operator Management System.
-              </p>
-            </div>
           </div>
         </aside>
 

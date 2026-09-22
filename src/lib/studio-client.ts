@@ -209,9 +209,10 @@ export async function deleteStudioReference(idOrUrl: string): Promise<boolean> {
 export async function createVideoTask(body: {
   prompt: string;
   quality?: string;
-  duration?: 5 | 10;
-  aspect_ratio?: "16:9" | "9:16" | "1:1";
-  mode?: "std" | "pro";
+  duration?: number;
+  aspect_ratio?: string;
+  mode?: "std" | "pro" | string;
+  model?: string;
   modelId?: string;
   idempotencyKey?: string;
   version?: string;
@@ -225,7 +226,8 @@ export async function createVideoTask(body: {
   sound?: boolean;
   camera_control?: string;
   resolution?: string;
-}): Promise<{ taskId: string }> {
+  seed?: number;
+}): Promise<{ taskId: string; creditCost?: number }> {
   const headers: Record<string, string> = {};
   if (body.idempotencyKey) {
     headers["Idempotency-Key"] = body.idempotencyKey;
@@ -235,11 +237,11 @@ export async function createVideoTask(body: {
     headers,
     body: JSON.stringify(body),
   });
-  const data = (await res.json()) as { ok?: boolean; taskId?: string; error?: string };
+  const data = (await res.json()) as { ok?: boolean; taskId?: string; creditCost?: number; error?: string };
   if (!res.ok || !data.ok || !data.taskId) {
     throw new Error(data.error || "Could not start video task.");
   }
-  return { taskId: data.taskId };
+  return { taskId: data.taskId, creditCost: data.creditCost };
 }
 
 /** Provider may return status in different casings / synonyms. */

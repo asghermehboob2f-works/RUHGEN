@@ -131,38 +131,53 @@
   "spotlightTemplates": [
     {
       "id": "st-1783253824391",
-      "title": "Sci-Fi Cyberpunk Presets",
-      "description": "Immersive dark environments loaded with high contrast elements.",
-      "category": "Sci-Fi",
+      "title": "tamplate 1",
+      "description": "Coming soon",
+      "category": "reel",
       "demoUrl": "/demo",
       "imageUrl": ""
     },
     {
       "id": "st-1783253826463",
-      "title": "Sci-Fi Cyberpunk Presets",
-      "description": "Immersive dark environments loaded with high contrast elements.",
+      "title": "tamplate 2",
+      "description": "Coming soon",
       "category": "Sci-Fi",
       "demoUrl": "/demo",
       "imageUrl": ""
     },
     {
       "id": "st-1783253848176",
-      "title": "Sci-Fi Cyberpunk Presets",
-      "description": "Immersive dark environments loaded with high contrast elements.",
+      "title": "tamplate 3",
+      "description": "Coming soon",
       "category": "Sci-Fi",
       "demoUrl": "/demo",
       "imageUrl": ""
     },
     {
       "id": "st-1783253848775",
-      "title": "Sci-Fi Cyberpunk Presets",
-      "description": "Immersive dark environments loaded with high contrast elements.",
-      "category": "Sci-Fi",
+      "title": "tamplate 4",
+      "description": "Coming soon",
+      "category": "aalu",
       "demoUrl": "/demo",
       "imageUrl": ""
     }
   ],
-  "upcomingFeatures": [],
+  "upcomingFeatures": [
+    {
+      "id": "uf-1790107939258",
+      "title": "Temporal Super-Resolution",
+      "description": "Up-convert framerates through neural frame synthesis pipelines smoothly.",
+      "timeline": "Late 2025",
+      "status": "planned"
+    },
+    {
+      "id": "uf-1790107951291",
+      "title": "to be updated soon",
+      "description": "on development",
+      "timeline": "Late 2026",
+      "status": "in-progress"
+    }
+  ],
   "plans": [
     {
       "id": "free",

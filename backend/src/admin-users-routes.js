@@ -319,16 +319,20 @@ function mountAdminUsersRoutes(app, { db }) {
       if (imgSchnell !== undefined && imgSchnell !== null) {
         stmt.run("cost_image_schnell", String(imgSchnell));
         stmt.run("credits_per_image", String(imgSchnell));
+        db.prepare("UPDATE model_registry SET base_credit_cost = ?, updated_at = datetime('now') WHERE id = 'flux-1-schnell'").run(Number(imgSchnell));
       }
       if (imgDev !== undefined && imgDev !== null) {
         stmt.run("cost_image_dev", String(imgDev));
+        db.prepare("UPDATE model_registry SET base_credit_cost = ?, updated_at = datetime('now') WHERE id = 'flux-1-dev'").run(Number(imgDev));
       }
       if (vidStd !== undefined && vidStd !== null) {
         stmt.run("cost_video_std", String(vidStd));
         stmt.run("credits_per_video_second", String(vidStd));
+        db.prepare("UPDATE model_registry SET base_credit_cost = ?, updated_at = datetime('now') WHERE id = 'video-genesis-premium'").run(Number(vidStd));
       }
       if (vidPro !== undefined && vidPro !== null) {
         stmt.run("cost_video_pro", String(vidPro));
+        db.prepare("UPDATE model_registry SET base_credit_cost = ?, updated_at = datetime('now') WHERE id = 'video-seedance-2-5'").run(Number(vidPro));
       }
 
       return res.json({ ok: true });
@@ -529,7 +533,7 @@ function mountAdminUsersRoutes(app, { db }) {
           COALESCE(SUM(CASE WHEN UPPER(status) = 'COMPLETED' THEN 1 ELSE 0 END), 0) as succeededJobs,
           COALESCE(SUM(CASE WHEN UPPER(status) = 'FAILED' THEN 1 ELSE 0 END), 0) as failedJobs,
           COALESCE(SUM(CASE WHEN UPPER(status) = 'COMPLETED' THEN credit_cost ELSE 0 END), 0) as totalCreditsConsumed,
-          COALESCE(SUM(CASE WHEN UPPER(status) IN ('COMPLETED', 'PROCESSING', 'RESERVED') THEN provider_cost_usd ELSE 0 END), 0) as totalKieUsd
+          COALESCE(SUM(CASE WHEN UPPER(status) IN ('COMPLETED', 'PROCESSING', 'RESERVED') THEN provider_cost_usd ELSE 0 END), 0) as totalProviderUsd
         FROM generation_jobs
       `).get();
 
@@ -537,8 +541,8 @@ function mountAdminUsersRoutes(app, { db }) {
       const succeededJobs = jobStatsRow?.succeededJobs || 0;
       const failedJobs = jobStatsRow?.failedJobs || 0;
       const totalCreditsConsumed = jobStatsRow?.totalCreditsConsumed || 0;
-      const totalKieCostUSD = Number(jobStatsRow?.totalKieUsd || 0);
-      const totalKieCostINR = Math.round(totalKieCostUSD * inrUsdRate);
+      const totalProviderCostUSD = Number(jobStatsRow?.totalProviderUsd || 0);
+      const totalProviderCostINR = Math.round(totalProviderCostUSD * inrUsdRate);
 
       // Breakdown by Model
       const modelBreakdownRows = db.prepare(`
@@ -563,12 +567,12 @@ function mountAdminUsersRoutes(app, { db }) {
       }));
 
       // 4. Profit & Gross Margin
-      const grossProfitINR = totalRevenueINR - totalKieCostINR;
+      const grossProfitINR = totalRevenueINR - totalProviderCostINR;
       const grossMarginPercent = totalRevenueINR > 0
         ? Number(((grossProfitINR / totalRevenueINR) * 100).toFixed(1))
         : 0;
 
-      // 5. Live KIE.ai Provider Balance & Status
+      // 5. Live AI Engine / Provider Balance & Status
       let providerBalance = { ok: false, configured: false, credits: 0, creditsUsd: 0, isSufficientForVideo: false };
       try {
         const { KieProvider } = require("./services/kie-provider");
@@ -594,15 +598,18 @@ function mountAdminUsersRoutes(app, { db }) {
             succeededJobs,
             failedJobs,
             totalCreditsConsumed,
-            totalKieCostUSD: Number(totalKieCostUSD.toFixed(4)),
-            totalKieCostINR,
+            totalProviderCostUSD: Number(totalProviderCostUSD.toFixed(4)),
+            totalProviderCostINR,
+            totalKieCostUSD: Number(totalProviderCostUSD.toFixed(4)), // legacy compat
+            totalKieCostINR: totalProviderCostINR,
             inrUsdRate,
             spendByModel,
           },
           marginAnalysis: {
             totalRevenueINR,
             successfulPaymentsCount,
-            totalKieCostINR,
+            totalProviderCostINR,
+            totalKieCostINR: totalProviderCostINR,
             grossProfitINR,
             grossMarginPercent,
           },
@@ -645,6 +652,124 @@ function mountAdminUsersRoutes(app, { db }) {
       return res.json({ ok: true, model: updated });
     } catch (e) {
       return res.status(500).json({ ok: false, error: e.message || "Failed to update model." });
+    }
+  });
+
+  // ─── ADMIN: Global Pricing & Economic Policy Settings ────────────────────
+  app.get("/api/admin/pricing-settings", requireAdmin, (req, res) => {
+    try {
+      const rows = db.prepare("SELECT key, value FROM pricing_settings").all();
+      const settings = {};
+      for (const r of rows) {
+        settings[r.key] = Number(r.value);
+      }
+      return res.json({
+        ok: true,
+        settings: {
+          credit_inr_rate: settings.credit_inr_rate ?? 1.0,
+          inr_usd_rate: settings.inr_usd_rate ?? 87.0,
+          pg_fee_percent: settings.pg_fee_percent ?? 2.36,
+          infra_allowance_percent: settings.infra_allowance_percent ?? 10.0,
+          min_platform_margin_percent: settings.min_platform_margin_percent ?? 60.0,
+          default_new_user_promo_credits: settings.default_new_user_promo_credits ?? 0,
+        },
+      });
+    } catch (e) {
+      return res.status(500).json({ ok: false, error: e.message || "Failed to load pricing settings." });
+    }
+  });
+
+  app.post("/api/admin/pricing-settings", requireAdmin, (req, res) => {
+    try {
+      const {
+        credit_inr_rate,
+        inr_usd_rate,
+        pg_fee_percent,
+        infra_allowance_percent,
+        min_platform_margin_percent,
+        default_new_user_promo_credits,
+      } = req.body;
+
+      const now = new Date().toISOString();
+      const stmt = db.prepare("INSERT OR REPLACE INTO pricing_settings (key, value, updated_at) VALUES (?, ?, ?)");
+
+      if (credit_inr_rate !== undefined && credit_inr_rate !== null && !isNaN(Number(credit_inr_rate))) {
+        stmt.run("credit_inr_rate", String(Number(credit_inr_rate)), now);
+      }
+      if (inr_usd_rate !== undefined && inr_usd_rate !== null && !isNaN(Number(inr_usd_rate))) {
+        stmt.run("inr_usd_rate", String(Number(inr_usd_rate)), now);
+      }
+      if (pg_fee_percent !== undefined && pg_fee_percent !== null && !isNaN(Number(pg_fee_percent))) {
+        stmt.run("pg_fee_percent", String(Number(pg_fee_percent)), now);
+      }
+      if (infra_allowance_percent !== undefined && infra_allowance_percent !== null && !isNaN(Number(infra_allowance_percent))) {
+        stmt.run("infra_allowance_percent", String(Number(infra_allowance_percent)), now);
+      }
+      if (min_platform_margin_percent !== undefined && min_platform_margin_percent !== null && !isNaN(Number(min_platform_margin_percent))) {
+        stmt.run("min_platform_margin_percent", String(Number(min_platform_margin_percent)), now);
+      }
+      if (default_new_user_promo_credits !== undefined && default_new_user_promo_credits !== null && !isNaN(Number(default_new_user_promo_credits))) {
+        stmt.run("default_new_user_promo_credits", String(Number(default_new_user_promo_credits)), now);
+      }
+
+      db.prepare(`
+        INSERT INTO audit_logs (id, actor_id, actor_email, target_user_id, action_type, old_value, new_value, timestamp, details_json)
+        VALUES (?, ?, ?, 'system', 'update_pricing_settings', ?, ?, ?, ?)
+      `).run(
+        crypto.randomUUID(),
+        req.admin.sub,
+        req.admin.email,
+        JSON.stringify(req.body),
+        now,
+        now,
+        JSON.stringify({ updates: req.body })
+      );
+
+      return res.json({ ok: true });
+    } catch (e) {
+      return res.status(500).json({ ok: false, error: e.message || "Failed to update pricing settings." });
+    }
+  });
+
+  // ─── ADMIN: Credit Transactions Ledger ───────────────────────────────────
+  app.get("/api/admin/credits/transactions", requireAdmin, (req, res) => {
+    try {
+      const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 25));
+      const page = Math.max(1, Number(req.query.page) || 1);
+      const offset = (page - 1) * limit;
+
+      const total = db.prepare("SELECT COUNT(*) as count FROM credit_transactions").get()?.count || 0;
+      const rows = db.prepare(`
+        SELECT 
+          ct.id,
+          ct.user_id,
+          ct.action_type,
+          ct.credit_type,
+          ct.credits_added,
+          ct.credits_deducted,
+          ct.balance_after,
+          ct.description,
+          ct.created_at,
+          u.email as user_email,
+          u.name as user_name
+        FROM credit_transactions ct
+        LEFT JOIN users u ON u.id = ct.user_id
+        ORDER BY ct.created_at DESC
+        LIMIT ? OFFSET ?
+      `).all(limit, offset);
+
+      return res.json({
+        ok: true,
+        transactions: rows,
+        pagination: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        },
+      });
+    } catch (e) {
+      return res.status(500).json({ ok: false, error: e.message || "Failed to load credit transactions." });
     }
   });
 }

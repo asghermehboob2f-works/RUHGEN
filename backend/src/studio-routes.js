@@ -6,7 +6,7 @@
 const crypto = require("node:crypto");
 const path = require("node:path");
 const { verifyUserToken } = require("./auth");
-const { getImageConfig, getVideoConfig, getKieConfig } = require("./config");
+const { getImageConfig, getVideoConfig, getHiggsfieldConfig, getKieConfig } = require("./config");
 const { ImageGenerationService } = require("./services/image-generation-service");
 const { JobManagerService } = require("./services/job-manager-service");
 const { ModelRegistryService } = require("./services/model-registry-service");
@@ -262,7 +262,7 @@ function mountStudioRoutes(app, options) {
           return res.status(400).json({ ok: false, error: "Missing reference file(s)." });
         }
 
-        const maxTotal = parseInt(process.env.KIE_MAX_REFERENCE_IMAGES || "7", 10) || 7;
+        const maxTotal = parseInt(process.env.HIGGSFIELD_MAX_REFERENCE_IMAGES || process.env.KIE_MAX_REFERENCE_IMAGES || "10", 10) || 10;
         if (rawFiles.length > maxTotal) {
           return res.status(400).json({
             ok: false,
@@ -555,19 +555,19 @@ function mountStudioRoutes(app, options) {
     }
   });
 
-  // --- KIE.ai Webhook Callback Receiver ---
-  app.post("/api/webhooks/kie", (req, res) => {
+  // --- Higgsfield / Provider Webhook Callback Receiver ---
+  const handleWebhook = (req, res, providerName = "Higgsfield") => {
     try {
-      const kieConfig = getKieConfig();
-      if (kieConfig.webhookSecret) {
-        const sig = req.headers["x-kie-signature"] || req.headers["x-webhook-secret"];
-        if (sig !== kieConfig.webhookSecret) {
-          return res.status(401).json({ ok: false, error: "Invalid webhook secret signature." });
+      const hfConfig = getHiggsfieldConfig();
+      if (hfConfig.webhookSecret) {
+        const sig = req.headers["x-higgsfield-signature"] || req.headers["x-webhook-secret"] || req.headers["x-kie-signature"];
+        if (sig && sig !== hfConfig.webhookSecret) {
+          return res.status(401).json({ ok: false, error: "Invalid webhook signature." });
         }
       }
 
       const payload = req.body || {};
-      const providerTaskId = payload.taskId || payload.task_id || payload.id;
+      const providerTaskId = payload.request_id || payload.requestId || payload.taskId || payload.task_id || payload.id;
       if (!providerTaskId) return res.json({ ok: true, ignored: true });
 
       const job = db
@@ -579,37 +579,35 @@ function mountStudioRoutes(app, options) {
       }
 
       const rawStatus = String(payload.status || payload.state || "").toLowerCase();
-      if (rawStatus === "success" || rawStatus === "completed" || rawStatus === "succeeded") {
+      if (rawStatus === "success" || rawStatus === "completed" || rawStatus === "succeeded" || rawStatus === "done") {
         let urls = [];
         const extractUrl = (val) => {
-          if (typeof val === "string" && /^(https?:\/\/|data:image\/)/i.test(val.trim())) {
+          if (typeof val === "string" && /^(https?:\/\/|data:video\/|data:image\/)/i.test(val.trim())) {
             urls.push(val.trim());
           }
         };
 
-        const resultJsonStr = payload.resultJson || payload.data?.resultJson;
-        if (resultJsonStr) {
-          try {
-            const parsed = typeof resultJsonStr === "string" ? JSON.parse(resultJsonStr) : resultJsonStr;
-            if (Array.isArray(parsed?.resultUrls)) parsed.resultUrls.forEach(extractUrl);
-            if (Array.isArray(parsed?.urls)) parsed.urls.forEach(extractUrl);
-            if (parsed?.url) extractUrl(parsed.url);
-            if (parsed?.video_url) extractUrl(parsed.video_url);
-            if (parsed?.image_url) extractUrl(parsed.image_url);
-          } catch {}
+        if (payload.output) {
+          if (typeof payload.output === "string") extractUrl(payload.output);
+          else if (Array.isArray(payload.output)) payload.output.forEach(extractUrl);
+          else if (typeof payload.output === "object") {
+            extractUrl(payload.output.video_url);
+            extractUrl(payload.output.url);
+            extractUrl(payload.output.video);
+            if (Array.isArray(payload.output.urls)) payload.output.urls.forEach(extractUrl);
+            if (Array.isArray(payload.output.video_urls)) payload.output.video_urls.forEach(extractUrl);
+          }
         }
 
-        if (payload.result?.url) extractUrl(payload.result.url);
-        if (payload.result?.video_url) extractUrl(payload.result.video_url);
-        if (payload.result?.image_url) extractUrl(payload.result.image_url);
-        if (Array.isArray(payload.result?.urls)) payload.result.urls.forEach(extractUrl);
-        if (Array.isArray(payload.result?.resultUrls)) payload.result.resultUrls.forEach(extractUrl);
-        if (payload.url) extractUrl(payload.url);
-        if (payload.video_url) extractUrl(payload.video_url);
-        if (payload.image_url) extractUrl(payload.image_url);
+        extractUrl(payload.video_url);
+        extractUrl(payload.url);
+        extractUrl(payload.video);
+        if (Array.isArray(payload.urls)) payload.urls.forEach(extractUrl);
+        if (Array.isArray(payload.videos)) payload.videos.forEach(extractUrl);
+        if (Array.isArray(payload.resultUrls)) payload.resultUrls.forEach(extractUrl);
 
         CreditWalletService.finalizeConsumption(db, job.user_id, job.credit_cost, job.id, {
-          reason: "KIE Webhook: Generation completed",
+          reason: `${providerName} Webhook: Generation completed`,
         });
 
         // Purge ephemeral references immediately upon webhook completion
@@ -621,13 +619,13 @@ function mountStudioRoutes(app, options) {
            SET status = 'COMPLETED', output_urls_json = ?, completed_at = ?, updated_at = ?
            WHERE id = ?`
         ).run(JSON.stringify([...new Set(urls)]), now, now, job.id);
-      } else if (rawStatus === "fail" || rawStatus === "failed") {
+      } else if (rawStatus === "fail" || rawStatus === "failed" || rawStatus === "error" || rawStatus === "cancelled") {
         CreditWalletService.releaseReservation(
           db,
           job.user_id,
           job.credit_cost,
           job.id,
-          "KIE Webhook reported generation failure"
+          `${providerName} Webhook reported generation failure`
         );
 
         // Purge ephemeral references immediately upon webhook failure
@@ -642,10 +640,13 @@ function mountStudioRoutes(app, options) {
 
       return res.json({ ok: true });
     } catch (e) {
-      console.error("[KIE Webhook Error]:", e.message);
+      console.error(`[${providerName} Webhook Error]:`, e.message);
       return res.status(500).json({ ok: false, error: "Webhook error." });
     }
-  });
+  };
+
+  app.post("/api/webhooks/higgsfield", (req, res) => handleWebhook(req, res, "Higgsfield"));
+  app.post("/api/webhooks/kie", (req, res) => handleWebhook(req, res, "KIE"));
 
   app.get("/api/studio/recent-generations", requireUser, (req, res) => {
     try {
