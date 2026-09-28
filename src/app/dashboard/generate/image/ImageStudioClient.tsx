@@ -225,12 +225,13 @@ export default function ImageStudioClient() {
         const res = await fetch("/api/credits/rates", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        const data = await res.json();
-        if (data.ok && data.rates) {
+        if (!res.ok) return;
+        const data = await res.json().catch(() => null);
+        if (data && data.ok && data.rates) {
           setRates(data.rates);
         }
-      } catch (err) {
-        console.error("Error fetching credit rates", err);
+      } catch {
+        // Silently ignore or fallback
       }
     };
     if (user) {
@@ -467,13 +468,20 @@ export default function ImageStudioClient() {
     const tierLabel = activeTierObj.label;
     const refUrl = referenceImageUrl?.trim() || null;
     const negTxt = negativePrompt.trim();
+    const styleObj = AESTHETIC_STYLES.find((s) => s.id === selectedStyle);
+    const styleTag = styleObj?.tag || "";
+
+    let effectivePrompt = p;
+    if (styleTag && selectedStyle !== "custom" && !effectivePrompt.toLowerCase().includes(styleObj?.label.toLowerCase() || "")) {
+      effectivePrompt = `${effectivePrompt}, ${styleTag}`;
+    }
 
     let meta: string;
     if (refUrl) {
-      meta = `Reference Edit · ${tierLabel} · ${ratioLabel} (${ratio})`;
+      meta = `Reference Edit · ${tierLabel} · ${ratioLabel} (${ratio})${styleObj?.label ? ` · ${styleObj.label}` : ""}`;
       if (negTxt) meta += " · Negative filter";
     } else {
-      meta = `${tierLabel} · ${ratioLabel} (${ratio}) · ${w}×${h}px`;
+      meta = `${tierLabel} · ${ratioLabel} (${ratio}) · ${styleObj?.label ? `${styleObj.label} · ` : ""}${w}×${h}px`;
       if (negTxt) meta += " · Negative filter";
     }
 
@@ -490,15 +498,19 @@ export default function ImageStudioClient() {
 
     try {
       const { taskId } = await createImageTask({
-        prompt: p,
+        prompt: effectivePrompt,
         quality: selectedTier,
+        tier: selectedTier,
+        style: selectedStyle,
+        width: w,
+        height: h,
         ...(refUrl
           ? {
             image_url: refUrl,
             denoise: refineGuidance,
             ...(negTxt ? { negative_prompt: negTxt } : {}),
           }
-          : { width: w, height: h, ...(negTxt ? { negative_prompt: negTxt } : {}) }),
+          : { ...(negTxt ? { negative_prompt: negTxt } : {}) }),
       });
       void refreshUser();
       setMessages((prev) => prev.map((m) => (m.id === asstId ? { ...m, phase: "Rendering canvas frames…" } : m)));

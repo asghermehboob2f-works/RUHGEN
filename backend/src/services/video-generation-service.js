@@ -22,8 +22,10 @@ class VideoGenerationService {
       mode,
       negative_prompt,
       image_url,
+      video_url,
       reference_url,
       references,
+      image_urls,
       sound = true,
       resolution,
       camera_control,
@@ -43,33 +45,70 @@ class VideoGenerationService {
       mode === "pro";
 
     const refImage = image_url || reference_url;
-    const refArray = Array.isArray(references) ? references : refImage ? [refImage] : [];
+    const explicitRefs = Array.isArray(references)
+      ? references
+      : Array.isArray(image_urls)
+      ? image_urls
+      : refImage
+      ? [refImage]
+      : [];
 
-    let providerModel = isSeedance
-      ? "bytedance/seedance-2.5/text-to-video"
-      : "bytedance/seedance-2.5/text-to-video";
+    // Detect if a video reference is present for Motion Transfer
+    const videoRef =
+      (typeof video_url === "string" && video_url.trim()) ||
+      explicitRefs.find((r) => typeof r === "string" && (/\.(mp4|webm|mov|m4v)/i.test(r) || r.includes("video")));
 
-    const input = {
-      prompt: String(prompt || "").trim(),
-      aspect_ratio: String(aspect_ratio || "16:9"),
-      duration: Number(duration) || 5,
-    };
+    const imageRefs = explicitRefs.filter((r) => r !== videoRef);
 
-    if (sound !== undefined) input.sound = Boolean(sound);
-    if (negative_prompt) input.negative_prompt = String(negative_prompt).trim();
-    if (resolution) input.resolution = String(resolution);
-    if (camera_control && camera_control !== "none" && camera_control !== "static") {
-      input.camera_control = String(camera_control);
-    }
-    if (seed !== undefined && seed !== null && seed !== "") {
-      const numSeed = Number(seed);
-      if (Number.isFinite(numSeed)) input.seed = numSeed;
-    }
+    let providerModel = "bytedance/seedance-2.5/text-to-video";
+    let input = {};
 
-    if (refArray.length > 0) {
+    // 1. Genjutsu Motion Transfer workflow (video reference + character image references)
+    if (videoRef && imageRefs.length > 0) {
+      providerModel = "higgsfield/genjutsu/motion-transfer/v1.0";
+      input = {
+        video_url: videoRef,
+        image_urls: imageRefs,
+        prompt: String(prompt || "").trim(),
+      };
+    } else if (explicitRefs.length > 0) {
+      // 2. Image-to-Video workflow
       providerModel = "bytedance/seedance-2.5/image-to-video";
-      input.images = refArray;
-      input.image_url = refArray[0];
+      input = {
+        prompt: String(prompt || "").trim(),
+        aspect_ratio: String(aspect_ratio || "16:9"),
+        duration: Number(duration) || 5,
+        images: explicitRefs,
+        image_url: explicitRefs[0],
+      };
+      if (sound !== undefined) input.sound = Boolean(sound);
+      if (negative_prompt) input.negative_prompt = String(negative_prompt).trim();
+      if (resolution) input.resolution = String(resolution);
+      if (camera_control && camera_control !== "none" && camera_control !== "static") {
+        input.camera_control = String(camera_control);
+      }
+      if (seed !== undefined && seed !== null && seed !== "") {
+        const numSeed = Number(seed);
+        if (Number.isFinite(numSeed)) input.seed = numSeed;
+      }
+    } else {
+      // 3. Text-to-Video workflow
+      providerModel = "bytedance/seedance-2.5/text-to-video";
+      input = {
+        prompt: String(prompt || "").trim(),
+        aspect_ratio: String(aspect_ratio || "16:9"),
+        duration: Number(duration) || 5,
+      };
+      if (sound !== undefined) input.sound = Boolean(sound);
+      if (negative_prompt) input.negative_prompt = String(negative_prompt).trim();
+      if (resolution) input.resolution = String(resolution);
+      if (camera_control && camera_control !== "none" && camera_control !== "static") {
+        input.camera_control = String(camera_control);
+      }
+      if (seed !== undefined && seed !== null && seed !== "") {
+        const numSeed = Number(seed);
+        if (Number.isFinite(numSeed)) input.seed = numSeed;
+      }
     }
 
     try {

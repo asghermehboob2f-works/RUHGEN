@@ -1561,7 +1561,7 @@ function seedModelRegistryIfEmpty(db) {
           credit_cost_type = 'per_second',
           min_margin_percent = 65.0,
           supported_aspect_ratios = '["16:9","9:16","1:1","4:3","3:2","21:9"]',
-          supported_resolutions = '["720p","1080p","4k"]',
+          supported_resolutions = '["720p","480p","1080p","4k"]',
           supported_durations = '[5, 10, 15, 30]',
           supported_controls = '["prompt","negative_prompt","aspect_ratio","duration","resolution","sound","camera_control","image_reference","image_urls","multi_reference_images","seed"]',
           max_duration = 30,
@@ -1636,25 +1636,25 @@ function seedModelRegistryIfEmpty(db) {
     now
   );
 
-  // 3. RUHGEN Premium (Higgsfield Seedance Standard)
+  // 3. RUHGEN Premium (Higgsfield Motion Transfer & Video)
   insert.run(
     "video-genesis-premium",
     "RUHGEN Premium",
     "video",
     "standard",
-    "bytedance/seedance-2.5/text-to-video",
+    "higgsfield/genjutsu/motion-transfer/v1.0",
     1,
     0.050,
     "per_second",
     3,
     65.0,
-    JSON.stringify(["16:9", "9:16", "1:1", "4:3", "3:2"]),
-    JSON.stringify(["720p", "1080p"]),
-    JSON.stringify([5, 10]),
-    JSON.stringify(["prompt", "negative_prompt", "aspect_ratio", "duration", "resolution", "image_reference"]),
-    10,
+    JSON.stringify(["16:9", "9:16", "1:1", "4:3", "3:2", "21:9"]),
+    JSON.stringify(["720p", "480p", "1080p"]),
+    JSON.stringify([5, 10, 15, 30]),
+    JSON.stringify(["prompt", "negative_prompt", "aspect_ratio", "duration", "resolution", "image_reference", "image_urls", "video_reference", "multi_reference_images"]),
+    30,
     "1080p",
-    1,
+    8,
     now,
     now
   );

@@ -8,6 +8,21 @@ export type StudioTaskPollResult = {
 
 
 
+async function parseJsonResponse<T>(res: Response, fallbackError = "Request failed."): Promise<T> {
+  const text = await res.text();
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    let cleanMsg = fallbackError;
+    if (text && text.length < 400 && !text.includes("<html") && !text.includes("<!DOCTYPE")) {
+      cleanMsg = text.trim();
+    } else if (!res.ok) {
+      cleanMsg = `Server returned HTTP ${res.status}${res.statusText ? ` (${res.statusText})` : ""}. Please try again shortly.`;
+    }
+    throw new Error(cleanMsg);
+  }
+}
+
 async function authFetch(path: string, init?: RequestInit): Promise<Response> {
   const token = readUserToken();
   if (!token) {
@@ -51,7 +66,7 @@ export async function fetchStudioModels(): Promise<StudioModel[]> {
   try {
     const res = await authFetch("/api/studio/models");
     if (!res.ok) return [];
-    const data = (await res.json()) as { ok?: boolean; models?: StudioModel[] };
+    const data = await parseJsonResponse<{ ok?: boolean; models?: StudioModel[] }>(res);
     return data.models || [];
   } catch {
     return [];
@@ -70,7 +85,7 @@ export async function estimateStudioCost(body: {
       body: JSON.stringify(body),
     });
     if (!res.ok) return null;
-    const data = (await res.json()) as { ok?: boolean; creditCost?: number; marginSafe?: boolean };
+    const data = await parseJsonResponse<{ ok?: boolean; creditCost?: number; marginSafe?: boolean }>(res);
     if (data.ok && typeof data.creditCost === "number") {
       return { creditCost: data.creditCost, marginSafe: Boolean(data.marginSafe) };
     }
@@ -84,6 +99,8 @@ export async function estimateStudioCost(body: {
 export async function createImageTask(body: {
   prompt: string;
   quality?: string;
+  tier?: string;
+  style?: string;
   model?: string;
   modelId?: string;
   idempotencyKey?: string;
@@ -104,7 +121,10 @@ export async function createImageTask(body: {
     headers,
     body: JSON.stringify(body),
   });
-  const data = (await res.json()) as { ok?: boolean; taskId?: string; error?: string };
+  const data = await parseJsonResponse<{ ok?: boolean; taskId?: string; error?: string }>(
+    res,
+    "Could not start image task."
+  );
   if (!res.ok || !data.ok || !data.taskId) {
     throw new Error(data.error || "Could not start image task.");
   }
@@ -137,13 +157,13 @@ export async function uploadStudioReferenceFiles(
     headers: { Authorization: `Bearer ${token}` },
     body: fd,
   });
-  const data = (await res.json()) as {
+  const data = await parseJsonResponse<{
     ok?: boolean;
     files?: UploadedReferenceFile[];
     url?: string;
     type?: "image" | "video";
     error?: string;
-  };
+  }>(res, "Could not upload reference files.");
   if (!res.ok || !data.ok) {
     throw new Error(data.error || "Could not upload reference files.");
   }
@@ -180,7 +200,10 @@ export async function uploadStudioReference(file: File): Promise<{ url: string; 
     headers: { Authorization: `Bearer ${token}` },
     body: fd,
   });
-  const data = (await res.json()) as { ok?: boolean; url?: string; type?: "image" | "video"; error?: string };
+  const data = await parseJsonResponse<{ ok?: boolean; url?: string; type?: "image" | "video"; error?: string }>(
+    res,
+    "Could not upload reference file."
+  );
   if (!res.ok || !data.ok || !data.url) {
     throw new Error(data.error || "Could not upload reference file.");
   }
@@ -237,7 +260,10 @@ export async function createVideoTask(body: {
     headers,
     body: JSON.stringify(body),
   });
-  const data = (await res.json()) as { ok?: boolean; taskId?: string; creditCost?: number; error?: string };
+  const data = await parseJsonResponse<{ ok?: boolean; taskId?: string; creditCost?: number; error?: string }>(
+    res,
+    "Could not start video task."
+  );
   if (!res.ok || !data.ok || !data.taskId) {
     throw new Error(data.error || "Could not start video task.");
   }
@@ -286,14 +312,14 @@ export async function pollStudioTask(
 
   for (let i = 0; i < maxAttempts; i++) {
     const res = await authFetch(`/api/studio/task/${encodeURIComponent(taskId)}`);
-    const data = (await res.json()) as {
+    const data = await parseJsonResponse<{
       ok?: boolean;
       status?: string;
       urls?: string[];
       output?: unknown;
       error?: { code?: number; message?: string; raw_message?: string };
       message?: string;
-    };
+    }>(res, "Task status request failed.");
     if (!res.ok || !data.ok) {
       const err = (data as { error?: string }).error;
       throw new Error(

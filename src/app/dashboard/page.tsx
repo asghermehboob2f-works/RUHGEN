@@ -78,12 +78,14 @@ export default function DashboardPage() {
       const res = await fetch("/api/credits/dashboard", {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
-      const data = await res.json();
-      if (data?.ok && data?.metrics) {
-        setMetrics(data.metrics);
+      if (res.ok) {
+        const data = await res.json().catch(() => null);
+        if (data?.ok && data?.metrics) {
+          setMetrics(data.metrics);
+        }
       }
     } catch (err) {
-      console.error("Failed to load dashboard metrics:", err);
+      console.warn("Failed to load dashboard metrics:", err);
     } finally {
       setLoadingMetrics(false);
       if (showSpin) {

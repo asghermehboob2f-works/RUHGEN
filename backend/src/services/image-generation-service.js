@@ -61,20 +61,37 @@ class ImageGenerationService {
 
     // Call Provider Adapter (NVIDIA / Generic OpenAI-compatible Image API)
     try {
-      const reqBody = {
-        prompt,
-        width: nvW,
-        height: nvH,
-        seed: Math.floor(Math.random() * 1000000),
-        steps: 4,
-        ...(negative_prompt ? { negative_prompt: String(negative_prompt).trim() } : {}),
-        ...(image_url ? { image_url, ...(denoise ? { denoise } : {}) } : {}),
-        ...(guidance_scale ? { guidance_scale } : {}),
-      };
+      let effectivePrompt = String(prompt || "").trim();
+      if (negative_prompt && typeof negative_prompt === "string" && negative_prompt.trim()) {
+        const cleanNeg = negative_prompt.trim();
+        if (!effectivePrompt.toLowerCase().includes("negative") && !effectivePrompt.toLowerCase().includes("avoid")) {
+          effectivePrompt = `${effectivePrompt} [avoid: ${cleanNeg}]`;
+        }
+      }
 
-      // Include model in body only if API URL doesn't already contain model path (NVIDIA endpoints reject extra body fields)
-      if (config.model && !config.apiUrl.includes("nvidia.com") && !config.apiUrl.includes(config.model)) {
-        reqBody.model = config.model;
+      let reqBody;
+      if (config.apiUrl.includes("nvidia.com")) {
+        reqBody = {
+          prompt: effectivePrompt,
+          width: nvW,
+          height: nvH,
+          seed: Math.floor(Math.random() * 1000000),
+          steps: 4,
+        };
+      } else {
+        reqBody = {
+          prompt: effectivePrompt,
+          width: nvW,
+          height: nvH,
+          seed: Math.floor(Math.random() * 1000000),
+          steps: 4,
+          ...(negative_prompt ? { negative_prompt: String(negative_prompt).trim() } : {}),
+          ...(image_url ? { image_url, ...(denoise ? { denoise } : {}) } : {}),
+          ...(guidance_scale ? { guidance_scale } : {}),
+        };
+        if (config.model && !config.apiUrl.includes(config.model)) {
+          reqBody.model = config.model;
+        }
       }
 
       const response = await fetch(config.apiUrl, {

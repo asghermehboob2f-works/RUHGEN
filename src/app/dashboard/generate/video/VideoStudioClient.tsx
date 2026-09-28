@@ -94,12 +94,12 @@ export const VIDEO_MODELS: VideoModelDef[] = [
     id: "standard",
     modelId: "video-genesis-premium",
     label: "RUHGEN Premium",
-    sub: "High-fidelity video engine powered by Genesis 2",
-    tag: "Genesis 2",
+    sub: "Motion Transfer & high-fidelity video engine",
+    tag: "Motion Transfer",
     icon: Sparkles,
-    badge: "15–30 cr",
+    badge: "15–90 cr",
     costPerSec: 3,
-    durations: [5, 10],
+    durations: [5, 10, 15, 30],
     resolutions: [
       { key: "720p", label: "720p HD" },
       { key: "1080p", label: "1080p Cinema" },
@@ -110,8 +110,9 @@ export const VIDEO_MODELS: VideoModelDef[] = [
       { key: "1:1", label: "Square", ratio: "1:1", iconW: 16, iconH: 16 },
       { key: "4:3", label: "Classic", ratio: "4:3", iconW: 16, iconH: 12 },
       { key: "3:2", label: "Photo", ratio: "3:2", iconW: 18, iconH: 12 },
+      { key: "21:9", label: "Cinematic", ratio: "21:9", iconW: 22, iconH: 9 },
     ],
-    maxReferences: 1,
+    maxReferences: 8,
     supportsSound: false,
     supportsCamera: false,
     supportsSeed: false,
@@ -253,12 +254,13 @@ export default function VideoStudioClient() {
         const res = await fetch("/api/credits/rates", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        const data = await res.json();
-        if (data.ok && data.rates) {
+        if (!res.ok) return;
+        const data = await res.json().catch(() => null);
+        if (data && data.ok && data.rates) {
           setRates(data.rates);
         }
-      } catch (err) {
-        console.error("Error fetching credit rates", err);
+      } catch {
+        // Silently ignore or fallback
       }
     };
     if (user) {
@@ -378,32 +380,82 @@ export default function VideoStudioClient() {
     end?.scrollIntoView({ block: "end", behavior: behavior === "smooth" ? "smooth" : "instant" });
   }, []);
 
-  const handleUploadReferences = useCallback(
+  const [resolutionMenuOpen, setResolutionMenuOpen] = useState(false);
+  const resolutionMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (resolutionMenuRef.current && !resolutionMenuRef.current.contains(e.target as Node)) {
+        setResolutionMenuOpen(false);
+      }
+    };
+    if (resolutionMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [resolutionMenuOpen]);
+
+  const handleUploadVideo = useCallback(async (file: File) => {
+    setRefUploadError(null);
+    if (!file.type.startsWith("video/") && !/\.(mp4|webm|mov|m4v)$/i.test(file.name)) {
+      setRefUploadError(`"${file.name}" is not a supported video format. Use MP4, WebM, or MOV.`);
+      return;
+    }
+    if (file.size > 50 * 1024 * 1024) {
+      setRefUploadError(`"${file.name}" exceeds 50MB file size limit.`);
+      return;
+    }
+    const tempItem: ReferenceMediaItem = {
+      id: `temp-vid-${Date.now()}`,
+      url: URL.createObjectURL(file),
+      name: file.name,
+      size: file.size,
+      type: "video",
+      uploading: true,
+    };
+    setReferenceMedia((prev) => [...prev.filter((r) => r.type !== "video"), tempItem]);
+    setRefUploading(true);
+    try {
+      const result = await uploadStudioReferenceFiles([file]);
+      const uploaded = result.files[0];
+      setReferenceMedia((prev) =>
+        prev.map((r) =>
+          r.id === tempItem.id
+            ? {
+                id: uploaded?.id || `ref-${Date.now()}`,
+                url: uploaded?.url || result.url,
+                name: file.name,
+                size: file.size,
+                type: "video",
+                uploading: false,
+              }
+            : r
+        )
+      );
+    } catch (err) {
+      setRefUploadError(err instanceof Error ? err.message : "Video upload failed.");
+      setReferenceMedia((prev) => prev.filter((r) => r.id !== tempItem.id));
+    } finally {
+      setRefUploading(false);
+    }
+  }, []);
+
+  const handleUploadImages = useCallback(
     async (files: FileList | File[]) => {
       const fileArr = Array.from(files);
       if (!fileArr.length) return;
       setRefUploadError(null);
-
-      const maxAllowed = activeModelDef.maxReferences;
-      const currentCount = referenceMedia.length;
-      const remainingSlots = Math.max(0, maxAllowed - currentCount);
-
+      const existingImgs = referenceMedia.filter((r) => r.type !== "video");
+      const remainingSlots = Math.max(0, 8 - existingImgs.length);
       if (remainingSlots <= 0) {
-        setRefUploadError(`Maximum ${maxAllowed} reference media limit reached for ${activeModelDef.label}.`);
+        setRefUploadError("Maximum 8 character/product reference images allowed.");
         return;
       }
-
       const toUpload = fileArr.slice(0, remainingSlots);
-      if (fileArr.length > remainingSlots) {
-        setRefUploadError(`Only ${remainingSlots} more reference item(s) could be added (max ${maxAllowed}).`);
-      }
-
       const validFiles: File[] = [];
       for (const f of toUpload) {
-        const isImg = f.type.startsWith("image/") || /\.(jpg|jpeg|png|webp)$/i.test(f.name);
-        const isVid = f.type.startsWith("video/") || /\.(mp4|webm|mov)$/i.test(f.name);
-        if (!isImg && !isVid) {
-          setRefUploadError(`"${f.name}" is not supported. Use JPG, PNG, WebP, MP4, or WebM.`);
+        if (!f.type.startsWith("image/") && !/\.(jpg|jpeg|png|webp)$/i.test(f.name)) {
+          setRefUploadError(`"${f.name}" is not supported. Use JPG, PNG, or WebP.`);
           return;
         }
         if (f.size > 50 * 1024 * 1024) {
@@ -412,21 +464,17 @@ export default function VideoStudioClient() {
         }
         validFiles.push(f);
       }
-
       if (!validFiles.length) return;
-
       const tempItems: ReferenceMediaItem[] = validFiles.map((f) => ({
-        id: `temp-${Math.random().toString(36).slice(2)}`,
+        id: `temp-img-${Math.random().toString(36).slice(2)}`,
         url: URL.createObjectURL(f),
         name: f.name,
         size: f.size,
-        type: f.type.startsWith("video/") ? "video" : "image",
+        type: "image",
         uploading: true,
       }));
-
       setReferenceMedia((prev) => [...prev, ...tempItems]);
       setRefUploading(true);
-
       try {
         const result = await uploadStudioReferenceFiles(validFiles);
         setReferenceMedia((prev) => {
@@ -441,7 +489,7 @@ export default function VideoStudioClient() {
                 url: uploaded.url,
                 name: uploaded.name || temp.name,
                 size: uploaded.size || temp.size,
-                type: uploaded.type || temp.type,
+                type: "image",
                 uploading: false,
               };
             }
@@ -449,14 +497,13 @@ export default function VideoStudioClient() {
           return updated;
         });
       } catch (err) {
-        const msg = err instanceof Error ? err.message : "Upload failed.";
-        setRefUploadError(msg);
+        setRefUploadError(err instanceof Error ? err.message : "Image upload failed.");
         setReferenceMedia((prev) => prev.filter((item) => !tempItems.some((t) => t.id === item.id)));
       } finally {
         setRefUploading(false);
       }
     },
-    [activeModelDef, referenceMedia.length]
+    [referenceMedia]
   );
 
   const handleRemoveReference = useCallback((index: number) => {
@@ -632,380 +679,701 @@ export default function VideoStudioClient() {
             </div>
           </div>
 
-          <div className="space-y-3">
-            {/* 2. MEDIA REFERENCE INPUT (SLIM CARD) */}
-            <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--glass)] p-2 space-y-1.5 shadow-xs">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <ImagePlus className="h-3.5 w-3.5 text-[var(--text-primary)]" strokeWidth={2} />
-                  <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-primary)]">
-                    Reference Media {isSeedance ? `(Max ${activeModelDef.maxReferences})` : "(Optional)"}
-                  </span>
-                </div>
-                <span
-                  className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border ${
-                    referenceMedia.length > 0
-                      ? "bg-amber-500/10 border-amber-500/30 text-amber-400"
-                      : "bg-[var(--soft-black)] border-[var(--border-subtle)] text-[var(--text-subtle)]"
-                  }`}
-                >
-                  {referenceMedia.length}/{activeModelDef.maxReferences}
-                </span>
+          {!isSeedance ? (
+            /* ─────────────────────────────────────────────────────────────
+               RUHGEN PREMIUM — GENJUTSU MOTION TRANSFER CONTROLS
+               ───────────────────────────────────────────────────────────── */
+            <div className="space-y-3">
+              <div className="flex items-center justify-between pb-0.5">
+                <span className="text-xs font-bold text-[var(--text-primary)]">Input</span>
               </div>
 
+              {/* 1. Reference Video Card (Motion Reference) */}
               <input
-                ref={multiImageInputRef}
+                ref={videoInputRef}
                 type="file"
-                multiple={isSeedance}
-                accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime"
+                accept="video/mp4,video/webm,video/quicktime,video/x-m4v"
                 className="sr-only"
                 tabIndex={-1}
-                disabled={busy || refUploading || referenceMedia.length >= activeModelDef.maxReferences}
+                disabled={busy || refUploading}
                 onChange={(e) => {
-                  if (e.target.files) handleUploadReferences(e.target.files);
+                  if (e.target.files?.[0]) handleUploadVideo(e.target.files[0]);
                   e.target.value = "";
                 }}
               />
 
-              {referenceMedia.length === 0 ? (
-                <div
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    setIsDragging(true);
-                  }}
-                  onDragLeave={() => setIsDragging(false)}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    setIsDragging(false);
-                    if (e.dataTransfer.files?.length) {
-                      handleUploadReferences(e.dataTransfer.files);
-                    }
-                  }}
-                  onClick={() => multiImageInputRef.current?.click()}
-                  className={`relative flex items-center justify-between gap-2 rounded-md border border-dashed px-2.5 py-1.5 transition-all cursor-pointer ${
-                    isDragging
-                      ? "border-amber-400 bg-amber-500/10 text-amber-300"
-                      : "border-[var(--border-subtle)] bg-[var(--soft-black)] text-[var(--text-muted)] hover:border-[var(--text-muted)] hover:bg-[var(--glass-elevated)]"
-                  }`}
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    {refUploading ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-400 shrink-0" />
-                    ) : (
-                      <Plus className="h-3.5 w-3.5 text-amber-400 shrink-0" />
-                    )}
-                    <span className="text-[10px] font-bold text-[var(--text-primary)] truncate">
-                      {refUploading ? "Uploading references…" : "+ Add Reference Media (Image / Video)"}
-                    </span>
-                  </div>
-                  <span className="text-[8px] text-[var(--text-subtle)] shrink-0 font-mono">
-                    {isSeedance ? "Multimodal" : "Image-to-Video"}
-                  </span>
-                </div>
-              ) : (
-                <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5 pt-0.5">
-                  {referenceMedia.map((item, idx) => (
-                    <div
-                      key={item.id}
-                      className="group relative flex flex-col rounded-md border border-[var(--border-subtle)] bg-[var(--soft-black)] overflow-hidden shadow-xs"
-                    >
-                      <div className="relative aspect-square w-full overflow-hidden bg-black/50">
-                        {item.type === "video" ? (
-                          <video src={item.url} muted loop autoPlay playsInline className="h-full w-full object-cover" />
-                        ) : (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={item.url} alt={item.name || `Reference ${idx + 1}`} className="h-full w-full object-cover" />
-                        )}
-                        {item.uploading ? (
+              {referenceMedia.find((r) => r.type === "video") ? (
+                (() => {
+                  const v = referenceMedia.find((r) => r.type === "video")!;
+                  return (
+                    <div className="relative rounded-xl border border-[var(--border-subtle)] bg-[var(--soft-black)] p-3 overflow-hidden">
+                      <div className="relative aspect-video w-full rounded-lg overflow-hidden bg-black shadow-inner">
+                        <video src={v.url} controls muted loop playsInline className="h-full w-full object-cover" />
+                        {v.uploading ? (
                           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/75 backdrop-blur-xs">
-                            <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-400" />
+                            <Loader2 className="h-5 w-5 animate-spin text-amber-400" />
+                            <span className="mt-1 text-[10px] text-amber-300 font-bold">Uploading motion reference…</span>
                           </div>
                         ) : null}
-                        <span className="absolute top-0.5 left-0.5 rounded bg-black/80 px-1 py-0.2 text-[7px] font-mono font-bold text-[var(--text-primary)] border border-white/10 leading-none">
-                          #{idx + 1}
-                        </span>
-                        <button
-                          type="button"
-                          disabled={busy || item.uploading}
-                          onClick={() => handleRemoveReference(idx)}
-                          className="absolute top-0.5 right-0.5 rounded bg-rose-950/80 hover:bg-rose-900 border border-rose-500/40 p-0.5 text-rose-300 transition-colors opacity-80 group-hover:opacity-100 cursor-pointer"
-                          title="Remove reference"
-                        >
-                          <X className="h-2 w-2" />
-                        </button>
                       </div>
-                      {isSeedance && referenceMedia.length > 1 ? (
-                        <div className="flex items-center justify-between px-1 py-0.5 bg-[var(--soft-black)] border-t border-[var(--border-subtle)] text-[7px]">
-                          <span className="truncate text-[var(--text-subtle)] font-mono">#{idx + 1}</span>
-                          <div className="flex items-center gap-0.5">
-                            <button
-                              type="button"
-                              disabled={busy || idx === 0}
-                              onClick={() => handleMoveReference(idx, "left")}
-                              className="rounded p-0.2 text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-20 cursor-pointer"
-                              title="Move left"
-                            >
-                              <ArrowLeft className="h-2 w-2" />
-                            </button>
-                            <button
-                              type="button"
-                              disabled={busy || idx === referenceMedia.length - 1}
-                              onClick={() => handleMoveReference(idx, "right")}
-                              className="rounded p-0.2 text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-20 cursor-pointer"
-                              title="Move right"
-                            >
-                              <ArrowRight className="h-2 w-2" />
-                            </button>
-                          </div>
+                      <div className="mt-2.5 flex items-center justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-bold text-[var(--text-primary)] truncate">{v.name || "Reference Video"}</p>
+                          <p className="text-[10px] text-[var(--text-muted)]">Motion reference video</p>
                         </div>
-                      ) : null}
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <button
+                            type="button"
+                            disabled={busy || v.uploading}
+                            onClick={() => videoInputRef.current?.click()}
+                            className="rounded-lg border border-[var(--border-subtle)] bg-[var(--glass)] px-2.5 py-1 text-[10px] font-bold text-[var(--text-primary)] hover:bg-[var(--glass-elevated)] cursor-pointer"
+                          >
+                            Replace
+                          </button>
+                          <button
+                            type="button"
+                            disabled={busy || v.uploading}
+                            onClick={() => {
+                              const idx = referenceMedia.findIndex((r) => r.id === v.id);
+                              if (idx !== -1) handleRemoveReference(idx);
+                            }}
+                            className="rounded-lg border border-rose-900/50 bg-rose-950/40 px-2.5 py-1 text-[10px] font-bold text-rose-300 hover:bg-rose-900/60 cursor-pointer"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                  ))}
+                  );
+                })()
+              ) : (
+                <button
+                  type="button"
+                  disabled={busy || refUploading}
+                  onClick={() => videoInputRef.current?.click()}
+                  className="w-full flex flex-col items-center justify-center rounded-xl border border-dashed border-[var(--border-subtle)] bg-[var(--soft-black)] p-5 text-center transition-all hover:border-[var(--text-muted)] hover:bg-[var(--glass-elevated)] cursor-pointer group"
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--glass)] border border-[var(--border-subtle)] mb-2.5 group-hover:scale-105 transition-transform">
+                    {refUploading ? (
+                      <Loader2 className="h-5 w-5 animate-spin text-amber-400" />
+                    ) : (
+                      <Video className="h-5 w-5 text-[var(--text-primary)]" strokeWidth={1.75} />
+                    )}
+                  </div>
+                  <p className="text-xs font-bold text-[var(--text-primary)]">Add a reference video to extract motion</p>
+                  <p className="mt-0.5 text-[10px] text-[var(--text-muted)]">Up to 1 video</p>
+                </button>
+              )}
 
-                  {referenceMedia.length < activeModelDef.maxReferences ? (
-                    <div
-                      onDragOver={(e) => {
-                        e.preventDefault();
-                        setIsDragging(true);
-                      }}
-                      onDragLeave={() => setIsDragging(false)}
-                      onDrop={(e) => {
-                        e.preventDefault();
-                        setIsDragging(false);
-                        if (e.dataTransfer.files?.length) {
-                          handleUploadReferences(e.dataTransfer.files);
-                        }
-                      }}
-                      onClick={() => multiImageInputRef.current?.click()}
-                      className="relative flex aspect-square flex-col items-center justify-center rounded-md border border-dashed border-[var(--border-subtle)] bg-[var(--soft-black)] p-0.5 text-center transition-all cursor-pointer hover:border-[var(--text-muted)] hover:bg-[var(--glass-elevated)]"
-                    >
-                      {refUploading ? (
-                        <Loader2 className="h-3 w-3 animate-spin text-amber-400" />
-                      ) : (
-                        <>
-                          <Plus className="h-3 w-3 text-amber-400" />
-                          <span className="text-[7px] font-bold text-[var(--text-primary)] mt-0.5">+ Add</span>
-                        </>
-                      )}
+              {/* 2. Character / Product / Clothes Images Card */}
+              <input
+                ref={singleImageInputRef}
+                type="file"
+                multiple
+                accept="image/jpeg,image/png,image/webp"
+                className="sr-only"
+                tabIndex={-1}
+                disabled={busy || refUploading || referenceMedia.filter((r) => r.type !== "video").length >= 8}
+                onChange={(e) => {
+                  if (e.target.files) handleUploadImages(e.target.files);
+                  e.target.value = "";
+                }}
+              />
+
+              {referenceMedia.filter((r) => r.type !== "video").length === 0 ? (
+                <button
+                  type="button"
+                  disabled={busy || refUploading}
+                  onClick={() => singleImageInputRef.current?.click()}
+                  className="w-full flex flex-col items-center justify-center rounded-xl border border-dashed border-[var(--border-subtle)] bg-[var(--soft-black)] p-5 text-center transition-all hover:border-[var(--text-muted)] hover:bg-[var(--glass-elevated)] cursor-pointer group"
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--glass)] border border-[var(--border-subtle)] mb-2.5 group-hover:scale-105 transition-transform">
+                    {refUploading ? (
+                      <Loader2 className="h-5 w-5 animate-spin text-amber-400" />
+                    ) : (
+                      <ImagePlus className="h-5 w-5 text-[var(--text-primary)]" strokeWidth={1.75} />
+                    )}
+                  </div>
+                  <p className="text-xs font-bold text-[var(--text-primary)]">Add your characters, products, or clothes</p>
+                  <p className="mt-0.5 text-[10px] text-[var(--text-muted)]">Up to 8 images</p>
+                </button>
+              ) : (
+                <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--soft-black)] p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <ImagePlus className="h-3.5 w-3.5 text-[var(--text-primary)]" />
+                      <span className="text-xs font-bold text-[var(--text-primary)]">Characters & Products</span>
                     </div>
-                  ) : null}
+                    <span className="text-[10px] font-mono text-[var(--text-muted)]">
+                      {referenceMedia.filter((r) => r.type !== "video").length}/8 images
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-4 gap-1.5 pt-0.5">
+                    {referenceMedia
+                      .filter((r) => r.type !== "video")
+                      .map((item, idx) => (
+                        <div key={item.id} className="group relative aspect-square rounded-lg border border-[var(--border-subtle)] bg-black overflow-hidden shadow-xs">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={item.url} alt={item.name || `Reference ${idx + 1}`} className="h-full w-full object-cover" />
+                          {item.uploading ? (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/75 backdrop-blur-xs">
+                              <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-400" />
+                            </div>
+                          ) : null}
+                          <button
+                            type="button"
+                            disabled={busy || item.uploading}
+                            onClick={() => {
+                              const originalIdx = referenceMedia.findIndex((r) => r.id === item.id);
+                              if (originalIdx !== -1) handleRemoveReference(originalIdx);
+                            }}
+                            className="absolute top-1 right-1 rounded bg-black/80 hover:bg-rose-900 border border-white/10 p-0.5 text-white transition-colors cursor-pointer"
+                            title="Remove image"
+                          >
+                            <X className="h-2.5 w-2.5" />
+                          </button>
+                        </div>
+                      ))}
+                    {referenceMedia.filter((r) => r.type !== "video").length < 8 ? (
+                      <button
+                        type="button"
+                        disabled={busy || refUploading}
+                        onClick={() => singleImageInputRef.current?.click()}
+                        className="flex aspect-square flex-col items-center justify-center rounded-lg border border-dashed border-[var(--border-subtle)] bg-[var(--glass)] hover:bg-[var(--glass-elevated)] cursor-pointer text-center"
+                      >
+                        {refUploading ? (
+                          <Loader2 className="h-4 w-4 animate-spin text-amber-400" />
+                        ) : (
+                          <>
+                            <Plus className="h-4 w-4 text-[var(--text-primary)]" />
+                            <span className="text-[8px] font-bold text-[var(--text-primary)] mt-0.5">+ Add</span>
+                          </>
+                        )}
+                      </button>
+                    ) : null}
+                  </div>
                 </div>
               )}
 
               {refUploadError ? (
-                <div className="rounded border border-rose-500/30 bg-rose-500/10 px-2 py-1 text-[9px] font-medium text-rose-400">
+                <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1.5 text-[10px] font-medium text-rose-400">
                   {refUploadError}
                 </div>
               ) : null}
-            </div>
 
-            {/* 3. ASPECT RATIO (SLIM 5-COLUMN GRID) */}
-            <StudioCollapsible title="Aspect Ratio" defaultOpen={true}>
-              <div className="grid grid-cols-5 gap-1" role="radiogroup" aria-label="Aspect Ratio">
-                {activeModelDef.aspectRatios.map((item) => {
-                  const on = aspect === item.key;
-                  return (
-                    <button
-                      key={item.key}
-                      type="button"
-                      role="radio"
-                      aria-checked={on}
-                      disabled={busy}
-                      onClick={() => setAspect(item.key)}
-                      className={`flex flex-col items-center justify-center gap-1 rounded-md border py-1.5 px-0.5 text-center transition-all cursor-pointer ${
-                        on
-                          ? "border-amber-500/40 bg-[var(--soft-black)] text-[var(--text-primary)] shadow-xs font-bold"
-                          : "border-[var(--border-subtle)] bg-[var(--glass)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                      }`}
-                    >
-                      <div className="flex h-3.5 items-center justify-center">
-                        <div
-                          className={`rounded-[1.5px] border transition-all ${
-                            on ? "border-amber-400 bg-amber-400/30 shadow-xs" : "border-[var(--text-muted)]"
-                          }`}
-                          style={{ width: `${Math.round(item.iconW * 0.75)}px`, height: `${Math.round(item.iconH * 0.75)}px` }}
-                        />
-                      </div>
-                      <span className="font-mono text-[9px] font-bold leading-none">{item.ratio}</span>
-                    </button>
-                  );
-                })}
+              {/* 3. Prompt Card */}
+              <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--soft-black)] p-3 space-y-1.5">
+                <label htmlFor="premium-vid-prompt" className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
+                  Prompt
+                </label>
+                <textarea
+                  id="premium-vid-prompt"
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  placeholder="swap the video's main character to the attached characters and his clothes"
+                  rows={3}
+                  disabled={busy}
+                  className="w-full resize-none rounded-lg border border-[var(--border-subtle)] bg-[var(--glass)] p-2.5 text-xs text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)] focus:border-[var(--text-muted)]"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      void run();
+                    }
+                  }}
+                />
               </div>
-            </StudioCollapsible>
 
-            {/* 4. DURATION & OUTPUT */}
-            <StudioCollapsible title="Duration & Output" defaultOpen={true}>
-              <div className="space-y-2">
-                {/* Duration */}
-                <div>
-                  <div className="mb-1 flex items-center justify-between text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
-                    <span>Duration</span>
-                    <span className="font-mono text-amber-400 font-semibold">{duration}s · {estimatedCost} Credits</span>
+              {/* 4. Resolution Dropdown */}
+              <div className="relative" ref={resolutionMenuRef}>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => setResolutionMenuOpen((prev) => !prev)}
+                  className="w-full flex items-center justify-between rounded-xl border border-[var(--border-subtle)] bg-[var(--soft-black)] px-3 py-2.5 text-xs font-bold text-[var(--text-primary)] hover:bg-[var(--glass-elevated)] transition-all cursor-pointer"
+                >
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+                    <span>{resolution}</span>
                   </div>
-                  <div className={`grid ${activeModelDef.durations.length === 5 ? "grid-cols-5" : activeModelDef.durations.length === 4 ? "grid-cols-4" : "grid-cols-2"} gap-1`}>
-                    {activeModelDef.durations.map((d) => (
-                      <button
-                        key={d}
-                        type="button"
-                        disabled={busy}
-                        onClick={() => setDuration(d)}
-                        className={`flex flex-col items-center justify-center py-1 rounded-md border text-center transition-all cursor-pointer ${
-                          duration === d
-                            ? "border-amber-500/40 bg-[var(--soft-black)] text-[var(--text-primary)] shadow-xs font-bold"
-                            : "border-[var(--border-subtle)] bg-[var(--glass)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                        }`}
-                      >
-                        <span className="text-[11px] font-mono font-bold leading-none">{d}s</span>
-                        <span className="text-[7px] text-[var(--text-subtle)] font-mono mt-0.5">{d * currentCostPerSec} cr</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                  <ChevronDown className={`h-3.5 w-3.5 text-[var(--text-muted)] transition-transform ${resolutionMenuOpen ? "rotate-180" : ""}`} />
+                </button>
 
-                {/* Resolution */}
-                <div>
-                  <div className="mb-1 flex items-center justify-between text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
-                    <span>Resolution</span>
-                    <span className="font-mono text-[var(--text-primary)]">{resolution}</span>
-                  </div>
-                  <div className={`grid ${activeModelDef.resolutions.length === 3 ? "grid-cols-3" : "grid-cols-2"} gap-1`}>
-                    {activeModelDef.resolutions.map((r) => (
-                      <button
-                        key={r.key}
-                        type="button"
-                        disabled={busy}
-                        onClick={() => setResolution(r.key)}
-                        className={`rounded-md border py-1 text-[10px] font-bold transition-all cursor-pointer ${
-                          resolution === r.key
-                            ? "border-amber-500/40 bg-[var(--soft-black)] text-[var(--text-primary)] shadow-xs"
-                            : "border-[var(--border-subtle)] bg-[var(--glass)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                        }`}
-                      >
-                        {r.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Native Audio (Seedance 2.5 Only) */}
-                {activeModelDef.supportsSound ? (
-                  <div className="flex items-center justify-between rounded-md border border-[var(--border-subtle)] bg-[var(--soft-black)] px-2 py-1.5">
-                    <div className="flex items-center gap-1.5">
-                      {sound ? (
-                        <Volume2 className="h-3.5 w-3.5 text-amber-400 shrink-0" />
-                      ) : (
-                        <VolumeX className="h-3.5 w-3.5 text-[var(--text-muted)] shrink-0" />
-                      )}
-                      <div>
-                        <p className="text-[10px] font-bold text-[var(--text-primary)] leading-tight">Native Sound</p>
-                        <p className="text-[8px] text-[var(--text-subtle)] leading-tight">Motion-synced audio</p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => setSound(!sound)}
-                      className={`relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                        sound ? "bg-amber-400" : "bg-[var(--border-subtle)]"
-                      }`}
-                      role="switch"
-                      aria-checked={sound}
-                    >
-                      <span
-                        className={`pointer-events-none inline-block h-3 w-3 transform rounded-full bg-[var(--rich-black)] shadow ring-0 transition duration-200 ease-in-out ${
-                          sound ? "translate-x-3" : "translate-x-0"
-                        }`}
-                      />
-                    </button>
+                {resolutionMenuOpen ? (
+                  <div className="absolute z-20 top-full mt-1 left-0 w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--rich-black)] p-1 shadow-2xl space-y-0.5">
+                    {["720p", "480p", "1080p"].map((res) => {
+                      const isSel = resolution === res;
+                      return (
+                        <button
+                          key={res}
+                          type="button"
+                          disabled={busy}
+                          onClick={() => {
+                            setResolution(res);
+                            setResolutionMenuOpen(false);
+                          }}
+                          className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-bold cursor-pointer transition-colors ${
+                            isSel
+                              ? "bg-[var(--soft-black)] text-[var(--text-primary)] border border-[var(--border-subtle)]"
+                              : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass)]"
+                          }`}
+                        >
+                          <span>{res}</span>
+                          {isSel ? <Check className="h-3.5 w-3.5 text-amber-400" /> : null}
+                        </button>
+                      );
+                    })}
                   </div>
                 ) : null}
               </div>
-            </StudioCollapsible>
 
-            {/* 5. ADVANCED SETTINGS (EXPANDABLE) */}
-            <StudioCollapsible
-              title="Advanced Settings"
-              subtitle={isSeedance ? "Camera control, negative prompt & seed" : "Negative prompt & fine tuning"}
-              defaultOpen={false}
-            >
-              <div className="space-y-2">
-                {/* Camera / Motion Control (Seedance 2.5) */}
-                {activeModelDef.supportsCamera ? (
+              {/* 5. Advanced Settings (Aspect Ratio, Duration, Negative Prompt) */}
+              <StudioCollapsible title="Advanced Settings" subtitle="Aspect ratio, duration & fine tuning" defaultOpen={false}>
+                <div className="space-y-2.5">
+                  {/* Aspect Ratio */}
                   <div>
-                    <p className="mb-1 text-[9px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">
-                      Camera Motion Preset
-                    </p>
-                    <div className="grid grid-cols-4 gap-1">
-                      {CAMERA_MOVEMENTS.map((cam) => {
-                        const active = selectedCamera === cam.id;
-                        const CamIcon = cam.icon;
+                    <span className="text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)] block mb-1">
+                      Aspect Ratio
+                    </span>
+                    <div className="grid grid-cols-6 gap-1" role="radiogroup" aria-label="Aspect Ratio">
+                      {activeModelDef.aspectRatios.map((item) => {
+                        const on = aspect === item.key;
                         return (
                           <button
-                            key={cam.id}
+                            key={item.key}
                             type="button"
+                            role="radio"
+                            aria-checked={on}
                             disabled={busy}
-                            onClick={() => {
-                              setSelectedCamera(cam.id);
-                              appendPromptChip(cam.tag);
-                            }}
-                            className={`flex flex-col items-center gap-1 rounded-md border p-1 transition-all text-center cursor-pointer ${
-                              active
-                                ? "border-amber-500/40 bg-[var(--soft-black)] text-[var(--text-primary)] shadow-xs font-bold"
+                            onClick={() => setAspect(item.key)}
+                            className={`flex flex-col items-center justify-center gap-1 rounded-md border py-1.5 px-0.5 text-center transition-all cursor-pointer ${
+                              on
+                                ? "border-amber-500/40 bg-[var(--soft-black)] text-[var(--text-primary)] font-bold shadow-xs"
                                 : "border-[var(--border-subtle)] bg-[var(--glass)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                             }`}
                           >
-                            <CamIcon className={`h-3 w-3 shrink-0 ${active ? "text-amber-400" : "text-[var(--text-muted)]"}`} />
-                            <span className="truncate text-[8px] font-bold tracking-tight text-[var(--text-primary)] w-full">{cam.label}</span>
+                            <span className="font-mono text-[9px] font-bold leading-none">{item.ratio}</span>
                           </button>
                         );
                       })}
                     </div>
                   </div>
-                ) : null}
 
-                {/* Seed (Seedance 2.5) */}
-                {activeModelDef.supportsSeed ? (
+                  {/* Duration */}
                   <div>
-                    <div className="mb-0.5 flex items-center justify-between">
-                      <label htmlFor="vid-seed" className="text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
-                        Seed (Optional)
-                      </label>
-                      <span className="font-mono text-[8px] text-[var(--text-subtle)]">Random if blank</span>
+                    <div className="mb-1 flex items-center justify-between text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
+                      <span>Duration</span>
+                      <span className="font-mono text-amber-400 font-semibold">{duration}s · {estimatedCost} Credits</span>
                     </div>
-                    <input
-                      id="vid-seed"
-                      type="number"
-                      value={seed}
-                      onChange={(e) => setSeed(e.target.value)}
-                      disabled={busy}
-                      placeholder="e.g. 428912"
-                      className="w-full rounded-md border border-[var(--border-subtle)] bg-[var(--glass)] px-2.5 py-1 text-[11px] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)] focus:border-[var(--text-muted)] font-mono"
-                    />
+                    <div className="grid grid-cols-4 gap-1">
+                      {activeModelDef.durations.map((d) => (
+                        <button
+                          key={d}
+                          type="button"
+                          disabled={busy}
+                          onClick={() => setDuration(d)}
+                          className={`flex flex-col items-center justify-center py-1 rounded-md border text-center transition-all cursor-pointer ${
+                            duration === d
+                              ? "border-amber-500/40 bg-[var(--soft-black)] text-[var(--text-primary)] shadow-xs font-bold"
+                              : "border-[var(--border-subtle)] bg-[var(--glass)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                          }`}
+                        >
+                          <span className="text-[11px] font-mono font-bold leading-none">{d}s</span>
+                          <span className="text-[7px] text-[var(--text-subtle)] font-mono mt-0.5">{d * currentCostPerSec} cr</span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                ) : null}
 
-                {/* Negative Prompt */}
-                <div>
-                  <div className="mb-0.5 flex items-center justify-between">
-                    <label htmlFor="vid-neg" className="text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
+                  {/* Negative Prompt */}
+                  <div>
+                    <label htmlFor="premium-vid-neg" className="text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)] block mb-1">
                       Negative Prompt
                     </label>
-                    <span className="font-mono text-[8px] text-[var(--text-subtle)]">{negativePrompt.length}/2000</span>
+                    <textarea
+                      id="premium-vid-neg"
+                      value={negativePrompt}
+                      onChange={(e) => setNegativePrompt(e.target.value.slice(0, 2000))}
+                      disabled={busy}
+                      placeholder="Describe unwanted artifacts, blur, morphing…"
+                      rows={2}
+                      className="w-full resize-none rounded-md border border-[var(--border-subtle)] bg-[var(--glass)] px-2.5 py-1 text-[10px] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)] focus:border-[var(--text-muted)]"
+                    />
                   </div>
-                  <textarea
-                    id="vid-neg"
-                    value={negativePrompt}
-                    onChange={(e) => setNegativePrompt(e.target.value.slice(0, 2000))}
-                    disabled={busy}
-                    placeholder="Describe unwanted artifacts, blur, camera distortion, morphing…"
-                    rows={2}
-                    className="w-full resize-none rounded-md border border-[var(--border-subtle)] bg-[var(--glass)] px-2.5 py-1 text-[10px] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)] focus:border-[var(--text-muted)]"
-                  />
                 </div>
-              </div>
-            </StudioCollapsible>
+              </StudioCollapsible>
+            </div>
+          ) : (
+            /* ─────────────────────────────────────────────────────────────
+               SEEDANCE 2.5 FLAGSHIP CINEMATIC CONTROLS
+               ───────────────────────────────────────────────────────────── */
+            <div className="space-y-3">
+              {/* Reference Media Input */}
+              <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--glass)] p-2 space-y-1.5 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <ImagePlus className="h-3.5 w-3.5 text-[var(--text-primary)]" strokeWidth={2} />
+                    <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-primary)]">
+                      Reference Media (Max {activeModelDef.maxReferences})
+                    </span>
+                  </div>
+                  <span
+                    className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border ${
+                      referenceMedia.length > 0
+                        ? "bg-amber-500/10 border-amber-500/30 text-amber-400"
+                        : "bg-[var(--soft-black)] border-[var(--border-subtle)] text-[var(--text-subtle)]"
+                    }`}
+                  >
+                    {referenceMedia.length}/{activeModelDef.maxReferences}
+                  </span>
+                </div>
 
-          </div>
+                <input
+                  ref={multiImageInputRef}
+                  type="file"
+                  multiple
+                  accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime"
+                  className="sr-only"
+                  tabIndex={-1}
+                  disabled={busy || refUploading || referenceMedia.length >= activeModelDef.maxReferences}
+                  onChange={(e) => {
+                    if (e.target.files) handleUploadImages(e.target.files);
+                    e.target.value = "";
+                  }}
+                />
+
+                {referenceMedia.length === 0 ? (
+                  <div
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setIsDragging(true);
+                    }}
+                    onDragLeave={() => setIsDragging(false)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setIsDragging(false);
+                      if (e.dataTransfer.files?.length) {
+                        handleUploadImages(e.dataTransfer.files);
+                      }
+                    }}
+                    onClick={() => multiImageInputRef.current?.click()}
+                    className={`relative flex items-center justify-between gap-2 rounded-md border border-dashed px-2.5 py-1.5 transition-all cursor-pointer ${
+                      isDragging
+                        ? "border-amber-400 bg-amber-500/10 text-amber-300"
+                        : "border-[var(--border-subtle)] bg-[var(--soft-black)] text-[var(--text-muted)] hover:border-[var(--text-muted)] hover:bg-[var(--glass-elevated)]"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      {refUploading ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-400 shrink-0" />
+                      ) : (
+                        <Plus className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                      )}
+                      <span className="text-[10px] font-bold text-[var(--text-primary)] truncate">
+                        {refUploading ? "Uploading references…" : "+ Add Reference Media (Image / Video)"}
+                      </span>
+                    </div>
+                    <span className="text-[8px] text-[var(--text-subtle)] shrink-0 font-mono">
+                      Multimodal
+                    </span>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5 pt-0.5">
+                    {referenceMedia.map((item, idx) => (
+                      <div
+                        key={item.id}
+                        className="group relative flex flex-col rounded-md border border-[var(--border-subtle)] bg-[var(--soft-black)] overflow-hidden shadow-xs"
+                      >
+                        <div className="relative aspect-square w-full overflow-hidden bg-black/50">
+                          {item.type === "video" ? (
+                            <video src={item.url} muted loop autoPlay playsInline className="h-full w-full object-cover" />
+                          ) : (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={item.url} alt={item.name || `Reference ${idx + 1}`} className="h-full w-full object-cover" />
+                          )}
+                          {item.uploading ? (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/75 backdrop-blur-xs">
+                              <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-400" />
+                            </div>
+                          ) : null}
+                          <span className="absolute top-0.5 left-0.5 rounded bg-black/80 px-1 py-0.2 text-[7px] font-mono font-bold text-[var(--text-primary)] border border-white/10 leading-none">
+                            #{idx + 1}
+                          </span>
+                          <button
+                            type="button"
+                            disabled={busy || item.uploading}
+                            onClick={() => handleRemoveReference(idx)}
+                            className="absolute top-0.5 right-0.5 rounded bg-rose-950/80 hover:bg-rose-900 border border-rose-500/40 p-0.5 text-rose-300 transition-colors opacity-80 group-hover:opacity-100 cursor-pointer"
+                            title="Remove reference"
+                          >
+                            <X className="h-2 w-2" />
+                          </button>
+                        </div>
+                        {referenceMedia.length > 1 ? (
+                          <div className="flex items-center justify-between px-1 py-0.5 bg-[var(--soft-black)] border-t border-[var(--border-subtle)] text-[7px]">
+                            <span className="truncate text-[var(--text-subtle)] font-mono">#{idx + 1}</span>
+                            <div className="flex items-center gap-0.5">
+                              <button
+                                type="button"
+                                disabled={busy || idx === 0}
+                                onClick={() => handleMoveReference(idx, "left")}
+                                className="rounded p-0.2 text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-20 cursor-pointer"
+                                title="Move left"
+                              >
+                                <ArrowLeft className="h-2 w-2" />
+                              </button>
+                              <button
+                                type="button"
+                                disabled={busy || idx === referenceMedia.length - 1}
+                                onClick={() => handleMoveReference(idx, "right")}
+                                className="rounded p-0.2 text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-20 cursor-pointer"
+                                title="Move right"
+                              >
+                                <ArrowRight className="h-2 w-2" />
+                              </button>
+                            </div>
+                          </div>
+                        ) : null}
+                      </div>
+                    ))}
+
+                    {referenceMedia.length < activeModelDef.maxReferences ? (
+                      <div
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          setIsDragging(true);
+                        }}
+                        onDragLeave={() => setIsDragging(false)}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          setIsDragging(false);
+                          if (e.dataTransfer.files?.length) {
+                            handleUploadImages(e.dataTransfer.files);
+                          }
+                        }}
+                        onClick={() => multiImageInputRef.current?.click()}
+                        className="relative flex aspect-square flex-col items-center justify-center rounded-md border border-dashed border-[var(--border-subtle)] bg-[var(--soft-black)] p-0.5 text-center transition-all cursor-pointer hover:border-[var(--text-muted)] hover:bg-[var(--glass-elevated)]"
+                      >
+                        {refUploading ? (
+                          <Loader2 className="h-3 w-3 animate-spin text-amber-400" />
+                        ) : (
+                          <>
+                            <Plus className="h-3 w-3 text-amber-400" />
+                            <span className="text-[7px] font-bold text-[var(--text-primary)] mt-0.5">+ Add</span>
+                          </>
+                        )}
+                      </div>
+                    ) : null}
+                  </div>
+                )}
+
+                {refUploadError ? (
+                  <div className="rounded border border-rose-500/30 bg-rose-500/10 px-2 py-1 text-[9px] font-medium text-rose-400">
+                    {refUploadError}
+                  </div>
+                ) : null}
+              </div>
+
+              {/* Aspect Ratio */}
+              <StudioCollapsible title="Aspect Ratio" defaultOpen={true}>
+                <div className="grid grid-cols-5 gap-1" role="radiogroup" aria-label="Aspect Ratio">
+                  {activeModelDef.aspectRatios.map((item) => {
+                    const on = aspect === item.key;
+                    return (
+                      <button
+                        key={item.key}
+                        type="button"
+                        role="radio"
+                        aria-checked={on}
+                        disabled={busy}
+                        onClick={() => setAspect(item.key)}
+                        className={`flex flex-col items-center justify-center gap-1 rounded-md border py-1.5 px-0.5 text-center transition-all cursor-pointer ${
+                          on
+                            ? "border-amber-500/40 bg-[var(--soft-black)] text-[var(--text-primary)] shadow-xs font-bold"
+                            : "border-[var(--border-subtle)] bg-[var(--glass)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                        }`}
+                      >
+                        <div className="flex h-3.5 items-center justify-center">
+                          <div
+                            className={`rounded-[1.5px] border transition-all ${
+                              on ? "border-amber-400 bg-amber-400/30 shadow-xs" : "border-[var(--text-muted)]"
+                            }`}
+                            style={{ width: `${Math.round(item.iconW * 0.75)}px`, height: `${Math.round(item.iconH * 0.75)}px` }}
+                          />
+                        </div>
+                        <span className="font-mono text-[9px] font-bold leading-none">{item.ratio}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </StudioCollapsible>
+
+              {/* Duration & Output */}
+              <StudioCollapsible title="Duration & Output" defaultOpen={true}>
+                <div className="space-y-2">
+                  <div>
+                    <div className="mb-1 flex items-center justify-between text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
+                      <span>Duration</span>
+                      <span className="font-mono text-amber-400 font-semibold">{duration}s · {estimatedCost} Credits</span>
+                    </div>
+                    <div className="grid grid-cols-4 gap-1">
+                      {activeModelDef.durations.map((d) => (
+                        <button
+                          key={d}
+                          type="button"
+                          disabled={busy}
+                          onClick={() => setDuration(d)}
+                          className={`flex flex-col items-center justify-center py-1 rounded-md border text-center transition-all cursor-pointer ${
+                            duration === d
+                              ? "border-amber-500/40 bg-[var(--soft-black)] text-[var(--text-primary)] shadow-xs font-bold"
+                              : "border-[var(--border-subtle)] bg-[var(--glass)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                          }`}
+                        >
+                          <span className="text-[11px] font-mono font-bold leading-none">{d}s</span>
+                          <span className="text-[7px] text-[var(--text-subtle)] font-mono mt-0.5">{d * currentCostPerSec} cr</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="mb-1 flex items-center justify-between text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
+                      <span>Resolution</span>
+                      <span className="font-mono text-[var(--text-primary)]">{resolution}</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-1">
+                      {activeModelDef.resolutions.map((r) => (
+                        <button
+                          key={r.key}
+                          type="button"
+                          disabled={busy}
+                          onClick={() => setResolution(r.key)}
+                          className={`rounded-md border py-1 text-[10px] font-bold transition-all cursor-pointer ${
+                            resolution === r.key
+                              ? "border-amber-500/40 bg-[var(--soft-black)] text-[var(--text-primary)] shadow-xs"
+                              : "border-[var(--border-subtle)] bg-[var(--glass)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                          }`}
+                        >
+                          {r.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {activeModelDef.supportsSound ? (
+                    <div className="flex items-center justify-between rounded-md border border-[var(--border-subtle)] bg-[var(--soft-black)] px-2 py-1.5">
+                      <div className="flex items-center gap-1.5">
+                        {sound ? (
+                          <Volume2 className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                        ) : (
+                          <VolumeX className="h-3.5 w-3.5 text-[var(--text-muted)] shrink-0" />
+                        )}
+                        <div>
+                          <p className="text-[10px] font-bold text-[var(--text-primary)] leading-tight">Native Sound</p>
+                          <p className="text-[8px] text-[var(--text-subtle)] leading-tight">Motion-synced audio</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => setSound(!sound)}
+                        className={`relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                          sound ? "bg-amber-400" : "bg-[var(--border-subtle)]"
+                        }`}
+                        role="switch"
+                        aria-checked={sound}
+                      >
+                        <span
+                          className={`pointer-events-none inline-block h-3 w-3 transform rounded-full bg-[var(--rich-black)] shadow ring-0 transition duration-200 ease-in-out ${
+                            sound ? "translate-x-3" : "translate-x-0"
+                          }`}
+                        />
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              </StudioCollapsible>
+
+              {/* Advanced Settings */}
+              <StudioCollapsible
+                title="Advanced Settings"
+                subtitle="Camera control, negative prompt & seed"
+                defaultOpen={false}
+              >
+                <div className="space-y-2">
+                  {activeModelDef.supportsCamera ? (
+                    <div>
+                      <p className="mb-1 text-[9px] font-bold uppercase tracking-wider text-[var(--text-subtle)]">
+                        Camera Motion Preset
+                      </p>
+                      <div className="grid grid-cols-4 gap-1">
+                        {CAMERA_MOVEMENTS.map((cam) => {
+                          const active = selectedCamera === cam.id;
+                          const CamIcon = cam.icon;
+                          return (
+                            <button
+                              key={cam.id}
+                              type="button"
+                              disabled={busy}
+                              onClick={() => {
+                                setSelectedCamera(cam.id);
+                                appendPromptChip(cam.tag);
+                              }}
+                              className={`flex flex-col items-center gap-1 rounded-md border p-1 transition-all text-center cursor-pointer ${
+                                active
+                                  ? "border-amber-500/40 bg-[var(--soft-black)] text-[var(--text-primary)] shadow-xs font-bold"
+                                  : "border-[var(--border-subtle)] bg-[var(--glass)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                              }`}
+                            >
+                              <CamIcon className={`h-3 w-3 shrink-0 ${active ? "text-amber-400" : "text-[var(--text-muted)]"}`} />
+                              <span className="truncate text-[8px] font-bold tracking-tight text-[var(--text-primary)] w-full">{cam.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {activeModelDef.supportsSeed ? (
+                    <div>
+                      <div className="mb-0.5 flex items-center justify-between">
+                        <label htmlFor="vid-seed" className="text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
+                          Seed (Optional)
+                        </label>
+                        <span className="font-mono text-[8px] text-[var(--text-subtle)]">Random if blank</span>
+                      </div>
+                      <input
+                        id="vid-seed"
+                        type="number"
+                        value={seed}
+                        onChange={(e) => setSeed(e.target.value)}
+                        disabled={busy}
+                        placeholder="e.g. 428912"
+                        className="w-full rounded-md border border-[var(--border-subtle)] bg-[var(--glass)] px-2.5 py-1 text-[11px] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)] focus:border-[var(--text-muted)] font-mono"
+                      />
+                    </div>
+                  ) : null}
+
+                  <div>
+                    <div className="mb-0.5 flex items-center justify-between">
+                      <label htmlFor="vid-neg" className="text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-subtle)]">
+                        Negative Prompt
+                      </label>
+                      <span className="font-mono text-[8px] text-[var(--text-subtle)]">{negativePrompt.length}/2000</span>
+                    </div>
+                    <textarea
+                      id="vid-neg"
+                      value={negativePrompt}
+                      onChange={(e) => setNegativePrompt(e.target.value.slice(0, 2000))}
+                      disabled={busy}
+                      placeholder="Describe unwanted artifacts, blur, camera distortion, morphing…"
+                      rows={2}
+                      className="w-full resize-none rounded-md border border-[var(--border-subtle)] bg-[var(--glass)] px-2.5 py-1 text-[10px] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-subtle)] focus:border-[var(--text-muted)]"
+                    />
+                  </div>
+                </div>
+              </StudioCollapsible>
+            </div>
+          )}
         </div>
       </div>
 

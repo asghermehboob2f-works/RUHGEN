@@ -374,93 +374,93 @@ function mountStudioRoutes(app, options) {
   });
 
   app.post("/api/studio/image", requireUser, async (req, res) => {
-    const prompt = typeof req.body?.prompt === "string" ? req.body.prompt.trim() : "";
-    if (!prompt || prompt.length < 2) {
-      return res.status(400).json({ ok: false, error: "Enter a prompt (at least 2 characters)." });
-    }
-    const qualityRaw = typeof req.body?.quality === "string" ? req.body.quality.trim().toLowerCase() : "";
-    const modelRaw = typeof req.body?.model === "string" ? req.body.model.trim() : "";
-    let quality = "Quality";
-    let model = "Qubico/flux1-dev";
-    if (qualityRaw === "standard" || qualityRaw === "fast" || modelRaw.includes("schnell")) {
-      quality = "Standard";
-      model = "Qubico/flux1-schnell";
-    } else if (qualityRaw === "ultra") {
-      quality = "Ultra Quality";
-      model = "Qubico/flux1-dev";
-    } else {
-      quality = "Quality";
-      model = "Qubico/flux1-dev";
-    }
-    let width = Number(req.body?.width);
-    let height = Number(req.body?.height);
-    if (!Number.isFinite(width) || width <= 0) width = 1024;
-    if (!Number.isFinite(height) || height <= 0) height = 1024;
-    const w = Math.min(2048, Math.max(256, Math.round(width / 8) * 8));
-    const h = Math.min(2048, Math.max(256, Math.round(height / 8) * 8));
-
-    const imageRefRaw = typeof req.body?.image_url === "string" ? req.body.image_url.trim() : "";
-    const useImg2Img = imageRefRaw.length > 0;
-    if (useImg2Img && !isAcceptableStudioImageReferenceUrl(imageRefRaw)) {
-      return res.status(400).json({ ok: false, error: "Invalid reference image URL (use HTTPS)." });
-    }
-
-    let denoise = Number(req.body?.denoise);
-    if (!Number.isFinite(denoise) || denoise <= 0 || denoise >= 1) denoise = 0.65;
-
-    let guidanceScale = Number(req.body?.guidance_scale);
-    if (!Number.isFinite(guidanceScale) || guidanceScale < 1 || guidanceScale > 20) guidanceScale = 3.5;
-
-    // Quality specific credit costs
-    let costKey = "credits_per_image";
-    if (quality === "Standard" || model.includes("schnell")) {
-      costKey = "cost_image_schnell";
-    } else {
-      costKey = "cost_image_dev";
-    }
-    const costSetting = db.prepare("SELECT value FROM credit_settings WHERE key = ?").get(costKey)
-      || db.prepare("SELECT value FROM credit_settings WHERE key = 'credits_per_image'").get();
-    const finalCost = costSetting ? Number(costSetting.value) : (quality === "Standard" ? 2 : 3);
-
-    const targetTier = (qualityRaw === "standard" || qualityRaw === "fast" || modelRaw.includes("schnell")) ? "standard" : "premium";
-    const engineConfig = getImageConfig(targetTier);
-
-    if (!engineConfig.apiKey) {
-      return res.status(503).json({
-        ok: false,
-        error: `RUHGEN ${engineConfig.tier === 'standard' ? 'Standard' : 'Premium'} Image Engine is currently undergoing maintenance. Please try again shortly.`
-      });
-    }
-
-    // Validate balance and eligibility
-    const userRow = db.prepare("SELECT credits, suspended, generation_disabled FROM users WHERE id = ?").get(req.user.sub);
-    if (!userRow) {
-      return res.status(404).json({ ok: false, error: "User not found." });
-    }
-    if (userRow.suspended === 1) {
-      return res.status(403).json({ ok: false, error: "Your account has been suspended." });
-    }
-    if (userRow.generation_disabled === 1) {
-      return res.status(403).json({ ok: false, error: "Image generation is disabled for your account." });
-    }
-
-    const pendingSumRow = db.prepare("SELECT SUM(credits) as pending FROM studio_tasks WHERE user_id = ? AND status = 'pending'").get(req.user.sub);
-    const pendingCredits = pendingSumRow?.pending || 0;
-    const availableCredits = userRow.credits - pendingCredits;
-    if (availableCredits < finalCost) {
-      return res.status(400).json({
-        ok: false,
-        error: `Insufficient credits. You need ${finalCost} credits (available: ${availableCredits}, pending holds: ${pendingCredits}).`
-      });
-    }
-
-    const negative_prompt = typeof req.body?.negative_prompt === "string" ? req.body.negative_prompt.trim().slice(0, 2000) : "";
-
     try {
+      const prompt = typeof req.body?.prompt === "string" ? req.body.prompt.trim() : "";
+      if (!prompt || prompt.length < 2) {
+        return res.status(400).json({ ok: false, error: "Enter a prompt (at least 2 characters)." });
+      }
+      const qualityRaw = typeof req.body?.quality === "string" ? req.body.quality.trim().toLowerCase() : "";
+      const modelRaw = typeof req.body?.model === "string" ? req.body.model.trim() : "";
+      let quality = "Quality";
+      let model = "Qubico/flux1-dev";
+      if (qualityRaw === "standard" || qualityRaw === "fast" || modelRaw.includes("schnell")) {
+        quality = "Standard";
+        model = "Qubico/flux1-schnell";
+      } else if (qualityRaw === "ultra") {
+        quality = "Ultra Quality";
+        model = "Qubico/flux1-dev";
+      } else {
+        quality = "Quality";
+        model = "Qubico/flux1-dev";
+      }
+      let width = Number(req.body?.width);
+      let height = Number(req.body?.height);
+      if (!Number.isFinite(width) || width <= 0) width = 1024;
+      if (!Number.isFinite(height) || height <= 0) height = 1024;
+      const w = Math.min(2048, Math.max(256, Math.round(width / 8) * 8));
+      const h = Math.min(2048, Math.max(256, Math.round(height / 8) * 8));
+
+      const imageRefRaw = typeof req.body?.image_url === "string" ? req.body.image_url.trim() : "";
+      const useImg2Img = imageRefRaw.length > 0;
+      if (useImg2Img && !isAcceptableStudioImageReferenceUrl(imageRefRaw)) {
+        return res.status(400).json({ ok: false, error: "Invalid reference image URL (use HTTPS)." });
+      }
+
+      let denoise = Number(req.body?.denoise);
+      if (!Number.isFinite(denoise) || denoise <= 0 || denoise >= 1) denoise = 0.65;
+
+      let guidanceScale = Number(req.body?.guidance_scale);
+      if (!Number.isFinite(guidanceScale) || guidanceScale < 1 || guidanceScale > 20) guidanceScale = 3.5;
+
+      // Quality specific credit costs
+      let costKey = "credits_per_image";
+      if (quality === "Standard" || model.includes("schnell")) {
+        costKey = "cost_image_schnell";
+      } else {
+        costKey = "cost_image_dev";
+      }
+      const costSetting = db.prepare("SELECT value FROM credit_settings WHERE key = ?").get(costKey)
+        || db.prepare("SELECT value FROM credit_settings WHERE key = 'credits_per_image'").get();
+      const finalCost = costSetting ? Number(costSetting.value) : (quality === "Standard" ? 2 : 3);
+
+      const targetTier = (qualityRaw === "standard" || qualityRaw === "fast" || modelRaw.includes("schnell")) ? "standard" : "premium";
+      const engineConfig = getImageConfig(targetTier);
+
+      if (!engineConfig.apiKey) {
+        return res.status(503).json({
+          ok: false,
+          error: `RUHGEN ${engineConfig.tier === 'standard' ? 'Standard' : 'Premium'} Image Engine is currently undergoing maintenance. Please try again shortly.`
+        });
+      }
+
+      // Validate balance and eligibility
+      const userRow = db.prepare("SELECT credits, suspended, generation_disabled FROM users WHERE id = ?").get(req.user.sub);
+      if (!userRow) {
+        return res.status(404).json({ ok: false, error: "User not found." });
+      }
+      if (userRow.suspended === 1) {
+        return res.status(403).json({ ok: false, error: "Your account has been suspended." });
+      }
+      if (userRow.generation_disabled === 1) {
+        return res.status(403).json({ ok: false, error: "Image generation is disabled for your account." });
+      }
+
+      const pendingSumRow = db.prepare("SELECT SUM(credits) as pending FROM studio_tasks WHERE user_id = ? AND status = 'pending'").get(req.user.sub);
+      const pendingCredits = pendingSumRow?.pending || 0;
+      const availableCredits = userRow.credits - pendingCredits;
+      if (availableCredits < finalCost) {
+        return res.status(400).json({
+          ok: false,
+          error: `Insufficient credits. You need ${finalCost} credits (available: ${availableCredits}, pending holds: ${pendingCredits}).`
+        });
+      }
+
+      const negative_prompt = typeof req.body?.negative_prompt === "string" ? req.body.negative_prompt.trim().slice(0, 2000) : "";
+
       const imgRes = await ImageGenerationService.generateImage({
         prompt,
         negative_prompt,
-        tier: quality,
+        tier: targetTier,
         width: w,
         height: h,
         image_url: imageRefRaw,

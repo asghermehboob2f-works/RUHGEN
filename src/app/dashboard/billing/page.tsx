@@ -139,19 +139,19 @@ export default function BillingPage() {
         fetch("/api/payments/history", { headers: { Authorization: `Bearer ${token}` } }),
         fetch("/api/payments/plans"),
       ]);
-      const creditData = await creditRes.json();
-      const historyData = await historyRes.json();
-      const plansData = await plansRes.json();
+      const creditData = creditRes.ok ? await creditRes.json().catch(() => ({})) : {};
+      const historyData = historyRes.ok ? await historyRes.json().catch(() => ({})) : {};
+      const plansData = plansRes.ok ? await plansRes.json().catch(() => ({})) : {};
       
       let updatedData: BillingDashboardData = {};
-      if (creditData.ok) {
+      if (creditData?.ok) {
         updatedData = { ...creditData };
       }
-      if (historyData.ok) {
+      if (historyData?.ok) {
         updatedData.paymentHistory = historyData.payments;
       }
       setData(updatedData);
-      if (plansData.ok) {
+      if (plansData?.ok) {
         setPlans(plansData.plans || []);
         setPaymentsAvailable(plansData.available !== false);
       }
