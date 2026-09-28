@@ -171,17 +171,36 @@ class ModelRegistryService {
       }
     }
 
+    if (typeof rawParams.video_url === "string" && rawParams.video_url.trim()) {
+      const trimmedVid = rawParams.video_url.trim();
+      if (/^(https?:\/\/|data:video\/)/i.test(trimmedVid) && !validRefs.includes(trimmedVid)) {
+        validRefs.unshift(trimmedVid);
+      }
+    }
+
     if (validRefs.length > 0) {
-      const maxAllowed = Number(model.max_reference_images) || (model.tier === "premium" && model.type === "video" ? 10 : 1);
+      const maxAllowed = Number(model.max_reference_images) || (model.type === "video" ? 10 : 1);
       if (validRefs.length > maxAllowed) {
         throw new Error(
           `Maximum ${maxAllowed} reference media item${maxAllowed === 1 ? "" : "s"} supported for ${model.name}. You provided ${validRefs.length}.`
         );
       }
-      sanitized.image_urls = validRefs;
+
+      const isVideoItem = (r) => /\.(mp4|webm|mov|m4v|qt)/i.test(r) || r.startsWith("data:video/") || r.includes("video");
+      const videoItems = validRefs.filter(isVideoItem);
+      const imageItems = validRefs.filter((r) => !isVideoItem(r));
+
       sanitized.references = validRefs;
-      sanitized.image_url = validRefs[0];
-      if (model.type === "video") sanitized.reference_url = validRefs[0];
+      sanitized.image_urls = imageItems;
+      if (imageItems.length > 0) {
+        sanitized.image_url = imageItems[0];
+      }
+      if (videoItems.length > 0) {
+        sanitized.video_url = videoItems[0];
+        sanitized.reference_url = videoItems[0];
+      } else if (imageItems.length > 0 && model.type === "video") {
+        sanitized.reference_url = imageItems[0];
+      }
     }
 
     // 5. Guidance Scale & Denoise (for image edits)
@@ -264,38 +283,87 @@ class ModelRegistryService {
   }
 
   /**
-   * Format and validate parameters into the exact schema expected by Higgsfield API
+   * Format and validate parameters into the exact schema expected by provider API
    */
   static formatProviderInput(model, sanitizedParams) {
     if (model.type === "video") {
-      const hasRefImages = Boolean(sanitizedParams.image_urls && sanitizedParams.image_urls.length > 0);
+      const explicitRefs = Array.isArray(sanitizedParams.references)
+        ? sanitizedParams.references
+        : Array.isArray(sanitizedParams.image_urls)
+        ? sanitizedParams.image_urls
+        : sanitizedParams.image_url
+        ? [sanitizedParams.image_url]
+        : [];
 
+      // Detect video reference for Genjutsu Motion Transfer
+      const videoRef =
+        (typeof sanitizedParams.video_url === "string" && sanitizedParams.video_url.trim()) ||
+        explicitRefs.find((r) => typeof r === "string" && (/\.(mp4|webm|mov|m4v|qt)/i.test(r) || r.startsWith("data:video/") || r.includes("video")));
+
+      const imageRefs = explicitRefs.filter((r) => r !== videoRef);
+
+      const isGenjutsu =
+        (model.id && (model.id.includes("genesis") || model.id.includes("premium") || model.id.includes("genjutsu"))) ||
+        (model.kie_model_id && (model.kie_model_id.includes("genjutsu") || model.kie_model_id.includes("motion-transfer"))) ||
+        (model.name && model.name.toLowerCase().includes("premium") && !model.name.toLowerCase().includes("seedance")) ||
+        (Boolean(videoRef) && imageRefs.length > 0);
+
+      // 1. RUHGEN Premium: Genjutsu Motion Transfer Pipeline
+      if (isGenjutsu) {
+        const providerModel = "higgsfield/genjutsu/motion-transfer/v1.0";
+        const input = {
+          prompt: sanitizedParams.prompt,
+        };
+        if (videoRef) input.video_url = videoRef;
+        if (imageRefs.length > 0) {
+          input.image_urls = imageRefs;
+          input.images = imageRefs;
+          input.image_url = imageRefs[0];
+        }
+        if (sanitizedParams.aspect_ratio) input.aspect_ratio = String(sanitizedParams.aspect_ratio);
+        if (sanitizedParams.duration) input.duration = Number(sanitizedParams.duration);
+        if (sanitizedParams.resolution) input.resolution = String(sanitizedParams.resolution);
+        if (sanitizedParams.negative_prompt) input.negative_prompt = String(sanitizedParams.negative_prompt);
+        if (sanitizedParams.sound !== undefined) input.sound = Boolean(sanitizedParams.sound);
+        if (sanitizedParams.seed !== undefined && sanitizedParams.seed !== null && sanitizedParams.seed !== "") {
+          const numSeed = Number(sanitizedParams.seed);
+          if (Number.isFinite(numSeed)) input.seed = numSeed;
+        }
+
+        return {
+          providerModel,
+          input,
+        };
+      }
+
+      // 2. Seedance 2.5 Pipeline (Flagship Text-to-Video and Image-to-Video)
+      const hasRefImages = imageRefs.length > 0;
       const input = {
         prompt: sanitizedParams.prompt,
         aspect_ratio: String(sanitizedParams.aspect_ratio || "16:9"),
         duration: Number(sanitizedParams.duration || 5),
-        ...(sanitizedParams.negative_prompt ? { negative_prompt: sanitizedParams.negative_prompt } : {}),
       };
 
+      if (sanitizedParams.negative_prompt) {
+        input.negative_prompt = sanitizedParams.negative_prompt;
+      }
       if (sanitizedParams.resolution) {
         input.resolution = sanitizedParams.resolution;
       }
-
       if (sanitizedParams.sound !== undefined) {
         input.sound = Boolean(sanitizedParams.sound);
       }
-
       if (sanitizedParams.camera_control && sanitizedParams.camera_control !== "none" && sanitizedParams.camera_control !== "static") {
         input.camera_control = sanitizedParams.camera_control;
       }
-
       if (sanitizedParams.seed !== undefined && sanitizedParams.seed !== null && sanitizedParams.seed !== "") {
         const numSeed = Number(sanitizedParams.seed);
         if (Number.isFinite(numSeed)) input.seed = numSeed;
       }
-
       if (hasRefImages) {
-        input.image_url = sanitizedParams.image_urls[0];
+        input.image_url = imageRefs[0];
+        input.images = imageRefs;
+        input.image_urls = imageRefs;
       }
 
       const providerModel = hasRefImages

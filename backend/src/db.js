@@ -1553,27 +1553,47 @@ function seedModelRegistryIfEmpty(db) {
 
   // Migrate any existing legacy model IDs to current Higgsfield models
   try {
+    // 1. RUHGEN Premium -> Genjutsu Motion Transfer
     db.prepare(`
       UPDATE model_registry
-      SET kie_model_id = 'bytedance/seedance-2.5/text-to-video',
+      SET kie_model_id = 'higgsfield/genjutsu/motion-transfer/v1.0',
+          name = 'RUHGEN Premium',
+          tier = 'standard',
           base_provider_cost = 0.050,
           base_credit_cost = 3,
           credit_cost_type = 'per_second',
           min_margin_percent = 65.0,
           supported_aspect_ratios = '["16:9","9:16","1:1","4:3","3:2","21:9"]',
-          supported_resolutions = '["720p","480p","1080p","4k"]',
+          supported_resolutions = '["720p","480p","1080p"]',
+          supported_durations = '[5, 10, 15, 30]',
+          supported_controls = '["prompt","negative_prompt","aspect_ratio","duration","resolution","image_reference","image_urls","video_reference","multi_reference_images"]',
+          max_duration = 30,
+          max_resolution = '1080p',
+          max_reference_images = 8,
+          updated_at = ?
+      WHERE id = 'video-genesis-premium' OR id = 'video-ruhgen-premium'
+    `).run(now);
+
+    // 2. Seedance 2.5 -> Flagship Cinematic Video Engine
+    db.prepare(`
+      UPDATE model_registry
+      SET kie_model_id = 'bytedance/seedance-2.5/text-to-video',
+          name = 'Seedance 2.5',
+          tier = 'premium',
+          base_provider_cost = 0.090,
+          base_credit_cost = 6,
+          credit_cost_type = 'per_second',
+          min_margin_percent = 65.0,
+          supported_aspect_ratios = '["16:9","9:16","1:1","4:3","21:9"]',
+          supported_resolutions = '["720p","1080p","4k"]',
           supported_durations = '[5, 10, 15, 30]',
           supported_controls = '["prompt","negative_prompt","aspect_ratio","duration","resolution","sound","camera_control","image_reference","image_urls","multi_reference_images","seed"]',
           max_duration = 30,
           max_resolution = '4k',
           max_reference_images = 10,
           updated_at = ?
-      WHERE type = 'video'
+      WHERE id = 'video-seedance-2-5'
     `).run(now);
-
-    // Ensure model names are up-to-date
-    db.prepare("UPDATE model_registry SET name = 'RUHGEN Premium' WHERE id = 'video-genesis-premium' OR id = 'video-ruhgen-premium'").run();
-    db.prepare("UPDATE model_registry SET name = 'Seedance 2.5' WHERE id = 'video-seedance-2-5'").run();
   } catch (err) {
     console.warn("[db] Model registry migration notice:", err.message);
   }
