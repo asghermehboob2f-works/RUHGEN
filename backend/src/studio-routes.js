@@ -36,13 +36,13 @@ function requireUser(req, res, next) {
 }
 
 function publicBaseUrlFromRequest(req) {
-  const env = process.env.PUBLIC_BASE_URL?.trim();
+  const env = process.env.PUBLIC_BASE_URL?.trim() || process.env.APP_URL?.trim() || process.env.NEXT_PUBLIC_SITE_URL?.trim();
   if (env) return env.replace(/\/$/, "");
   const xfProto = String(req.headers["x-forwarded-proto"] || "")
     .split(",")[0]
     ?.trim();
   const proto = xfProto || req.protocol || "http";
-  const host = req.headers.host || "localhost";
+  const host = req.headers["x-forwarded-host"] || req.headers.host || "localhost:4000";
   return `${proto}://${host}`.replace(/\/$/, "");
 }
 
@@ -50,8 +50,10 @@ function isSafeExternalUrl(urlStr) {
   if (typeof urlStr !== "string" || !urlStr.trim()) return false;
   const trimmed = urlStr.trim();
   if (trimmed.startsWith("data:") || trimmed.startsWith("/")) return true;
+  if (trimmed.includes("/api/studio/reference/")) return true;
   try {
     const parsed = new URL(trimmed);
+    if (parsed.pathname.includes("/api/studio/reference/")) return true;
     if (parsed.protocol !== "https:") return false;
     const host = parsed.hostname.toLowerCase();
     if (
@@ -190,7 +192,7 @@ function mountStudioRoutes(app, options) {
   ReferenceStorageService.startSweeper(db, 60000);
 
   function validateReferenceFile(file) {
-    if (!file?.buffer || !Buffer.isBuffer(file.buffer)) {
+    if (!file?.buffer || !Buffer.isBuffer(file.buffer) || file.buffer.length === 0) {
       return { ok: false, error: "Invalid or empty file buffer." };
     }
 
@@ -202,9 +204,24 @@ function mountStudioRoutes(app, options) {
     const isJpeg = buf.length >= 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff;
     const isPng = buf.length >= 8 && buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47;
     const isWebp = buf.length >= 12 && buf.toString("ascii", 0, 4) === "RIFF" && buf.toString("ascii", 8, 12) === "WEBP";
+    const isGif = buf.length >= 4 && buf.toString("ascii", 0, 3) === "GIF";
 
     // Inspect magic bytes for video formats
-    const isMp4OrMov = buf.length >= 8 && (buf.toString("ascii", 4, 8) === "ftyp" || buf.toString("ascii", 4, 8) === "moov");
+    let isMp4OrMov = false;
+    if (buf.length >= 8) {
+      const header4 = buf.toString("ascii", 4, 8);
+      if (header4 === "ftyp" || header4 === "moov" || header4 === "mdat" || header4 === "wide" || header4 === "skip") {
+        isMp4OrMov = true;
+      } else {
+        const searchLen = Math.min(buf.length - 4, 64);
+        for (let i = 0; i < searchLen; i++) {
+          if (buf.toString("ascii", i, i + 4) === "ftyp") {
+            isMp4OrMov = true;
+            break;
+          }
+        }
+      }
+    }
     const isWebm = buf.length >= 4 && buf[0] === 0x1a && buf[1] === 0x45 && buf[2] === 0xdf && buf[3] === 0xa3;
 
     let refType = null;
@@ -217,16 +234,21 @@ function mountStudioRoutes(app, options) {
     } else if (isWebp) {
       refType = "image";
       mime = "image/webp";
+    } else if (isGif) {
+      refType = "image";
+      mime = "image/gif";
     } else if (isMp4OrMov) {
       refType = "video";
       mime = origName.endsWith(".mov") || origName.endsWith(".qt") ? "video/quicktime" : "video/mp4";
     } else if (isWebm) {
       refType = "video";
       mime = "video/webm";
-    } else if (/^image\/(jpeg|jpg|png|webp)$/.test(mime) && /\.(jpg|jpeg|png|webp)$/.test(origName)) {
+    } else if (/^image\/(jpeg|jpg|png|webp|gif)/.test(mime) || /\.(jpg|jpeg|png|webp|gif)$/.test(origName)) {
       refType = "image";
-    } else if (/^video\/(mp4|webm|quicktime|x-matroska|mpeg|avi)$/.test(mime) && /\.(mp4|webm|mov|qt)$/.test(origName)) {
+      mime = mime || "image/jpeg";
+    } else if (/^video\/(mp4|webm|quicktime|x-matroska|mpeg|avi|x-m4v)/.test(mime) || /\.(mp4|webm|mov|qt|m4v|mkv)$/.test(origName)) {
       refType = "video";
+      mime = mime || "video/mp4";
     } else {
       return {
         ok: false,
@@ -246,9 +268,7 @@ function mountStudioRoutes(app, options) {
     return { ok: true, refType, mime };
   }
 
-  app.post(
-    "/api/studio/reference-upload",
-    requireUser,
+  const referenceUploadHandler = (req, res, next) => {
     upload.fields([
       { name: "files", maxCount: 10 },
       { name: "file", maxCount: 10 },
@@ -256,8 +276,22 @@ function mountStudioRoutes(app, options) {
       { name: "images", maxCount: 10 },
       { name: "reference", maxCount: 10 },
       { name: "references", maxCount: 10 },
-      { name: "video", maxCount: 2 },
-    ]),
+      { name: "video", maxCount: 5 },
+    ])(req, res, (err) => {
+      if (err) {
+        const msg = err.code === "LIMIT_FILE_SIZE"
+          ? "File size exceeds limit."
+          : err.message || "File upload failed.";
+        return res.status(400).json({ ok: false, error: msg });
+      }
+      next();
+    });
+  };
+
+  app.post(
+    "/api/studio/reference-upload",
+    requireUser,
+    referenceUploadHandler,
     (req, res) => {
       try {
         const rawFiles = [];

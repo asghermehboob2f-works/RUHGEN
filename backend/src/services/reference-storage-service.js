@@ -17,6 +17,9 @@ const UNCLAIMED_REF_TTL_MS = 15 * 60 * 1000;
 // 30 minutes TTL for references claimed by an active generation job
 const CLAIMED_REF_TTL_MS = 30 * 60 * 1000;
 
+// 24 hours absolute hard maximum TTL (guaranteed purge ceiling)
+const MAX_HARD_TTL_MS = 24 * 60 * 60 * 1000;
+
 class ReferenceStorageService {
   /**
    * Ephemeral in-memory storage: id -> entry
@@ -132,7 +135,8 @@ class ReferenceStorageService {
       const entry = ReferenceStorageService._store.get(id);
       if (entry) {
         entry.jobId = String(jobId);
-        entry.expiresAt = now + CLAIMED_REF_TTL_MS; // Extend TTL while generation is active
+        // Extend TTL while generation is active, but never exceed 24 hours absolute ceiling
+        entry.expiresAt = Math.min(now + CLAIMED_REF_TTL_MS, entry.createdAt + MAX_HARD_TTL_MS);
         if (userId) entry.userId = String(userId);
         claimedIds.push(id);
       }
@@ -184,7 +188,7 @@ class ReferenceStorageService {
 
   /**
    * Fallback cleanup mechanism:
-   * 1. Purges expired references (past their TTL).
+   * 1. Purges expired references (past their TTL or 24 hours ceiling).
    * 2. Checks database for terminal jobs (COMPLETED, FAILED, CANCELLED) and immediately clears remaining references.
    * 3. Purges abandoned unclaimed uploads older than 15 minutes.
    */
@@ -193,9 +197,9 @@ class ReferenceStorageService {
     let expiredCount = 0;
     let terminalJobCleanCount = 0;
 
-    // 1. Time-based expiry sweep
+    // 1. Time-based and 24-hour ceiling expiry sweep
     for (const [id, entry] of ReferenceStorageService._store.entries()) {
-      if (now >= entry.expiresAt) {
+      if (now >= entry.expiresAt || now >= entry.createdAt + MAX_HARD_TTL_MS) {
         ReferenceStorageService._store.delete(id);
         expiredCount++;
       }

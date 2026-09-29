@@ -192,9 +192,6 @@ export async function uploadStudioReference(file: File): Promise<{ url: string; 
   }
   const fd = new FormData();
   fd.append("file", file);
-  fd.append("image", file);
-  fd.append("video", file);
-  fd.append("reference", file);
   const res = await fetch("/api/studio/reference-upload", {
     method: "POST",
     headers: { Authorization: `Bearer ${token}` },

@@ -293,12 +293,26 @@ export default function VideoStudioClient() {
   const [selectedCamera, setSelectedCamera] = useState<string>("none");
   const [seed, setSeed] = useState<string>("");
 
-  // Reference Media
-  const [referenceMedia, setReferenceMedia] = useState<ReferenceMediaItem[]>([]);
+  // Reference Media separated by model tier (Seedance 2.5 vs RUHGEN Premium)
+  const [premiumReferences, setPremiumReferences] = useState<ReferenceMediaItem[]>([]);
+  const [seedanceReferences, setSeedanceReferences] = useState<ReferenceMediaItem[]>([]);
   const [refUploading, setRefUploading] = useState(false);
   const [refUploadError, setRefUploadError] = useState<string | null>(null);
   const [availableModels, setAvailableModels] = useState<StudioModel[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+
+  // Active references derived strictly for the selected model tier
+  const referenceMedia = selectedTier === "quality" ? seedanceReferences : premiumReferences;
+  const setReferenceMedia = useCallback(
+    (updater: ReferenceMediaItem[] | ((prev: ReferenceMediaItem[]) => ReferenceMediaItem[])) => {
+      if (selectedTier === "quality") {
+        setSeedanceReferences(updater);
+      } else {
+        setPremiumReferences(updater);
+      }
+    },
+    [selectedTier]
+  );
 
   const [busy, setBusy] = useState(false);
   const [messages, setMessages] = useState<ChatMsg[]>([]);
@@ -318,7 +332,7 @@ export default function VideoStudioClient() {
     });
   }, []);
 
-  // Sync state when switching models
+  // Sync parameters when switching models
   useEffect(() => {
     if (!activeModelDef.durations.includes(duration)) {
       setDuration(activeModelDef.durations[0] || 5);
@@ -329,10 +343,7 @@ export default function VideoStudioClient() {
     if (!activeModelDef.aspectRatios.some((a) => a.key === aspect)) {
       setAspect(activeModelDef.aspectRatios[0]?.key || "16:9");
     }
-    if (!isSeedance && referenceMedia.length > 1) {
-      setReferenceMedia((prev) => prev.slice(0, 1));
-    }
-  }, [selectedTier, activeModelDef, duration, resolution, aspect, isSeedance, referenceMedia.length]);
+  }, [selectedTier, activeModelDef, duration, resolution, aspect]);
 
   // Credit calculation
   const currentCostPerSec = isSeedance ? (rates.cost_video_pro ?? 6) : (rates.cost_video_std ?? 3);
@@ -397,7 +408,7 @@ export default function VideoStudioClient() {
 
   const handleUploadVideo = useCallback(async (file: File) => {
     setRefUploadError(null);
-    if (!file.type.startsWith("video/") && !/\.(mp4|webm|mov|m4v)$/i.test(file.name)) {
+    if (!file.type.startsWith("video/") && !/\.(mp4|webm|mov|m4v|qt)$/i.test(file.name)) {
       setRefUploadError(`"${file.name}" is not a supported video format. Use MP4, WebM, or MOV.`);
       return;
     }
@@ -413,12 +424,12 @@ export default function VideoStudioClient() {
       type: "video",
       uploading: true,
     };
-    setReferenceMedia((prev) => [...prev.filter((r) => r.type !== "video"), tempItem]);
+    setPremiumReferences((prev) => [...prev.filter((r) => r.type !== "video"), tempItem]);
     setRefUploading(true);
     try {
       const result = await uploadStudioReferenceFiles([file]);
       const uploaded = result.files[0];
-      setReferenceMedia((prev) =>
+      setPremiumReferences((prev) =>
         prev.map((r) =>
           r.id === tempItem.id
             ? {
@@ -434,7 +445,7 @@ export default function VideoStudioClient() {
       );
     } catch (err) {
       setRefUploadError(err instanceof Error ? err.message : "Video upload failed.");
-      setReferenceMedia((prev) => prev.filter((r) => r.id !== tempItem.id));
+      setPremiumReferences((prev) => prev.filter((r) => r.id !== tempItem.id));
     } finally {
       setRefUploading(false);
     }
@@ -445,7 +456,79 @@ export default function VideoStudioClient() {
       const fileArr = Array.from(files);
       if (!fileArr.length) return;
       setRefUploadError(null);
-      const existingImgs = referenceMedia.filter((r) => r.type !== "video");
+
+      if (selectedTier === "quality") {
+        // Seedance 2.5: Multimodal Uploads (Images and Videos)
+        const maxRefs = activeModelDef.maxReferences || 10;
+        const remainingSlots = Math.max(0, maxRefs - seedanceReferences.length);
+        if (remainingSlots <= 0) {
+          setRefUploadError(`Maximum ${maxRefs} reference media items allowed for Seedance 2.5.`);
+          return;
+        }
+        const toUpload = fileArr.slice(0, remainingSlots);
+        const validFiles: { file: File; type: "image" | "video" }[] = [];
+        for (const f of toUpload) {
+          const isImg = f.type.startsWith("image/") || /\.(jpg|jpeg|png|webp)$/i.test(f.name);
+          const isVid = f.type.startsWith("video/") || /\.(mp4|webm|mov|m4v|qt)$/i.test(f.name);
+          if (!isImg && !isVid) {
+            setRefUploadError(`"${f.name}" is not supported. Use JPG, PNG, WebP for images or MP4, WebM, MOV for videos.`);
+            return;
+          }
+          if (isImg && f.size > 20 * 1024 * 1024) {
+            setRefUploadError(`Image "${f.name}" exceeds 20MB file size limit.`);
+            return;
+          }
+          if (isVid && f.size > 50 * 1024 * 1024) {
+            setRefUploadError(`Video "${f.name}" exceeds 50MB file size limit.`);
+            return;
+          }
+          validFiles.push({ file: f, type: isVid ? "video" : "image" });
+        }
+        if (!validFiles.length) return;
+
+        const tempItems: ReferenceMediaItem[] = validFiles.map((v) => ({
+          id: `temp-${v.type}-${Math.random().toString(36).slice(2)}`,
+          url: URL.createObjectURL(v.file),
+          name: v.file.name,
+          size: v.file.size,
+          type: v.type,
+          uploading: true,
+        }));
+
+        setSeedanceReferences((prev) => [...prev, ...tempItems]);
+        setRefUploading(true);
+        try {
+          const result = await uploadStudioReferenceFiles(validFiles.map((v) => v.file));
+          setSeedanceReferences((prev) => {
+            const updated = [...prev];
+            for (let i = 0; i < tempItems.length; i++) {
+              const temp = tempItems[i];
+              const uploaded = result.files[i] || result.files[0];
+              const idx = updated.findIndex((item) => item.id === temp.id);
+              if (idx !== -1 && uploaded) {
+                updated[idx] = {
+                  id: uploaded.id || `ref-${Date.now()}-${i}`,
+                  url: uploaded.url,
+                  name: uploaded.name || temp.name,
+                  size: uploaded.size || temp.size,
+                  type: uploaded.type || temp.type,
+                  uploading: false,
+                };
+              }
+            }
+            return updated;
+          });
+        } catch (err) {
+          setRefUploadError(err instanceof Error ? err.message : "Media upload failed.");
+          setSeedanceReferences((prev) => prev.filter((item) => !tempItems.some((t) => t.id === item.id)));
+        } finally {
+          setRefUploading(false);
+        }
+        return;
+      }
+
+      // RUHGEN Premium: Character & Product Reference Images
+      const existingImgs = premiumReferences.filter((r) => r.type !== "video");
       const remainingSlots = Math.max(0, 8 - existingImgs.length);
       if (remainingSlots <= 0) {
         setRefUploadError("Maximum 8 character/product reference images allowed.");
@@ -458,8 +541,8 @@ export default function VideoStudioClient() {
           setRefUploadError(`"${f.name}" is not supported. Use JPG, PNG, or WebP.`);
           return;
         }
-        if (f.size > 50 * 1024 * 1024) {
-          setRefUploadError(`"${f.name}" exceeds 50MB file size limit.`);
+        if (f.size > 20 * 1024 * 1024) {
+          setRefUploadError(`"${f.name}" exceeds 20MB file size limit.`);
           return;
         }
         validFiles.push(f);
@@ -473,11 +556,11 @@ export default function VideoStudioClient() {
         type: "image",
         uploading: true,
       }));
-      setReferenceMedia((prev) => [...prev, ...tempItems]);
+      setPremiumReferences((prev) => [...prev, ...tempItems]);
       setRefUploading(true);
       try {
         const result = await uploadStudioReferenceFiles(validFiles);
-        setReferenceMedia((prev) => {
+        setPremiumReferences((prev) => {
           const updated = [...prev];
           for (let i = 0; i < tempItems.length; i++) {
             const temp = tempItems[i];
@@ -498,43 +581,62 @@ export default function VideoStudioClient() {
         });
       } catch (err) {
         setRefUploadError(err instanceof Error ? err.message : "Image upload failed.");
-        setReferenceMedia((prev) => prev.filter((item) => !tempItems.some((t) => t.id === item.id)));
+        setPremiumReferences((prev) => prev.filter((item) => !tempItems.some((t) => t.id === item.id)));
       } finally {
         setRefUploading(false);
       }
     },
-    [referenceMedia]
+    [selectedTier, activeModelDef.maxReferences, seedanceReferences.length, premiumReferences]
   );
 
-  const handleRemoveReference = useCallback((index: number) => {
-    setReferenceMedia((prev) => {
-      const target = prev[index];
-      if (target && target.url && !target.uploading) {
+  const handleRemoveReference = useCallback(
+    (index: number) => {
+      const target = referenceMedia[index];
+      if (target && target.url && !target.uploading && !target.url.startsWith("blob:")) {
         deleteStudioReference(target.url || target.id).catch(() => {});
       }
-      return prev.filter((_, i) => i !== index);
-    });
-    setRefUploadError(null);
-  }, []);
+      if (selectedTier === "quality") {
+        setSeedanceReferences((prev) => prev.filter((_, i) => i !== index));
+      } else {
+        setPremiumReferences((prev) => prev.filter((_, i) => i !== index));
+      }
+      setRefUploadError(null);
+    },
+    [referenceMedia, selectedTier]
+  );
 
-  const handleMoveReference = useCallback((index: number, direction: "left" | "right") => {
-    setReferenceMedia((prev) => {
-      const nextIndex = direction === "left" ? index - 1 : index + 1;
-      if (nextIndex < 0 || nextIndex >= prev.length) return prev;
-      const copy = [...prev];
-      const temp = copy[index];
-      copy[index] = copy[nextIndex];
-      copy[nextIndex] = temp;
-      return copy;
-    });
-  }, []);
+  const handleMoveReference = useCallback(
+    (index: number, direction: "left" | "right") => {
+      const updateFn = (prev: ReferenceMediaItem[]) => {
+        const nextIndex = direction === "left" ? index - 1 : index + 1;
+        if (nextIndex < 0 || nextIndex >= prev.length) return prev;
+        const copy = [...prev];
+        const temp = copy[index];
+        copy[index] = copy[nextIndex];
+        copy[nextIndex] = temp;
+        return copy;
+      };
+      if (selectedTier === "quality") {
+        setSeedanceReferences(updateFn);
+      } else {
+        setPremiumReferences(updateFn);
+      }
+    },
+    [selectedTier]
+  );
 
   const run = useCallback(async () => {
     const p = prompt.trim();
     if (p.length < 2 || busy) return;
+
+    if (refUploading || referenceMedia.some((r) => r.uploading)) {
+      setRefUploadError("Please wait for reference media to finish uploading before generating.");
+      return;
+    }
+
     setMobileStudioPane("output");
     const neg = negativePrompt.trim();
-    const refUrls = referenceMedia.map((r) => r.url).filter(Boolean);
+    const refUrls = referenceMedia.filter((r) => !r.uploading && !r.url.startsWith("blob:")).map((r) => r.url).filter(Boolean);
     const modelName = activeModelDef.label;
 
     const parts = [`${duration}s clip`, aspect, resolution, modelName];
@@ -552,6 +654,7 @@ export default function VideoStudioClient() {
     ]);
     setPrompt("");
     setBusy(true);
+    setRefUploadError(null);
 
     const idempotencyKey = crypto.randomUUID();
     try {
@@ -607,7 +710,7 @@ export default function VideoStudioClient() {
       setBusy(false);
       void refreshUser();
     }
-  }, [prompt, negativePrompt, referenceMedia, activeModelDef, duration, aspect, resolution, selectedTier, sound, selectedCamera, seed, isSeedance, busy, refreshUser]);
+  }, [prompt, negativePrompt, referenceMedia, refUploading, activeModelDef, duration, aspect, resolution, selectedTier, sound, selectedCamera, seed, isSeedance, busy, refreshUser]);
 
   const copyText = async (text: string, label: string) => {
     try {
