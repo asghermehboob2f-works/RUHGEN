@@ -146,38 +146,9 @@ function mountAdminContentRoutes(app, { db, requireAdmin, upload, dataDir, proje
         row.id
       );
 
-      // Sync updated admin credentials to .env so restart retains changes
-      try {
-        const envPaths = [
-          path.join(projectRoot, ".env"),
-          path.join(projectRoot, "backend", ".env"),
-        ];
-        for (const envPath of envPaths) {
-          let content = await fs.readFile(envPath, "utf8").catch(() => null);
-          if (!content) continue;
-
-          const updateOrAppend = (key, val) => {
-            const regex = new RegExp(`^${key}=.*$`, "m");
-            if (regex.test(content)) {
-              content = content.replace(regex, `${key}=${val}`);
-            } else {
-              content += `\n${key}=${val}`;
-            }
-          };
-
-          if (email) updateOrAppend("ADMIN_SEED_EMAIL", email);
-          if (finalPlainPassword) updateOrAppend("ADMIN_SEED_PASSWORD", finalPlainPassword);
-          if (name) updateOrAppend("ADMIN_SEED_NAME", name);
-
-          await fs.writeFile(envPath, content, "utf8");
-          console.log(`[env-sync] Updated ${envPath} with new admin seed credentials.`);
-        }
-        if (email) process.env.ADMIN_SEED_EMAIL = email;
-        if (finalPlainPassword) process.env.ADMIN_SEED_PASSWORD = finalPlainPassword;
-        if (name) process.env.ADMIN_SEED_NAME = name;
-      } catch (envErr) {
-        console.error("[env-sync] Failed to write updated credentials to .env:", envErr);
-      }
+      // Keep in-memory process.env updated for non-sensitive identifiers if present
+      if (email) process.env.ADMIN_SEED_EMAIL = email;
+      if (name) process.env.ADMIN_SEED_NAME = name;
 
       const admin = { id: row.id, email, name };
       const token = signAdminToken(admin);

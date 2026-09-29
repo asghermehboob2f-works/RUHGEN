@@ -21,6 +21,37 @@ if (!fs.existsSync(publicDir)) {
   fs.mkdirSync(publicDir, { recursive: true });
 }
 
+function isSafeExternalUrl(urlStr) {
+  if (typeof urlStr !== "string" || !urlStr.trim()) return false;
+  const trimmed = urlStr.trim();
+  if (trimmed.startsWith("data:") || trimmed.startsWith("/")) return true;
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol !== "https:") return false;
+    const host = parsed.hostname.toLowerCase();
+    if (
+      host === "localhost" ||
+      host === "127.0.0.1" ||
+      host === "0.0.0.0" ||
+      host === "::1" ||
+      host.endsWith(".local") ||
+      host.endsWith(".internal") ||
+      host.endsWith(".arpa") ||
+      host.startsWith("169.254.") ||
+      host.startsWith("10.") ||
+      host.startsWith("192.168.") ||
+      host.startsWith("100.64.") ||
+      host.startsWith("127.") ||
+      /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(host)
+    ) {
+      return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Download media from a URL or parse base64 and store it locally, returning the public path.
  * @param {string} url - The external media URL or data URL.
@@ -59,9 +90,19 @@ async function storeCommunityMedia(url) {
       if (!/^\.[a-zA-Z0-9]+$/.test(ext)) {
         ext = ".jpg";
       }
-      const response = await fetch(url);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
+      let response;
+      try {
+        response = await fetch(url, { signal: controller.signal });
+      } finally {
+        clearTimeout(timeout);
+      }
       if (!response.ok) throw new Error(`Failed to download media: ${response.statusText}`);
       const arrayBuffer = await response.arrayBuffer();
+      if (arrayBuffer.byteLength > 60 * 1024 * 1024) {
+        throw new Error("Media size exceeds 60MB limit.");
+      }
       buffer = Buffer.from(arrayBuffer);
     }
 

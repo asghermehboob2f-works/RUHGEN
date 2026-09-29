@@ -49,8 +49,36 @@ function formatUpstreamError(status: number, rawText: string): { error: string; 
   };
 }
 
+// In-memory sliding window rate limiter for demo endpoint
+const demoLimiterMap = new Map<string, number[]>();
+const DEMO_WINDOW_MS = 15 * 60 * 1000;
+const DEMO_MAX_REQUESTS = 6;
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const timestamps = (demoLimiterMap.get(ip) || []).filter((t) => now - t < DEMO_WINDOW_MS);
+  if (timestamps.length >= DEMO_MAX_REQUESTS) {
+    demoLimiterMap.set(ip, timestamps);
+    return true;
+  }
+  timestamps.push(now);
+  demoLimiterMap.set(ip, timestamps);
+  return false;
+}
+
 /** Proxies NVIDIA GenAI FLUX image generation; bearer key stays server-side only. */
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "127.0.0.1";
+  if (isRateLimited(ip)) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Demo limit reached (max 6 generations per 15 minutes). Please sign up or sign in to continue generating.",
+      },
+      { status: 429 },
+    );
+  }
+
   const key = resolveGenAiKey();
   if (!key) {
     return NextResponse.json(

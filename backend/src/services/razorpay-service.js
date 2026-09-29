@@ -106,23 +106,14 @@ function getRazorpayCredentials(db) {
     val.length < 8;
 
   const isRealConfigured = !isPlaceholder(keyId) && !isPlaceholder(keySecret);
-  const isSimulator = !isRealConfigured;
-
-  if (isSimulator) {
-    keyId = "rzp_test_simulator";
-    keySecret = "simulated_test_secret_key_1234567890";
-    if (!webhookSecret || isPlaceholder(webhookSecret)) {
-      webhookSecret = "simulated_webhook_secret_1234567890";
-    }
-  }
 
   return {
-    keyId,
-    keySecret,
-    webhookSecret,
-    mode: isSimulator ? "test" : mode === "live" ? "live" : "test",
-    isConfigured: true, // System is active (using real keys or test simulator)
-    isSimulator,
+    keyId: isRealConfigured ? keyId : "",
+    keySecret: isRealConfigured ? keySecret : "",
+    webhookSecret: isPlaceholder(webhookSecret) ? "" : webhookSecret,
+    mode: mode === "live" ? "live" : "test",
+    isConfigured: isRealConfigured,
+    isSimulator: false,
     isRealConfigured,
   };
 }
@@ -130,8 +121,8 @@ function getRazorpayCredentials(db) {
 /** Returns an initialized Razorpay SDK instance. */
 function getRazorpayInstance(db) {
   const creds = getRazorpayCredentials(db);
-  if (creds.isSimulator) {
-    throw new Error("Razorpay simulator mode active; SDK initialization bypassed.");
+  if (!creds.isConfigured) {
+    throw new Error("Razorpay gateway is not configured.");
   }
   const Razorpay = require("razorpay");
   return new Razorpay({
@@ -146,11 +137,7 @@ function getRazorpayInstance(db) {
  */
 function verifyRazorpaySignature(orderId, paymentId, signature, db) {
   const creds = getRazorpayCredentials(db);
-  if (!signature || !orderId || !paymentId) return false;
-
-  if (creds.isSimulator) {
-    if (signature === "simulated_signature" || signature.startsWith("sim_sig_")) return true;
-  }
+  if (!creds.isConfigured || !creds.keySecret || !signature || !orderId || !paymentId) return false;
 
   const body = `${orderId}|${paymentId}`;
   try {
@@ -158,7 +145,7 @@ function verifyRazorpaySignature(orderId, paymentId, signature, db) {
       .createHmac("sha256", creds.keySecret)
       .update(body)
       .digest("hex");
-    if (signature === expected) return true;
+    if (signature.length !== expected.length) return false;
     return crypto.timingSafeEqual(
       Buffer.from(expected, "hex"),
       Buffer.from(signature, "hex")
@@ -175,17 +162,13 @@ function verifyWebhookSignature(rawBody, signature, db) {
 
   if (!secret || !signature) return false;
 
-  if (creds.isSimulator && (signature === "simulated_webhook_signature" || signature.startsWith("sim_wh_"))) {
-    return true;
-  }
-
   try {
     const bodyStr = typeof rawBody === "string" ? rawBody : rawBody.toString("utf8");
     const expected = crypto
       .createHmac("sha256", secret)
       .update(bodyStr)
       .digest("hex");
-    if (signature === expected) return true;
+    if (signature.length !== expected.length) return false;
     return crypto.timingSafeEqual(
       Buffer.from(expected, "hex"),
       Buffer.from(signature, "hex")
@@ -198,32 +181,7 @@ function verifyWebhookSignature(rawBody, signature, db) {
 /**
  * Fetch payment directly from Razorpay server-side API to independently verify status & amount.
  */
-async function fetchRazorpayPayment(paymentId, db, expectedOrderId = "") {
-  const creds = getRazorpayCredentials(db);
-  if (creds.isSimulator) {
-    let orderId = expectedOrderId || "order_sim_test";
-    let amount = 49900;
-    if (db && expectedOrderId) {
-      try {
-        const p = db.prepare("SELECT razorpay_order_id, amount_paise FROM payments WHERE razorpay_order_id = ?").get(expectedOrderId);
-        if (p) {
-          orderId = p.razorpay_order_id;
-          amount = p.amount_paise;
-        }
-      } catch {}
-    }
-    return {
-      id: paymentId,
-      entity: "payment",
-      order_id: orderId,
-      amount: amount,
-      currency: "INR",
-      status: "captured",
-      method: "card",
-      captured: true,
-      description: "Simulated payment",
-    };
-  }
+async function fetchRazorpayPayment(paymentId, db) {
   const instance = getRazorpayInstance(db);
   return await instance.payments.fetch(paymentId);
 }
@@ -232,24 +190,6 @@ async function fetchRazorpayPayment(paymentId, db, expectedOrderId = "") {
  * Fetch order directly from Razorpay server-side API.
  */
 async function fetchRazorpayOrder(orderId, db) {
-  const creds = getRazorpayCredentials(db);
-  if (creds.isSimulator) {
-    let amount = 49900;
-    if (db && orderId) {
-      try {
-        const p = db.prepare("SELECT amount_paise FROM payments WHERE razorpay_order_id = ?").get(orderId);
-        if (p && p.amount_paise) amount = p.amount_paise;
-      } catch {}
-    }
-    return {
-      id: orderId,
-      entity: "order",
-      amount: amount,
-      currency: "INR",
-      status: "paid",
-      attempts: 1,
-    };
-  }
   const instance = getRazorpayInstance(db);
   return await instance.orders.fetch(orderId);
 }
@@ -258,10 +198,6 @@ async function fetchRazorpayOrder(orderId, db) {
  * Capture an authorized payment via Razorpay SDK if not auto-captured.
  */
 async function captureRazorpayPayment(paymentId, amountPaise, currency = "INR", db) {
-  const creds = getRazorpayCredentials(db);
-  if (creds.isSimulator) {
-    return { id: paymentId, status: "captured", amount: amountPaise, currency };
-  }
   const instance = getRazorpayInstance(db);
   return await instance.payments.capture(paymentId, amountPaise, currency);
 }
@@ -270,10 +206,6 @@ async function captureRazorpayPayment(paymentId, amountPaise, currency = "INR", 
  * Refund a payment via Razorpay SDK.
  */
 async function refundRazorpayPayment(paymentId, amountPaise, db) {
-  const creds = getRazorpayCredentials(db);
-  if (creds.isSimulator) {
-    return { id: `rfnd_sim_${Date.now()}`, payment_id: paymentId, amount: amountPaise, status: "processed" };
-  }
   const instance = getRazorpayInstance(db);
   const params = amountPaise ? { amount: amountPaise } : {};
   return await instance.payments.refund(paymentId, params);

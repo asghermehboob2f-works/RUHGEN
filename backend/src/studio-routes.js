@@ -52,22 +52,33 @@ function isSafeExternalUrl(urlStr) {
   if (trimmed.startsWith("data:") || trimmed.startsWith("/")) return true;
   try {
     const parsed = new URL(trimmed);
-    return parsed.protocol === "http:" || parsed.protocol === "https:";
+    if (parsed.protocol !== "https:") return false;
+    const host = parsed.hostname.toLowerCase();
+    if (
+      host === "localhost" ||
+      host === "127.0.0.1" ||
+      host === "0.0.0.0" ||
+      host === "::1" ||
+      host.endsWith(".local") ||
+      host.endsWith(".internal") ||
+      host.endsWith(".arpa") ||
+      host.startsWith("169.254.") ||
+      host.startsWith("10.") ||
+      host.startsWith("192.168.") ||
+      host.startsWith("100.64.") ||
+      host.startsWith("127.") ||
+      /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(host)
+    ) {
+      return false;
+    }
+    return true;
   } catch {
     return false;
   }
 }
 
 function isAcceptableStudioReferenceUrl(urlStr) {
-  if (typeof urlStr !== "string" || !urlStr.trim()) return false;
-  const trimmed = urlStr.trim();
-  if (trimmed.startsWith("data:") || trimmed.startsWith("/")) return true;
-  try {
-    const parsed = new URL(trimmed);
-    return parsed.protocol === "http:" || parsed.protocol === "https:";
-  } catch {
-    return false;
-  }
+  return isSafeExternalUrl(urlStr);
 }
 
 function isAcceptableStudioImageReferenceUrl(url) {
@@ -317,8 +328,8 @@ function mountStudioRoutes(app, options) {
   );
 
   app.get("/api/studio/reference/:id", (req, res) => {
-    const id = String(req.params.id || "");
-    if (!id || id.includes("..") || id.includes("/")) {
+    const id = String(req.params.id || "").trim();
+    if (!/^[a-f0-9]{48}$/i.test(id)) {
       return res.status(404).end();
     }
     const entry = ReferenceStorageService.getReference(id);
@@ -333,7 +344,10 @@ function mountStudioRoutes(app, options) {
   });
 
   app.delete("/api/studio/reference/:id", requireUser, (req, res) => {
-    const id = String(req.params.id || "");
+    const id = String(req.params.id || "").trim();
+    if (!/^[a-f0-9]{48}$/i.test(id)) {
+      return res.status(400).json({ ok: false, error: "Invalid reference ID." });
+    }
     const deleted = ReferenceStorageService.deleteReference(id, req.user?.sub);
     return res.json({ ok: true, deleted });
   });
@@ -859,30 +873,63 @@ function mountStudioRoutes(app, options) {
         return res.send(buf);
       }
 
-      // 2. Resolve relative URLs or absolute URLs
-      let fetchUrl = rawUrl;
+      // 2. Handle local media paths safely from filesystem
       if (rawUrl.startsWith("/")) {
-        const base = publicBaseUrlFromRequest(req) || "http://localhost:4000";
-        fetchUrl = `${base}${rawUrl}`;
-      } else {
-        try {
-          const parsed = new URL(rawUrl);
-          if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-            return res.status(400).json({ ok: false, error: "Invalid URL scheme." });
+        const cleanPath = path.normalize(rawUrl).replace(/^(\.\.[\/\\])+/, "");
+        const projectRoot = path.resolve(__dirname, "..", "..");
+        const allowedRoots = [
+          path.join(projectRoot, "media"),
+          path.join(projectRoot, "public", "media"),
+          path.join(projectRoot, "media", "community-media"),
+          path.join(projectRoot, "public", "community-media"),
+        ];
+
+        let foundPath = null;
+        for (const root of allowedRoots) {
+          const resolved = path.resolve(root, cleanPath.replace(/^\/(media|community-media)\//, ""));
+          if (resolved.startsWith(root) && require("node:fs").existsSync(resolved)) {
+            foundPath = resolved;
+            break;
           }
-        } catch {
-          return res.status(400).json({ ok: false, error: "Invalid URL format." });
         }
+
+        if (foundPath) {
+          const buf = require("node:fs").readFileSync(foundPath);
+          const baseSeg = path.basename(foundPath);
+          res.setHeader("Content-Type", fallbackCt);
+          res.setHeader("Content-Disposition", `attachment; filename="${baseSeg.replace(/[^a-zA-Z0-9._-]/g, "_")}"`);
+          return res.send(buf);
+        }
+
+        return res.status(404).json({ ok: false, error: "Local media file not found." });
       }
 
-      const upstream = await fetch(fetchUrl);
+      // 3. Handle external URLs with strict SSRF protection
+      if (!isSafeExternalUrl(rawUrl)) {
+        return res.status(400).json({ ok: false, error: "Invalid or disallowed remote URL." });
+      }
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
+
+      const upstream = await fetch(rawUrl, {
+        signal: controller.signal,
+        headers: { Accept: "image/*,video/*,*/*" },
+      });
+      clearTimeout(timeout);
+
       if (!upstream.ok) {
         return res.status(502).json({ ok: false, error: "Could not fetch remote file." });
       }
+
       const buf = Buffer.from(await upstream.arrayBuffer());
+      if (buf.length > 60 * 1024 * 1024) {
+        return res.status(400).json({ ok: false, error: "Remote file exceeds maximum 60MB download limit." });
+      }
+
       let name = fallbackName;
       try {
-        const pathName = new URL(fetchUrl).pathname;
+        const pathName = new URL(rawUrl).pathname;
         const baseSeg = path.basename(pathName);
         if (baseSeg && /\.[a-zA-Z0-9]{2,8}$/.test(baseSeg)) {
           name = baseSeg;

@@ -367,43 +367,6 @@ function mountPaymentRoutes(app, { db, verifyAdminToken }) {
           planName: plan.name,
           credits: plan.credits,
           priceDisplay: plan.price_display,
-          isSimulator: creds.isSimulator,
-        });
-      }
-
-      // If in simulator mode (e.g. testing without live keys)
-      if (creds.isSimulator) {
-        const simOrderId = `order_sim_${Date.now()}`;
-        const simTxId = crypto.randomUUID();
-        db.prepare(
-          `INSERT INTO payments
-           (id, user_id, razorpay_order_id, plan_id, plan_name_snapshot, amount_paise, currency, credits_to_grant,
-            status, created_at, metadata_json)
-           VALUES (?, ?, ?, ?, ?, ?, 'INR', ?, 'created', ?, ?)`
-        ).run(
-          simTxId,
-          req.userId,
-          simOrderId,
-          planId,
-          plan.name,
-          plan.price_inr,
-          plan.credits,
-          new Date().toISOString(),
-          JSON.stringify({ planName: plan.name, credits: plan.credits })
-        );
-
-        return res.json({
-          ok: true,
-          available: true,
-          orderId: simOrderId,
-          internalTransactionId: simTxId,
-          amount: plan.price_inr,
-          currency: "INR",
-          keyId: creds.keyId,
-          planName: plan.name,
-          credits: plan.credits,
-          priceDisplay: plan.price_display,
-          isSimulator: true,
         });
       }
 

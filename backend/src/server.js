@@ -67,6 +67,8 @@ app.use((_req, res, next) => {
 const allowedOrigins = [
   process.env.APP_URL,
   process.env.NEXT_PUBLIC_SITE_URL,
+  "https://ruhgen.in",
+  "https://www.ruhgen.in",
   "http://localhost:3000",
   "http://127.0.0.1:3000",
 ].filter(Boolean);
@@ -74,12 +76,16 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps, curl, or server-to-server)
+      // Allow requests with no origin (like server-to-server, curl)
       if (!origin) return callback(null, true);
-      if (allowedOrigins.some((allowed) => allowed.replace(/\/$/, "") === origin.replace(/\/$/, ""))) {
+      const isAllowed = allowedOrigins.some((allowed) => allowed.replace(/\/$/, "") === origin.replace(/\/$/, ""));
+      if (isAllowed) {
         return callback(null, true);
       }
-      return callback(null, true); // Dev/permissive fallback
+      if (process.env.NODE_ENV === "production") {
+        return callback(null, false);
+      }
+      return callback(null, true);
     },
     credentials: true,
   })

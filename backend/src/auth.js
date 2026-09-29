@@ -191,7 +191,11 @@ function signAdminToken(admin) {
 }
 
 function verifyAdminToken(token) {
-  return jwt.verify(token, getJwtSecret());
+  const payload = jwt.verify(token, getJwtSecret(), { algorithms: ["HS256"] });
+  if (!payload || payload.typ !== "admin" || typeof payload.sub !== "string") {
+    throw new Error("Invalid admin token payload.");
+  }
+  return payload;
 }
 
 /**
@@ -206,7 +210,11 @@ function signUserToken(user) {
 }
 
 function verifyUserToken(token) {
-  return jwt.verify(token, getJwtSecret());
+  const payload = jwt.verify(token, getJwtSecret(), { algorithms: ["HS256"] });
+  if (!payload || payload.typ !== "user" || typeof payload.sub !== "string") {
+    throw new Error("Invalid user token payload.");
+  }
+  return payload;
 }
 
 module.exports = {
